@@ -6,8 +6,10 @@ struct LoginView: View {
     @State private var isSecured = true
     @State private var showAlert = false
     @State private var rememberMe = false
+    @State private var isLoggedIn = false
 
     var body: some View {
+        NavigationStack {
         GeometryReader { geometry in
             ZStack {
                 // Background gradient - matching logo colors
@@ -213,21 +215,20 @@ struct LoginView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .navigationDestination(isPresented: $isLoggedIn) {
+            MainTabView()
+                .navigationBarBackButtonHidden(true)
+        }
+        }
     }
 
     private func handleLogin() {
         // Dismiss keyboard
         hideKeyboard()
 
-        // Basic validation
-        guard !email.isEmpty, !password.isEmpty else {
-            showAlert = true
-            return
-        }
-
-        // TODO: Implement actual login logic
-        print("Login attempted with email: \(email)")
-        showAlert = true
+        // Skip validation for now - allow direct sign in
+        // TODO: Implement actual authentication later
+        isLoggedIn = true
     }
 
     private func hideKeyboard() {

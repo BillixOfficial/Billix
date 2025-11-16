@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */; };
+		56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C58A5E4A878AC7816EB3122 /* HealthView.swift */; };
+		961C2FE01F4983F1585AF912 /* UploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2095ED9CB5E4B6E6FA83799 /* UploadView.swift */; };
+		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
+		F34AB25163A7004F64C6550E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF1E5E15C4654C0F526462A /* HomeView.swift */; };
+		F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89EC00ED13981D09603CF99 /* ExploreView.swift */; };
 		F974B1D42EC9553B003EBF59 /* BillixApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B1D32EC9553B003EBF59 /* BillixApp.swift */; };
 		F974B1D62EC9553B003EBF59 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B1D52EC9553B003EBF59 /* ContentView.swift */; };
 		F974B1D82EC9553B003EBF59 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B1D72EC9553B003EBF59 /* Item.swift */; };
@@ -37,6 +43,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		5C58A5E4A878AC7816EB3122 /* HealthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
+		ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		B2095ED9CB5E4B6E6FA83799 /* UploadView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadView.swift; sourceTree = "<group>"; };
+		C89EC00ED13981D09603CF99 /* ExploreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		EDF1E5E15C4654C0F526462A /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		F974B1D02EC9553B003EBF59 /* Billix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Billix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F974B1D32EC9553B003EBF59 /* BillixApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillixApp.swift; sourceTree = "<group>"; };
 		F974B1D52EC9553B003EBF59 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -101,16 +113,126 @@
 		F974B1D22EC9553B003EBF59 /* Billix */ = {
 			isa = PBXGroup;
 			children = (
-				F974B1D32EC9553B003EBF59 /* BillixApp.swift */,
-				F974B1D52EC9553B003EBF59 /* ContentView.swift */,
-				F974B2002EC955A1003EBF59 /* LoginView.swift */,
-				F974B2022EC955C0003EBF59 /* ColorPalette.swift */,
-				F974B1D72EC9553B003EBF59 /* Item.swift */,
+				1A1A1A1A1A1A1A1A1A1A1A1A /* App */,
+				2B2B2B2B2B2B2B2B2B2B2B2B /* Features */,
+				3C3C3C3C3C3C3C3C3C3C3C3C /* Models */,
+				4D4D4D4D4D4D4D4D4D4D4D4D /* Utilities */,
+				5E5E5E5E5E5E5E5E5E5E5E5E /* Components */,
+				6F6F6F6F6F6F6F6F6F6F6F6F /* Services */,
+				7A7A7A7A7A7A7A7A7A7A7A7A /* Extensions */,
 				F974B1D92EC9553C003EBF59 /* Assets.xcassets */,
 				F974B1DB2EC9553C003EBF59 /* Billix.entitlements */,
 				F974B1DC2EC9553C003EBF59 /* Preview Content */,
 			);
 			path = Billix;
+			sourceTree = "<group>";
+		};
+		1A1A1A1A1A1A1A1A1A1A1A1A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F974B1D32EC9553B003EBF59 /* BillixApp.swift */,
+				F974B1D52EC9553B003EBF59 /* ContentView.swift */,
+				41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		2B2B2B2B2B2B2B2B2B2B2B2B /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				8A8A8A8A8A8A8A8A8A8A8A8A /* Auth */,
+				8B8B8B8B8B8B8B8B8B8B8B8B /* Home */,
+				8C8C8C8C8C8C8C8C8C8C8C8C /* Explore */,
+				8D8D8D8D8D8D8D8D8D8D8D8D /* Upload */,
+				8E8E8E8E8E8E8E8E8E8E8E8E /* Health */,
+				8F8F8F8F8F8F8F8F8F8F8F8F /* Profile */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		8A8A8A8A8A8A8A8A8A8A8A8A /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				F974B2002EC955A1003EBF59 /* LoginView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		8B8B8B8B8B8B8B8B8B8B8B8B /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				EDF1E5E15C4654C0F526462A /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		8C8C8C8C8C8C8C8C8C8C8C8C /* Explore */ = {
+			isa = PBXGroup;
+			children = (
+				C89EC00ED13981D09603CF99 /* ExploreView.swift */,
+			);
+			path = Explore;
+			sourceTree = "<group>";
+		};
+		8D8D8D8D8D8D8D8D8D8D8D8D /* Upload */ = {
+			isa = PBXGroup;
+			children = (
+				B2095ED9CB5E4B6E6FA83799 /* UploadView.swift */,
+			);
+			path = Upload;
+			sourceTree = "<group>";
+		};
+		8E8E8E8E8E8E8E8E8E8E8E8E /* Health */ = {
+			isa = PBXGroup;
+			children = (
+				5C58A5E4A878AC7816EB3122 /* HealthView.swift */,
+			);
+			path = Health;
+			sourceTree = "<group>";
+		};
+		8F8F8F8F8F8F8F8F8F8F8F8F /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		3C3C3C3C3C3C3C3C3C3C3C3C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				F974B1D72EC9553B003EBF59 /* Item.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		4D4D4D4D4D4D4D4D4D4D4D4D /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				F974B2022EC955C0003EBF59 /* ColorPalette.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		5E5E5E5E5E5E5E5E5E5E5E5E /* Components */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		6F6F6F6F6F6F6F6F6F6F6F6F /* Services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		7A7A7A7A7A7A7A7A7A7A7A7A /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 		F974B1DC2EC9553C003EBF59 /* Preview Content */ = {
@@ -273,6 +395,12 @@
 				F974B1D82EC9553B003EBF59 /* Item.swift in Sources */,
 				F974B2012EC955A1003EBF59 /* LoginView.swift in Sources */,
 				F974B1D42EC9553B003EBF59 /* BillixApp.swift in Sources */,
+				DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */,
+				F34AB25163A7004F64C6550E /* HomeView.swift in Sources */,
+				F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */,
+				961C2FE01F4983F1585AF912 /* UploadView.swift in Sources */,
+				56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */,
+				24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
