@@ -1,17 +1,25 @@
 import SwiftUI
 
 extension Color {
-    // Billix Company Color Palette
-    static let billixMutedPurple = Color(hex: "#5a567b")     // Muted purple/blue
-    static let billixLightTan = Color(hex: "#cfae96")        // Light tan
-    static let billixOliveGreen = Color(hex: "#5f915f")      // Olive green
+    // Billix Company Color Palette - Inspired by Logo
+    static let billixPurple = Color(hex: "#9b7b9f")          // Piggy bank purple
+    static let billixGoldenAmber = Color(hex: "#e8b54d")     // Golden amber background
+    static let billixDarkTeal = Color(hex: "#2d5a5e")        // Dark teal base
+    static let billixMoneyGreen = Color(hex: "#5b8a6b")      // Money green
+    static let billixCreamBeige = Color(hex: "#dcc9a8")      // Cream beige background
     static let billixDarkGray = Color(hex: "#282525")        // Dark gray/black
-    static let billixSoftGreen = Color(hex: "#93b989")       // Soft green
-    static let billixLightBeige = Color(hex: "#e2d6b9")      // Light beige
-    static let billixYellowGold = Color(hex: "#e0d35a")      // Yellow-gold
-    static let billixPaleGreenGray = Color(hex: "#9db1a8")   // Pale green-gray
-    static let billixDustyLavender = Color(hex: "#ad8aa4")   // Dusty lavender
-    static let billixMutedTeal = Color(hex: "#597c8b")       // Muted teal
+    static let billixLightPurple = Color(hex: "#c4a8c8")     // Light purple accent
+    static let billixNavyBlue = Color(hex: "#2d4a5a")        // Navy blue outline
+    static let billixGold = Color(hex: "#d4a04e")            // Gold coins
+    static let billixCopper = Color(hex: "#b87554")          // Copper coins
+
+    // Legacy colors for backward compatibility
+    static let billixMutedPurple = billixPurple
+    static let billixYellowGold = billixGoldenAmber
+    static let billixSoftGreen = billixMoneyGreen
+    static let billixLightBeige = billixCreamBeige
+    static let billixMutedTeal = billixDarkTeal
+    static let billixOliveGreen = billixMoneyGreen
 }
 
 extension Color {
