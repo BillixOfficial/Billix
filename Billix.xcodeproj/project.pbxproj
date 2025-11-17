@@ -28,6 +28,12 @@
 		A6FF810C2ECBB980008330C9 /* AnalysisResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF810B2ECBB980008330C9 /* AnalysisResultsView.swift */; };
 		A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */; };
 		A6FF81102ECBBCE3008330C9 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF810F2ECBBCE3008330C9 /* APIError.swift */; };
+		A6FF81172ECBD0DE008330C9 /* LineItemDisclosureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81152ECBD0DE008330C9 /* LineItemDisclosureView.swift */; };
+		A6FF81182ECBD0DE008330C9 /* InsightsCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81142ECBD0DE008330C9 /* InsightsCarouselView.swift */; };
+		A6FF81192ECBD0DE008330C9 /* CostBreakdownChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81132ECBD0DE008330C9 /* CostBreakdownChartView.swift */; };
+		A6FF811A2ECBD0DE008330C9 /* BillDetailBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81112ECBD0DE008330C9 /* BillDetailBottomSheet.swift */; };
+		A6FF811B2ECBD0DE008330C9 /* BillSummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81122ECBD0DE008330C9 /* BillSummaryCard.swift */; };
+		A6FF811C2ECBD0DE008330C9 /* MarketplaceGaugeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81162ECBD0DE008330C9 /* MarketplaceGaugeView.swift */; };
 		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
 		F34AB25163A7004F64C6550E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF1E5E15C4654C0F526462A /* HomeView.swift */; };
 		F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89EC00ED13981D09603CF99 /* ExploreView.swift */; };
@@ -81,6 +87,12 @@
 		A6FF810B2ECBB980008330C9 /* AnalysisResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsView.swift; sourceTree = "<group>"; };
 		A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIResponse.swift; sourceTree = "<group>"; };
 		A6FF810F2ECBBCE3008330C9 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
+		A6FF81112ECBD0DE008330C9 /* BillDetailBottomSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillDetailBottomSheet.swift; sourceTree = "<group>"; };
+		A6FF81122ECBD0DE008330C9 /* BillSummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillSummaryCard.swift; sourceTree = "<group>"; };
+		A6FF81132ECBD0DE008330C9 /* CostBreakdownChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostBreakdownChartView.swift; sourceTree = "<group>"; };
+		A6FF81142ECBD0DE008330C9 /* InsightsCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsCarouselView.swift; sourceTree = "<group>"; };
+		A6FF81152ECBD0DE008330C9 /* LineItemDisclosureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineItemDisclosureView.swift; sourceTree = "<group>"; };
+		A6FF81162ECBD0DE008330C9 /* MarketplaceGaugeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketplaceGaugeView.swift; sourceTree = "<group>"; };
 		ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		C89EC00ED13981D09603CF99 /* ExploreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
 		EDF1E5E15C4654C0F526462A /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -232,6 +244,12 @@
 		A64F7F632ECBB538005576C5 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				A6FF81112ECBD0DE008330C9 /* BillDetailBottomSheet.swift */,
+				A6FF81122ECBD0DE008330C9 /* BillSummaryCard.swift */,
+				A6FF81132ECBD0DE008330C9 /* CostBreakdownChartView.swift */,
+				A6FF81142ECBD0DE008330C9 /* InsightsCarouselView.swift */,
+				A6FF81152ECBD0DE008330C9 /* LineItemDisclosureView.swift */,
+				A6FF81162ECBD0DE008330C9 /* MarketplaceGaugeView.swift */,
 				A64F7F562ECBB538005576C5 /* AnimatedHeroHeader.swift */,
 				A64F7F572ECBB538005576C5 /* CameraPicker.swift */,
 				A64F7F582ECBB538005576C5 /* CircularProgressView.swift */,
@@ -458,6 +476,12 @@
 				A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */,
 				F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */,
 				56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */,
+				A6FF81172ECBD0DE008330C9 /* LineItemDisclosureView.swift in Sources */,
+				A6FF81182ECBD0DE008330C9 /* InsightsCarouselView.swift in Sources */,
+				A6FF81192ECBD0DE008330C9 /* CostBreakdownChartView.swift in Sources */,
+				A6FF811A2ECBD0DE008330C9 /* BillDetailBottomSheet.swift in Sources */,
+				A6FF811B2ECBD0DE008330C9 /* BillSummaryCard.swift in Sources */,
+				A6FF811C2ECBD0DE008330C9 /* MarketplaceGaugeView.swift in Sources */,
 				24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */,
 				A6FF810C2ECBB980008330C9 /* AnalysisResultsView.swift in Sources */,
 				A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */,
