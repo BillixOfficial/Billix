@@ -12,44 +12,44 @@ struct AnalysisResultsView: View {
         ZStack {
             Color.billixCreamBeige.ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                // Success animation header
-                successHeader
-                    .padding(.top, 40)
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Success animation header
+                    successHeader
+                        .padding(.top, 40)
 
-                // Hero summary card
-                BillSummaryCard(
-                    analysis: analysis,
-                    onShare: shareAction,
-                    onEdit: editAction,
-                    onDelete: deleteAction
-                )
-                .padding(.horizontal, 20)
-                .onTapGesture {
-                    showBottomSheet = true
-                }
-
-                Spacer(minLength: 20)
-
-                // Quick CTA
-                VStack(spacing: 12) {
-                    HStack {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .foregroundColor(.billixDarkTeal)
-                        Text("Tap the card or swipe up to view details")
-                            .font(.subheadline)
-                            .foregroundColor(.billixDarkTeal)
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.8))
-                    .cornerRadius(12)
-                }
-                .padding(.horizontal, 20)
-
-                // Action buttons
-                actionButtons
+                    // Hero summary card
+                    BillSummaryCard(
+                        analysis: analysis,
+                        onShare: shareAction,
+                        onEdit: editAction,
+                        onDelete: deleteAction
+                    )
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
+                    .onTapGesture {
+                        showBottomSheet = true
+                    }
+
+                    // Quick CTA
+                    VStack(spacing: 12) {
+                        HStack {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .foregroundColor(.billixDarkTeal)
+                            Text("Tap the card or swipe up to view details")
+                                .font(.subheadline)
+                                .foregroundColor(.billixDarkTeal)
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.8))
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 20)
+
+                    // Action buttons
+                    actionButtons
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 100) // Extra padding to clear bottom navbar
+                }
             }
         }
         .sheet(isPresented: $showBottomSheet) {
