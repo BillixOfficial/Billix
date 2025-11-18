@@ -2,9 +2,6 @@ import SwiftUI
 
 struct BillSummaryCard: View {
     let analysis: BillAnalysis
-    let onShare: () -> Void
-    let onEdit: () -> Void
-    let onDelete: () -> Void
 
     @State private var isPressed = false
 
@@ -87,12 +84,22 @@ struct BillSummaryCard: View {
                 }
             }
 
-            // Quick action chips
-            HStack(spacing: 12) {
-                ActionChip(icon: "square.and.arrow.up", label: "Share", action: onShare)
-                ActionChip(icon: "pencil", label: "Edit", action: onEdit)
-                ActionChip(icon: "trash", label: "Delete", action: onDelete, isDestructive: true)
+            // Tap to expand indicator
+            HStack(spacing: 6) {
+                Image(systemName: "chevron.compact.down")
+                    .font(.caption)
+                    .foregroundColor(.billixDarkTeal.opacity(0.6))
+
+                Text("View Details")
+                    .font(.caption)
+                    .foregroundColor(.billixDarkTeal)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(Color.billixDarkTeal.opacity(0.08))
+            )
         }
         .padding(24)
         .background(
@@ -230,35 +237,5 @@ struct BillSummaryCard: View {
             return displayFormatter.string(from: date)
         }
         return dateString
-    }
-}
-
-// MARK: - Action Chip Component
-
-struct ActionChip: View {
-    let icon: String
-    let label: String
-    let action: () -> Void
-    var isDestructive: Bool = false
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundColor(isDestructive ? .red : .billixNavyBlue)
-
-                Text(label)
-                    .font(.caption2)
-                    .foregroundColor(isDestructive ? .red : .billixDarkTeal)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isDestructive ? Color.red.opacity(0.1) : Color.white.opacity(0.8))
-            )
-        }
-        .buttonStyle(.plain)
     }
 }

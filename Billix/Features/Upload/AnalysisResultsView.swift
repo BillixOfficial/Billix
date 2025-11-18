@@ -19,31 +19,20 @@ struct AnalysisResultsView: View {
                         .padding(.top, 40)
 
                     // Hero summary card
-                    BillSummaryCard(
-                        analysis: analysis,
-                        onShare: shareAction,
-                        onEdit: editAction,
-                        onDelete: deleteAction
-                    )
-                    .padding(.horizontal, 20)
-                    .onTapGesture {
-                        showBottomSheet = true
-                    }
-
-                    // Quick CTA
-                    VStack(spacing: 12) {
-                        HStack {
-                            Image(systemName: "arrow.up.circle.fill")
-                                .foregroundColor(.billixDarkTeal)
-                            Text("Tap the card or swipe up to view details")
-                                .font(.subheadline)
-                                .foregroundColor(.billixDarkTeal)
+                    BillSummaryCard(analysis: analysis)
+                        .padding(.horizontal, 20)
+                        .onTapGesture {
+                            showBottomSheet = true
                         }
-                        .padding()
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(12)
-                    }
-                    .padding(.horizontal, 20)
+                        .contextMenu {
+                            Button(action: shareAction) {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                            }
+
+                            Button(role: .destructive, action: deleteAction) {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
 
                     // Action buttons
                     actionButtons
@@ -166,13 +155,8 @@ struct AnalysisResultsView: View {
         print("Share tapped")
     }
 
-    private func editAction() {
-        // TODO: Implement edit functionality
-        print("Edit tapped")
-    }
-
     private func deleteAction() {
-        // TODO: Implement delete functionality
+        // TODO: Implement delete functionality with confirmation
         print("Delete tapped")
     }
 }
