@@ -43,6 +43,10 @@ extension Color {
     static let billixFaqGreen = Color(hex: "#429459")        // FAQ green
     static let billixGraphGray = Color(hex: "#2a2c3e")       // Graph text
 
+    // Login Screen Colors
+    static let billixLoginGreen = Color(hex: "#e0f7e0")      // Login background
+    static let billixLoginTeal = Color(hex: "#00796b")       // Login primary color
+
     // Legacy colors for backward compatibility
     static let billixMutedPurple = billixPurple
     static let billixYellowGold = billixGoldenAmber

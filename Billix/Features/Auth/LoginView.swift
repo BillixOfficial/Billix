@@ -1,253 +1,207 @@
 import SwiftUI
+import AuthenticationServices
 
 struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isSecured = true
-    @State private var showAlert = false
-    @State private var rememberMe = false
     @State private var isLoggedIn = false
+    @FocusState private var focusedField: Field?
+
+    enum Field {
+        case email, password
+    }
 
     var body: some View {
-        NavigationStack {
-        GeometryReader { geometry in
-            ZStack {
-                // Background gradient - matching logo colors
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.billixCreamBeige,
-                        Color.billixGoldenAmber.opacity(0.2)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        ZStack {
+            // Simple background
+            Color.billixLoginGreen
                 .ignoresSafeArea()
                 .onTapGesture {
-                    // Dismiss keyboard when tapping background
                     hideKeyboard()
+                    focusedField = nil
                 }
 
-                // Decorative background circles - matching logo
-                Circle()
-                    .fill(Color.billixPurple.opacity(0.12))
-                    .frame(width: 300, height: 300)
-                    .position(x: geometry.size.width * 0.8, y: geometry.size.height * 0.2)
+            VStack(spacing: 0) {
+                Spacer()
 
-                Circle()
-                    .fill(Color.billixDarkTeal.opacity(0.12))
-                    .frame(width: 200, height: 200)
-                    .position(x: geometry.size.width * 0.2, y: geometry.size.height * 0.8)
+                // Logo
+                Image("billix_logo_new")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 120, height: 120)
 
-                VStack(spacing: 30) {
-                    Spacer()
+                // Brand
+                Text("Billix")
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundColor(.billixLoginTeal)
+                    .padding(.top, 20)
 
-                    // Logo/Brand Section
-                    VStack(spacing: 10) {
-                        // Billix Logo
-                        Image("billix_logo")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 140, height: 140)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle()
-                                    .stroke(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [
-                                                Color.billixGoldenAmber,
-                                                Color.billixNavyBlue
-                                            ]),
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 4
-                                    )
-                            )
-                            .shadow(color: Color.billixDarkTeal.opacity(0.3), radius: 12, x: 0, y: 6)
+                Spacer()
+                    .frame(height: 48)
 
-                        Text("Billix")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [Color.billixNavyBlue, Color.billixDarkTeal],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-
-                        Text("Save Smart, Spend Wise")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(.billixPurple)
+                // Content
+                VStack(spacing: 16) {
+                    // Apple Sign In
+                    SignInWithAppleButton(.signIn) { request in
+                        request.requestedScopes = [.fullName, .email]
+                    } onCompletion: { result in
+                        handleAppleSignIn(result)
                     }
+                    .signInWithAppleButtonStyle(.black)
+                    .frame(height: 50)
+                    .cornerRadius(12)
 
-                    Spacer()
+                    // Divider
+                    HStack {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 1)
+                        Text("or")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                            .padding(.horizontal, 12)
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 1)
+                    }
+                    .padding(.vertical, 8)
 
-                    // Login Form
-                    VStack(spacing: 20) {
-                        // Email Field
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Email")
-                                .font(.headline)
-                                .foregroundColor(.billixDarkGray)
+                    // Email
+                    TextField("Email", text: $email)
+                        .focused($focusedField, equals: .email)
+                        .keyboardType(.emailAddress)
+                        .textContentType(.emailAddress)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
 
-                            TextField("Enter your email", text: $email)
-                                .textFieldStyle(BillixTextFieldStyle())
-                                .keyboardType(.emailAddress)
-                                .textContentType(.emailAddress)
-                                .autocapitalization(.none)
-                                .disableAutocorrection(true)
+                    // Password
+                    HStack {
+                        Group {
+                            if isSecured {
+                                SecureField("Password", text: $password)
+                                    .focused($focusedField, equals: .password)
+                                    .textContentType(.password)
+                            } else {
+                                TextField("Password", text: $password)
+                                    .focused($focusedField, equals: .password)
+                                    .textContentType(.password)
+                                    .autocapitalization(.none)
+                                    .disableAutocorrection(true)
+                            }
                         }
 
-                        // Password Field
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Password")
-                                .font(.headline)
-                                .foregroundColor(.billixDarkGray)
-
-                            HStack {
-                                if isSecured {
-                                    SecureField("Enter your password", text: $password)
-                                        .textContentType(.password)
-                                } else {
-                                    TextField("Enter your password", text: $password)
-                                        .textContentType(.password)
-                                        .autocapitalization(.none)
-                                        .disableAutocorrection(true)
-                                }
-
-                                Button(action: {
-                                    isSecured.toggle()
-                                }) {
-                                    Image(systemName: isSecured ? "eye.slash" : "eye")
-                                        .foregroundColor(.billixPurple)
-                                }
-                            }
-                            .textFieldStyle(BillixTextFieldStyle())
-                        }
-
-                        // Remember Me & Forgot Password
-                        HStack {
-                            Button(action: {
-                                rememberMe.toggle()
-                            }) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: rememberMe ? "checkmark.square.fill" : "square")
-                                        .foregroundColor(.billixPurple)
-                                    Text("Remember me")
-                                        .font(.footnote)
-                                        .foregroundColor(.billixNavyBlue)
-                                }
-                            }
-
-                            Spacer()
-
-                            Button("Forgot Password?") {
-                                // Handle forgot password
-                            }
-                            .font(.footnote)
-                            .foregroundColor(.billixDarkTeal)
-                        }
-
-                        // Login Button
                         Button(action: {
-                            handleLogin()
-                        }) {
-                            Text("Sign In")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 55)
-                                .background(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color.billixMoneyGreen,
-                                            Color.billixDarkTeal
-                                        ]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .cornerRadius(12)
-                                .shadow(color: Color.billixDarkTeal.opacity(0.4), radius: 8, x: 0, y: 4)
-                        }
-
-                        // Divider
-                        HStack {
-                            Rectangle()
-                                .fill(Color.billixPurple.opacity(0.3))
-                                .frame(height: 1)
-                            Text("or")
-                                .font(.footnote)
-                                .foregroundColor(.billixPurple)
-                                .padding(.horizontal)
-                            Rectangle()
-                                .fill(Color.billixPurple.opacity(0.3))
-                                .frame(height: 1)
-                        }
-
-                        // Sign Up Link
-                        HStack {
-                            Text("Don't have an account?")
-                                .font(.footnote)
-                                .foregroundColor(.billixNavyBlue)
-
-                            Button("Sign Up") {
-                                // Handle sign up
+                            withAnimation {
+                                isSecured.toggle()
                             }
-                            .font(.footnote)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.billixPurple)
+                        }) {
+                            Image(systemName: isSecured ? "eye.slash" : "eye")
+                                .foregroundColor(.gray)
                         }
                     }
-                    .padding(.horizontal, 30)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
 
-                    Spacer()
+                    // Forgot Password
+                    HStack {
+                        Spacer()
+                        Button("Forgot password?") {
+                            // UI only
+                        }
+                        .font(.system(size: 14))
+                        .foregroundColor(.billixLoginTeal)
+                    }
+
+                    // Sign In Button
+                    Button(action: {
+                        handleLogin()
+                    }) {
+                        Text("Sign In")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color.billixLoginTeal)
+                            .cornerRadius(12)
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .padding(.top, 8)
                 }
+                .padding(.horizontal, 32)
+
+                Spacer()
+
+                // Sign up
+                HStack(spacing: 4) {
+                    Text("Don't have an account?")
+                        .font(.system(size: 15))
+                        .foregroundColor(.gray)
+
+                    Button("Sign up") {
+                        // UI only
+                    }
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.billixLoginTeal)
+                }
+                .padding(.bottom, 40)
+            }
+
+            // Navigation to MainTabView
+            if isLoggedIn {
+                MainTabView()
+                    .transition(.opacity)
             }
         }
-        .alert(isPresented: $showAlert) {
-            Alert(
-                title: Text("Login"),
-                message: Text("Login functionality not implemented yet"),
-                dismissButton: .default(Text("OK"))
-            )
-        }
-        .navigationDestination(isPresented: $isLoggedIn) {
-            MainTabView()
-                .navigationBarBackButtonHidden(true)
-        }
+    }
+
+    private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
+        switch result {
+        case .success(_):
+            // In production, validate the credential with your backend
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                isLoggedIn = true
+            }
+
+        case .failure(let error):
+            print("Apple Sign In failed: \(error.localizedDescription)")
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.error)
         }
     }
 
     private func handleLogin() {
         // Dismiss keyboard
         hideKeyboard()
+        focusedField = nil
 
-        // Skip validation for now - allow direct sign in
-        // TODO: Implement actual authentication later
-        isLoggedIn = true
+        // Haptic feedback
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+
+        // Skip validation - allow direct access to app (UI only, no auth)
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+            isLoggedIn = true
+        }
     }
 
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-}
-
-struct BillixTextFieldStyle: TextFieldStyle {
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(Color.white.opacity(0.9))
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.billixPurple.opacity(0.4), lineWidth: 1.5)
-            )
-            .shadow(color: Color.billixPurple.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 }
 

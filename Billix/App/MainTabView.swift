@@ -37,20 +37,21 @@ struct MainTabView: View {
 struct CustomBottomNavBar: View {
     @Binding var selectedTab: Int
 
-    let tabs: [(icon: String, label: String)] = [
-        ("house.fill", "Home"),
-        ("safari.fill", "Explore"),
-        ("arrow.left.arrow.right", "Swap"),
-        ("car.fill", "Trips"),
-        ("person.fill", "Profile")
+    let tabs: [(icon: String, label: String, color: Color)] = [
+        ("house.fill", "Home", Color.billixLoginTeal),
+        ("chart.bar.xaxis", "Explore", Color.blue),
+        ("arrow.up.doc.fill", "Upload", Color.billixMoneyGreen),
+        ("heart.text.square.fill", "Health", Color.red),
+        ("person.crop.circle.fill", "Profile", Color.billixDarkGreen)
     ]
 
     var body: some View {
-        HStack(spacing: 31) {
+        HStack(spacing: 0) {
             ForEach(0..<tabs.count, id: \.self) { index in
                 CustomNavItem(
                     icon: tabs[index].icon,
                     label: tabs[index].label,
+                    color: tabs[index].color,
                     isSelected: selectedTab == index,
                     action: {
                         let generator = UIImpactFeedbackGenerator(style: .light)
@@ -60,14 +61,16 @@ struct CustomBottomNavBar: View {
                         }
                     }
                 )
+                .frame(maxWidth: .infinity)
             }
         }
-        .padding(.vertical, 12)
-        .frame(height: 77)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 8)
+        .frame(height: 72)
         .background(
-            RoundedRectangle(cornerRadius: 99)
+            RoundedRectangle(cornerRadius: 28)
                 .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.1), radius: 15, x: 0, y: -5)
+                .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: -2)
         )
     }
 }
@@ -76,22 +79,34 @@ struct CustomBottomNavBar: View {
 struct CustomNavItem: View {
     let icon: String
     let label: String
+    let color: Color
     let isSelected: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(isSelected ? Color(hex: "#4a7c59") : Color(hex: "#a0a2a7"))
-                    .symbolEffect(.bounce, value: isSelected)
+            VStack(spacing: 6) {
+                ZStack {
+                    // Active indicator background
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(color.opacity(0.12))
+                            .frame(width: 56, height: 32)
+                            .transition(.scale.combined(with: .opacity))
+                    }
+
+                    Image(systemName: icon)
+                        .font(.system(size: isSelected ? 22 : 20, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(isSelected ? color : Color.gray.opacity(0.5))
+                        .symbolEffect(.bounce, value: isSelected)
+                }
+                .frame(height: 32)
 
                 Text(label)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(isSelected ? Color(hex: "#4a7c59") : Color(hex: "#a0a2a7"))
+                    .font(.system(size: isSelected ? 11 : 10, weight: isSelected ? .semibold : .medium))
+                    .foregroundColor(isSelected ? color : Color.gray.opacity(0.6))
             }
-            .frame(width: 40)
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(NavButtonStyle())
     }

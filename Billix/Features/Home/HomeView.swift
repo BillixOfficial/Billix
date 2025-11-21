@@ -1,43 +1,33 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var viewModel = HomeViewModel()
-    @State private var billActivityExpanded = false
-    @State private var reviewIndex = 0
-    @State private var scrollOffset: CGFloat = 0
     @State private var isRefreshing = false
 
     var body: some View {
         ZStack {
-            // Background with gradient
-            LinearGradient(
-                colors: [
-                    Color.billixLightGreen,
-                    Color.billixLightGreen.opacity(0.95)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // Background
+            Color.billixLightGreen
+                .ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 16) {
-                    // Header with Logo and Bell Icon
+                VStack(spacing: 20) {
+                    // Header with Logo and Bell
                     HStack {
-                        HStack(spacing: 4) {
-                            Image(systemName: "asterisk.circle.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(.billixMediumGreen)
-                                .rotationEffect(.degrees(scrollOffset * 0.1))
-                                .animation(.spring(response: 0.3), value: scrollOffset)
+                        HStack(spacing: 8) {
+                            // Billix Logo
+                            Image("billix_logo_new")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
 
                             Text("Billix")
-                                .font(.system(size: 23, weight: .semibold))
-                                .foregroundColor(.billixMediumGreen)
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.billixDarkGreen)
                         }
 
                         Spacer()
 
+                        // Notification Bell
                         Button(action: {
                             hapticFeedback(.light)
                         }) {
@@ -47,7 +37,7 @@ struct HomeView: View {
                                     .frame(width: 36, height: 36)
 
                                 Image(systemName: "bell.fill")
-                                    .font(.system(size: 18))
+                                    .font(.system(size: 16))
                                     .foregroundColor(.billixMediumGreen)
                             }
                         }
@@ -55,196 +45,40 @@ struct HomeView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
-                    .offset(y: max(-scrollOffset * 0.3, -20))
 
-                    // Profile Section with Parallax
-                    VStack(spacing: 16) {
-                        // Profile Image with breathing animation
-                        Image(systemName: "person.crop.circle.fill")
-                            .resizable()
-                            .frame(width: 136.5, height: 136.5)
-                            .foregroundColor(.gray)
-                            .background(
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.white, Color.billixLightGreen.opacity(0.3)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                            )
-                            .clipShape(Circle())
-                            .shadow(color: Color.black.opacity(0.15), radius: 15, x: 0, y: 8)
-                            .overlay(
-                                Circle()
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: [Color.white, Color.billixMediumGreen.opacity(0.3)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 3
-                                    )
-                            )
-                            .scaleEffect(1.0 - min(scrollOffset / 1000, 0.15))
+                    // Compact Profile Card
+                    CompactProfileCard()
+                        .padding(.horizontal, 20)
 
-                        // User Info
-                        VStack(spacing: 8) {
-                            Text("Ronald Richards")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.billixMediumGreen)
+                    // Marketplace Highlights
+                    MarketplaceHighlightsView()
 
-                            Text("May 20, 2024")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.billixLightGreenText)
-                        }
-                        .opacity(1.0 - min(scrollOffset / 300, 0.6))
+                    // Compact Bill Activity
+                    CompactBillActivityView()
 
-                        // Rating with animation
-                        HStack(spacing: 2) {
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(.billixStarGold)
-                                .symbolEffect(.bounce, value: reviewIndex)
+                    // AI Insights
+                    AIInsightsCard()
+                        .padding(.horizontal, 20)
 
-                            Text("4.5")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.billixStarGold)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.billixBorderGreen, lineWidth: 1)
-                                )
-                                .shadow(color: Color.billixStarGold.opacity(0.2), radius: 4, x: 0, y: 2)
-                        )
-                    }
-                    .padding(.top, 20)
-                    .offset(y: -scrollOffset * 0.15)
+                    // Consolidated Savings
+                    ConsolidatedSavingsCard()
+                        .padding(.horizontal, 20)
 
-                    // Bill Activity Header
-                    Button(action: {
-                        hapticFeedback(.medium)
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                            billActivityExpanded.toggle()
-                        }
-                    }) {
-                        HStack {
-                            HStack(spacing: 8) {
-                                Image(systemName: billActivityExpanded ? "chart.bar.fill" : "chart.bar")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.billixMediumGreen)
-                                    .symbolEffect(.bounce, value: billActivityExpanded)
+                    // Quick Actions Grid
+                    EnhancedActionButtonsGrid()
 
-                                Text("Bill Activity")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(.billixMediumGreen)
-                            }
+                    // Recent Activity Feed
+                    RecentActivityFeed()
+                        .padding(.horizontal, 20)
 
-                            Spacer()
+                    // Reviews Carousel (Streamlined)
+                    StreamlinedReviewsView()
+                        .padding(.horizontal, 20)
 
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.billixMediumGreen)
-                                .rotationEffect(.degrees(billActivityExpanded ? 180 : 0))
-                        }
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 21)
-                                .fill(Color.white)
-                                .shadow(color: Color.black.opacity(billActivityExpanded ? 0.1 : 0.05), radius: billActivityExpanded ? 10 : 6, x: 0, y: 0)
-                        )
-                        .padding(.horizontal, 5)
-                    }
-                    .buttonStyle(InteractiveCardStyle())
-
-                    // Bill Activity Expanded Content
-                    if billActivityExpanded {
-                        VStack(spacing: 4) {
-                            // Pending Section
-                            PendingBillsCard()
-                                .transition(.asymmetric(
-                                    insertion: .scale(scale: 0.95).combined(with: .opacity),
-                                    removal: .scale(scale: 0.95).combined(with: .opacity)
-                                ))
-
-                            // Completed Section
-                            BillStatusCard(
-                                icon: "checkmark.circle",
-                                title: "Completed",
-                                count: 8,
-                                color: .billixCompletedGreenText,
-                                backgroundColor: .billixCompletedGreen
-                            )
-                            .transition(.scale.combined(with: .opacity))
-
-                            // Active Section
-                            BillStatusCard(
-                                icon: "clock.fill",
-                                title: "Active",
-                                count: 5,
-                                color: .billixActiveBlueText,
-                                backgroundColor: .billixActiveBlue
-                            )
-                            .transition(.scale.combined(with: .opacity))
-                        }
-                        .padding(.horizontal, 5)
-                        .padding(.bottom, 8)
-                    }
-
-                    // Your Savings With Billix
-                    SavingsProgressCard()
-                        .padding(.horizontal, 5)
-                        .transition(.scale.combined(with: .opacity))
-
-                    // Savings Chart Section
-                    SavingsChartView()
-                        .padding(.horizontal, 5)
-                        .transition(.scale.combined(with: .opacity))
-
-                    // Percentage Chart Section
-                    PercentageChartView()
-                        .padding(.horizontal, 5)
-                        .transition(.scale.combined(with: .opacity))
-
-                    // Learn More Card
-                    LearnMoreCardView()
-                        .padding(.horizontal, 5)
-                        .transition(.scale.combined(with: .opacity))
-
-                    // Review Card and Action Buttons Row
-                    HStack(spacing: 4) {
-                        // Review Card
-                        ReviewCardView(reviewIndex: $reviewIndex)
-
-                        // Action Buttons Grid
-                        ActionButtonsGridView()
-                    }
-                    .padding(.horizontal, 5)
-                    .transition(.scale.combined(with: .opacity))
-
-                    // Bottom padding for navigation bar
+                    // Bottom Spacer for Nav Bar
                     Spacer()
                         .frame(height: 97)
                 }
-                .background(
-                    GeometryReader { geometry in
-                        Color.clear.preference(
-                            key: ScrollOffsetPreferenceKey.self,
-                            value: geometry.frame(in: .named("scroll")).minY
-                        )
-                    }
-                )
-            }
-            .coordinateSpace(name: "scroll")
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                scrollOffset = value
             }
             .refreshable {
                 await refreshData()
@@ -254,8 +88,10 @@ struct HomeView: View {
 
     private func refreshData() async {
         isRefreshing = true
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
+        await MainActor.run {
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+        }
         try? await Task.sleep(nanoseconds: 1_000_000_000)
         isRefreshing = false
     }
@@ -266,15 +102,7 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Scroll Offset Preference Key
-struct ScrollOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-// MARK: - Custom Button Styles
+// MARK: - Custom Button Style
 struct ScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -283,588 +111,410 @@ struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
-struct InteractiveCardStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
-    }
-}
+// MARK: - Component Definitions (Temporarily in this file)
 
-// MARK: - Pending Bills Card
-struct PendingBillsCard: View {
-    @State private var isVisible = false
-
+struct CompactProfileCard: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 8) {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.system(size: 18))
-                    .foregroundColor(.billixPendingOrangeText)
-                    .rotationEffect(.degrees(isVisible ? 360 : 0))
+        HStack(spacing: 16) {
+            Image(systemName: "person.crop.square.fill")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 60, height: 60)
+                .foregroundColor(.billixLoginTeal.opacity(0.3))
+                .background(Color.white)
+                .cornerRadius(16)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.1), lineWidth: 1))
 
-                Text("Pending")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.billixPendingOrangeText)
-
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 20)
-
-            // Count Badge
-            HStack {
-                Spacer()
-
-                Text("16")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.billixPendingOrangeText)
-                    .frame(width: 32, height: 32)
-                    .background(
-                        Circle()
-                            .fill(Color.white)
-                            .shadow(color: Color.billixPendingOrangeText.opacity(0.2), radius: 8, x: 0, y: 2)
-                    )
-                    .scaleEffect(isVisible ? 1.0 : 0.5)
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, -52)
-
-            // Bill Icons
-            HStack(spacing: 0) {
-                ForEach(0..<4, id: \.self) { index in
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.gray.opacity(0.4), Color.gray.opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 28, height: 28)
-                        .overlay(
-                            Image(systemName: "doc.text.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(.white)
-                        )
-                        .padding(.trailing, -10)
-                        .scaleEffect(isVisible ? 1.0 : 0.8)
-                        .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(Double(index) * 0.05), value: isVisible)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text("Ronald Richards")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.billixDarkGreen)
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.blue)
                 }
 
-                Text("More")
-                    .font(.system(size: 12, weight: .medium))
+                Text("May 20, 2024")
+                    .font(.system(size: 13))
                     .foregroundColor(.gray)
-                    .padding(.leading, 20)
-                    .opacity(isVisible ? 1 : 0)
+
+                HStack(spacing: 12) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.billixStarGold)
+                        Text("4.5")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.billixDarkGreen)
+                    }
+                    Text("•").foregroundColor(.gray.opacity(0.5))
+                    Text("16 bills")
+                        .font(.system(size: 13))
+                        .foregroundColor(.billixDarkGreen)
+                    Text("•").foregroundColor(.gray.opacity(0.5))
+                    Text("$245 saved")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.billixMoneyGreen)
+                }
+                .font(.system(size: 13))
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 168)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.billixPendingOrange, Color.billixPendingOrange.opacity(0.95)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .shadow(color: Color.billixPendingOrangeText.opacity(0.15), radius: 10, x: 0, y: 5)
-        )
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                isVisible = true
+        .padding(16)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+}
+
+struct MarketplaceHighlightsView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Community Insights")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.billixDarkGreen)
+                .padding(.horizontal, 20)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    MarketplaceCard(icon: "chart.line.uptrend.xyaxis", iconColor: .orange, title: "Trending", subtitle: "Electric bills ↑12% this month", backgroundColor: Color.orange.opacity(0.1))
+                    MarketplaceCard(icon: "chart.bar.fill", iconColor: .blue, title: "You vs Community", subtitle: "Paying 8% less than avg", backgroundColor: Color.blue.opacity(0.1))
+                    MarketplaceCard(icon: "flame.fill", iconColor: .red, title: "Hot Savings", subtitle: "Switch to Mint Mobile", backgroundColor: Color.red.opacity(0.1))
+                    MarketplaceCard(icon: "checkmark.seal.fill", iconColor: .green, title: "Trust Score", subtitle: "Top 15% of users", backgroundColor: Color.green.opacity(0.1))
+                }
+                .padding(.horizontal, 20)
             }
         }
     }
 }
 
-// MARK: - Bill Status Card
-struct BillStatusCard: View {
+struct MarketplaceCard: View {
     let icon: String
+    let iconColor: Color
     let title: String
-    let count: Int
-    let color: Color
+    let subtitle: String
     let backgroundColor: Color
 
-    @State private var isVisible = false
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(iconColor)
+                .frame(width: 48, height: 48)
+                .background(backgroundColor)
+                .cornerRadius(12)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
+                Text(subtitle)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                    .lineLimit(2)
+            }
+        }
+        .padding(12)
+        .frame(width: 260)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+    }
+}
+
+struct CompactBillActivityView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Bill Activity")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.billixDarkGreen)
+                .padding(.horizontal, 20)
+
+            HStack(spacing: 12) {
+                BillActivityPill(count: "16", label: "Pending", icon: "clock.fill", backgroundColor: Color.orange.opacity(0.1), textColor: .orange)
+                BillActivityPill(count: "8", label: "Done", icon: "checkmark.circle.fill", backgroundColor: Color.green.opacity(0.1), textColor: .green)
+                BillActivityPill(count: "5", label: "Active", icon: "bolt.fill", backgroundColor: Color.blue.opacity(0.1), textColor: .blue)
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+}
+
+struct BillActivityPill: View {
+    let count: String
+    let label: String
+    let icon: String
+    let backgroundColor: Color
+    let textColor: Color
 
     var body: some View {
-        HStack {
-            HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(color)
-                    .symbolEffect(.bounce, value: isVisible)
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundColor(textColor)
 
-                Text(title)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(color)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(count)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(textColor)
+                Text(label)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .background(backgroundColor)
+        .cornerRadius(12)
+    }
+}
+
+struct AIInsightsCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "lightbulb.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.yellow)
+                Text("Billix found 3 ways to save $127")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
+                Spacer()
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                InsightRow(icon: "antenna.radiowaves.left.and.right", text: "Switch to Mint Mobile", savings: "$45/mo")
+                InsightRow(icon: "bolt.fill", text: "Better electricity rate available", savings: "$52/mo")
+                InsightRow(icon: "wifi", text: "Downgrade internet speed", savings: "$30/mo")
+            }
+
+            Button(action: {}) {
+                HStack {
+                    Text("View All Insights")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.billixLoginTeal)
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.billixLoginTeal)
+                }
+            }
+            .padding(.top, 4)
+        }
+        .padding(16)
+        .background(LinearGradient(colors: [Color.yellow.opacity(0.08), Color.orange.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.yellow.opacity(0.2), lineWidth: 1))
+    }
+}
+
+struct InsightRow: View {
+    let icon: String
+    let text: String
+    let savings: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(.billixLoginTeal)
+                .frame(width: 20)
+            Text(text)
+                .font(.system(size: 14))
+                .foregroundColor(.billixDarkGreen)
+            Spacer()
+            Text(savings)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.billixMoneyGreen)
+        }
+    }
+}
+
+struct ConsolidatedSavingsCard: View {
+    var body: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Total Saved")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.gray)
+                Text("$245")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.billixMoneyGreen)
+                Text("This Month")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
             }
 
             Spacer()
 
-            Text("\(count)")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(color)
-                .frame(width: 32, height: 32)
-                .background(
-                    Circle()
-                        .fill(Color.white)
-                        .shadow(color: color.opacity(0.2), radius: 8, x: 0, y: 2)
-                )
-                .scaleEffect(isVisible ? 1.0 : 0.5)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 15)
-        .frame(height: 62)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(backgroundColor)
-                .shadow(color: color.opacity(0.1), radius: 8, x: 0, y: 4)
-        )
-        .onAppear {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.1)) {
-                isVisible = true
+            VStack(alignment: .trailing, spacing: 8) {
+                HStack(alignment: .bottom, spacing: 3) {
+                    ForEach([0.3, 0.5, 0.4, 0.7, 0.6, 0.8, 1.0], id: \.self) { height in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(LinearGradient(colors: [Color.billixMoneyGreen.opacity(0.7), Color.billixMoneyGreen], startPoint: .top, endPoint: .bottom))
+                            .frame(width: 8, height: CGFloat(height) * 50)
+                    }
+                }
+                .frame(height: 50)
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("Top Category")
+                        .font(.system(size: 11))
+                        .foregroundColor(.gray)
+                    HStack(spacing: 4) {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(.billixMoneyGreen)
+                        Text("Utilities")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.billixDarkGreen)
+                        Text("$120")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.billixMoneyGreen)
+                    }
+                }
             }
         }
+        .padding(20)
+        .background(LinearGradient(colors: [Color.billixMoneyGreen.opacity(0.08), Color.billixMoneyGreen.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.billixMoneyGreen.opacity(0.2), lineWidth: 1))
     }
 }
 
-// MARK: - Savings Progress Card
-struct SavingsProgressCard: View {
-    @State private var progress: CGFloat = 0
+struct EnhancedActionButtonsGrid: View {
+    let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Your Savings with Billix")
-                .font(.system(size: 21, weight: .semibold))
-                .foregroundColor(.billixDarkGreen)
-                .padding(.horizontal, 16)
-                .padding(.top, 20)
-
-            // Progress Bar
-            VStack(alignment: .leading, spacing: 8) {
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        // Background
-                        RoundedRectangle(cornerRadius: 99)
-                            .fill(Color(hex: "#faf4f0"))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 99)
-                                    .stroke(Color(hex: "#f7e4cf"), lineWidth: 1)
-                            )
-                            .frame(height: 18)
-
-                        // Animated Progress
-                        RoundedRectangle(cornerRadius: 99)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.billixSavingsYellow, Color.billixSavingsOrange],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: progress * 100, height: 12)
-                            .padding(.leading, 3)
-                            .shadow(color: Color(hex: "#f09a3d").opacity(0.5), radius: 4, x: 0, y: 2)
-                    }
-                }
-                .frame(height: 18)
-
-                HStack(spacing: 4) {
-                    Text("You've ")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.billixSavingsYellow)
-
-                    Text("saved ")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.billixSavingsYellow)
-
-                    Text("$245")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.billixSavingsOrange)
-
-                    Text(" in fees!")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.billixSavingsYellow)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 20)
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 22)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
-        )
-        .onAppear {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.2)) {
-                progress = 1.0
-            }
-        }
-    }
-}
-
-// MARK: - Savings Chart View
-struct SavingsChartView: View {
-    @State private var chartAnimation = false
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Your Savings with Billix")
-                .font(.system(size: 21, weight: .semibold))
-                .foregroundColor(.billixDarkGreen)
-                .padding(.horizontal, 16)
-                .padding(.top, 20)
-
-            // Chart Area
-            VStack(spacing: 16) {
-                // Y-axis labels and chart
-                HStack(alignment: .bottom, spacing: 0) {
-                    // Y-axis
-                    VStack(alignment: .trailing, spacing: 0) {
-                        ForEach([300, 250, 200, 150, 50, 0], id: \.self) { value in
-                            Text("\(value)")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color.black.opacity(0.5))
-                                .frame(height: value == 0 ? 20 : 42)
-                        }
-                    }
-                    .padding(.trailing, 8)
-
-                    // Chart bars
-                    ZStack(alignment: .bottomLeading) {
-                        // Grid lines
-                        VStack(spacing: 0) {
-                            ForEach(0..<6, id: \.self) { index in
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.15))
-                                    .frame(height: 1)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.bottom, index == 5 ? 0 : 41)
-                            }
-                        }
-
-                        // Bars with animation
-                        HStack(alignment: .bottom, spacing: 16) {
-                            Spacer()
-
-                            // Cashback Earnings
-                            VStack(spacing: 4) {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.billixChartBlue, Color.billixChartBlue.opacity(0.8)],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                                    .frame(width: 88, height: chartAnimation ? 168 : 0)
-                                    .shadow(color: Color.billixChartBlue.opacity(0.3), radius: 8, x: 0, y: 4)
-
-                                Text("Cashback Earnings")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.billixChartBlue)
-                                    .multilineTextAlignment(.center)
-                                    .frame(width: 88)
-                            }
-
-                            Spacer()
-
-                            // Late Fees
-                            VStack(spacing: 4) {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.billixChartGreen, Color.billixChartGreen.opacity(0.8)],
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        )
-                                    )
-                                    .frame(width: 88, height: chartAnimation ? 37 : 0)
-                                    .shadow(color: Color.billixChartGreen.opacity(0.3), radius: 8, x: 0, y: 4)
-
-                                Text("Late Fees")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.billixChartGreen)
-                                    .multilineTextAlignment(.center)
-                                    .frame(width: 88)
-                            }
-
-                            Spacer()
-                        }
-                    }
-                    .frame(height: 252)
-                }
-            }
-            .padding(.horizontal, 16)
-
-            Text("This is 45% of the late fees you could have paid.")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.billixMediumGreen)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 20)
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 22)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
-        )
-        .onAppear {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.3)) {
-                chartAnimation = true
-            }
-        }
-    }
-}
-
-// MARK: - Percentage Chart View
-struct PercentageChartView: View {
-    @State private var barsVisible = false
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("With Billix, you've saved $245 in late fees—45% of the usual cost!")
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Quick Actions")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.billixDarkGreen)
-                .padding(.horizontal, 16)
-                .padding(.top, 20)
+                .padding(.horizontal, 20)
 
-            // Percentage Chart
-            HStack(alignment: .bottom, spacing: 0) {
-                // Y-axis
-                VStack(alignment: .trailing, spacing: 0) {
-                    ForEach([100, 75, 50, 25, 0], id: \.self) { value in
-                        Text("\(value)%")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(Color.black.opacity(0.5))
-                            .frame(height: value == 0 ? 20 : 42)
-                    }
-                }
-                .padding(.trailing, 8)
-
-                // Bars
-                VStack {
-                    ZStack(alignment: .bottomLeading) {
-                        // Grid lines
-                        VStack(spacing: 0) {
-                            ForEach(0..<5, id: \.self) { index in
-                                Rectangle()
-                                    .fill(index == 1 ? Color.gray.opacity(0.25) : Color.gray.opacity(0.15))
-                                    .frame(height: 1)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.bottom, index == 4 ? 0 : 41)
-                            }
-                        }
-
-                        // Category bars
-                        HStack(alignment: .bottom, spacing: 0) {
-                            Spacer()
-
-                            CategoryBarView(
-                                label: "rent",
-                                color: Color(hex: "#a89edc"),
-                                height: barsVisible ? 124 : 0
-                            )
-
-                            Spacer()
-
-                            CategoryBarView(
-                                label: "utility",
-                                color: Color(hex: "#72afc6"),
-                                height: barsVisible ? 83 : 0
-                            )
-
-                            Spacer()
-
-                            CategoryBarView(
-                                label: "internet",
-                                color: Color(hex: "#f0a59f"),
-                                height: barsVisible ? 41 : 0
-                            )
-
-                            Spacer()
-
-                            CategoryBarView(
-                                label: "Water",
-                                color: Color(hex: "#98c9a6"),
-                                height: barsVisible ? 124 : 0
-                            )
-
-                            Spacer()
-                        }
-                    }
-                    .frame(height: 168)
-                }
+            LazyVGrid(columns: columns, spacing: 12) {
+                EnhancedActionButton(icon: "message.fill", label: "Chat", gradient: [Color.billixChatBlue, Color.billixChatBlue.opacity(0.8)], badge: "8")
+                EnhancedActionButton(icon: "dollarsign.circle.fill", label: "Funding", gradient: [Color.billixFundingPurple, Color.billixFundingPurple.opacity(0.8)], badge: nil)
+                EnhancedActionButton(icon: "hand.thumbsup.fill", label: "Vote", gradient: [Color.billixVotePink, Color.billixVotePink.opacity(0.8)], badge: "8")
+                EnhancedActionButton(icon: "questionmark.circle.fill", label: "FAQ", gradient: [Color.billixFaqGreen, Color.billixFaqGreen.opacity(0.8)], badge: nil)
+                EnhancedActionButton(icon: "arrow.up.doc.fill", label: "Upload", gradient: [Color.billixLoginTeal, Color.billixLoginTeal.opacity(0.8)], badge: nil)
+                EnhancedActionButton(icon: "arrow.left.arrow.right", label: "Compare", gradient: [Color.orange, Color.orange.opacity(0.8)], badge: nil)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 20)
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 22)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
-        )
-        .onAppear {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.4)) {
-                barsVisible = true
-            }
+            .padding(.horizontal, 20)
         }
     }
 }
 
-// MARK: - Category Bar View
-struct CategoryBarView: View {
+struct EnhancedActionButton: View {
+    let icon: String
     let label: String
-    let color: Color
-    let height: CGFloat
-
-    var body: some View {
-        VStack(spacing: 4) {
-            // Dotted line bar with animation
-            VStack(spacing: 2) {
-                ForEach(0..<Int(height / 6), id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(color)
-                        .frame(width: 2, height: 4)
-                        .opacity(Double(index) / Double(max(1, Int(height / 6))))
-                }
-            }
-            .frame(height: height, alignment: .bottom)
-
-            Text(label)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(color)
-        }
-    }
-}
-
-// MARK: - Learn More Card View
-struct LearnMoreCardView: View {
-    @State private var isHovered = false
+    let gradient: [Color]
+    let badge: String?
 
     var body: some View {
         Button(action: {
-            let generator = UIImpactFeedbackGenerator(style: .medium)
+            let generator = UIImpactFeedbackGenerator(style: .light)
             generator.impactOccurred()
         }) {
-            HStack(spacing: 16) {
-                // Icon and Text
-                HStack(spacing: 8) {
-                    Image(systemName: "dollarsign.circle.fill")
-                        .font(.system(size: 18))
-                        .foregroundColor(.billixSavingsOrange)
-                        .frame(width: 32, height: 32)
-                        .background(
-                            RoundedRectangle(cornerRadius: 21)
-                                .fill(Color(hex: "#fff7e3"))
-                                .shadow(color: Color.billixSavingsOrange.opacity(0.2), radius: 4, x: 0, y: 2)
-                        )
+            VStack(spacing: 10) {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: icon)
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 70)
+                        .background(LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .cornerRadius(16)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Save ")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.billixDarkGreen)
-                        + Text("more by swapping bills watch your savings grow!")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.billixDarkGreen)
+                    if let badge = badge {
+                        Text(badge)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 20, height: 20)
+                            .background(Color.red)
+                            .clipShape(Circle())
+                            .offset(x: -6, y: 6)
                     }
-                    .frame(width: 150)
                 }
 
-                Spacer()
-
-                // Learn More Button
-                Text("Learn More")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(hex: "#4a7c59"), Color(hex: "#3d6549")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .shadow(color: Color(hex: "#4a7c59").opacity(0.4), radius: 8, x: 0, y: 4)
-                    )
+                Text(label)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
             }
-            .padding(16)
-            .frame(height: 151)
-            .background(
-                RoundedRectangle(cornerRadius: 22)
-                    .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
-            )
         }
-        .buttonStyle(InteractiveCardStyle())
+        .buttonStyle(ScaleButtonStyle())
     }
 }
 
-// MARK: - Review Card View
-struct ReviewCardView: View {
-    @Binding var reviewIndex: Int
+struct RecentActivityFeed: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("What's Happening on Billix")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.billixDarkGreen)
 
+            VStack(spacing: 10) {
+                ActivityItem(initials: "SJ", backgroundColor: .purple, text: "Sarah J. saved $32 switching to Mint Mobile", time: "2h ago")
+                ActivityItem(initials: "MB", backgroundColor: .blue, text: "New bill comparison: T-Mobile vs Verizon", time: "5h ago")
+                ActivityItem(initials: "KL", backgroundColor: .green, text: "Trending: Auto insurance rates ↑8%", time: "1d ago")
+                ActivityItem(initials: "DJ", backgroundColor: .orange, text: "David J. verified Comcast overcharge", time: "2d ago")
+            }
+        }
+        .padding(16)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+}
+
+struct ActivityItem: View {
+    let initials: String
+    let backgroundColor: Color
+    let text: String
+    let time: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(backgroundColor.opacity(0.2))
+                    .frame(width: 36, height: 36)
+                Text(initials)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(backgroundColor)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(text)
+                    .font(.system(size: 14))
+                    .foregroundColor(.billixDarkGreen)
+                    .lineLimit(2)
+                Text(time)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+            }
+            Spacer()
+        }
+    }
+}
+
+struct StreamlinedReviewsView: View {
+    @State private var reviewIndex = 0
     let reviews = [
-        "Great design and super easy to use—managing finances has never been simpler!",
-        "Billix helped me save hundreds on my bills. Highly recommend!",
-        "The bill tracking feature is a game changer for my budget."
+        Review(text: "Great design and super easy to use—managing finances has never been simpler!", author: "Sarah M.", rating: 5),
+        Review(text: "Billix helped me save hundreds on my bills. Highly recommend!", author: "Mike T.", rating: 5),
+        Review(text: "The bill tracking feature is a game changer for my budget.", author: "Jessica R.", rating: 4)
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Review")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.billixPurpleAccent)
-
+                Text("Community Reviews")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
                 Spacer()
-
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.billixPurpleAccent.opacity(0.3), Color.billixPurpleAccent.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 26, height: 26)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 18)
-
-            Text(reviews[reviewIndex])
-                .font(.system(size: 14))
-                .foregroundColor(.billixPurpleLight)
-                .lineSpacing(4)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .transition(.opacity.combined(with: .move(edge: .trailing)))
-                .id(reviewIndex)
-
-            Spacer()
-
-            HStack {
-                HStack(spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.billixPurpleAccent)
-
-                    Text("4.5")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.billixPurpleAccent)
-                }
-
-                Spacer()
-
-                HStack(spacing: 4) {
+                HStack(spacing: 12) {
                     Button(action: {
                         if reviewIndex > 0 {
                             let generator = UIImpactFeedbackGenerator(style: .light)
@@ -875,11 +525,13 @@ struct ReviewCardView: View {
                         }
                     }) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 12))
-                            .foregroundColor(.billixPurpleAccent)
-                            .frame(width: 20, height: 20)
+                            .font(.system(size: 14))
+                            .foregroundColor(reviewIndex > 0 ? .billixLoginTeal : .gray.opacity(0.5))
+                            .frame(width: 28, height: 28)
+                            .background(Color.white)
+                            .clipShape(Circle())
                     }
-                    .buttonStyle(ScaleButtonStyle())
+                    .disabled(reviewIndex == 0)
 
                     Button(action: {
                         if reviewIndex < reviews.count - 1 {
@@ -891,123 +543,48 @@ struct ReviewCardView: View {
                         }
                     }) {
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 12))
-                            .foregroundColor(.billixPurpleAccent)
-                            .frame(width: 20, height: 20)
+                            .font(.system(size: 14))
+                            .foregroundColor(reviewIndex < reviews.count - 1 ? .billixLoginTeal : .gray.opacity(0.5))
+                            .frame(width: 28, height: 28)
+                            .background(Color.white)
+                            .clipShape(Circle())
                     }
-                    .buttonStyle(ScaleButtonStyle())
+                    .disabled(reviewIndex == reviews.count - 1)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 4) {
+                    ForEach(0..<5, id: \.self) { index in
+                        Image(systemName: index < reviews[reviewIndex].rating ? "star.fill" : "star")
+                            .font(.system(size: 14))
+                            .foregroundColor(.billixStarGold)
+                    }
+                }
+
+                Text(reviews[reviewIndex].text)
+                    .font(.system(size: 15))
+                    .foregroundColor(.billixDarkGreen)
+                    .lineSpacing(4)
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+                    .id(reviewIndex)
+
+                Text("— \(reviews[reviewIndex].author)")
+                    .font(.system(size: 13))
+                    .foregroundColor(.gray)
+            }
         }
-        .frame(width: 188, height: 198)
-        .background(
-            RoundedRectangle(cornerRadius: 22)
-                .fill(Color.white)
-                .shadow(color: Color.billixPurpleAccent.opacity(0.15), radius: 12, x: 0, y: 4)
-        )
+        .padding(16)
+        .background(LinearGradient(colors: [Color.billixLoginTeal.opacity(0.08), Color.billixLoginTeal.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.billixLoginTeal.opacity(0.2), lineWidth: 1))
     }
 }
 
-// MARK: - Action Buttons Grid View
-struct ActionButtonsGridView: View {
-    var body: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 4) {
-                ActionButtonView(
-                    icon: "message.fill",
-                    label: "Chat",
-                    color: .billixChatBlue,
-                    backgroundColor: Color.billixChatBlueBg.opacity(0.3),
-                    badgeCount: 8
-                )
-
-                ActionButtonView(
-                    icon: "dollarsign.circle.fill",
-                    label: "Funding",
-                    color: .billixFundingPurple,
-                    backgroundColor: Color.billixFundingPurple.opacity(0.1),
-                    badgeCount: nil
-                )
-            }
-
-            HStack(spacing: 4) {
-                ActionButtonView(
-                    icon: "questionmark.circle.fill",
-                    label: "FAQ",
-                    color: .billixFaqGreen,
-                    backgroundColor: Color.billixFaqGreen.opacity(0.1),
-                    badgeCount: nil
-                )
-
-                ActionButtonView(
-                    icon: "chart.bar.fill",
-                    label: "Vote",
-                    color: .billixVotePink,
-                    backgroundColor: Color.billixVotePink.opacity(0.1),
-                    badgeCount: 8
-                )
-            }
-        }
-        .frame(width: 188)
-    }
-}
-
-// MARK: - Action Button View
-struct ActionButtonView: View {
-    let icon: String
-    let label: String
-    let color: Color
-    let backgroundColor: Color
-    let badgeCount: Int?
-
-    @State private var isPressed = false
-
-    var body: some View {
-        Button(action: {
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-        }) {
-            ZStack(alignment: .topTrailing) {
-                VStack(spacing: 8) {
-                    Image(systemName: icon)
-                        .font(.system(size: 20))
-                        .foregroundColor(color)
-                        .frame(width: 38, height: 38)
-                        .background(
-                            RoundedRectangle(cornerRadius: 21)
-                                .fill(backgroundColor)
-                                .shadow(color: color.opacity(0.2), radius: 4, x: 0, y: 2)
-                        )
-
-                    Text(label)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(color)
-                }
-                .frame(width: 92, height: 97)
-                .background(
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(Color.white)
-                        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 2)
-                )
-
-                if let count = badgeCount {
-                    Text("\(count)")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(label == "Chat" ? Color(hex: "#944ab6") : Color(hex: "#5dc176"))
-                        .frame(width: 20, height: 20)
-                        .background(
-                            Circle()
-                                .fill(label == "Chat" ? Color(hex: "#fae7fc") : Color(hex: "#edfbf0"))
-                                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        )
-                        .offset(x: -8, y: 8)
-                }
-            }
-        }
-        .buttonStyle(ScaleButtonStyle())
-    }
+struct Review {
+    let text: String
+    let author: String
+    let rating: Int
 }
 
 #Preview {
