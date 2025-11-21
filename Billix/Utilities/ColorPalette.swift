@@ -13,6 +13,36 @@ extension Color {
     static let billixGold = Color(hex: "#d4a04e")            // Gold coins
     static let billixCopper = Color(hex: "#b87554")          // Copper coins
 
+    // Custom Background
+    static let billixCustomGreen = Color(hex: "#5fa052")     // User-selected green background
+
+    // Home Screen Specific Colors (from Figma)
+    static let billixLightGreen = Color(hex: "#f0f8ec")      // Main background
+    static let billixPendingOrange = Color(hex: "#fcf3e8")   // Pending bills background
+    static let billixPendingOrangeText = Color(hex: "#d88237") // Pending text
+    static let billixCompletedGreen = Color(hex: "#f0f8ec")  // Completed bills background
+    static let billixCompletedGreenText = Color(hex: "#5e7a5f") // Completed text
+    static let billixActiveBlue = Color(hex: "#e8f4fc")      // Active bills background
+    static let billixActiveBlueText = Color(hex: "#467aa0")  // Active text
+    static let billixDarkGreen = Color(hex: "#234d34")       // Dark text
+    static let billixMediumGreen = Color(hex: "#5e7a5f")     // Medium green text
+    static let billixLightGreenText = Color(hex: "#95ad96")  // Light green text
+    static let billixStarGold = Color(hex: "#f19e38")        // Star rating
+    static let billixSavingsYellow = Color(hex: "#f7bc56")   // Savings progress
+    static let billixSavingsOrange = Color(hex: "#f1a626")   // Savings amount
+    static let billixBorderGreen = Color(hex: "#d8e3d8")     // Border color
+    static let billixChartBlue = Color(hex: "#52b8df")       // Chart blue
+    static let billixChartGreen = Color(hex: "#67bf6a")      // Chart green
+    static let billixPurpleAccent = Color(hex: "#5d4db1")    // Purple accent
+    static let billixPurpleLight = Color(hex: "#7c74a8")     // Light purple
+    static let billixChatBlue = Color(hex: "#468ba5")        // Chat blue
+    static let billixChatBlueBg = Color(hex: "#b2dfeb")      // Chat background
+    static let billixVotePink = Color(hex: "#dc6b62")        // Vote pink
+    static let billixVoteRed = Color(hex: "#f0a59f")         // Vote red
+    static let billixFundingPurple = Color(hex: "#5d4db1")   // Funding purple
+    static let billixFaqGreen = Color(hex: "#429459")        // FAQ green
+    static let billixGraphGray = Color(hex: "#2a2c3e")       // Graph text
+
     // Legacy colors for backward compatibility
     static let billixMutedPurple = billixPurple
     static let billixYellowGold = billixGoldenAmber
