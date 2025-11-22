@@ -14,12 +14,12 @@ struct LoginView: View {
 
     var body: some View {
         ZStack {
-            // Enhanced green gradient background
+            // Enhanced green gradient background with depth
             LinearGradient(
                 colors: [
+                    Color.billixLoginGreen.opacity(0.9),
                     Color.billixLoginGreen,
-                    Color.billixLoginGreen.opacity(0.85),
-                    Color.billixLoginGreen
+                    Color.billixLoginGreen.opacity(0.95)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -30,10 +30,10 @@ struct LoginView: View {
                 focusedField = nil
             }
 
-            // Subtle overlay for depth
+            // Subtle overlay for depth (reduced brightness)
             RadialGradient(
                 colors: [
-                    Color.white.opacity(0.15),
+                    Color.white.opacity(0.08),
                     Color.clear
                 ],
                 center: .top,
