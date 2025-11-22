@@ -14,40 +14,53 @@ struct LoginView: View {
 
     var body: some View {
         ZStack {
-            // Green background
-            Color.billixLoginGreen
-                .ignoresSafeArea()
-                .onTapGesture {
-                    hideKeyboard()
-                    focusedField = nil
-                }
+            // Enhanced green gradient background
+            LinearGradient(
+                colors: [
+                    Color.billixLoginGreen,
+                    Color.billixLoginGreen.opacity(0.85),
+                    Color.billixLoginGreen
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            .onTapGesture {
+                hideKeyboard()
+                focusedField = nil
+            }
+
+            // Subtle overlay for depth
+            RadialGradient(
+                colors: [
+                    Color.white.opacity(0.15),
+                    Color.clear
+                ],
+                center: .top,
+                startRadius: 100,
+                endRadius: 500
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
                     .frame(height: 60)
 
                 // Logo and branding section
-                VStack(spacing: DesignSystem.Spacing.sm) {
+                VStack(spacing: DesignSystem.Spacing.md) {
                     Image("billix_logo_new")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 100, height: 100)
+                        .frame(width: 140, height: 140)
+                        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
 
                     Text("Billix")
-                        .font(.system(size: 32, weight: .bold))
+                        .font(.system(size: 36, weight: .bold))
                         .foregroundColor(.billixLoginTeal)
-
-                    // Value proposition tagline
-                    Text("See if you're overpaying.\nWe'll show you what to do.")
-                        .font(.system(size: DesignSystem.Typography.Size.body, weight: .medium))
-                        .foregroundColor(.billixDarkGray.opacity(0.8))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .padding(.top, DesignSystem.Spacing.xxs)
                 }
 
                 Spacer()
-                    .frame(height: 40)
+                    .frame(height: 48)
 
                 // Login form
                 VStack(spacing: DesignSystem.Spacing.sm) {
