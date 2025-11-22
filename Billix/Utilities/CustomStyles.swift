@@ -250,3 +250,184 @@ struct PiggyBankShape: Shape {
         return path
     }
 }
+
+// MARK: - Design System v2 Card Styles
+
+/// Hero card style - Large content cards with dark background and elevated shadow
+struct HeroCardStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(Color.dsCardBackground)
+            .cornerRadius(DesignSystem.CornerRadius.large)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.large)
+                    .stroke(Color.white.opacity(DesignSystem.Opacity.backgroundTint), lineWidth: DesignSystem.Border.thin)
+            )
+            .shadow(
+                color: DesignSystem.Shadow.Heavy.color,
+                radius: DesignSystem.Shadow.Heavy.radius,
+                x: 0,
+                y: DesignSystem.Shadow.Heavy.y
+            )
+    }
+}
+
+/// Stat card style - Compact cards for displaying stats with tinted background
+struct StatCardStyle: ViewModifier {
+    let accentColor: Color
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.standard)
+                    .fill(accentColor.opacity(DesignSystem.Opacity.backgroundTint))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.standard)
+                    .stroke(accentColor.opacity(0.3), lineWidth: DesignSystem.Border.thin)
+            )
+            .shadow(
+                color: accentColor.opacity(0.15),
+                radius: DesignSystem.Shadow.Light.radius,
+                x: 0,
+                y: DesignSystem.Shadow.Light.y
+            )
+    }
+}
+
+/// Action button style - Prominent CTAs with accent color background
+struct ActionButtonStyle: ViewModifier {
+    let backgroundColor: Color
+    let foregroundColor: Color
+
+    init(backgroundColor: Color = .dsPrimaryAccent, foregroundColor: Color = .white) {
+        self.backgroundColor = backgroundColor
+        self.foregroundColor = foregroundColor
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .foregroundColor(foregroundColor)
+            .padding(.vertical, DesignSystem.Spacing.xs)
+            .padding(.horizontal, DesignSystem.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.standard)
+                    .fill(backgroundColor)
+            )
+            .shadow(
+                color: backgroundColor.opacity(0.3),
+                radius: DesignSystem.Shadow.Medium.radius,
+                x: 0,
+                y: DesignSystem.Shadow.Medium.y
+            )
+    }
+}
+
+/// Pill style - Small rounded pills for tags and chips
+struct PillStyle: ViewModifier {
+    let backgroundColor: Color
+    let foregroundColor: Color
+
+    init(backgroundColor: Color, foregroundColor: Color = .dsTextPrimary) {
+        self.backgroundColor = backgroundColor
+        self.foregroundColor = foregroundColor
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .foregroundColor(foregroundColor)
+            .padding(.vertical, DesignSystem.Spacing.xxs / 2)
+            .padding(.horizontal, DesignSystem.Spacing.xs)
+            .background(
+                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.small)
+                    .fill(backgroundColor)
+            )
+    }
+}
+
+// MARK: - Billix Card Styles (Legacy Support)
+
+/// Standard Billix card style - Updated for dark theme
+/// Updated to match Design System v2: dark background, subtle border, refined shadow
+struct BillixCardStyle: ViewModifier {
+    let cornerRadius: CGFloat
+    let shadowRadius: CGFloat
+    let borderColor: Color
+
+    init(cornerRadius: CGFloat = 16, shadowRadius: CGFloat = 8, borderColor: Color = Color.white.opacity(0.1)) {
+        self.cornerRadius = cornerRadius
+        self.shadowRadius = shadowRadius
+        self.borderColor = borderColor
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .background(Color.dsCardBackground)
+            .cornerRadius(cornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(borderColor, lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.2), radius: shadowRadius, x: 0, y: 2)
+    }
+}
+
+/// Accent card style with colored background and border
+struct BillixAccentCardStyle: ViewModifier {
+    let backgroundColor: Color
+    let accentColor: Color
+    let cornerRadius: CGFloat
+
+    init(backgroundColor: Color, accentColor: Color, cornerRadius: CGFloat = 16) {
+        self.backgroundColor = backgroundColor
+        self.accentColor = accentColor
+        self.cornerRadius = cornerRadius
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .background(backgroundColor)
+            .cornerRadius(cornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(accentColor, lineWidth: 1.5)
+            )
+            .shadow(color: accentColor.opacity(0.1), radius: 8, x: 0, y: 2)
+    }
+}
+
+extension View {
+    // MARK: - Design System v2 Styles
+
+    /// Applies hero card styling - Large content cards with elevated shadow
+    func heroCard() -> some View {
+        modifier(HeroCardStyle())
+    }
+
+    /// Applies stat card styling with accent color tint
+    func statCard(accentColor: Color = .dsPrimaryAccent) -> some View {
+        modifier(StatCardStyle(accentColor: accentColor))
+    }
+
+    /// Applies action button styling with accent color
+    func actionButton(backgroundColor: Color = .dsPrimaryAccent, foregroundColor: Color = .white) -> some View {
+        modifier(ActionButtonStyle(backgroundColor: backgroundColor, foregroundColor: foregroundColor))
+    }
+
+    /// Applies pill styling for tags and chips
+    func pill(backgroundColor: Color, foregroundColor: Color = .dsTextPrimary) -> some View {
+        modifier(PillStyle(backgroundColor: backgroundColor, foregroundColor: foregroundColor))
+    }
+
+    // MARK: - Legacy Billix Styles (Updated for dark theme)
+
+    /// Applies standard Billix card styling (Updated for Design System v2: dark theme)
+    func billixCard(cornerRadius: CGFloat = 16, shadowRadius: CGFloat = 8, borderColor: Color = Color.white.opacity(0.1)) -> some View {
+        modifier(BillixCardStyle(cornerRadius: cornerRadius, shadowRadius: shadowRadius, borderColor: borderColor))
+    }
+
+    /// Applies accent Billix card styling with colored background
+    func billixAccentCard(backgroundColor: Color, accentColor: Color, cornerRadius: CGFloat = 16) -> some View {
+        modifier(BillixAccentCardStyle(backgroundColor: backgroundColor, accentColor: accentColor, cornerRadius: cornerRadius))
+    }
+}

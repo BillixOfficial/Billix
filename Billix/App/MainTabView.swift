@@ -9,7 +9,7 @@ struct MainTabView: View {
             Group {
                 switch selectedTab {
                 case 0:
-                    HomeView()
+                    TodayView()
                 case 1:
                     ExploreView()
                 case 2:
@@ -19,7 +19,7 @@ struct MainTabView: View {
                 case 4:
                     ProfileView()
                 default:
-                    HomeView()
+                    TodayView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

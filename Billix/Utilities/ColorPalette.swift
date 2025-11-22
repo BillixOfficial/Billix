@@ -1,7 +1,56 @@
 import SwiftUI
 
 extension Color {
-    // Billix Company Color Palette - Inspired by Logo
+    // MARK: - Dark Theme Colors (Design System v2)
+
+    /// Pure black background (#0A0A0A) - Main app background
+    static let dsBackgroundPrimary = Color(hex: "#0A0A0A")
+
+    /// Dark gray background (#1C1C1E) - Secondary background, cards
+    static let dsBackgroundSecondary = Color(hex: "#1C1C1E")
+
+    /// Medium dark gray (#2C2C2E) - Card surfaces
+    static let dsCardBackground = Color(hex: "#2C2C2E")
+
+    /// Elevated surface (#3C3C3E) - Elevated cards and components
+    static let dsElevatedBackground = Color(hex: "#3C3C3E")
+
+    // MARK: - Semantic Accent Colors
+
+    /// Primary accent - Teal (#00796b)
+    static let dsPrimaryAccent = Color(hex: "#00796b")
+
+    /// Success/Money - Money Green (#5b8a6b)
+    static let dsSuccess = Color(hex: "#5b8a6b")
+
+    /// Warning/Pending - Orange (#f19e38)
+    static let dsWarning = Color(hex: "#f19e38")
+
+    /// Error/Overdue - Red (#dc6b62)
+    static let dsError = Color(hex: "#dc6b62")
+
+    /// Info - Blue (#52b8df)
+    static let dsInfo = Color(hex: "#52b8df")
+
+    /// Rewards - Gold (#d4a04e)
+    static let dsGold = Color(hex: "#d4a04e")
+
+    // MARK: - Text Colors (with semantic opacity)
+
+    /// Primary text - White 100%
+    static let dsTextPrimary = Color.white
+
+    /// Secondary text - White 87%
+    static let dsTextSecondary = Color.white.opacity(0.87)
+
+    /// Tertiary text - White 60%
+    static let dsTextTertiary = Color.white.opacity(0.6)
+
+    /// Disabled text - White 38%
+    static let dsTextDisabled = Color.white.opacity(0.38)
+
+    // MARK: - Billix Company Color Palette - Inspired by Logo
+
     static let billixPurple = Color(hex: "#9b7b9f")          // Piggy bank purple
     static let billixGoldenAmber = Color(hex: "#e8b54d")     // Golden amber background
     static let billixDarkTeal = Color(hex: "#2d5a5e")        // Dark teal base
