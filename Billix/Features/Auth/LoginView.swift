@@ -42,25 +42,53 @@ struct LoginView: View {
             )
             .ignoresSafeArea()
 
+            // Subtle texture pattern
+            GeometryReader { geometry in
+                ZStack {
+                    // Dotted texture pattern
+                    ForEach(0..<30, id: \.self) { i in
+                        Circle()
+                            .fill(Color.white.opacity(0.03))
+                            .frame(width: CGFloat.random(in: 40...80))
+                            .position(
+                                x: CGFloat.random(in: 0...geometry.size.width),
+                                y: CGFloat.random(in: 0...geometry.size.height)
+                            )
+                    }
+
+                    // Larger subtle circles
+                    ForEach(0..<8, id: \.self) { i in
+                        Circle()
+                            .stroke(Color.white.opacity(0.02), lineWidth: 1)
+                            .frame(width: CGFloat.random(in: 100...200))
+                            .position(
+                                x: CGFloat.random(in: 0...geometry.size.width),
+                                y: CGFloat.random(in: 0...geometry.size.height)
+                            )
+                    }
+                }
+            }
+            .ignoresSafeArea()
+
             VStack(spacing: 0) {
                 Spacer()
-                    .frame(height: 60)
+                    .frame(height: 80)
 
                 // Logo and branding section
-                VStack(spacing: DesignSystem.Spacing.md) {
+                VStack(spacing: DesignSystem.Spacing.xs) {
                     Image("billix_logo_new")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 140, height: 140)
+                        .frame(width: 160, height: 160)
                         .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
 
                     Text("Billix")
-                        .font(.system(size: 36, weight: .bold))
+                        .font(.system(size: 42, weight: .bold))
                         .foregroundColor(.billixLoginTeal)
                 }
 
                 Spacer()
-                    .frame(height: 48)
+                    .frame(height: 36)
 
                 // Login form
                 VStack(spacing: DesignSystem.Spacing.sm) {
