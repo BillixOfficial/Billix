@@ -42,29 +42,41 @@ struct LoginView: View {
             )
             .ignoresSafeArea()
 
-            // Subtle texture pattern
+            // Wave and line texture patterns
             GeometryReader { geometry in
                 ZStack {
-                    // Dotted texture pattern
-                    ForEach(0..<30, id: \.self) { i in
-                        Circle()
-                            .fill(Color.white.opacity(0.03))
-                            .frame(width: CGFloat.random(in: 40...80))
-                            .position(
-                                x: CGFloat.random(in: 0...geometry.size.width),
-                                y: CGFloat.random(in: 0...geometry.size.height)
-                            )
+                    // Diagonal lines pattern (sandpaper effect)
+                    ForEach(0..<50, id: \.self) { i in
+                        Rectangle()
+                            .fill(Color.white.opacity(0.04))
+                            .frame(width: 1, height: geometry.size.height * 1.5)
+                            .rotationEffect(.degrees(45))
+                            .offset(x: CGFloat(i * 15) - 200)
                     }
 
-                    // Larger subtle circles
-                    ForEach(0..<8, id: \.self) { i in
-                        Circle()
-                            .stroke(Color.white.opacity(0.02), lineWidth: 1)
-                            .frame(width: CGFloat.random(in: 100...200))
-                            .position(
-                                x: CGFloat.random(in: 0...geometry.size.width),
-                                y: CGFloat.random(in: 0...geometry.size.height)
-                            )
+                    // Wave patterns at top
+                    WaveShape(phase: 0)
+                        .fill(Color.white.opacity(0.06))
+                        .frame(height: 120)
+                        .offset(y: 100)
+
+                    WaveShape(phase: 0.5)
+                        .fill(Color.white.opacity(0.04))
+                        .frame(height: 100)
+                        .offset(y: 150)
+
+                    // Wave patterns at bottom
+                    WaveShape(phase: 0.3)
+                        .fill(Color.white.opacity(0.05))
+                        .frame(height: 150)
+                        .offset(y: geometry.size.height - 150)
+
+                    // Subtle horizontal lines for texture
+                    ForEach(0..<15, id: \.self) { i in
+                        Rectangle()
+                            .fill(Color.white.opacity(0.02))
+                            .frame(height: 1)
+                            .offset(y: CGFloat(i * 60))
                     }
                 }
             }
@@ -80,11 +92,13 @@ struct LoginView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 160, height: 160)
-                        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+                        .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
 
                     Text("Billix")
                         .font(.system(size: 42, weight: .bold))
                         .foregroundColor(.billixLoginTeal)
+                        .shadow(color: Color.white.opacity(0.8), radius: 3, x: 0, y: 0)
+                        .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
                 }
 
                 Spacer()
@@ -105,13 +119,14 @@ struct LoginView: View {
                     // Divider
                     HStack(spacing: DesignSystem.Spacing.xs) {
                         Rectangle()
-                            .fill(Color.gray.opacity(0.3))
+                            .fill(Color.gray.opacity(0.5))
                             .frame(height: 1)
                         Text("or")
-                            .font(.system(size: DesignSystem.Typography.Size.caption))
-                            .foregroundColor(.gray)
+                            .font(.system(size: DesignSystem.Typography.Size.caption, weight: .medium))
+                            .foregroundColor(.billixDarkGray)
+                            .shadow(color: Color.white.opacity(0.5), radius: 1, x: 0, y: 0)
                         Rectangle()
-                            .fill(Color.gray.opacity(0.3))
+                            .fill(Color.gray.opacity(0.5))
                             .frame(height: 1)
                     }
                     .padding(.vertical, DesignSystem.Spacing.xxs)
@@ -199,13 +214,15 @@ struct LoginView: View {
                 HStack(spacing: 4) {
                     Text("Don't have an account?")
                         .font(.system(size: DesignSystem.Typography.Size.body))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.billixDarkGray)
+                        .shadow(color: Color.white.opacity(0.5), radius: 1, x: 0, y: 0)
 
                     Button("Sign up") {
                         // UI only
                     }
                     .font(.system(size: DesignSystem.Typography.Size.body, weight: .semibold))
                     .foregroundColor(.billixLoginTeal)
+                    .shadow(color: Color.white.opacity(0.6), radius: 2, x: 0, y: 0)
                 }
                 .padding(.bottom, 30)
             }
@@ -253,6 +270,38 @@ struct LoginView: View {
 
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+// MARK: - Wave Shape for Background Pattern
+
+struct WaveShape: Shape {
+    let phase: Double
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let width = rect.width
+        let height = rect.height
+        let midHeight = height / 2
+
+        path.move(to: CGPoint(x: 0, y: midHeight))
+
+        // Create smooth wave using quadratic curves
+        for i in stride(from: 0, to: width, by: 40) {
+            let x = i
+            let relativeX = x / width
+            let sine = sin((relativeX * .pi * 4) + (phase * .pi * 2))
+            let y = midHeight + (sine * 20)
+
+            path.addLine(to: CGPoint(x: x, y: y))
+        }
+
+        // Complete the shape
+        path.addLine(to: CGPoint(x: width, y: height))
+        path.addLine(to: CGPoint(x: 0, y: height))
+        path.closeSubpath()
+
+        return path
     }
 }
 
