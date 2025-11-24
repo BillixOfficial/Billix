@@ -107,22 +107,22 @@ struct UploadHubView: View {
 
                     // Content with text shadows for better readability
                     HStack(spacing: 18) {
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("Quick Add a Bill")
-                                .font(.system(size: 24, weight: .bold))
+                                .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
 
-                            Text("60 seconds · No photo needed")
-                                .font(.system(size: 15, weight: .semibold))
+                            Text("30 seconds · No photo needed")
+                                .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
 
-                            Text("Just tell us your provider and amount")
+                            Text("Just tell us your provider, amount, and due date")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
 
                         Spacer()
@@ -137,17 +137,17 @@ struct UploadHubView: View {
                                         endRadius: 35
                                     )
                                 )
-                                .frame(width: 70, height: 70)
+                                .frame(width: 64, height: 64)
 
                             Image(systemName: "bolt.fill")
-                                .font(.system(size: 32, weight: .bold))
+                                .font(.system(size: 30, weight: .bold))
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
                         }
                     }
-                    .padding(24)
+                    .padding(22)
                 }
-                .frame(height: 160)
+                .frame(height: 140)
                 .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
                 .shadow(color: .billixMoneyGreen.opacity(0.2), radius: 40, x: 0, y: 20)
             }
@@ -181,21 +181,25 @@ struct UploadHubView: View {
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-                    .cornerRadius(20)
+                    .cornerRadius(24)
 
                     // Content with text shadows
-                    HStack(spacing: 16) {
+                    HStack(spacing: 18) {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Upload Bill")
-                                .font(.system(size: 21, weight: .bold))
+                                .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
 
-                            Text("Uncover hidden fees, compare prices, and discover ways to save money.")
+                            Text("60 seconds · Photo or PDF")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+
+                            Text("Get full analysis with hidden fees and savings")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-                                .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
 
@@ -205,25 +209,25 @@ struct UploadHubView: View {
                             Circle()
                                 .fill(
                                     RadialGradient(
-                                        colors: [.white.opacity(0.3), .white.opacity(0.1)],
+                                        colors: [.white.opacity(0.35), .white.opacity(0.15)],
                                         center: .center,
                                         startRadius: 5,
-                                        endRadius: 30
+                                        endRadius: 35
                                     )
                                 )
-                                .frame(width: 60, height: 60)
+                                .frame(width: 64, height: 64)
 
                             Image(systemName: "doc.text.viewfinder")
-                                .font(.system(size: 26, weight: .semibold))
+                                .font(.system(size: 30, weight: .bold))
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
                         }
                     }
-                    .padding(20)
+                    .padding(22)
                 }
-                .frame(height: 120)
-                .shadow(color: .black.opacity(0.12), radius: 15, x: 0, y: 8)
-                .shadow(color: .billixChartBlue.opacity(0.15), radius: 30, x: 0, y: 15)
+                .frame(height: 140)
+                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                .shadow(color: .billixChartBlue.opacity(0.2), radius: 40, x: 0, y: 20)
             }
         }
         .opacity(appeared ? 1 : 0)
