@@ -2,10 +2,13 @@ import SwiftUI
 import AuthenticationServices
 
 struct LoginView: View {
+    @EnvironmentObject var authService: AuthService
     @State private var email = ""
     @State private var password = ""
     @State private var isSecured = true
-    @State private var isLoggedIn = false
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var showError = false
     @FocusState private var focusedField: Field?
 
     enum Field {
@@ -115,6 +118,7 @@ struct LoginView: View {
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 50)
                     .cornerRadius(16)
+                    .disabled(isLoading)
 
                     // Divider
                     HStack(spacing: 12) {
@@ -146,6 +150,7 @@ struct LoginView: View {
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                         )
+                        .disabled(isLoading)
 
                     // Password
                     HStack {
@@ -180,31 +185,40 @@ struct LoginView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )
+                    .disabled(isLoading)
 
                     // Forgot Password
                     HStack {
                         Spacer()
                         Button("Forgot password?") {
-                            // UI only
+                            handleForgotPassword()
                         }
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.billixLoginTeal)
+                        .disabled(isLoading)
                     }
 
                     // Sign In Button
                     Button(action: {
                         handleLogin()
                     }) {
-                        Text("Sign In")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(Color.billixLoginTeal)
-                            .cornerRadius(16)
+                        HStack(spacing: 8) {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            }
+                            Text("Sign In")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(isLoading ? Color.billixLoginTeal.opacity(0.7) : Color.billixLoginTeal)
+                        .cornerRadius(16)
                     }
                     .buttonStyle(ScaleButtonStyle())
                     .padding(.top, 8)
+                    .disabled(isLoading)
                 }
                 .padding(.horizontal, 32)
 
@@ -218,38 +232,54 @@ struct LoginView: View {
                         .shadow(color: Color.white.opacity(0.5), radius: 1, x: 0, y: 0)
 
                     Button("Sign up") {
-                        // UI only
+                        handleSignUp()
                     }
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.billixLoginTeal)
                     .shadow(color: Color.white.opacity(0.6), radius: 2, x: 0, y: 0)
+                    .disabled(isLoading)
                 }
                 .padding(.bottom, 30)
             }
-
-            // Navigation to MainTabView
-            if isLoggedIn {
-                MainTabView()
-                    .transition(.opacity)
-            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "An error occurred")
         }
     }
 
+    // MARK: - Actions
+
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
         switch result {
-        case .success(_):
-            // In production, validate the credential with your backend
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
+        case .success(let authorization):
+            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+                showErrorMessage("Invalid Apple credential")
+                return
+            }
 
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                isLoggedIn = true
+            isLoading = true
+
+            Task {
+                do {
+                    try await authService.signInWithApple(credential: credential)
+                    // Navigation handled by RootView
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                } catch {
+                    showErrorMessage(error.localizedDescription)
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.error)
+                }
+                isLoading = false
             }
 
         case .failure(let error):
-            print("Apple Sign In failed: \(error.localizedDescription)")
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.error)
+            // Don't show error for user cancellation
+            if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
+                showErrorMessage(error.localizedDescription)
+            }
         }
     }
 
@@ -258,14 +288,78 @@ struct LoginView: View {
         hideKeyboard()
         focusedField = nil
 
-        // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-
-        // Skip validation - allow direct access to app (UI only, no auth)
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            isLoggedIn = true
+        // Validate
+        guard !email.isEmpty, !password.isEmpty else {
+            showErrorMessage("Please enter email and password")
+            return
         }
+
+        isLoading = true
+
+        Task {
+            do {
+                try await authService.signIn(email: email, password: password)
+                // Navigation handled by RootView
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+            } catch {
+                showErrorMessage(error.localizedDescription)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+            }
+            isLoading = false
+        }
+    }
+
+    private func handleSignUp() {
+        // Dismiss keyboard
+        hideKeyboard()
+        focusedField = nil
+
+        guard !email.isEmpty, !password.isEmpty else {
+            showErrorMessage("Please enter email and password")
+            return
+        }
+
+        isLoading = true
+
+        Task {
+            do {
+                try await authService.signUp(email: email, password: password)
+                // Navigation handled by RootView
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+            } catch {
+                showErrorMessage(error.localizedDescription)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+            }
+            isLoading = false
+        }
+    }
+
+    private func handleForgotPassword() {
+        guard !email.isEmpty else {
+            showErrorMessage("Please enter your email address")
+            return
+        }
+
+        isLoading = true
+
+        Task {
+            do {
+                try await authService.resetPassword(email: email)
+                showErrorMessage("Password reset email sent. Check your inbox.")
+            } catch {
+                showErrorMessage(error.localizedDescription)
+            }
+            isLoading = false
+        }
+    }
+
+    private func showErrorMessage(_ message: String) {
+        errorMessage = message
+        showError = true
     }
 
     private func hideKeyboard() {
@@ -307,4 +401,5 @@ struct WaveShape: Shape {
 
 #Preview {
     LoginView()
+        .environmentObject(AuthService.shared)
 }

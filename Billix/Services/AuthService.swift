@@ -4,14 +4,14 @@
 //
 //  Created by Billix Team
 //
-//  NOTE: This is a temporary stub implementation without Supabase.
-//  For production, integrate Supabase authentication.
+//  Supabase Authentication Service with Apple Sign-In support
 //
 
 import Foundation
 import AuthenticationServices
+import Supabase
 
-/// Authentication service stub (temporary - replace with Supabase integration)
+/// Authentication service with Supabase integration
 @MainActor
 class AuthService: ObservableObject {
 
@@ -19,18 +19,147 @@ class AuthService: ObservableObject {
     static let shared = AuthService()
 
     // MARK: - Published Properties
-    @Published var currentUser: UserProfile?
+    @Published var currentUser: CombinedUser?
     @Published var isAuthenticated = false
-    @Published var isLoading = false
+    @Published var needsOnboarding = false
+    @Published var isLoading = true
+
+    // Temporary storage for Apple-provided name during onboarding
+    var appleProvidedName: PersonNameComponents?
+
+    // MARK: - Private Properties
+    private var supabase: SupabaseClient {
+        SupabaseService.shared.client
+    }
+
+    private var authStateTask: Task<Void, Never>?
 
     // MARK: - Initialization
     private init() {
-        // Auto-login with mock user for development
-        Task {
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            self.currentUser = .preview
-            self.isAuthenticated = true
+        setupAuthStateListener()
+    }
+
+    deinit {
+        authStateTask?.cancel()
+    }
+
+    // MARK: - Auth State Listener
+
+    private func setupAuthStateListener() {
+        authStateTask = Task { [weak self] in
+            guard let self = self else { return }
+
+            for await (event, session) in self.supabase.auth.authStateChanges {
+                await MainActor.run {
+                    switch event {
+                    case .initialSession:
+                        if let session = session {
+                            Task {
+                                await self.handleSession(session)
+                            }
+                        } else {
+                            self.isLoading = false
+                            self.isAuthenticated = false
+                        }
+                    case .signedIn:
+                        if let session = session {
+                            Task {
+                                await self.handleSession(session)
+                            }
+                        }
+                    case .signedOut:
+                        self.currentUser = nil
+                        self.isAuthenticated = false
+                        self.needsOnboarding = false
+                    case .tokenRefreshed:
+                        break
+                    case .userUpdated:
+                        if let session = session {
+                            Task {
+                                await self.handleSession(session)
+                            }
+                        }
+                    default:
+                        break
+                    }
+                }
+            }
         }
+    }
+
+    private func handleSession(_ session: Session) async {
+        let userId = session.user.id
+
+        do {
+            // Check if user has completed onboarding (has vault record)
+            let vaultExists = await checkVaultExists(userId: userId)
+
+            if vaultExists {
+                // Fetch full user data
+                let user = try await fetchUserData(userId: userId)
+                self.currentUser = user
+                self.isAuthenticated = true
+                self.needsOnboarding = false
+
+                // Update last login
+                try? await updateLastLogin(userId: userId)
+            } else {
+                // New user needs onboarding
+                self.isAuthenticated = true
+                self.needsOnboarding = true
+            }
+        } catch {
+            print("❌ Error handling session: \(error)")
+            self.isAuthenticated = true
+            self.needsOnboarding = true
+        }
+
+        self.isLoading = false
+    }
+
+    private func checkVaultExists(userId: UUID) async -> Bool {
+        do {
+            let _: [UserVault] = try await supabase.database
+                .from("user_vault")
+                .select()
+                .eq("id", value: userId.uuidString)
+                .execute()
+                .value
+
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    private func fetchUserData(userId: UUID) async throws -> CombinedUser {
+        async let vaultResult: UserVault = supabase.database
+            .from("user_vault")
+            .select()
+            .eq("id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        async let profileResult: UserProfileDB = supabase.database
+            .from("user_profiles")
+            .select()
+            .eq("id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        let (vault, profile) = try await (vaultResult, profileResult)
+
+        return CombinedUser(id: userId, vault: vault, profile: profile)
+    }
+
+    private func updateLastLogin(userId: UUID) async throws {
+        try await supabase.database
+            .from("user_vault")
+            .update(["last_login_at": ISO8601DateFormatter().string(from: Date())])
+            .eq("id", value: userId.uuidString)
+            .execute()
     }
 
     // MARK: - Session Management
@@ -38,12 +167,14 @@ class AuthService: ObservableObject {
     /// Check if there's an active session
     func checkSession() async {
         isLoading = true
-        defer { isLoading = false }
 
-        // Mock: Always authenticated with preview user
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        self.currentUser = .preview
-        self.isAuthenticated = true
+        do {
+            let session = try await supabase.auth.session
+            await handleSession(session)
+        } catch {
+            isLoading = false
+            isAuthenticated = false
+        }
     }
 
     /// Sign out current user
@@ -51,10 +182,44 @@ class AuthService: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        isAuthenticated = false
+        try await supabase.auth.signOut()
         currentUser = nil
-        print("✅ User signed out (mock)")
+        isAuthenticated = false
+        needsOnboarding = false
+        appleProvidedName = nil
+        print("✅ User signed out")
+    }
+
+    // MARK: - Apple Sign In
+
+    /// Sign in with Apple credential
+    func signInWithApple(credential: ASAuthorizationAppleIDCredential) async throws {
+        isLoading = true
+        defer { isLoading = false }
+
+        guard let identityToken = credential.identityToken,
+              let tokenString = String(data: identityToken, encoding: .utf8) else {
+            throw AuthError.appleSignInFailed("Invalid identity token")
+        }
+
+        // Store Apple-provided name for onboarding (only available on first sign-in)
+        if let fullName = credential.fullName {
+            appleProvidedName = fullName
+        }
+
+        do {
+            let session = try await supabase.auth.signInWithIdToken(
+                credentials: .init(
+                    provider: .apple,
+                    idToken: tokenString
+                )
+            )
+
+            await handleSession(session)
+            print("✅ Apple Sign In successful")
+        } catch {
+            throw AuthError.appleSignInFailed(error.localizedDescription)
+        }
     }
 
     // MARK: - Email/Password Authentication
@@ -68,14 +233,20 @@ class AuthService: ObservableObject {
             throw AuthError.invalidCredentials
         }
 
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        self.currentUser = .preview
-        self.isAuthenticated = true
-        print("✅ Mock sign in: \(email)")
+        do {
+            let session = try await supabase.auth.signIn(
+                email: email,
+                password: password
+            )
+            await handleSession(session)
+            print("✅ Email sign in successful")
+        } catch {
+            throw AuthError.signInFailed(error.localizedDescription)
+        }
     }
 
     /// Sign up with email and password
-    func signUp(email: String, password: String, firstName: String, lastName: String) async throws {
+    func signUp(email: String, password: String) async throws {
         isLoading = true
         defer { isLoading = false }
 
@@ -87,59 +258,98 @@ class AuthService: ObservableObject {
             throw AuthError.passwordTooShort
         }
 
-        try? await Task.sleep(nanoseconds: 500_000_000)
+        do {
+            let response = try await supabase.auth.signUp(
+                email: email,
+                password: password
+            )
 
-        var newUser = UserProfile.preview
-        newUser.firstName = firstName
-        newUser.lastName = lastName
-        newUser.email = email
-
-        self.currentUser = newUser
-        self.isAuthenticated = true
-        print("✅ Mock sign up: \(email)")
+            if let session = response.session {
+                await handleSession(session)
+            } else {
+                // Email confirmation required
+                print("✅ Sign up successful - check email for confirmation")
+            }
+        } catch {
+            throw AuthError.signUpFailed(error.localizedDescription)
+        }
     }
 
-    // MARK: - Phone Authentication
+    // MARK: - Onboarding Completion
 
-    /// Send OTP to phone number
-    func sendOTP(to phoneNumber: String) async throws {
+    /// Complete onboarding by creating vault and profile records
+    func completeOnboarding(
+        zipCode: String,
+        displayName: String,
+        avatarData: Data? = nil,
+        goal: String? = nil
+    ) async throws {
         isLoading = true
         defer { isLoading = false }
 
-        guard !phoneNumber.isEmpty else {
-            throw AuthError.invalidPhoneNumber
+        guard let session = try? await supabase.auth.session else {
+            throw AuthError.noUserLoggedIn
         }
 
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        print("✅ Mock OTP sent to: \(phoneNumber)")
-    }
+        let userId = session.user.id
+        var avatarUrl: String? = nil
 
-    /// Verify OTP code
-    func verifyOTP(phoneNumber: String, code: String) async throws {
-        isLoading = true
-        defer { isLoading = false }
-
-        guard !phoneNumber.isEmpty, !code.isEmpty else {
-            throw AuthError.invalidOTP
+        // Upload avatar if provided
+        if let imageData = avatarData {
+            avatarUrl = try await uploadAvatar(userId: userId, imageData: imageData)
         }
 
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        self.currentUser = .preview
-        self.isAuthenticated = true
-        print("✅ Mock OTP verified: \(phoneNumber)")
+        // Create user vault record
+        let vaultInsert = UserVaultInsert(
+            id: userId,
+            zipCode: zipCode,
+            state: nil,
+            marketplaceOptOut: false
+        )
+
+        try await supabase.database
+            .from("user_vault")
+            .insert(vaultInsert)
+            .execute()
+
+        // Create user profile record
+        let profileInsert = UserProfileInsert(
+            id: userId,
+            displayName: displayName,
+            avatarUrl: avatarUrl,
+            goal: goal
+        )
+
+        try await supabase.database
+            .from("user_profiles")
+            .insert(profileInsert)
+            .execute()
+
+        // Fetch the created user data
+        let user = try await fetchUserData(userId: userId)
+        self.currentUser = user
+        self.needsOnboarding = false
+        self.appleProvidedName = nil
+
+        print("✅ Onboarding completed")
     }
 
-    // MARK: - Apple Sign In
+    private func uploadAvatar(userId: UUID, imageData: Data) async throws -> String {
+        let path = "\(userId.uuidString)/avatar.jpg"
 
-    /// Sign in with Apple
-    func signInWithApple(credential: ASAuthorizationAppleIDCredential) async throws {
-        isLoading = true
-        defer { isLoading = false }
+        try await supabase.storage
+            .from("avatars")
+            .upload(
+                path,
+                data: imageData,
+                options: FileOptions(contentType: "image/jpeg", upsert: true)
+            )
 
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        self.currentUser = .preview
-        self.isAuthenticated = true
-        print("✅ Mock Apple Sign In successful")
+        let publicURL = try supabase.storage
+            .from("avatars")
+            .getPublicURL(path: path)
+
+        return publicURL.absoluteString
     }
 
     // MARK: - Password Management
@@ -153,8 +363,12 @@ class AuthService: ObservableObject {
             throw AuthError.invalidEmail
         }
 
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        print("✅ Mock password reset email sent to: \(email)")
+        do {
+            try await supabase.auth.resetPasswordForEmail(email)
+            print("✅ Password reset email sent")
+        } catch {
+            throw AuthError.passwordResetFailed(error.localizedDescription)
+        }
     }
 
     /// Update password
@@ -166,23 +380,57 @@ class AuthService: ObservableObject {
             throw AuthError.passwordTooShort
         }
 
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        print("✅ Mock password updated")
+        do {
+            try await supabase.auth.update(user: UserAttributes(password: newPassword))
+            print("✅ Password updated")
+        } catch {
+            throw AuthError.passwordUpdateFailed(error.localizedDescription)
+        }
     }
 
-    // MARK: - Email Verification
+    // MARK: - Profile Updates
 
-    /// Resend verification email
-    func resendVerificationEmail() async throws {
-        guard let email = currentUser?.email else {
+    /// Update user profile
+    func updateProfile(displayName: String? = nil, bio: String? = nil, goal: String? = nil) async throws {
+        guard let userId = currentUser?.id else {
             throw AuthError.noUserLoggedIn
         }
 
-        isLoading = true
-        defer { isLoading = false }
+        var updates: [String: String] = [:]
+        if let displayName = displayName { updates["display_name"] = displayName }
+        if let bio = bio { updates["bio"] = bio }
+        if let goal = goal { updates["goal"] = goal }
 
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        print("✅ Mock verification email resent to: \(email)")
+        guard !updates.isEmpty else { return }
+
+        try await supabase.database
+            .from("user_profiles")
+            .update(updates)
+            .eq("id", value: userId.uuidString)
+            .execute()
+
+        // Refresh user data
+        let user = try await fetchUserData(userId: userId)
+        self.currentUser = user
+    }
+
+    /// Update avatar
+    func updateAvatar(imageData: Data) async throws {
+        guard let userId = currentUser?.id else {
+            throw AuthError.noUserLoggedIn
+        }
+
+        let avatarUrl = try await uploadAvatar(userId: userId, imageData: imageData)
+
+        try await supabase.database
+            .from("user_profiles")
+            .update(["avatar_url": avatarUrl])
+            .eq("id", value: userId.uuidString)
+            .execute()
+
+        // Refresh user data
+        let user = try await fetchUserData(userId: userId)
+        self.currentUser = user
     }
 }
 
@@ -204,6 +452,7 @@ enum AuthError: LocalizedError {
     case passwordUpdateFailed(String)
     case emailVerificationFailed(String)
     case noUserLoggedIn
+    case onboardingFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -237,6 +486,8 @@ enum AuthError: LocalizedError {
             return "Email verification failed: \(message)"
         case .noUserLoggedIn:
             return "No user is currently logged in"
+        case .onboardingFailed(let message):
+            return "Onboarding failed: \(message)"
         }
     }
 }

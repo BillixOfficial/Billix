@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Supabase
 
 /// Protocol defining profile service interface
 protocol ProfileServiceProtocol {
@@ -13,6 +14,11 @@ protocol ProfileServiceProtocol {
     func getProfile() async throws -> UserProfile
     func updateProfile(_ profile: UserProfile) async throws
     func uploadAvatar(_ imageData: Data) async throws -> String
+
+    // Combined User (new)
+    func getCombinedUser() async throws -> CombinedUser
+    func updateUserProfile(displayName: String?, bio: String?, goal: String?) async throws
+    func updateUserVault(zipCode: String?, marketplaceOptOut: Bool?) async throws
 
     // Credits
     func getCredits() async throws -> BillixCredits
@@ -54,7 +60,7 @@ protocol ProfileServiceProtocol {
     func verifyPhone(code: String) async throws
 }
 
-/// Main profile service implementation using mock data
+/// Main profile service implementation with Supabase integration
 @MainActor
 class ProfileService: ProfileServiceProtocol {
 
@@ -64,24 +70,185 @@ class ProfileService: ProfileServiceProtocol {
     // MARK: - Private Properties
     private let mockDataService = MockDataService.shared
 
-    // You can switch this to a real API service later
-    private var useMockData = true
+    private var supabase: SupabaseClient {
+        SupabaseService.shared.client
+    }
+
+    // Toggle for development - set to false for real Supabase queries
+    private var useMockData = false
 
     // MARK: - Initialization
     private init() {}
 
-    // MARK: - Profile Methods
+    // MARK: - Combined User Methods (Real Supabase)
+
+    func getCombinedUser() async throws -> CombinedUser {
+        guard let session = try? await supabase.auth.session else {
+            throw ProfileError.notAuthenticated
+        }
+
+        let userId = session.user.id
+
+        async let vaultResult: UserVault = supabase.database
+            .from("user_vault")
+            .select()
+            .eq("id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        async let profileResult: UserProfileDB = supabase.database
+            .from("user_profiles")
+            .select()
+            .eq("id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        let (vault, profile) = try await (vaultResult, profileResult)
+
+        return CombinedUser(id: userId, vault: vault, profile: profile)
+    }
+
+    func updateUserProfile(displayName: String? = nil, bio: String? = nil, goal: String? = nil) async throws {
+        guard let session = try? await supabase.auth.session else {
+            throw ProfileError.notAuthenticated
+        }
+
+        var updates: [String: String] = [:]
+        if let displayName = displayName { updates["display_name"] = displayName }
+        if let bio = bio { updates["bio"] = bio }
+        if let goal = goal { updates["goal"] = goal }
+
+        guard !updates.isEmpty else { return }
+
+        try await supabase.database
+            .from("user_profiles")
+            .update(updates)
+            .eq("id", value: session.user.id.uuidString)
+            .execute()
+    }
+
+    func updateUserVault(zipCode: String? = nil, marketplaceOptOut: Bool? = nil) async throws {
+        guard let session = try? await supabase.auth.session else {
+            throw ProfileError.notAuthenticated
+        }
+
+        var updates: [String: Any] = [:]
+        if let zipCode = zipCode { updates["zip_code"] = zipCode }
+        if let marketplaceOptOut = marketplaceOptOut { updates["marketplace_opt_out"] = marketplaceOptOut }
+
+        guard !updates.isEmpty else { return }
+
+        // Convert to string dict for Supabase
+        var stringUpdates: [String: String] = [:]
+        for (key, value) in updates {
+            stringUpdates[key] = String(describing: value)
+        }
+
+        try await supabase.database
+            .from("user_vault")
+            .update(stringUpdates)
+            .eq("id", value: session.user.id.uuidString)
+            .execute()
+    }
+
+    // MARK: - Profile Methods (Legacy - uses mock or converts)
 
     func getProfile() async throws -> UserProfile {
-        return try await mockDataService.getProfile()
+        if useMockData {
+            return try await mockDataService.getProfile()
+        }
+
+        // Convert from CombinedUser to legacy UserProfile
+        let combined = try await getCombinedUser()
+        return convertToLegacyProfile(combined)
     }
 
     func updateProfile(_ profile: UserProfile) async throws {
-        try await mockDataService.updateProfile(profile)
+        if useMockData {
+            try await mockDataService.updateProfile(profile)
+            return
+        }
+
+        // Update using new methods
+        try await updateUserProfile(
+            displayName: profile.displayName ?? profile.fullName,
+            bio: nil,
+            goal: nil
+        )
     }
 
     func uploadAvatar(_ imageData: Data) async throws -> String {
-        return try await mockDataService.uploadAvatar(imageData)
+        if useMockData {
+            return try await mockDataService.uploadAvatar(imageData)
+        }
+
+        guard let session = try? await supabase.auth.session else {
+            throw ProfileError.notAuthenticated
+        }
+
+        let userId = session.user.id
+        let path = "\(userId.uuidString)/avatar.jpg"
+
+        try await supabase.storage
+            .from("avatars")
+            .upload(
+                path,
+                data: imageData,
+                options: FileOptions(contentType: "image/jpeg", upsert: true)
+            )
+
+        let publicURL = try supabase.storage
+            .from("avatars")
+            .getPublicURL(path: path)
+
+        // Update profile with new avatar URL
+        try await supabase.database
+            .from("user_profiles")
+            .update(["avatar_url": publicURL.absoluteString])
+            .eq("id", value: userId.uuidString)
+            .execute()
+
+        return publicURL.absoluteString
+    }
+
+    // MARK: - Helper Methods
+
+    private func convertToLegacyProfile(_ combined: CombinedUser) -> UserProfile {
+        let nameParts = (combined.profile.displayName ?? "User").split(separator: " ")
+        let firstName = nameParts.first.map(String.init) ?? "User"
+        let lastName = nameParts.dropFirst().joined(separator: " ")
+
+        return UserProfile(
+            id: combined.id,
+            firstName: firstName,
+            lastName: lastName.isEmpty ? "" : lastName,
+            displayName: combined.profile.displayName,
+            email: "", // Not stored in profile
+            phoneNumber: nil,
+            zipCode: combined.vault.zipCode,
+            city: "", // Could be derived from ZIP
+            state: combined.vault.state ?? "",
+            isEmailVerified: true, // Assumed if authenticated
+            isPhoneVerified: false,
+            createdAt: combined.vault.createdAt,
+            totalBillsUploaded: combined.profile.billsAnalyzedCount,
+            badges: convertBadges(combined.profile.badges),
+            avatarURL: combined.profile.avatarUrl
+        )
+    }
+
+    private func convertBadges(_ badges: [String]) -> [UserBadge] {
+        return badges.compactMap { badgeString in
+            switch badgeString.lowercased() {
+            case "pioneer", "billix pioneer": return .pioneer
+            case "early_user", "early user": return .earlyUser
+            case "power_user", "power user": return .powerUser
+            case "savings_expert", "savings expert": return .savingsExpert
+            default: return nil
+            }
+        }
     }
 
     // MARK: - Credits Methods
@@ -147,6 +314,10 @@ class ProfileService: ProfileServiceProtocol {
     }
 
     func updateMarketplaceSettings(_ settings: MarketplaceSettings) async throws {
+        if !useMockData {
+            // Also update vault
+            try await updateUserVault(marketplaceOptOut: !settings.isMarketplaceEnabled)
+        }
         try await mockDataService.updateMarketplaceSettings(settings)
     }
 
@@ -190,5 +361,27 @@ class ProfileService: ProfileServiceProtocol {
 
     func verifyPhone(code: String) async throws {
         try await mockDataService.verifyPhone(code: code)
+    }
+}
+
+// MARK: - Profile Errors
+
+enum ProfileError: LocalizedError {
+    case notAuthenticated
+    case profileNotFound
+    case updateFailed(String)
+    case uploadFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .notAuthenticated:
+            return "You must be logged in to access profile data"
+        case .profileNotFound:
+            return "Profile not found"
+        case .updateFailed(let message):
+            return "Failed to update profile: \(message)"
+        case .uploadFailed(let message):
+            return "Failed to upload: \(message)"
+        }
     }
 }
