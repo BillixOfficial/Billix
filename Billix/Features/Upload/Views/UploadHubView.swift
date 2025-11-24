@@ -37,17 +37,17 @@ struct UploadHubView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
 
-                        // SECTION 1: Recent Uploads (History) - Compact at top
-                        recentUploadsSection
-                            .transition(.opacity)
+                        // SECTION 1: Quick Add (Primary Hero) - VISIBLE FIRST
+                        quickAddSection
+                            .transition(.scale.combined(with: .opacity))
 
                         // SECTION 2: Secondary Actions - Icon buttons
                         secondaryActionsSection
                             .transition(.scale.combined(with: .opacity))
 
-                        // SECTION 3: Quick Add (Primary Hero) - Bottom for thumb reach
-                        quickAddSection
-                            .transition(.scale.combined(with: .opacity))
+                        // SECTION 3: Recent Uploads (History) - Bottom
+                        recentUploadsSection
+                            .transition(.opacity)
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)

@@ -318,6 +318,42 @@ struct MockUploadDataService {
             ),
             RecentUpload(
                 id: UUID(),
+                provider: "AT&T Internet",
+                amount: 65.00,
+                source: .camera,
+                status: .analyzed,
+                uploadDate: Date().addingTimeInterval(-86400 * 7),
+                thumbnailName: nil
+            ),
+            RecentUpload(
+                id: UUID(),
+                provider: "City Water Department",
+                amount: 42.30,
+                source: .quickAdd,
+                status: .analyzed,
+                uploadDate: Date().addingTimeInterval(-86400 * 10),
+                thumbnailName: nil
+            ),
+            RecentUpload(
+                id: UUID(),
+                provider: "Netflix",
+                amount: 15.49,
+                source: .quickAdd,
+                status: .analyzed,
+                uploadDate: Date().addingTimeInterval(-86400 * 14),
+                thumbnailName: nil
+            ),
+            RecentUpload(
+                id: UUID(),
+                provider: "State Farm Auto Insurance",
+                amount: 156.80,
+                source: .photos,
+                status: .analyzed,
+                uploadDate: Date().addingTimeInterval(-86400 * 18),
+                thumbnailName: nil
+            ),
+            RecentUpload(
+                id: UUID(),
                 provider: "Unknown",
                 amount: 0.0,
                 source: .photos,
