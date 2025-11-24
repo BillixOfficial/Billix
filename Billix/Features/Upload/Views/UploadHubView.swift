@@ -35,22 +35,22 @@ struct UploadHubView: View {
                 .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 32) {
+                    VStack(spacing: 24) {
 
-                        // SECTION 1: Quick Add (Primary Hero)
-                        quickAddSection
-                            .transition(.scale.combined(with: .opacity))
-
-                        // SECTION 2: Scan/Upload (Secondary)
-                        scanUploadSection
-                            .transition(.scale.combined(with: .opacity))
-
-                        // SECTION 3: Recent Uploads (History)
+                        // SECTION 1: Recent Uploads (History) - Compact at top
                         recentUploadsSection
                             .transition(.opacity)
+
+                        // SECTION 2: Secondary Actions - Icon buttons
+                        secondaryActionsSection
+                            .transition(.scale.combined(with: .opacity))
+
+                        // SECTION 3: Quick Add (Primary Hero) - Bottom for thumb reach
+                        quickAddSection
+                            .transition(.scale.combined(with: .opacity))
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 16)
+                    .padding(.top, 8)
                     .padding(.bottom, 40)
                 }
                 .navigationTitle("Upload")
@@ -82,11 +82,13 @@ struct UploadHubView: View {
     // MARK: - Quick Add Section (Primary Hero)
 
     private var quickAddSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Start without a bill in hand")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.billixMediumGreen)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Primary Action")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.billixMediumGreen.opacity(0.8))
                 .padding(.horizontal, 4)
+                .textCase(.uppercase)
+                .tracking(0.5)
 
             Button(action: {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
@@ -94,242 +96,218 @@ struct UploadHubView: View {
                 }
             }) {
                 ZStack {
-                    // Stronger Gradient Background (darker for better contrast)
+                    // Hero gradient background
                     LinearGradient(
                         colors: [
-                            Color(red: 0.2, green: 0.7, blue: 0.4),  // Richer green
+                            Color(red: 0.2, green: 0.7, blue: 0.4),  // Rich green
                             Color(red: 0.95, green: 0.75, blue: 0.2)  // Vibrant yellow
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-                    .cornerRadius(24)
+                    .cornerRadius(20)
 
-                    // Content with text shadows for better readability
-                    HStack(spacing: 18) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Quick Add a Bill")
-                                .font(.system(size: 22, weight: .bold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
+                    // Content optimized for hero card
+                    HStack(spacing: 16) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "bolt.fill")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(.white)
+
+                                Text("Quick Add a Bill")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
 
                             Text("30 seconds · No photo needed")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.white)
+                                .foregroundColor(.white.opacity(0.95))
                                 .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-
-                            Text("Just tell us your provider, amount, and due date")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-                                .fixedSize(horizontal: false, vertical: true)
                         }
 
                         Spacer()
 
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    RadialGradient(
-                                        colors: [.white.opacity(0.35), .white.opacity(0.15)],
-                                        center: .center,
-                                        startRadius: 5,
-                                        endRadius: 35
-                                    )
-                                )
-                                .frame(width: 64, height: 64)
-
-                            Image(systemName: "bolt.fill")
-                                .font(.system(size: 30, weight: .bold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
-                        }
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.system(size: 32, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.9))
+                            .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
                     }
-                    .padding(22)
+                    .padding(20)
                 }
-                .frame(height: 140)
+                .frame(height: 120)
                 .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
                 .shadow(color: .billixMoneyGreen.opacity(0.2), radius: 40, x: 0, y: 20)
             }
-            .scaleEffect(appeared ? 1 : 0.9)
         }
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 20)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
     }
 
-    // MARK: - Scan/Upload Section (Secondary)
+    // MARK: - Secondary Actions (Icon Buttons)
 
-    private var scanUploadSection: some View {
+    private var secondaryActionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Have a bill ready?")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.billixMediumGreen)
+            Text("Or upload your bill")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.billixMediumGreen.opacity(0.8))
                 .padding(.horizontal, 4)
+                .textCase(.uppercase)
+                .tracking(0.5)
 
-            Button(action: {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            HStack(spacing: 12) {
+                // Camera button
+                SecondaryActionButton(
+                    icon: "camera.fill",
+                    title: "Camera",
+                    subtitle: "Take photo",
+                    gradient: [
+                        Color(red: 0.2, green: 0.5, blue: 0.9),
+                        Color(red: 0.5, green: 0.3, blue: 0.85)
+                    ]
+                ) {
                     viewModel.startScanUpload()
                 }
-            }) {
-                ZStack {
-                    // Blue to Purple Gradient (vibrant and contrasting)
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.2, green: 0.5, blue: 0.9),   // Bright blue
-                            Color(red: 0.5, green: 0.3, blue: 0.85)   // Purple
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .cornerRadius(24)
 
-                    // Content with text shadows
-                    HStack(spacing: 18) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Upload Bill")
-                                .font(.system(size: 22, weight: .bold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
-
-                            Text("60 seconds · Photo or PDF")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-
-                            Text("Get full analysis with hidden fees and savings")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-
-                        Spacer()
-
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    RadialGradient(
-                                        colors: [.white.opacity(0.35), .white.opacity(0.15)],
-                                        center: .center,
-                                        startRadius: 5,
-                                        endRadius: 35
-                                    )
-                                )
-                                .frame(width: 64, height: 64)
-
-                            Image(systemName: "doc.text.viewfinder")
-                                .font(.system(size: 30, weight: .bold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
-                        }
-                    }
-                    .padding(22)
+                // Gallery button
+                SecondaryActionButton(
+                    icon: "photo.on.rectangle",
+                    title: "Gallery",
+                    subtitle: "Choose photo",
+                    gradient: [
+                        Color(red: 0.3, green: 0.6, blue: 0.9),
+                        Color(red: 0.2, green: 0.8, blue: 0.8)
+                    ]
+                ) {
+                    viewModel.startScanUpload()
                 }
-                .frame(height: 140)
-                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-                .shadow(color: .billixChartBlue.opacity(0.2), radius: 40, x: 0, y: 20)
+
+                // Document button
+                SecondaryActionButton(
+                    icon: "doc.fill",
+                    title: "Document",
+                    subtitle: "Upload PDF",
+                    gradient: [
+                        Color(red: 0.6, green: 0.4, blue: 0.9),
+                        Color(red: 0.8, green: 0.3, blue: 0.85)
+                    ]
+                ) {
+                    viewModel.startScanUpload()
+                }
             }
         }
         .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 30)
-        .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1), value: appeared)
+        .offset(y: appeared ? 0 : 20)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
     }
 
     // MARK: - Recent Uploads Section
 
     private var recentUploadsSection: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Recent Uploads")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.billixDarkGreen)
+                Text("Recent Uploads")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
 
-                    if !viewModel.recentUploads.isEmpty {
-                        Text("\(viewModel.recentUploads.count) bills")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.billixMediumGreen)
-                    }
+                if !viewModel.recentUploads.isEmpty {
+                    Text("(\(viewModel.recentUploads.count))")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.billixMediumGreen)
                 }
 
                 Spacer()
 
                 if viewModel.isLoadingRecent {
                     ProgressView()
-                        .scaleEffect(0.9)
+                        .scaleEffect(0.8)
                         .tint(.billixMoneyGreen)
                 }
             }
             .padding(.horizontal, 4)
-            .padding(.top, 8)
 
             if viewModel.recentUploads.isEmpty {
-                emptyStateView
+                // Compact empty state
+                HStack(spacing: 12) {
+                    Image(systemName: "tray")
+                        .font(.system(size: 20, weight: .light))
+                        .foregroundColor(.billixMediumGreen)
+
+                    Text("No uploads yet")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.billixMediumGreen)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white.opacity(0.6))
+                )
             } else {
-                VStack(spacing: 14) {
-                    ForEach(viewModel.recentUploads) { upload in
+                // Compact list - show only 3 most recent
+                VStack(spacing: 10) {
+                    ForEach(viewModel.recentUploads.prefix(3)) { upload in
                         RecentUploadRow(upload: upload)
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: 12)
                                     .fill(Color.white)
-                                    .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+                                    .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
                             )
-                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
             }
         }
         .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 40)
-        .animation(.spring(response: 0.7, dampingFraction: 0.8).delay(0.2), value: appeared)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appeared)
     }
 
-    private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [.billixLightGreen, .billixBorderGreen],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 80, height: 80)
+}
 
-                Image(systemName: "tray")
-                    .font(.system(size: 36, weight: .light))
-                    .foregroundColor(.billixMediumGreen)
-            }
+// MARK: - Secondary Action Button Component
 
+struct SecondaryActionButton: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let gradient: [Color]
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
             VStack(spacing: 8) {
-                Text("No uploads yet")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                ZStack {
+                    // Gradient background
+                    LinearGradient(
+                        colors: gradient,
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .cornerRadius(16)
 
-                Text("Get started by adding your first bill above")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(.billixMediumGreen)
-                    .multilineTextAlignment(.center)
+                    // Icon
+                    Image(systemName: icon)
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.white)
+                        .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
+                }
+                .frame(height: 80)
+
+                VStack(spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.billixDarkGreen)
+
+                    Text(subtitle)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.billixMediumGreen)
+                }
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 48)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.5))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(
-                            LinearGradient(
-                                colors: [.billixBorderGreen, .billixBorderGreen.opacity(0.5)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-        )
+        .buttonStyle(PlainButtonStyle())
+        .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 4)
     }
 }
 
