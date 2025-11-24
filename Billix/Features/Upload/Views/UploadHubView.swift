@@ -50,7 +50,7 @@ struct UploadHubView: View {
 
                             // Content
                             secondaryActionsSection
-                                .padding(20)
+                                .padding(16)
                         }
                         .transition(.scale.combined(with: .opacity))
 
@@ -165,7 +165,7 @@ struct UploadHubView: View {
     // MARK: - Secondary Actions (Icon Buttons)
 
     private var secondaryActionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Upload for Full Analysis")
                     .font(.system(size: 12, weight: .medium))
@@ -196,7 +196,7 @@ struct UploadHubView: View {
                 .padding(.horizontal, 4)
             }
 
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 // Camera button
                 SecondaryActionButton(
                     icon: "camera.fill",
@@ -356,11 +356,11 @@ struct SecondaryActionButton: View {
 
                     // Icon
                     Image(systemName: icon)
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(.system(size: 24, weight: .semibold))
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
                 }
-                .frame(height: 80)
+                .frame(height: 70)
 
                 VStack(spacing: 2) {
                     Text(title)
