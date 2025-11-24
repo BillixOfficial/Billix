@@ -35,7 +35,7 @@ struct UploadHubView: View {
                 .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 28) {
+                    VStack(spacing: 32) {
 
                         // SECTION 1: Quick Add (Primary Hero)
                         quickAddSection
@@ -49,7 +49,8 @@ struct UploadHubView: View {
                         recentUploadsSection
                             .transition(.opacity)
                     }
-                    .padding()
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
                     .padding(.bottom, 40)
                 }
                 .navigationTitle("Upload")
@@ -81,7 +82,7 @@ struct UploadHubView: View {
     // MARK: - Quick Add Section (Primary Hero)
 
     private var quickAddSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Start without a bill in hand")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.billixMediumGreen)
@@ -93,36 +94,34 @@ struct UploadHubView: View {
                 }
             }) {
                 ZStack {
-                    // Gradient Background Layer
+                    // Stronger Gradient Background (darker for better contrast)
                     LinearGradient(
                         colors: [
-                            Color.billixMoneyGreen,
-                            Color.billixSavingsYellow.opacity(0.8)
+                            Color(red: 0.2, green: 0.7, blue: 0.4),  // Richer green
+                            Color(red: 0.95, green: 0.75, blue: 0.2)  // Vibrant yellow
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                     .cornerRadius(24)
 
-                    // Glassmorphism Overlay
-                    RoundedRectangle(cornerRadius: 24)
-                        .fill(.ultraThinMaterial)
-                        .opacity(0.3)
-
-                    // Content
-                    HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 10) {
+                    // Content with text shadows for better readability
+                    HStack(spacing: 18) {
+                        VStack(alignment: .leading, spacing: 12) {
                             Text("Quick Add a Bill")
-                                .font(.system(size: 22, weight: .bold))
+                                .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
 
                             Text("60 seconds · No photo needed")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white.opacity(0.9))
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
 
                             Text("Just tell us your provider and amount")
-                                .font(.system(size: 13, weight: .regular))
-                                .foregroundColor(.white.opacity(0.75))
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
                                 .lineLimit(2)
                         }
 
@@ -132,25 +131,25 @@ struct UploadHubView: View {
                             Circle()
                                 .fill(
                                     RadialGradient(
-                                        colors: [.white.opacity(0.3), .white.opacity(0.1)],
+                                        colors: [.white.opacity(0.35), .white.opacity(0.15)],
                                         center: .center,
                                         startRadius: 5,
                                         endRadius: 35
                                     )
                                 )
-                                .frame(width: 64, height: 64)
+                                .frame(width: 70, height: 70)
 
                             Image(systemName: "bolt.fill")
-                                .font(.system(size: 28, weight: .bold))
+                                .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.white)
-                                .shadow(color: .billixMoneyGreen.opacity(0.5), radius: 4, x: 0, y: 2)
+                                .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
                         }
                     }
-                    .padding(20)
+                    .padding(24)
                 }
-                .frame(height: 140)
-                .shadow(color: .billixMoneyGreen.opacity(0.3), radius: 20, x: 0, y: 10)
-                .shadow(color: .billixMoneyGreen.opacity(0.1), radius: 40, x: 0, y: 20)
+                .frame(height: 160)
+                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                .shadow(color: .billixMoneyGreen.opacity(0.2), radius: 40, x: 0, y: 20)
             }
             .scaleEffect(appeared ? 1 : 0.9)
         }
@@ -161,7 +160,7 @@ struct UploadHubView: View {
     // MARK: - Scan/Upload Section (Secondary)
 
     private var scanUploadSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Have a bill ready?")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.billixMediumGreen)
@@ -173,31 +172,29 @@ struct UploadHubView: View {
                 }
             }) {
                 ZStack {
-                    // Gradient Background Layer
+                    // Stronger Blue Gradient (darker for better contrast)
                     LinearGradient(
                         colors: [
-                            Color.billixActiveBlue,
-                            Color.billixChartBlue.opacity(0.8)
+                            Color(red: 0.2, green: 0.5, blue: 0.85),  // Deeper blue
+                            Color(red: 0.15, green: 0.4, blue: 0.75)  // Darker blue
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                     .cornerRadius(20)
 
-                    // Subtle Glass Overlay
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white.opacity(0.15))
-
-                    // Content
+                    // Content with text shadows
                     HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 10) {
                             Text("Upload Bill")
-                                .font(.system(size: 20, weight: .semibold))
+                                .font(.system(size: 21, weight: .bold))
                                 .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
 
                             Text("Uncover hidden fees, compare prices, and discover ways to save money.")
-                                .font(.system(size: 13, weight: .regular))
-                                .foregroundColor(.white.opacity(0.85))
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -208,27 +205,26 @@ struct UploadHubView: View {
                             Circle()
                                 .fill(
                                     RadialGradient(
-                                        colors: [.white.opacity(0.25), .white.opacity(0.05)],
+                                        colors: [.white.opacity(0.3), .white.opacity(0.1)],
                                         center: .center,
                                         startRadius: 5,
-                                        endRadius: 28
+                                        endRadius: 30
                                     )
                                 )
-                                .frame(width: 56, height: 56)
+                                .frame(width: 60, height: 60)
 
                             Image(systemName: "doc.text.viewfinder")
-                                .font(.system(size: 24, weight: .medium))
+                                .font(.system(size: 26, weight: .semibold))
                                 .foregroundColor(.white)
-                                .shadow(color: .billixChartBlue.opacity(0.5), radius: 3, x: 0, y: 2)
+                                .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
                         }
                     }
-                    .padding(18)
+                    .padding(20)
                 }
-                .frame(height: 110)
-                .shadow(color: .billixChartBlue.opacity(0.25), radius: 15, x: 0, y: 8)
-                .shadow(color: .billixChartBlue.opacity(0.1), radius: 30, x: 0, y: 15)
+                .frame(height: 120)
+                .shadow(color: .black.opacity(0.12), radius: 15, x: 0, y: 8)
+                .shadow(color: .billixChartBlue.opacity(0.15), radius: 30, x: 0, y: 15)
             }
-            .buttonStyle(ScaleButtonStyle())
         }
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 30)
@@ -238,32 +234,41 @@ struct UploadHubView: View {
     // MARK: - Recent Uploads Section
 
     private var recentUploadsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 18) {
             HStack {
-                Text("Recent Uploads")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Recent Uploads")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.billixDarkGreen)
+
+                    if !viewModel.recentUploads.isEmpty {
+                        Text("\(viewModel.recentUploads.count) bills")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.billixMediumGreen)
+                    }
+                }
 
                 Spacer()
 
                 if viewModel.isLoadingRecent {
                     ProgressView()
-                        .scaleEffect(0.8)
+                        .scaleEffect(0.9)
                         .tint(.billixMoneyGreen)
                 }
             }
             .padding(.horizontal, 4)
+            .padding(.top, 8)
 
             if viewModel.recentUploads.isEmpty {
                 emptyStateView
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: 14) {
                     ForEach(viewModel.recentUploads) { upload in
                         RecentUploadRow(upload: upload)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
                                     .fill(Color.white)
-                                    .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 4)
+                                    .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
                             )
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                     }
