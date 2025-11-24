@@ -35,15 +35,24 @@ struct UploadHubView: View {
                 .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 32) {
 
                         // SECTION 1: Quick Add (Primary Hero) - VISIBLE FIRST
                         quickAddSection
                             .transition(.scale.combined(with: .opacity))
 
-                        // SECTION 2: Secondary Actions - Icon buttons
-                        secondaryActionsSection
-                            .transition(.scale.combined(with: .opacity))
+                        // SECTION 2: Secondary Actions - Icon buttons (Card Container)
+                        ZStack {
+                            // White card background
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white)
+                                .shadow(color: .black.opacity(0.08), radius: 15, x: 0, y: 8)
+
+                            // Content
+                            secondaryActionsSection
+                                .padding(20)
+                        }
+                        .transition(.scale.combined(with: .opacity))
 
                         // SECTION 3: Recent Uploads (History) - Bottom
                         recentUploadsSection
