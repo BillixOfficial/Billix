@@ -51,8 +51,9 @@ struct UploadHubView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, 80)
                 }
+                .scrollBounceBehavior(.basedOnSize)
                 .navigationTitle("Upload")
                 .onAppear {
                     viewModel.modelContext = modelContext
@@ -156,7 +157,7 @@ struct UploadHubView: View {
 
     private var secondaryActionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text("Upload for Full Analysis")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.billixMediumGreen.opacity(0.8))
@@ -164,11 +165,26 @@ struct UploadHubView: View {
                     .textCase(.uppercase)
                     .tracking(0.5)
 
-                Text("Get detailed breakdown: hidden fees, line-by-line charges, and personalized savings opportunities")
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(.billixMediumGreen)
-                    .padding(.horizontal, 4)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 8) {
+                    BenefitRow(
+                        icon: "checkmark.circle.fill",
+                        text: "Line-by-line breakdown",
+                        color: .billixMoneyGreen
+                    )
+
+                    BenefitRow(
+                        icon: "checkmark.circle.fill",
+                        text: "Hidden fees analysis",
+                        color: .billixMoneyGreen
+                    )
+
+                    BenefitRow(
+                        icon: "checkmark.circle.fill",
+                        text: "Personalized savings",
+                        color: .billixMoneyGreen
+                    )
+                }
+                .padding(.horizontal, 4)
             }
 
             HStack(spacing: 12) {
@@ -350,6 +366,26 @@ struct SecondaryActionButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 4)
+    }
+}
+
+// MARK: - Benefit Row Component
+
+struct BenefitRow: View {
+    let icon: String
+    let text: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(color)
+
+            Text(text)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.billixDarkGreen)
+        }
     }
 }
 
