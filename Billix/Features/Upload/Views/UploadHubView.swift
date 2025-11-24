@@ -125,6 +125,12 @@ struct UploadHubView: View {
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(.white.opacity(0.95))
                                 .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+
+                            Text("Compare your bill to area average instantly")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white.opacity(0.9))
+                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
 
                         Spacer()
@@ -150,19 +156,27 @@ struct UploadHubView: View {
 
     private var secondaryActionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Or upload your bill")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.billixMediumGreen.opacity(0.8))
-                .padding(.horizontal, 4)
-                .textCase(.uppercase)
-                .tracking(0.5)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Upload for Full Analysis")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.billixMediumGreen.opacity(0.8))
+                    .padding(.horizontal, 4)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+
+                Text("Get detailed breakdown: hidden fees, line-by-line charges, and personalized savings opportunities")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(.billixMediumGreen)
+                    .padding(.horizontal, 4)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             HStack(spacing: 12) {
                 // Camera button
                 SecondaryActionButton(
                     icon: "camera.fill",
                     title: "Camera",
-                    subtitle: "Take photo",
+                    subtitle: "Scan bill",
                     gradient: [
                         Color(red: 0.2, green: 0.5, blue: 0.9),
                         Color(red: 0.5, green: 0.3, blue: 0.85)
@@ -175,7 +189,7 @@ struct UploadHubView: View {
                 SecondaryActionButton(
                     icon: "photo.on.rectangle",
                     title: "Gallery",
-                    subtitle: "Choose photo",
+                    subtitle: "From photos",
                     gradient: [
                         Color(red: 0.3, green: 0.6, blue: 0.9),
                         Color(red: 0.2, green: 0.8, blue: 0.8)
@@ -188,7 +202,7 @@ struct UploadHubView: View {
                 SecondaryActionButton(
                     icon: "doc.fill",
                     title: "Document",
-                    subtitle: "Upload PDF",
+                    subtitle: "Upload file",
                     gradient: [
                         Color(red: 0.6, green: 0.4, blue: 0.9),
                         Color(red: 0.8, green: 0.3, blue: 0.85)
@@ -256,6 +270,34 @@ struct UploadHubView: View {
                                     .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
                             )
                             .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+
+                    // View All button if there are more than 3 bills
+                    if viewModel.recentUploads.count > 3 {
+                        Button(action: {
+                            // TODO: Navigate to full Recent Uploads list
+                        }) {
+                            HStack {
+                                Text("View All (\(viewModel.recentUploads.count))")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.billixMoneyGreen)
+
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.billixMoneyGreen)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.white.opacity(0.7))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.billixBorderGreen, lineWidth: 1.5)
+                                    )
+                            )
+                        }
+                        .padding(.top, 4)
                     }
                 }
             }
