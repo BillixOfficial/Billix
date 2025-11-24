@@ -172,11 +172,11 @@ struct UploadHubView: View {
                 }
             }) {
                 ZStack {
-                    // Stronger Blue Gradient (darker for better contrast)
+                    // Blue to Purple Gradient (vibrant and contrasting)
                     LinearGradient(
                         colors: [
-                            Color(red: 0.2, green: 0.5, blue: 0.85),  // Deeper blue
-                            Color(red: 0.15, green: 0.4, blue: 0.75)  // Darker blue
+                            Color(red: 0.2, green: 0.5, blue: 0.9),   // Bright blue
+                            Color(red: 0.5, green: 0.3, blue: 0.85)   // Purple
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
