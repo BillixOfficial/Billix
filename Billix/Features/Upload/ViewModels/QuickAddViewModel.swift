@@ -161,6 +161,36 @@ class QuickAddViewModel: ObservableObject {
     }
 
     func previousStep() {
+        // Clear current step and future steps when going back
+        switch currentStep {
+        case .amount:
+            // Going back from Step 3 to Step 2
+            // Keep ZIP code and providers list, but clear selection and amount
+            selectedProvider = nil
+            amount = ""
+            result = nil
+
+        case .provider:
+            // Going back from Step 2 to Step 1
+            // Clear Step 2 (provider) and Step 3 (amount) data
+            // Keep Step 1 (billType) selection
+            zipCode = ""
+            providers = []
+            selectedProvider = nil
+            amount = ""
+            result = nil
+
+        case .result:
+            // Going back from Step 4 to Step 3
+            // Clear Step 3 (amount) and Step 4 (result) data
+            amount = ""
+            result = nil
+
+        case .billType:
+            // Can't go back from Step 1
+            break
+        }
+
         if let prevStep = Step(rawValue: currentStep.rawValue - 1) {
             withAnimation {
                 currentStep = prevStep

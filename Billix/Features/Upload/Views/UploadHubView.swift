@@ -21,6 +21,9 @@ struct UploadHubView: View {
     @State private var appeared = false
     @State private var fullAnalysisTapped = false
     @State private var showFullAnalysisInfo = false
+    @State private var showQuickAddInfo = false
+    @State private var infoPulse = false
+    @State private var quickAddInfoPulse = false
 
     var body: some View {
         NavigationStack {
@@ -163,14 +166,45 @@ struct UploadHubView: View {
 
                 HStack {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Quick Add a Bill")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
+                        HStack(spacing: 8) {
+                            Text("Quick Add a Bill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
 
-                        Text("30 seconds • No photo needed\nGet instant rate comparison")
+                            // Info button with pulsing ring animation
+                            ZStack {
+                                // Single pulsing ring
+                                Circle()
+                                    .stroke(Color.white.opacity(0.5), lineWidth: 2)
+                                    .frame(width: 28, height: 28)
+                                    .scaleEffect(quickAddInfoPulse ? 1.3 : 1.0)
+                                    .opacity(quickAddInfoPulse ? 0 : 1)
+                                    .animation(.easeOut(duration: 2.5).repeatForever(autoreverses: false), value: quickAddInfoPulse)
+
+                                // Info button
+                                Button {
+                                    showQuickAddInfo.toggle()
+                                } label: {
+                                    Image(systemName: "info.circle.fill")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .shadow(color: .white.opacity(0.3), radius: 4)
+                                }
+                                .scaleEffect(quickAddInfoPulse ? 1.08 : 1.0)
+                                .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: quickAddInfoPulse)
+                                .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
+                                    QuickAddInfoPopover()
+                                        .presentationCompactAdaptation(.popover)
+                                }
+                            }
+                            .onAppear {
+                                quickAddInfoPulse = true
+                            }
+                        }
+
+                        Text("3 questions for rate comparison")
                             .font(.system(size: 13, weight: .regular))
                             .foregroundColor(.white.opacity(0.85))
-                            .lineSpacing(3)
 
                         // CTA Button
                         HStack(spacing: 6) {
@@ -266,17 +300,34 @@ struct UploadHubView: View {
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.billixDarkGreen)
 
-                // Info button with popover
-                Button {
-                    showFullAnalysisInfo.toggle()
-                } label: {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.billixChartBlue)
+                // Info button with pulsing ring animation
+                ZStack {
+                    // Single pulsing ring
+                    Circle()
+                        .stroke(Color.billixChartBlue.opacity(0.5), lineWidth: 2)
+                        .frame(width: 28, height: 28)
+                        .scaleEffect(infoPulse ? 1.3 : 1.0)
+                        .opacity(infoPulse ? 0 : 1)
+                        .animation(.easeOut(duration: 2.5).repeatForever(autoreverses: false), value: infoPulse)
+
+                    // Info button with subtle pulse
+                    Button {
+                        showFullAnalysisInfo.toggle()
+                    } label: {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.billixChartBlue)
+                            .shadow(color: .billixChartBlue.opacity(0.3), radius: 4)
+                    }
+                    .scaleEffect(infoPulse ? 1.08 : 1.0)
+                    .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: infoPulse)
+                    .popover(isPresented: $showFullAnalysisInfo, arrowEdge: .top) {
+                        FullAnalysisInfoPopover()
+                            .presentationCompactAdaptation(.popover)
+                    }
                 }
-                .popover(isPresented: $showFullAnalysisInfo, arrowEdge: .top) {
-                    FullAnalysisInfoPopover()
-                        .presentationCompactAdaptation(.popover)
+                .onAppear {
+                    infoPulse = true
                 }
             }
 
@@ -538,6 +589,34 @@ struct FullAnalysisInfoPopover: View {
         }
         .padding(12)
         .frame(width: 200)
+        .background(Color.white)
+    }
+}
+
+struct QuickAddInfoPopover: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Header
+            Text("About Quick Add")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(.billixDarkGreen)
+
+            // Structured features list
+            VStack(alignment: .leading, spacing: 6) {
+                InfoFeatureRow(icon: "bolt.fill", text: "Just 30 seconds")
+                InfoFeatureRow(icon: "photo.badge.arrow.down.fill", text: "No upload needed")
+                InfoFeatureRow(icon: "list.number", text: "3 simple questions")
+                InfoFeatureRow(icon: "chart.bar.fill", text: "Rate comparison only")
+            }
+
+            // Clarification note
+            Text("Note: For full analysis, use Upload option")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.billixMediumGreen)
+                .padding(.top, 4)
+        }
+        .padding(12)
+        .frame(width: 210)
         .background(Color.white)
     }
 }
