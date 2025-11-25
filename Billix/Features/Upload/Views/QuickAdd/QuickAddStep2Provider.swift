@@ -24,7 +24,7 @@ struct QuickAddStep2Provider: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.billixDarkGreen)
 
-                    Text("We'll find providers in your area")
+                    Text("We'll show your options")
                         .font(.system(size: 15))
                         .foregroundColor(.billixMediumGreen)
                 }
@@ -145,7 +145,7 @@ struct QuickAddStep2Provider: View {
                     .font(.system(size: 14))
                     .foregroundColor(.billixMoneyGreen)
 
-                Text("Providers in your area")
+                Text("Select your provider")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.billixDarkGreen)
             }
@@ -228,7 +228,7 @@ struct QuickAddStep2Provider: View {
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.billixDarkGreen)
 
-                Text("We don't have pricing data for providers in your area yet. Try Full Analysis to scan your bill and help build our database!")
+                Text("We don't have your provider in our database yet. Try Full Analysis to scan your bill and help us add it!")
                     .font(.system(size: 14))
                     .foregroundColor(.billixMediumGreen)
                     .multilineTextAlignment(.center)
@@ -383,31 +383,15 @@ struct ProviderCard: View {
                         .foregroundColor(isSelected ? .white : .billixMediumGreen)
                 }
 
-                // Provider info - shows popularity, NOT amounts (to preserve comparison reveal)
+                // Provider info - just name and category, clean and simple
                 VStack(alignment: .leading, spacing: 4) {
                     Text(provider.name)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.billixDarkGreen)
 
-                    HStack(spacing: 4) {
-                        if provider.hasGoodData {
-                            // Show popularity indicator with checkmark for good data
-                            Image(systemName: "checkmark.seal.fill")
-                                .font(.system(size: 10))
-                                .foregroundColor(.billixMoneyGreen)
-                            if let popularity = provider.popularityDescription {
-                                Text(popularity)
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                        } else {
-                            // Fallback for providers without much data
-                            Image(systemName: "building.2.fill")
-                                .font(.system(size: 10))
-                            Text(provider.category.capitalized)
-                                .font(.system(size: 12))
-                        }
-                    }
-                    .foregroundColor(.billixMediumGreen)
+                    Text(provider.category.capitalized)
+                        .font(.system(size: 12))
+                        .foregroundColor(.billixMediumGreen)
                 }
 
                 Spacer()
