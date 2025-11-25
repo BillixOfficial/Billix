@@ -383,35 +383,31 @@ struct ProviderCard: View {
                         .foregroundColor(isSelected ? .white : .billixMediumGreen)
                 }
 
-                // Provider info
+                // Provider info - shows popularity, NOT amounts (to preserve comparison reveal)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(provider.name)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.billixDarkGreen)
 
-                    if let avgAmount = provider.formattedAvgAmount {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chart.bar.fill")
+                    HStack(spacing: 4) {
+                        if provider.hasGoodData {
+                            // Show popularity indicator with checkmark for good data
+                            Image(systemName: "checkmark.seal.fill")
                                 .font(.system(size: 10))
-                            Text(avgAmount)
-                                .font(.system(size: 12, weight: .medium))
-                            if let sampleSize = provider.sampleSizeDescription {
-                                Text("•")
-                                    .font(.system(size: 10))
-                                Text(sampleSize)
-                                    .font(.system(size: 11))
+                                .foregroundColor(.billixMoneyGreen)
+                            if let popularity = provider.popularityDescription {
+                                Text(popularity)
+                                    .font(.system(size: 12, weight: .medium))
                             }
-                        }
-                        .foregroundColor(.billixMediumGreen)
-                    } else {
-                        HStack(spacing: 4) {
+                        } else {
+                            // Fallback for providers without much data
                             Image(systemName: "building.2.fill")
                                 .font(.system(size: 10))
                             Text(provider.category.capitalized)
                                 .font(.system(size: 12))
                         }
-                        .foregroundColor(.billixMediumGreen)
                     }
+                    .foregroundColor(.billixMediumGreen)
                 }
 
                 Spacer()
