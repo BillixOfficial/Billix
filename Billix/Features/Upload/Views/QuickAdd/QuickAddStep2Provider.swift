@@ -383,15 +383,27 @@ struct ProviderCard: View {
                         .foregroundColor(isSelected ? .white : .billixMediumGreen)
                 }
 
-                // Provider info - just name and category, clean and simple
+                // Provider info - name, category, verified check, and sample size
                 VStack(alignment: .leading, spacing: 4) {
                     Text(provider.name)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.billixDarkGreen)
 
-                    Text(provider.category.capitalized)
-                        .font(.system(size: 12))
-                        .foregroundColor(.billixMediumGreen)
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(.billixMoneyGreen)
+                        Text(provider.category.capitalized)
+                            .font(.system(size: 12))
+                        // Only show sample size if 5 or more bills
+                        if let count = provider.sampleSize, count >= 5 {
+                            Text("•")
+                                .font(.system(size: 10))
+                            Text("Based on \(count) bills")
+                                .font(.system(size: 11))
+                        }
+                    }
+                    .foregroundColor(.billixMediumGreen)
                 }
 
                 Spacer()
