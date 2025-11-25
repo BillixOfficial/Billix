@@ -3,396 +3,558 @@
 //  Billix
 //
 //  Created by Claude Code on 11/24/25.
-//  Redesigned with modern SwiftUI best practices
+//  Redesigned with Figma-inspired task management layout
 //
 
 import SwiftUI
 import SwiftData
 
-/// Modern Upload Hub with glassmorphism and gradient design
-/// Section 1: Quick Add (Primary Hero)
-/// Section 2: Scan/Upload (Secondary)
-/// Section 3: Recent Uploads (History)
+/// Upload Hub with Figma-inspired design
+/// - Header with greeting
+/// - Hero progress card with CTA
+/// - Horizontal "In Progress" section
+/// - Vertical upload methods list with progress circles
 struct UploadHubView: View {
 
     @StateObject private var viewModel = UploadViewModel()
     @Environment(\.modelContext) private var modelContext
     @State private var appeared = false
+    @State private var fullAnalysisTapped = false
+    @State private var showFullAnalysisInfo = false
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                // Gradient Background matching home page theme
-                LinearGradient(
-                    colors: [
-                        Color.billixLightGreen,
-                        Color.billixLightGreen.opacity(0.8),
-                        Color.white.opacity(0.3)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                // Background matching Home screen
+                Color.billixLightGreen
+                    .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 32) {
+                    VStack(spacing: 24) {
 
-                        // SECTION 1: Quick Add (Primary Hero) - VISIBLE FIRST
-                        quickAddSection
-                            .transition(.scale.combined(with: .opacity))
+                        // SECTION 1: Header
+                        headerSection
+                            .padding(.horizontal, 20)
 
-                        // SECTION 2: Secondary Actions - Icon buttons (Card Container)
-                        ZStack {
-                            // White card background
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.white)
-                                .shadow(color: .black.opacity(0.08), radius: 15, x: 0, y: 8)
+                        // SECTION 2: Hero Progress Card (Quick Add)
+                        heroProgressCard
+                            .padding(.horizontal, 20)
 
-                            // Content
-                            secondaryActionsSection
-                                .padding(16)
-                        }
-                        .transition(.scale.combined(with: .opacity))
+                        // SECTION 3: Recent Uploads - Horizontal scroll
+                        inProgressSection
 
-                        // SECTION 3: Recent Uploads (History) - Bottom
-                        recentUploadsSection
-                            .transition(.opacity)
+                        // SECTION 4: Upload for Full Analysis - Single card
+                        fullAnalysisCard
+                            .padding(.horizontal, 20)
+
+                        Spacer(minLength: 100)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .padding(.bottom, 80)
+                    .padding(.top, 16)
                 }
                 .scrollBounceBehavior(.basedOnSize)
-                .navigationTitle("Upload")
-                .onAppear {
-                    viewModel.modelContext = modelContext
-                    Task {
-                        await viewModel.loadRecentUploads()
-                    }
-                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                        appeared = true
-                    }
-                }
-                .sheet(isPresented: $viewModel.showQuickAddFlow) {
-                    QuickAddFlowView(onComplete: {
-                        viewModel.dismissFlows()
-                        viewModel.handleUploadComplete()
-                    })
-                }
-                .sheet(isPresented: $viewModel.showScanUploadFlow) {
-                    ScanUploadFlowView(onComplete: {
-                        viewModel.dismissFlows()
-                        viewModel.handleUploadComplete()
-                    })
-                }
             }
+            .navigationBarHidden(true)
+        }
+        .onAppear {
+            viewModel.modelContext = modelContext
+            Task {
+                await viewModel.loadRecentUploads()
+            }
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                appeared = true
+            }
+        }
+        .sheet(isPresented: $viewModel.showQuickAddFlow) {
+            QuickAddFlowView(onComplete: {
+                viewModel.dismissFlows()
+                viewModel.handleUploadComplete()
+            })
+        }
+        .sheet(isPresented: $viewModel.showScanUploadFlow) {
+            ScanUploadFlowView(preselectedImage: viewModel.selectedImage, onComplete: {
+                viewModel.dismissFlows()
+                viewModel.handleUploadComplete()
+            })
+        }
+        .sheet(isPresented: $viewModel.showCamera) {
+            ImagePicker(sourceType: .camera) { image in
+                viewModel.handleImageSelected(image)
+            }
+            .ignoresSafeArea()
+        }
+        .sheet(isPresented: $viewModel.showGallery) {
+            ImagePicker(sourceType: .photoLibrary) { image in
+                viewModel.handleImageSelected(image)
+            }
+            .ignoresSafeArea()
+        }
+        .sheet(isPresented: $viewModel.showDocumentPicker) {
+            DocumentPicker { url in
+                viewModel.handleDocumentSelected(url)
+            }
+            .ignoresSafeArea()
         }
     }
 
-    // MARK: - Quick Add Section (Primary Hero)
+    // MARK: - Header Section
 
-    private var quickAddSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Primary Action")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.billixMediumGreen.opacity(0.8))
-                .padding(.horizontal, 4)
-                .textCase(.uppercase)
-                .tracking(0.5)
-
-            Button(action: {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                    viewModel.startQuickAdd()
-                }
-            }) {
-                ZStack {
-                    // Hero gradient background
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.2, green: 0.7, blue: 0.4),  // Rich green
-                            Color(red: 0.95, green: 0.75, blue: 0.2)  // Vibrant yellow
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+    private var headerSection: some View {
+        HStack(spacing: 14) {
+            // Avatar circle with icon
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.billixMoneyGreen, Color.billixMoneyGreen.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
-                    .cornerRadius(20)
+                    .frame(width: 52, height: 52)
 
-                    // Content optimized for hero card
-                    HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "bolt.fill")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(.white)
-
-                                Text("Quick Add a Bill")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(.white)
-                            }
-                            .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
-
-                            Text("30 seconds · No photo needed")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.95))
-                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-
-                            Text("Compare your bill to area average instantly")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white.opacity(0.9))
-                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "arrow.right.circle.fill")
-                            .font(.system(size: 32, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.9))
-                            .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
-                    }
-                    .padding(20)
-                }
-                .frame(height: 120)
-                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
-                .shadow(color: .billixMoneyGreen.opacity(0.2), radius: 40, x: 0, y: 20)
+                Image(systemName: "doc.text.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white)
             }
+
+            Text("Upload Your Bills")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.billixDarkGreen)
+
+            Spacer()
         }
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : -10)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
+    }
+
+    // MARK: - Hero Progress Card (Figma style)
+
+    private var heroProgressCard: some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                viewModel.startQuickAdd()
+            }
+        }) {
+            ZStack {
+                // Gradient background like Figma
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.billixMoneyGreen,
+                                Color.billixMoneyGreen.opacity(0.85)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                // Decorative circles in background (like Figma)
+                Circle()
+                    .fill(Color.white.opacity(0.1))
+                    .frame(width: 120, height: 120)
+                    .offset(x: 80, y: -30)
+
+                Circle()
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 80, height: 80)
+                    .offset(x: 100, y: 40)
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Quick Add a Bill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+
+                        Text("30 seconds • No photo needed\nGet instant rate comparison")
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(.white.opacity(0.85))
+                            .lineSpacing(3)
+
+                        // CTA Button
+                        HStack(spacing: 6) {
+                            Text("Start Now")
+                                .font(.system(size: 14, weight: .semibold))
+
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(.billixMoneyGreen)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(
+                            Capsule()
+                                .fill(Color.white)
+                        )
+                        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    // Arrow indicator
+                    Image(systemName: "arrow.right.circle.fill")
+                        .font(.system(size: 44, weight: .regular))
+                        .foregroundColor(.white.opacity(0.9))
+                        .padding(.trailing, 8)
+                }
+                .padding(20)
+            }
+            .frame(height: 160)
+            .shadow(color: .billixMoneyGreen.opacity(0.3), radius: 20, x: 0, y: 10)
+        }
+        .buttonStyle(PlainButtonStyle())
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 20)
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
     }
 
-    // MARK: - Secondary Actions (Icon Buttons)
+    // MARK: - In Progress Section (Horizontal scroll)
 
-    private var secondaryActionsSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Upload for Full Analysis")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.billixMediumGreen.opacity(0.8))
-                    .padding(.horizontal, 4)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    BenefitRow(
-                        icon: "checkmark.circle.fill",
-                        text: "Line-by-line breakdown",
-                        color: .billixMoneyGreen
-                    )
-
-                    BenefitRow(
-                        icon: "checkmark.circle.fill",
-                        text: "Hidden fees analysis",
-                        color: .billixMoneyGreen
-                    )
-
-                    BenefitRow(
-                        icon: "checkmark.circle.fill",
-                        text: "Personalized savings",
-                        color: .billixMoneyGreen
-                    )
-                }
-                .padding(.horizontal, 4)
-            }
-
-            HStack(spacing: 10) {
-                // Camera button
-                SecondaryActionButton(
-                    icon: "camera.fill",
-                    title: "Camera",
-                    subtitle: "Scan bill",
-                    gradient: [
-                        Color(red: 0.2, green: 0.5, blue: 0.9),
-                        Color(red: 0.5, green: 0.3, blue: 0.85)
-                    ]
-                ) {
-                    viewModel.startScanUpload()
-                }
-
-                // Gallery button
-                SecondaryActionButton(
-                    icon: "photo.on.rectangle",
-                    title: "Gallery",
-                    subtitle: "From photos",
-                    gradient: [
-                        Color(red: 0.3, green: 0.6, blue: 0.9),
-                        Color(red: 0.2, green: 0.8, blue: 0.8)
-                    ]
-                ) {
-                    viewModel.startScanUpload()
-                }
-
-                // Document button
-                SecondaryActionButton(
-                    icon: "doc.fill",
-                    title: "Document",
-                    subtitle: "Upload file",
-                    gradient: [
-                        Color(red: 0.6, green: 0.4, blue: 0.9),
-                        Color(red: 0.8, green: 0.3, blue: 0.85)
-                    ]
-                ) {
-                    viewModel.startScanUpload()
-                }
-            }
-        }
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
-    }
-
-    // MARK: - Recent Uploads Section
-
-    private var recentUploadsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+    private var inProgressSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text("Recent Uploads")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.billixDarkGreen)
 
-                if !viewModel.recentUploads.isEmpty {
-                    Text("(\(viewModel.recentUploads.count))")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.billixMediumGreen)
-                }
+                // Decorative dot
+                Circle()
+                    .fill(Color.billixSavingsYellow)
+                    .frame(width: 8, height: 8)
 
                 Spacer()
 
                 if viewModel.isLoadingRecent {
                     ProgressView()
-                        .scaleEffect(0.8)
+                        .scaleEffect(0.7)
                         .tint(.billixMoneyGreen)
                 }
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 20)
 
             if viewModel.recentUploads.isEmpty {
-                // Compact empty state
-                HStack(spacing: 12) {
-                    Image(systemName: "tray")
-                        .font(.system(size: 20, weight: .light))
-                        .foregroundColor(.billixMediumGreen)
-
-                    Text("No uploads yet")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.billixMediumGreen)
+                // Empty state card
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 14) {
+                        EmptyUploadCard()
+                        EmptyUploadCard(isSecondary: true)
+                    }
+                    .padding(.horizontal, 20)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.white.opacity(0.6))
-                )
             } else {
-                // Compact list - show only 3 most recent
-                VStack(spacing: 10) {
-                    ForEach(viewModel.recentUploads.prefix(3)) { upload in
-                        RecentUploadRow(upload: upload)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white)
-                                    .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
-                            )
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-
-                    // View All button if there are more than 3 bills
-                    if viewModel.recentUploads.count > 3 {
-                        Button(action: {
-                            // TODO: Navigate to full Recent Uploads list
-                        }) {
-                            HStack {
-                                Text("View All (\(viewModel.recentUploads.count))")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.billixMoneyGreen)
-
-                                Image(systemName: "arrow.right")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(.billixMoneyGreen)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.7))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.billixBorderGreen, lineWidth: 1.5)
-                                    )
-                            )
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 14) {
+                        ForEach(viewModel.recentUploads.prefix(5)) { upload in
+                            RecentUploadCard(upload: upload)
                         }
-                        .padding(.top, 4)
                     }
+                    .padding(.horizontal, 20)
                 }
             }
         }
         .opacity(appeared ? 1 : 0)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: appeared)
+        .offset(y: appeared ? 0 : 20)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: appeared)
     }
 
+    // MARK: - Full Analysis Card (Navigation to upload method selection)
+
+    private var fullAnalysisCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Full Analysis")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
+
+                // Info button with popover
+                Button {
+                    showFullAnalysisInfo.toggle()
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.billixChartBlue)
+                }
+                .popover(isPresented: $showFullAnalysisInfo, arrowEdge: .top) {
+                    FullAnalysisInfoPopover()
+                        .presentationCompactAdaptation(.popover)
+                }
+            }
+
+            NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
+                VStack(spacing: 16) {
+                    // Top row: Icon + Text
+                    HStack(spacing: 14) {
+                        // Icon with colored background
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.billixChartBlue.opacity(0.15))
+                                .frame(width: 48, height: 48)
+
+                            Image(systemName: "doc.text.viewfinder")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.billixChartBlue)
+                        }
+
+                        // Simplified text content (checkpoints moved to next screen)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Upload for Full Analysis")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.billixDarkGreen)
+
+                            Text("Get a complete breakdown of your bill")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.billixMediumGreen)
+                        }
+
+                        Spacer()
+                    }
+
+                    // Explicit CTA Button - makes the action crystal clear
+                    HStack(spacing: 8) {
+                        Text("Start Analysis")
+                            .font(.system(size: 15, weight: .semibold))
+
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        LinearGradient(
+                            colors: [.billixChartBlue, .billixChartBlue.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                    .shadow(color: .billixChartBlue.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+                        .shadow(color: .billixChartBlue.opacity(0.08), radius: 16, x: 0, y: 8)
+                )
+            }
+            .buttonStyle(ScaleButtonStyle(scale: 0.97))
+            .simultaneousGesture(TapGesture().onEnded {
+                fullAnalysisTapped.toggle()
+            })
+            .sensoryFeedback(.impact(weight: .medium), trigger: fullAnalysisTapped)
+        }
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 20)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4), value: appeared)
+    }
 }
 
-// MARK: - Secondary Action Button Component
+// MARK: - Upload Method Row (Figma Task Group style)
 
-struct SecondaryActionButton: View {
+struct UploadMethodRow: View {
     let icon: String
+    let iconColor: Color
     let title: String
     let subtitle: String
-    let gradient: [Color]
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            HStack(spacing: 14) {
+                // Icon with colored background
                 ZStack {
-                    // Gradient background
-                    LinearGradient(
-                        colors: gradient,
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .cornerRadius(16)
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(iconColor.opacity(0.15))
+                        .frame(width: 48, height: 48)
 
-                    // Icon
                     Image(systemName: icon)
-                        .font(.system(size: 24, weight: .semibold))
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.25), radius: 2, x: 0, y: 1)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(iconColor)
                 }
-                .frame(height: 70)
 
-                VStack(spacing: 2) {
+                // Text content
+                VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.billixDarkGreen)
 
                     Text(subtitle)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.billixMediumGreen)
                 }
+
+                Spacer()
+
+                // Chevron arrow indicating tappable action
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.billixMediumGreen)
             }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
+            )
         }
-        .buttonStyle(PlainButtonStyle())
-        .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 4)
+        .buttonStyle(ScaleButtonStyle(scale: 0.98))
     }
 }
 
-// MARK: - Benefit Row Component
+// MARK: - Recent Upload Card (Horizontal scroll card)
 
-struct BenefitRow: View {
+struct RecentUploadCard: View {
+    let upload: RecentUpload
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Category/source label
+            Text(upload.source.displayName)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.billixMediumGreen)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(Color.billixMoneyGreen.opacity(0.1))
+                )
+
+            // Provider name
+            Text(upload.provider)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.billixDarkGreen)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+
+            Spacer()
+
+            // Amount and status
+            HStack {
+                Text(upload.formattedAmount)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(.billixDarkGreen)
+
+                Spacer()
+
+                Image(systemName: upload.status.icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(statusColor(for: upload.status))
+            }
+        }
+        .padding(14)
+        .frame(width: 150, height: 120)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
+        )
+    }
+
+    private func statusColor(for status: UploadStatus) -> Color {
+        switch status {
+        case .processing: return .orange
+        case .analyzed: return .billixMoneyGreen
+        case .needsConfirmation: return .billixSavingsYellow
+        case .failed: return .red
+        }
+    }
+}
+
+// MARK: - Empty Upload Card
+
+struct EmptyUploadCard: View {
+    var isSecondary: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(isSecondary ? "Personal" : "Get Started")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.billixMediumGreen)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(isSecondary ? Color.buttonDocument.opacity(0.1) : Color.billixMoneyGreen.opacity(0.1))
+                )
+
+            Text(isSecondary ? "Add your first bill" : "Upload a bill to begin")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.billixDarkGreen)
+                .lineLimit(2)
+
+            Spacer()
+
+            // Empty progress bar
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color.billixMoneyGreen.opacity(0.2))
+                .frame(height: 4)
+        }
+        .padding(14)
+        .frame(width: 150, height: 120)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
+        )
+    }
+}
+
+// MARK: - Feature Checkpoint (small checkmark + text)
+
+struct FeatureCheckpoint: View {
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 9, weight: .bold))
+                .foregroundColor(.billixMoneyGreen)
+
+            Text(text)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.billixMediumGreen)
+        }
+    }
+}
+
+// MARK: - Full Analysis Info Popover
+
+struct FullAnalysisInfoPopover: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Header
+            Text("What You'll Get")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(.billixDarkGreen)
+
+            // Compact features list
+            VStack(alignment: .leading, spacing: 6) {
+                InfoFeatureRow(icon: "list.bullet.rectangle.portrait", text: "Line-by-line breakdown")
+                InfoFeatureRow(icon: "map", text: "Area rate comparison")
+                InfoFeatureRow(icon: "dollarsign.circle", text: "Savings opportunities")
+                InfoFeatureRow(icon: "chart.line.uptrend.xyaxis", text: "Usage insights")
+            }
+        }
+        .padding(12)
+        .frame(width: 200)
+        .background(Color.white)
+    }
+}
+
+struct InfoFeatureRow: View {
     let icon: String
     let text: String
-    let color: Color
 
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(color)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.billixChartBlue)
+                .frame(width: 16)
 
             Text(text)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.billixDarkGreen)
         }
     }

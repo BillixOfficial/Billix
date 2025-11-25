@@ -53,6 +53,12 @@
 		A6FF817A2ED4BB24008330C9 /* ScanUploadOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81672ED4BB24008330C9 /* ScanUploadOptionsView.swift */; };
 		A6FF817B2ED4BB24008330C9 /* ScanUploadFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81662ED4BB24008330C9 /* ScanUploadFlowView.swift */; };
 		A6FF817C2ED4BB24008330C9 /* QuickAddFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81602ED4BB24008330C9 /* QuickAddFlowView.swift */; };
+		A6FF81812ED4F59D008330C9 /* GlassmorphicCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */; };
+		A6FF81822ED4F59D008330C9 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */; };
+		A6FF81832ED4F59D008330C9 /* SegmentedSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */; };
+		A6FF81842ED4F59D008330C9 /* RadialProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */; };
+		A6FF81862ED504CB008330C9 /* MediaPickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81852ED504CB008330C9 /* MediaPickers.swift */; };
+		A6FF81882ED50AB3008330C9 /* UploadMethodSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */; };
 		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
 		F34AB25163A7004F64C6550E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF1E5E15C4654C0F526462A /* HomeView.swift */; };
 		F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89EC00ED13981D09603CF99 /* ExploreView.swift */; };
@@ -145,6 +151,12 @@
 		A6FF81682ED4BB24008330C9 /* ScanUploadProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanUploadProgressView.swift; sourceTree = "<group>"; };
 		A6FF81692ED4BB24008330C9 /* ScanUploadResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanUploadResultView.swift; sourceTree = "<group>"; };
 		A6FF816B2ED4BB24008330C9 /* UploadHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadHubView.swift; sourceTree = "<group>"; };
+		A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfettiView.swift; sourceTree = "<group>"; };
+		A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassmorphicCard.swift; sourceTree = "<group>"; };
+		A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadialProgressIndicator.swift; sourceTree = "<group>"; };
+		A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentedSelector.swift; sourceTree = "<group>"; };
+		A6FF81852ED504CB008330C9 /* MediaPickers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickers.swift; sourceTree = "<group>"; };
+		A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadMethodSelectionView.swift; sourceTree = "<group>"; };
 		ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		C89EC00ED13981D09603CF99 /* ExploreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
 		EDF1E5E15C4654C0F526462A /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -415,6 +427,11 @@
 		A6FF815F2ED4BB24008330C9 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				A6FF81852ED504CB008330C9 /* MediaPickers.swift */,
+				A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */,
+				A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */,
+				A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */,
+				A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */,
 				A6FF815E2ED4BB24008330C9 /* RecentUploadRow.swift */,
 			);
 			path = Components;
@@ -446,6 +463,7 @@
 		A6FF816C2ED4BB24008330C9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */,
 				A6FF815F2ED4BB24008330C9 /* Components */,
 				A6FF81652ED4BB24008330C9 /* QuickAdd */,
 				A6FF816A2ED4BB24008330C9 /* ScanUpload */,
@@ -692,6 +710,7 @@
 				A6FF81762ED4BB24008330C9 /* QuickAddStep1BillType.swift in Sources */,
 				A6FF81772ED4BB24008330C9 /* RecentUploadsViewModel.swift in Sources */,
 				A6FF81782ED4BB24008330C9 /* QuickAddViewModel.swift in Sources */,
+				A6FF81862ED504CB008330C9 /* MediaPickers.swift in Sources */,
 				A6FF81792ED4BB24008330C9 /* RecentUploadRow.swift in Sources */,
 				A6FF817A2ED4BB24008330C9 /* ScanUploadOptionsView.swift in Sources */,
 				A6FF817B2ED4BB24008330C9 /* ScanUploadFlowView.swift in Sources */,
@@ -711,6 +730,11 @@
 				A64F7F522ECBB46B005576C5 /* Config.swift in Sources */,
 				F9076D592ED19DC10051E1D8 /* BillixCredits.swift in Sources */,
 				F9076D5E2ED19DC10051E1D8 /* MarketplaceSettings.swift in Sources */,
+				A6FF81882ED50AB3008330C9 /* UploadMethodSelectionView.swift in Sources */,
+				A6FF81812ED4F59D008330C9 /* GlassmorphicCard.swift in Sources */,
+				A6FF81822ED4F59D008330C9 /* ConfettiView.swift in Sources */,
+				A6FF81832ED4F59D008330C9 /* SegmentedSelector.swift in Sources */,
+				A6FF81842ED4F59D008330C9 /* RadialProgressIndicator.swift in Sources */,
 				F9076D5B2ED19DC10051E1D8 /* DataConnection.swift in Sources */,
 				F9076D692ED19DEE0051E1D8 /* SettingsToggleRow.swift in Sources */,
 				A6FF81102ECBBCE3008330C9 /* APIError.swift in Sources */,
