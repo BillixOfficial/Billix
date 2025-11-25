@@ -14,6 +14,7 @@ struct QuickAddFlowView: View {
     @Namespace private var animation
     @State private var showProgress = true
     let onComplete: () -> Void
+    var onSwitchToFullAnalysis: (() -> Void)?
 
     var body: some View {
         NavigationView {
@@ -39,11 +40,18 @@ struct QuickAddFlowView: View {
                                     removal: .move(edge: .leading).combined(with: .opacity)
                                 ))
                         case .provider:
-                            QuickAddStep2Provider(viewModel: viewModel, namespace: animation)
-                                .transition(.asymmetric(
-                                    insertion: .move(edge: .trailing).combined(with: .opacity),
-                                    removal: .move(edge: .leading).combined(with: .opacity)
-                                ))
+                            QuickAddStep2Provider(
+                                viewModel: viewModel,
+                                namespace: animation,
+                                onSwitchToFullAnalysis: {
+                                    dismiss()
+                                    onSwitchToFullAnalysis?()
+                                }
+                            )
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .leading).combined(with: .opacity)
+                            ))
                         case .amount:
                             QuickAddStep3Amount(viewModel: viewModel, namespace: animation)
                                 .transition(.asymmetric(

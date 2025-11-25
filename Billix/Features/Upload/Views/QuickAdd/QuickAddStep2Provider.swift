@@ -10,6 +10,7 @@ import SwiftUI
 struct QuickAddStep2Provider: View {
     @ObservedObject var viewModel: QuickAddViewModel
     var namespace: Namespace.ID
+    var onSwitchToFullAnalysis: (() -> Void)?
 
     @State private var appeared = false
     @FocusState private var isZipFocused: Bool
@@ -47,6 +48,10 @@ struct QuickAddStep2Provider: View {
                         .padding(.horizontal, 20)
                 } else if !viewModel.providers.isEmpty {
                     providersSection
+                        .padding(.horizontal, 20)
+                } else if viewModel.zipCode.count == 5 {
+                    // Empty state - no providers found for this ZIP
+                    emptyProvidersView
                         .padding(.horizontal, 20)
                 }
 
@@ -202,6 +207,63 @@ struct QuickAddStep2Provider: View {
         .padding()
     }
 
+    // MARK: - Empty Providers View
+
+    private var emptyProvidersView: some View {
+        VStack(spacing: 20) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(Color.billixLightGreen)
+                    .frame(width: 80, height: 80)
+
+                Image(systemName: "building.2.crop.circle")
+                    .font(.system(size: 36))
+                    .foregroundColor(.billixMediumGreen)
+            }
+
+            // Message
+            VStack(spacing: 8) {
+                Text("No Providers Found")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
+
+                Text("We don't have pricing data for providers in your area yet. Try Full Analysis to scan your bill and help build our database!")
+                    .font(.system(size: 14))
+                    .foregroundColor(.billixMediumGreen)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+            }
+
+            // Full Analysis Button
+            Button {
+                onSwitchToFullAnalysis?()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "doc.text.viewfinder")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Try Full Analysis Instead")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.billixChartBlue)
+                )
+                .shadow(color: Color.billixChartBlue.opacity(0.3), radius: 8, y: 4)
+            }
+            .buttonStyle(ScaleButtonStyle(scale: 0.98))
+        }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.06), radius: 12, y: 4)
+        )
+    }
+
     // MARK: - Actions
 
     private func selectProvider(_ provider: BillProvider) {
@@ -327,13 +389,29 @@ struct ProviderCard: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.billixDarkGreen)
 
-                    HStack(spacing: 4) {
-                        Image(systemName: "mappin.circle.fill")
-                            .font(.system(size: 10))
-                        Text(provider.serviceArea)
-                            .font(.system(size: 12))
+                    if let avgAmount = provider.formattedAvgAmount {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chart.bar.fill")
+                                .font(.system(size: 10))
+                            Text(avgAmount)
+                                .font(.system(size: 12, weight: .medium))
+                            if let sampleSize = provider.sampleSizeDescription {
+                                Text("•")
+                                    .font(.system(size: 10))
+                                Text(sampleSize)
+                                    .font(.system(size: 11))
+                            }
+                        }
+                        .foregroundColor(.billixMediumGreen)
+                    } else {
+                        HStack(spacing: 4) {
+                            Image(systemName: "building.2.fill")
+                                .font(.system(size: 10))
+                            Text(provider.category.capitalized)
+                                .font(.system(size: 12))
+                        }
+                        .foregroundColor(.billixMediumGreen)
                     }
-                    .foregroundColor(.billixMediumGreen)
                 }
 
                 Spacer()

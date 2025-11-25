@@ -351,7 +351,7 @@ struct QuickAddStep4Result: View {
             .onAppear {
                 // Create mock result
                 let mockBillType = BillType(id: "electric", name: "Electric", icon: "bolt.fill", category: "Utilities")
-                let mockProvider = BillProvider(id: "dte", name: "DTE Energy", logoName: "building", serviceArea: "Michigan")
+                let mockProvider = BillProvider(id: "dte", name: "DTE Energy", category: "utilities", avgAmount: 125.00, sampleSize: 47)
 
                 viewModel.result = QuickAddResult(
                     billType: mockBillType,

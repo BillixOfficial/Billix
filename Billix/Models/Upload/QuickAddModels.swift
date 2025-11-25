@@ -21,8 +21,21 @@ struct BillType: Identifiable, Codable, Hashable {
 struct BillProvider: Identifiable, Codable, Hashable {
     let id: String
     let name: String
-    let logoName: String
-    let serviceArea: String
+    let category: String
+    let avgAmount: Double?
+    let sampleSize: Int?
+
+    /// Formatted average amount for display (e.g., "$125.50/mo")
+    var formattedAvgAmount: String? {
+        guard let avg = avgAmount else { return nil }
+        return String(format: "$%.0f/mo avg", avg)
+    }
+
+    /// Sample size description (e.g., "Based on 47 bills")
+    var sampleSizeDescription: String? {
+        guard let count = sampleSize, count > 0 else { return nil }
+        return "Based on \(count) bill\(count == 1 ? "" : "s")"
+    }
 }
 
 // MARK: - Billing Frequency
@@ -69,6 +82,20 @@ struct QuickAddResult: Codable {
         case overpaying
         case underpaying
         case average
+
+        /// Maps backend API status values to iOS status
+        init(fromAPIStatus apiStatus: String) {
+            switch apiStatus {
+            case "above_average":
+                self = .overpaying
+            case "below_average":
+                self = .underpaying
+            case "average", "insufficient_data":
+                self = .average
+            default:
+                self = .average
+            }
+        }
     }
 
     var statusColor: String {

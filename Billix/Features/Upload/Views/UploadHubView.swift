@@ -68,10 +68,18 @@ struct UploadHubView: View {
             }
         }
         .sheet(isPresented: $viewModel.showQuickAddFlow) {
-            QuickAddFlowView(onComplete: {
-                viewModel.dismissFlows()
-                viewModel.handleUploadComplete()
-            })
+            QuickAddFlowView(
+                onComplete: {
+                    viewModel.dismissFlows()
+                    viewModel.handleUploadComplete()
+                },
+                onSwitchToFullAnalysis: {
+                    // Dismiss Quick Add and open Full Analysis after a short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        viewModel.showScanUploadFlow = true
+                    }
+                }
+            )
         }
         .sheet(isPresented: $viewModel.showScanUploadFlow) {
             ScanUploadFlowView(preselectedImage: viewModel.selectedImage, onComplete: {

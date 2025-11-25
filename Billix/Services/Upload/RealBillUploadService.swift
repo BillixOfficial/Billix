@@ -8,15 +8,13 @@
 import Foundation
 
 /// Real API implementation for bill upload service
-/// Currently stubbed with TODO comments for backend integration
+/// Connects to the Billix backend at billixapp.com
 ///
-/// ## API Integration Guide
-///
-/// When backend is ready, uncomment the real API code and remove mock returns.
-/// All endpoints are documented with request/response structures.
-///
-/// Base URL: https://api.billixapp.com/v1
-/// Authentication: Bearer token in Authorization header
+/// ## API Endpoints
+/// - GET /v1/bill-types - List all bill types
+/// - GET /v1/providers - Get providers for ZIP/bill type
+/// - POST /v1/marketplace/quick-add - Submit quick add comparison
+/// - POST /v1/bills/upload - Full bill analysis with AI
 ///
 class RealBillUploadService: BillUploadServiceProtocol {
 
@@ -25,7 +23,7 @@ class RealBillUploadService: BillUploadServiceProtocol {
     private let jsonEncoder: JSONEncoder
     private let baseURL: String
 
-    init(baseURL: String = "https://api.billixapp.com/v1") {
+    init(baseURL: String = "https://billixapp.com/api/v1") {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 60
         configuration.timeoutIntervalForResource = 120
@@ -42,46 +40,27 @@ class RealBillUploadService: BillUploadServiceProtocol {
 
     // MARK: - Quick Add Operations
 
-    /// GET /bill-types
-    /// Response: [{ "id": "electric", "name": "Electric", "icon": "bolt.fill", "category": "Utilities" }]
+    /// Returns static bill types for Quick Add selection
+    /// These are the core bill categories users can compare
     func getBillTypes() async throws -> [BillType] {
-        // TODO: Uncomment when backend is ready
-        /*
-        guard let url = URL(string: "\(baseURL)/bill-types") else {
-            throw UploadError.invalidURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // Add auth token if available
-        if let token = AuthService.shared.currentUser?.id.uuidString {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw UploadError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            throw UploadError.serverError("Failed to fetch bill types: \(httpResponse.statusCode)")
-        }
-
-        return try jsonDecoder.decode([BillType].self, from: data)
-        */
-
-        // MOCK: Remove when backend ready
-        return MockUploadDataService.billTypes
+        return [
+            // Utilities
+            BillType(id: "electric", name: "Electric", icon: "bolt.fill", category: "Utilities"),
+            BillType(id: "gas", name: "Natural Gas", icon: "flame.fill", category: "Utilities"),
+            BillType(id: "water", name: "Water", icon: "drop.fill", category: "Utilities"),
+            // Telecom
+            BillType(id: "internet", name: "Internet", icon: "wifi", category: "Telecom"),
+            BillType(id: "mobile", name: "Mobile Phone", icon: "iphone", category: "Telecom"),
+            BillType(id: "cable", name: "Cable/TV", icon: "tv.fill", category: "Telecom"),
+            // Insurance
+            BillType(id: "insurance-auto", name: "Auto Insurance", icon: "car.fill", category: "Insurance"),
+            BillType(id: "insurance-home", name: "Home Insurance", icon: "house.fill", category: "Insurance")
+        ]
     }
 
     /// GET /providers?zipCode={zipCode}&billTypeId={billTypeId}
-    /// Response: [{ "id": "dte", "name": "DTE Energy", "logoName": "dte_logo", "serviceArea": "Michigan" }]
+    /// Response: { "success": true, "providers": [...], "totalProviders": N }
     func getProviders(zipCode: String, billType: BillType) async throws -> [BillProvider] {
-        // TODO: Uncomment when backend is ready
-        /*
         guard var components = URLComponents(string: "\(baseURL)/providers") else {
             throw UploadError.invalidURL
         }
@@ -99,10 +78,6 @@ class RealBillUploadService: BillUploadServiceProtocol {
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let token = AuthService.shared.currentUser?.id.uuidString {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
         let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -113,21 +88,20 @@ class RealBillUploadService: BillUploadServiceProtocol {
             throw UploadError.serverError("Failed to fetch providers: \(httpResponse.statusCode)")
         }
 
-        return try jsonDecoder.decode([BillProvider].self, from: data)
-        */
+        // Parse wrapped response: { providers: [...] }
+        struct ProvidersResponse: Decodable {
+            let providers: [BillProvider]
+        }
 
-        // MOCK: Remove when backend ready
-        return MockUploadDataService.getProviders(for: zipCode, billType: billType)
+        let apiResponse = try jsonDecoder.decode(ProvidersResponse.self, from: data)
+        return apiResponse.providers
     }
 
-    /// POST /quick-add
+    /// POST /marketplace/quick-add
     /// Request: { "billTypeId": "electric", "providerId": "dte", "zipCode": "48104", "amount": 124.56, "frequency": "monthly" }
-    /// Response: { "areaAverage": 110.0, "percentDifference": 13.2, "status": "overpaying", "potentialSavings": 10.19, "ctaMessage": "Upload your full bill...", ... }
-    /// Note: Backend should ALWAYS include ctaMessage in response regardless of status
+    /// Response: { "success": true, "comparison": { "yourAmount": ..., "areaAverage": ..., "status": "above_average", ... } }
     func submitQuickAdd(request: QuickAddRequest) async throws -> QuickAddResult {
-        // TODO: Uncomment when backend is ready
-        /*
-        guard let url = URL(string: "\(baseURL)/quick-add") else {
+        guard let url = URL(string: "\(baseURL)/marketplace/quick-add") else {
             throw UploadError.invalidURL
         }
 
@@ -135,25 +109,21 @@ class RealBillUploadService: BillUploadServiceProtocol {
         httpRequest.httpMethod = "POST"
         httpRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let token = AuthService.shared.currentUser?.id.uuidString {
-            httpRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        // Encode request body
+        // Encode request body - matches backend expected fields
         struct RequestBody: Encodable {
-            let billTypeId: String
-            let providerId: String
-            let zipCode: String
+            let provider: String
+            let category: String
+            let subcategory: String
             let amount: Double
-            let frequency: String
+            let zipCode: String
         }
 
         let body = RequestBody(
-            billTypeId: request.billType.id,
-            providerId: request.provider.id,
-            zipCode: request.zipCode,
+            provider: request.provider.name,
+            category: request.billType.category.lowercased(),
+            subcategory: mapBillTypeToSubcategory(request.billType.id),
             amount: request.amount,
-            frequency: request.frequency.rawValue
+            zipCode: request.zipCode
         )
 
         httpRequest.httpBody = try jsonEncoder.encode(body)
@@ -165,8 +135,36 @@ class RealBillUploadService: BillUploadServiceProtocol {
         }
 
         switch httpResponse.statusCode {
-        case 200:
-            return try jsonDecoder.decode(QuickAddResult.self, from: data)
+        case 200, 201:
+            // Parse API response and map to QuickAddResult
+            struct APIResponse: Decodable {
+                let comparison: ComparisonData
+            }
+
+            struct ComparisonData: Decodable {
+                let yourAmount: Double
+                let areaAverage: Double
+                let percentDifference: Double
+                let status: String
+                let potentialSavings: Double?
+                let message: String
+            }
+
+            let apiResponse = try jsonDecoder.decode(APIResponse.self, from: data)
+
+            // Map API response to QuickAddResult
+            return QuickAddResult(
+                billType: request.billType,
+                provider: request.provider,
+                amount: apiResponse.comparison.yourAmount,
+                frequency: request.frequency,
+                areaAverage: apiResponse.comparison.areaAverage,
+                percentDifference: apiResponse.comparison.percentDifference,
+                status: QuickAddResult.Status(fromAPIStatus: apiResponse.comparison.status),
+                potentialSavings: apiResponse.comparison.potentialSavings,
+                message: apiResponse.comparison.message,
+                ctaMessage: "Upload your full bill for a detailed analysis and personalized savings recommendations."
+            )
         case 400:
             let error = try? jsonDecoder.decode(UploadAPIErrorResponse.self, from: data)
             throw UploadError.validationFailed(error?.message ?? "Invalid request")
@@ -175,20 +173,14 @@ class RealBillUploadService: BillUploadServiceProtocol {
         default:
             throw UploadError.serverError("Failed to submit quick add: \(httpResponse.statusCode)")
         }
-        */
-
-        // MOCK: Remove when backend ready
-        return MockUploadDataService.calculateQuickAddResult(request: request)
     }
 
     // MARK: - Scan/Upload Operations
 
     /// POST /bills/upload (multipart/form-data)
-    /// Form fields: file (binary), fileName (string), source (string)
-    /// Response: Full BillAnalysis object
+    /// Form fields: file (binary)
+    /// Response: { "success": true, "analysis": { ... } }
     func uploadAndAnalyzeBill(fileData: Data, fileName: String, source: UploadSource) async throws -> BillAnalysis {
-        // TODO: Uncomment when backend is ready
-        /*
         guard let url = URL(string: "\(baseURL)/bills/upload") else {
             throw UploadError.invalidURL
         }
@@ -197,10 +189,6 @@ class RealBillUploadService: BillUploadServiceProtocol {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
-        if let token = AuthService.shared.currentUser?.id.uuidString {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
 
         // Build multipart body
         var body = Data()
@@ -211,11 +199,6 @@ class RealBillUploadService: BillUploadServiceProtocol {
         body.append("Content-Type: \(getMimeType(for: fileName))\r\n\r\n".data(using: .utf8)!)
         body.append(fileData)
         body.append("\r\n".data(using: .utf8)!)
-
-        // Add source field
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"source\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(source.rawValue)\r\n".data(using: .utf8)!)
 
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
 
@@ -228,8 +211,13 @@ class RealBillUploadService: BillUploadServiceProtocol {
         }
 
         switch httpResponse.statusCode {
-        case 200:
-            return try jsonDecoder.decode(BillAnalysis.self, from: data)
+        case 200, 201:
+            // Parse wrapped response: { analysis: { ... } }
+            struct UploadResponse: Decodable {
+                let analysis: BillAnalysis
+            }
+            let apiResponse = try jsonDecoder.decode(UploadResponse.self, from: data)
+            return apiResponse.analysis
         case 400:
             let error = try? jsonDecoder.decode(UploadAPIErrorResponse.self, from: data)
             throw UploadError.validationFailed(error?.message ?? "Invalid file")
@@ -240,85 +228,22 @@ class RealBillUploadService: BillUploadServiceProtocol {
         default:
             throw UploadError.serverError("Upload failed: \(httpResponse.statusCode)")
         }
-        */
-
-        // MOCK: Remove when backend ready
-        return MockUploadDataService.generateMockBillAnalysis(fileName: fileName, source: source)
     }
 
     // MARK: - Recent Uploads
 
-    /// GET /bills/recent?limit=20
-    /// Response: [{ "id": "...", "provider": "DTE Energy", "amount": 124.56, "source": "camera", "status": "analyzed", ... }]
+    /// Recent uploads are stored locally using SwiftData
+    /// This method returns empty array - actual data comes from UploadViewModel querying SwiftData
     func getRecentUploads() async throws -> [RecentUpload] {
-        // TODO: Uncomment when backend is ready
-        /*
-        guard let url = URL(string: "\(baseURL)/bills/recent?limit=20") else {
-            throw UploadError.invalidURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = AuthService.shared.currentUser?.id.uuidString {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw UploadError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            throw UploadError.serverError("Failed to fetch recent uploads: \(httpResponse.statusCode)")
-        }
-
-        return try jsonDecoder.decode([RecentUpload].self, from: data)
-        */
-
-        // MOCK: Remove when backend ready
-        return MockUploadDataService.generateRecentUploads()
+        // Recent uploads are managed locally via SwiftData in UploadViewModel
+        // This service method is kept for protocol conformance
+        return []
     }
 
-    /// GET /bills/{uploadId}/status
-    /// Response: { "status": "processing" | "analyzed" | "needsConfirmation" }
+    /// Upload status - since uploads are synchronous, always return .analyzed
     func getUploadStatus(uploadId: UUID) async throws -> UploadStatus {
-        // TODO: Uncomment when backend is ready
-        /*
-        guard let url = URL(string: "\(baseURL)/bills/\(uploadId.uuidString)/status") else {
-            throw UploadError.invalidURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token = AuthService.shared.currentUser?.id.uuidString {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw UploadError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            throw UploadError.serverError("Failed to fetch status: \(httpResponse.statusCode)")
-        }
-
-        struct StatusResponse: Decodable {
-            let status: String
-        }
-
-        let statusResponse = try jsonDecoder.decode(StatusResponse.self, from: data)
-        return UploadStatus(rawValue: statusResponse.status) ?? .processing
-        */
-
-        // MOCK: Remove when backend ready
-        return Bool.random() ? .processing : .analyzed
+        // Uploads complete synchronously with the real API
+        return .analyzed
     }
 
     // MARK: - Helper Methods
@@ -331,6 +256,18 @@ class RealBillUploadService: BillUploadServiceProtocol {
         case "jpg", "jpeg": return "image/jpeg"
         case "heic": return "image/heic"
         default: return "application/octet-stream"
+        }
+    }
+
+    /// Maps iOS bill type IDs to backend subcategory values
+    private func mapBillTypeToSubcategory(_ billTypeId: String) -> String {
+        switch billTypeId {
+        case "electric": return "electricity"
+        case "gas": return "natural_gas"
+        case "insurance-auto": return "auto_insurance"
+        case "insurance-home": return "home_insurance"
+        case "cable": return "cable_tv"
+        default: return billTypeId  // water, internet, mobile stay the same
         }
     }
 }

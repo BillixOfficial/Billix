@@ -10,13 +10,12 @@ import Foundation
 /// Application environment configuration
 /// Controls which service implementation to use
 enum AppEnvironment {
-    case development  // Uses mock data
+    case development  // Uses real API (previously mock)
     case staging      // Uses real API with test data
     case production   // Uses real API with production data
 
     static var current: AppEnvironment {
         #if DEBUG
-        // Change this line to .staging when testing real API
         return .development
         #else
         return .production
@@ -25,24 +24,27 @@ enum AppEnvironment {
 }
 
 /// Factory for creating bill upload service instances
-/// Automatically selects mock or real implementation based on environment
+/// All environments now use the real API at billixapp.com
 class BillUploadServiceFactory {
 
+    /// Production API URL
+    private static let productionURL = "https://billixapp.com/api/v1"
+
     /// Create a bill upload service based on current environment
-    /// - Returns: Mock service in development, real service in staging/production
+    /// - Returns: Real service for all environments
     static func create() -> BillUploadServiceProtocol {
         switch AppEnvironment.current {
         case .development:
-            // Mock service with 2 second delay for realistic testing
-            return MockBillUploadService(mockDelay: 2.0, shouldSucceed: true)
+            // Now using real API instead of mock
+            return RealBillUploadService(baseURL: productionURL)
 
         case .staging:
-            // Real API pointing to staging server
-            return RealBillUploadService(baseURL: "https://staging-api.billixapp.com/v1")
+            // Real API pointing to production server
+            return RealBillUploadService(baseURL: productionURL)
 
         case .production:
             // Real API pointing to production server
-            return RealBillUploadService(baseURL: "https://api.billixapp.com/v1")
+            return RealBillUploadService(baseURL: productionURL)
         }
     }
 

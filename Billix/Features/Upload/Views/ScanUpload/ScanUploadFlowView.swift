@@ -9,9 +9,14 @@ import SwiftUI
 
 /// Container for Scan/Upload flow
 struct ScanUploadFlowView: View {
-    @StateObject private var viewModel = ScanUploadViewModel()
+    @StateObject private var viewModel: ScanUploadViewModel
     @Environment(\.dismiss) private var dismiss
     let onComplete: () -> Void
+
+    init(preselectedImage: UIImage? = nil, onComplete: @escaping () -> Void) {
+        _viewModel = StateObject(wrappedValue: ScanUploadViewModel(preselectedImage: preselectedImage))
+        self.onComplete = onComplete
+    }
 
     var body: some View {
         NavigationView {

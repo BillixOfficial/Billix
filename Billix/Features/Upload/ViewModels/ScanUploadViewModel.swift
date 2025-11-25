@@ -39,11 +39,20 @@ class ScanUploadViewModel: ObservableObject {
 
     private let uploadService: BillUploadServiceProtocol
     var modelContext: ModelContext?
+    private var preselectedImage: UIImage?
 
     // MARK: - Initialization
 
-    init(uploadService: BillUploadServiceProtocol? = nil) {
+    init(preselectedImage: UIImage? = nil, uploadService: BillUploadServiceProtocol? = nil) {
+        self.preselectedImage = preselectedImage
         self.uploadService = uploadService ?? BillUploadServiceFactory.create()
+
+        // If image is preselected, start processing immediately
+        if let image = preselectedImage {
+            Task {
+                await processImage(image, source: .camera)
+            }
+        }
     }
 
     // MARK: - File Selection

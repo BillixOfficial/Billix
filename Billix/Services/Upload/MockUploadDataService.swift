@@ -14,15 +14,17 @@ struct MockUploadDataService {
     // MARK: - Bill Types
 
     static let billTypes: [BillType] = [
+        // Utilities
         BillType(id: "electric", name: "Electric", icon: "bolt.fill", category: "Utilities"),
-        BillType(id: "internet", name: "Internet", icon: "wifi", category: "Telecom"),
-        BillType(id: "mobile", name: "Mobile Phone", icon: "iphone", category: "Telecom"),
-        BillType(id: "cable", name: "Cable/TV", icon: "tv.fill", category: "Entertainment"),
         BillType(id: "gas", name: "Natural Gas", icon: "flame.fill", category: "Utilities"),
         BillType(id: "water", name: "Water", icon: "drop.fill", category: "Utilities"),
+        // Telecom
+        BillType(id: "internet", name: "Internet", icon: "wifi", category: "Telecom"),
+        BillType(id: "mobile", name: "Mobile Phone", icon: "iphone", category: "Telecom"),
+        BillType(id: "cable", name: "Cable/TV", icon: "tv.fill", category: "Telecom"),
+        // Insurance
         BillType(id: "insurance-auto", name: "Auto Insurance", icon: "car.fill", category: "Insurance"),
-        BillType(id: "insurance-home", name: "Home Insurance", icon: "house.fill", category: "Insurance"),
-        BillType(id: "streaming", name: "Streaming Service", icon: "play.tv.fill", category: "Entertainment")
+        BillType(id: "insurance-home", name: "Home Insurance", icon: "house.fill", category: "Insurance")
     ]
 
     // MARK: - Providers by ZIP (Realistic Data)
@@ -50,51 +52,51 @@ struct MockUploadDataService {
         switch zipPrefix {
         case "481": // Ann Arbor, MI
             return [
-                BillProvider(id: "dte", name: "DTE Energy", logoName: "dte_logo", serviceArea: "Michigan"),
-                BillProvider(id: "consumers", name: "Consumers Energy", logoName: "consumers_logo", serviceArea: "Michigan")
+                BillProvider(id: "dte", name: "DTE Energy", category: "utilities", avgAmount: 142.50, sampleSize: 47),
+                BillProvider(id: "consumers", name: "Consumers Energy", category: "utilities", avgAmount: 128.75, sampleSize: 32)
             ]
         case "100", "101", "102": // New York City
             return [
-                BillProvider(id: "coned", name: "Con Edison", logoName: "coned_logo", serviceArea: "New York"),
-                BillProvider(id: "psegli", name: "PSEG Long Island", logoName: "pseg_logo", serviceArea: "New York")
+                BillProvider(id: "coned", name: "Con Edison", category: "utilities", avgAmount: 185.00, sampleSize: 156),
+                BillProvider(id: "psegli", name: "PSEG Long Island", category: "utilities", avgAmount: 168.25, sampleSize: 89)
             ]
         case "900", "901", "902": // Los Angeles
             return [
-                BillProvider(id: "sce", name: "Southern California Edison", logoName: "sce_logo", serviceArea: "California"),
-                BillProvider(id: "ladwp", name: "LA Dept. of Water & Power", logoName: "ladwp_logo", serviceArea: "California")
+                BillProvider(id: "sce", name: "Southern California Edison", category: "utilities", avgAmount: 156.80, sampleSize: 203),
+                BillProvider(id: "ladwp", name: "LA Dept. of Water & Power", category: "utilities", avgAmount: 134.20, sampleSize: 178)
             ]
         default:
             return [
-                BillProvider(id: "generic-electric", name: "Local Electric Company", logoName: "bolt.fill", serviceArea: "Your Area")
+                BillProvider(id: "generic-electric", name: "Local Electric Company", category: "utilities", avgAmount: nil, sampleSize: nil)
             ]
         }
     }
 
     private static func internetProviders(for zipPrefix: String) -> [BillProvider] {
         return [
-            BillProvider(id: "comcast", name: "Comcast Xfinity", logoName: "comcast_logo", serviceArea: "Nationwide"),
-            BillProvider(id: "att", name: "AT&T Internet", logoName: "att_logo", serviceArea: "Nationwide"),
-            BillProvider(id: "verizon", name: "Verizon Fios", logoName: "verizon_logo", serviceArea: "Select Areas"),
-            BillProvider(id: "spectrum", name: "Spectrum", logoName: "spectrum_logo", serviceArea: "Nationwide"),
-            BillProvider(id: "cox", name: "Cox Communications", logoName: "cox_logo", serviceArea: "Select Areas")
+            BillProvider(id: "comcast", name: "Comcast Xfinity", category: "telecom", avgAmount: 89.99, sampleSize: 234),
+            BillProvider(id: "att", name: "AT&T Internet", category: "telecom", avgAmount: 75.00, sampleSize: 189),
+            BillProvider(id: "verizon", name: "Verizon Fios", category: "telecom", avgAmount: 99.99, sampleSize: 156),
+            BillProvider(id: "spectrum", name: "Spectrum", category: "telecom", avgAmount: 69.99, sampleSize: 145),
+            BillProvider(id: "cox", name: "Cox Communications", category: "telecom", avgAmount: 79.99, sampleSize: 98)
         ]
     }
 
     private static func mobileProviders() -> [BillProvider] {
         return [
-            BillProvider(id: "verizon-mobile", name: "Verizon Wireless", logoName: "verizon_logo", serviceArea: "Nationwide"),
-            BillProvider(id: "att-mobile", name: "AT&T Wireless", logoName: "att_logo", serviceArea: "Nationwide"),
-            BillProvider(id: "tmobile", name: "T-Mobile", logoName: "tmobile_logo", serviceArea: "Nationwide"),
-            BillProvider(id: "sprint", name: "Sprint", logoName: "sprint_logo", serviceArea: "Nationwide"),
-            BillProvider(id: "mint", name: "Mint Mobile", logoName: "mint_logo", serviceArea: "Nationwide")
+            BillProvider(id: "verizon-mobile", name: "Verizon Wireless", category: "telecom", avgAmount: 85.00, sampleSize: 312),
+            BillProvider(id: "att-mobile", name: "AT&T Wireless", category: "telecom", avgAmount: 78.50, sampleSize: 287),
+            BillProvider(id: "tmobile", name: "T-Mobile", category: "telecom", avgAmount: 65.00, sampleSize: 256),
+            BillProvider(id: "sprint", name: "Sprint", category: "telecom", avgAmount: 70.00, sampleSize: 134),
+            BillProvider(id: "mint", name: "Mint Mobile", category: "telecom", avgAmount: 25.00, sampleSize: 89)
         ]
     }
 
     private static func cableProviders(for zipPrefix: String) -> [BillProvider] {
         return [
-            BillProvider(id: "comcast-cable", name: "Comcast Xfinity TV", logoName: "comcast_logo", serviceArea: "Nationwide"),
-            BillProvider(id: "directv", name: "DirecTV", logoName: "directv_logo", serviceArea: "Nationwide"),
-            BillProvider(id: "dish", name: "Dish Network", logoName: "dish_logo", serviceArea: "Nationwide")
+            BillProvider(id: "comcast-cable", name: "Comcast Xfinity TV", category: "entertainment", avgAmount: 125.00, sampleSize: 178),
+            BillProvider(id: "directv", name: "DirecTV", category: "entertainment", avgAmount: 135.00, sampleSize: 145),
+            BillProvider(id: "dish", name: "Dish Network", category: "entertainment", avgAmount: 110.00, sampleSize: 123)
         ]
     }
 
@@ -102,19 +104,19 @@ struct MockUploadDataService {
         switch zipPrefix {
         case "481": // Ann Arbor, MI
             return [
-                BillProvider(id: "dte-gas", name: "DTE Gas", logoName: "dte_logo", serviceArea: "Michigan"),
-                BillProvider(id: "consumers-gas", name: "Consumers Energy Gas", logoName: "consumers_logo", serviceArea: "Michigan")
+                BillProvider(id: "dte-gas", name: "DTE Gas", category: "utilities", avgAmount: 65.00, sampleSize: 42),
+                BillProvider(id: "consumers-gas", name: "Consumers Energy Gas", category: "utilities", avgAmount: 58.75, sampleSize: 38)
             ]
         default:
             return [
-                BillProvider(id: "generic-gas", name: "Local Gas Company", logoName: "flame.fill", serviceArea: "Your Area")
+                BillProvider(id: "generic-gas", name: "Local Gas Company", category: "utilities", avgAmount: nil, sampleSize: nil)
             ]
         }
     }
 
     private static func genericProviders(for billType: BillType) -> [BillProvider] {
         return [
-            BillProvider(id: "generic-\(billType.id)", name: "\(billType.name) Provider", logoName: billType.icon, serviceArea: "Your Area")
+            BillProvider(id: "generic-\(billType.id)", name: "\(billType.name) Provider", category: billType.category.lowercased(), avgAmount: nil, sampleSize: nil)
         ]
     }
 
@@ -167,22 +169,20 @@ struct MockUploadDataService {
         switch billType.id {
         case "electric":
             return Double.random(in: 100...150)
+        case "gas":
+            return Double.random(in: 40...70)
+        case "water":
+            return Double.random(in: 30...60)
         case "internet":
             return Double.random(in: 60...80)
         case "mobile":
             return Double.random(in: 50...70)
         case "cable":
             return Double.random(in: 80...120)
-        case "gas":
-            return Double.random(in: 40...70)
-        case "water":
-            return Double.random(in: 30...60)
         case "insurance-auto":
             return Double.random(in: 120...180)
         case "insurance-home":
             return Double.random(in: 80...140)
-        case "streaming":
-            return Double.random(in: 10...20)
         default:
             return 100.0
         }
