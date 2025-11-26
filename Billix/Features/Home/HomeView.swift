@@ -19,8 +19,8 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            // Background
-            Color(hex: "#F8FAF9")
+            // Background - subtle green tint
+            Color(hex: "#EDF3EF")
                 .ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
@@ -106,7 +106,7 @@ struct HeaderZone: View {
             // Top row: Greeting and notification
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("\(greeting), \(userName) \u{1F44B}")
+                    Text("\(greeting), \(userName)")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundColor(Color(hex: "#1A2F23"))
 
@@ -174,8 +174,9 @@ struct HeaderZone: View {
 
                 // Streak chip
                 HStack(spacing: 4) {
-                    Text("\u{1F525}")
+                    Image(systemName: "flame.fill")
                         .font(.system(size: 14))
+                        .foregroundColor(Color(hex: "#E67E22"))
                     Text("\(streak) Day Streak")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(Color(hex: "#E67E22"))
@@ -381,8 +382,9 @@ struct FlashDropZone: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     HStack(spacing: 6) {
-                        Text("\u{26A1}")
-                            .font(.system(size: 16))
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.yellow)
                         Text("FLASH DROP")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(.white)
@@ -553,9 +555,14 @@ struct DailyBillBrief: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("\u{1F321} Heatwave Incoming")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(hex: "#1A2F23"))
+                HStack(spacing: 6) {
+                    Image(systemName: "thermometer.sun.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(hex: "#E74C3C"))
+                    Text("Heatwave Incoming")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "#1A2F23"))
+                }
 
                 Text("Expect electric bills to rise ~$12 this week. Pre-cool your home in the morning to save on peak rates.")
                     .font(.system(size: 14))
