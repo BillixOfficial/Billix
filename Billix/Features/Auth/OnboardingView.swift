@@ -64,7 +64,7 @@ struct OnboardingView: View {
         }
         .navigationBarBackButtonHidden(true)
         .sheet(isPresented: $showCamera) {
-            ImagePicker(image: $viewModel.selectedImage, sourceType: .camera)
+            OnboardingImagePicker(image: $viewModel.selectedImage, sourceType: .camera)
         }
         .onChange(of: viewModel.selectedPhotoItem) { _, _ in
             Task {
@@ -434,9 +434,9 @@ struct GoalOptionCard: View {
     }
 }
 
-// MARK: - Image Picker
+// MARK: - Onboarding Image Picker
 
-struct ImagePicker: UIViewControllerRepresentable {
+struct OnboardingImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
     let sourceType: UIImagePickerController.SourceType
 
@@ -455,9 +455,9 @@ struct ImagePicker: UIViewControllerRepresentable {
     }
 
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let parent: ImagePicker
+        let parent: OnboardingImagePicker
 
-        init(_ parent: ImagePicker) {
+        init(_ parent: OnboardingImagePicker) {
             self.parent = parent
         }
 
