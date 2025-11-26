@@ -11,85 +11,193 @@ import SwiftUI
 // MARK: - Theme
 
 private enum Theme {
-    // MARK: - Colors
-    static let background = Color(hex: "#F5F7F6")
-    static let cardBackground = Color.white
-    static let primaryText = Color(hex: "#1A2421")
-    static let secondaryText = Color(hex: "#6B7B75")
-    static let tertiaryText = Color(hex: "#9BA8A2")
-    static let accent = Color(hex: "#4A7C59")
-    static let accentLight = Color(hex: "#4A7C59").opacity(0.08)
+    // MARK: - Brand Colors (Billix Identity)
+    static let brandPurple = Color(hex: "#9B7B9F")      // Piggy bank purple
+    static let brandGold = Color(hex: "#E8B54D")        // Golden amber
+    static let brandGreen = Color(hex: "#3D7A5A")       // Money green (primary)
+    static let brandTeal = Color(hex: "#2D5A5E")        // Dark teal
 
-    // Semantic colors
-    static let success = Color(hex: "#3D9A6E")
-    static let warning = Color(hex: "#E09D3D")
-    static let danger = Color(hex: "#D66B5B")
-    static let info = Color(hex: "#4A9BD9")
-    static let purple = Color(hex: "#8B6CAF")
+    // MARK: - UI Colors
+    static let background = Color(hex: "#F8FAF9")
+    static let cardBackground = Color.white
+    static let cardBackgroundElevated = Color(hex: "#FFFFFF")
+    static let primaryText = Color(hex: "#1A2E24")
+    static let secondaryText = Color(hex: "#5A7068")
+    static let tertiaryText = Color(hex: "#8FA098")
+    static let divider = Color(hex: "#E8EEEB")
+
+    // Primary accent (green)
+    static let accent = brandGreen
+    static let accentLight = brandGreen.opacity(0.1)
+    static let accentGradient = LinearGradient(
+        colors: [Color(hex: "#4A8B62"), Color(hex: "#2D6B4A")],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    // Semantic colors - Refined palette
+    static let success = Color(hex: "#34A853")
+    static let warning = brandGold
+    static let danger = Color(hex: "#EA4335")
+    static let info = Color(hex: "#4285F4")
+    static let purple = brandPurple
+
+    // MARK: - Gradients
+    static let backgroundGradient = LinearGradient(
+        colors: [
+            Color(hex: "#F8FAF9"),
+            Color(hex: "#EEF4F0"),
+            Color(hex: "#E8F0EB")
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    static let premiumGradient = LinearGradient(
+        colors: [brandPurple, Color(hex: "#7B5B8F")],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+
+    static let goldGradient = LinearGradient(
+        colors: [brandGold, Color(hex: "#D4A03D")],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 
     // MARK: - Typography Scale
     enum Font {
-        static let largeTitle = SwiftUI.Font.system(size: 28, weight: .bold, design: .rounded)
-        static let title = SwiftUI.Font.system(size: 22, weight: .bold, design: .rounded)
+        static let largeTitle = SwiftUI.Font.system(size: 32, weight: .bold, design: .rounded)
+        static let title = SwiftUI.Font.system(size: 24, weight: .bold, design: .rounded)
+        static let title2 = SwiftUI.Font.system(size: 20, weight: .semibold, design: .rounded)
         static let headline = SwiftUI.Font.system(size: 17, weight: .semibold)
         static let body = SwiftUI.Font.system(size: 15, weight: .regular)
         static let callout = SwiftUI.Font.system(size: 14, weight: .medium)
-        static let caption = SwiftUI.Font.system(size: 12, weight: .medium)
-        static let micro = SwiftUI.Font.system(size: 11, weight: .medium)
+        static let caption = SwiftUI.Font.system(size: 12, weight: .semibold)
+        static let micro = SwiftUI.Font.system(size: 10, weight: .semibold)
     }
 
-    // MARK: - Spacing
+    // MARK: - Spacing System (8pt grid)
+    static let spacing4: CGFloat = 4
+    static let spacing8: CGFloat = 8
+    static let spacing12: CGFloat = 12
+    static let spacing16: CGFloat = 16
+    static let spacing20: CGFloat = 20
+    static let spacing24: CGFloat = 24
+    static let spacing32: CGFloat = 32
+
     static let horizontalPadding: CGFloat = 20
-    static let cardPadding: CGFloat = 16
+    static let cardPadding: CGFloat = 18
     static let sectionSpacing: CGFloat = 28
     static let cardSpacing: CGFloat = 14
-    static let cornerRadius: CGFloat = 18
+
+    // MARK: - Corner Radius
+    static let radiusSmall: CGFloat = 12
+    static let radiusMedium: CGFloat = 16
+    static let radiusLarge: CGFloat = 20
+    static let radiusXL: CGFloat = 24
+    static let cornerRadius: CGFloat = 20
     static let smallRadius: CGFloat = 12
 
-    // MARK: - Shadows (Layered for depth)
-    static let shadowColor = Color.black.opacity(0.04)
-    static let shadowRadius: CGFloat = 10
-    static let shadowY: CGFloat = 4
+    // MARK: - Shadows (3-tier elevation system)
+    enum Elevation {
+        case low, medium, high
 
-    // Secondary shadow for layered effect
+        var shadows: [(color: Color, radius: CGFloat, y: CGFloat)] {
+            switch self {
+            case .low:
+                return [
+                    (Color.black.opacity(0.04), 8, 2),
+                    (Color.black.opacity(0.02), 16, 4)
+                ]
+            case .medium:
+                return [
+                    (Color.black.opacity(0.06), 12, 4),
+                    (Color.black.opacity(0.03), 24, 8)
+                ]
+            case .high:
+                return [
+                    (Color.black.opacity(0.08), 16, 6),
+                    (Color.black.opacity(0.04), 32, 12)
+                ]
+            }
+        }
+    }
+
+    static let shadowColor = Color.black.opacity(0.05)
+    static let shadowRadius: CGFloat = 12
+    static let shadowY: CGFloat = 4
     static let shadowColorLight = Color.black.opacity(0.02)
-    static let shadowRadiusLight: CGFloat = 20
+    static let shadowRadiusLight: CGFloat = 24
 
     // MARK: - Animation
     enum Animation {
-        static let spring = SwiftUI.Animation.spring(response: 0.35, dampingFraction: 0.7)
+        static let spring = SwiftUI.Animation.spring(response: 0.4, dampingFraction: 0.75)
+        static let bouncy = SwiftUI.Animation.spring(response: 0.35, dampingFraction: 0.6)
         static let quick = SwiftUI.Animation.easeOut(duration: 0.2)
-        static let smooth = SwiftUI.Animation.easeInOut(duration: 0.3)
+        static let smooth = SwiftUI.Animation.easeInOut(duration: 0.35)
+        static let slow = SwiftUI.Animation.easeInOut(duration: 0.5)
     }
 }
 
-// MARK: - Card Modifier
+// MARK: - Card Modifiers
 
 private struct CardStyle: ViewModifier {
-    var hasShadow: Bool = true
+    var elevation: Theme.Elevation = .low
+    var padding: CGFloat = Theme.cardPadding
+
+    func body(content: Content) -> some View {
+        let shadows = elevation.shadows
+        return content
+            .padding(padding)
+            .background(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                    .fill(Theme.cardBackground)
+                    .shadow(color: shadows[0].color, radius: shadows[0].radius, y: shadows[0].y)
+                    .shadow(color: shadows[1].color, radius: shadows[1].radius, y: shadows[1].y)
+            )
+    }
+}
+
+// MARK: - Glassmorphism Card
+
+private struct GlassCard: ViewModifier {
+    var tint: Color = Theme.accent
     var padding: CGFloat = Theme.cardPadding
 
     func body(content: Content) -> some View {
         content
             .padding(padding)
             .background(
-                RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
-                    .fill(Theme.cardBackground)
-                    .shadow(
-                        color: hasShadow ? Theme.shadowColorLight : .clear,
-                        radius: hasShadow ? Theme.shadowRadiusLight : 0,
-                        x: 0, y: 8
-                    )
-                    .shadow(
-                        color: hasShadow ? Theme.shadowColor : .clear,
-                        radius: hasShadow ? Theme.shadowRadius : 0,
-                        x: 0, y: Theme.shadowY
-                    )
+                ZStack {
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                        .fill(.ultraThinMaterial)
+
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [tint.opacity(0.08), tint.opacity(0.02)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.5), .white.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                }
             )
+            .shadow(color: tint.opacity(0.1), radius: 20, y: 10)
     }
 }
 
-// MARK: - Animated Card Modifier
+// MARK: - Animated Appear Modifier
 
 private struct AnimatedCardStyle: ViewModifier {
     @State private var isVisible = false
@@ -98,7 +206,8 @@ private struct AnimatedCardStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .opacity(isVisible ? 1 : 0)
-            .offset(y: isVisible ? 0 : 12)
+            .offset(y: isVisible ? 0 : 16)
+            .scaleEffect(isVisible ? 1 : 0.97)
             .onAppear {
                 withAnimation(Theme.Animation.spring.delay(delay)) {
                     isVisible = true
@@ -107,33 +216,91 @@ private struct AnimatedCardStyle: ViewModifier {
     }
 }
 
-// MARK: - Subtle Glow Modifier
+// MARK: - Glow Effect
 
-private struct SubtleGlow: ViewModifier {
+private struct GlowEffect: ViewModifier {
+    let color: Color
+    let intensity: Double
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius + 4, style: .continuous)
+                    .fill(color.opacity(intensity * 0.15))
+                    .blur(radius: 12)
+                    .offset(y: 6)
+            )
+    }
+}
+
+// MARK: - Floating Animation
+
+private struct FloatingEffect: ViewModifier {
+    @State private var isFloating = false
+
+    func body(content: Content) -> some View {
+        content
+            .offset(y: isFloating ? -4 : 0)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 2.5)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    isFloating = true
+                }
+            }
+    }
+}
+
+// MARK: - Pulsing Badge
+
+private struct PulsingBadge: ViewModifier {
+    @State private var isPulsing = false
     let color: Color
 
     func body(content: Content) -> some View {
         content
             .background(
-                RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
-                    .fill(color.opacity(0.08))
-                    .blur(radius: 8)
-                    .offset(y: 4)
+                Circle()
+                    .fill(color.opacity(isPulsing ? 0.3 : 0))
+                    .scaleEffect(isPulsing ? 1.8 : 1)
             )
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 1.5)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    isPulsing = true
+                }
+            }
     }
 }
 
+// MARK: - View Extensions
+
 private extension View {
-    func cardStyle(shadow: Bool = true, padding: CGFloat = Theme.cardPadding) -> some View {
-        modifier(CardStyle(hasShadow: shadow, padding: padding))
+    func cardStyle(elevation: Theme.Elevation = .low, padding: CGFloat = Theme.cardPadding) -> some View {
+        modifier(CardStyle(elevation: elevation, padding: padding))
+    }
+
+    func glassCard(tint: Color = Theme.accent, padding: CGFloat = Theme.cardPadding) -> some View {
+        modifier(GlassCard(tint: tint, padding: padding))
     }
 
     func animatedCard(delay: Double = 0) -> some View {
         modifier(AnimatedCardStyle(delay: delay))
     }
 
-    func subtleGlow(_ color: Color) -> some View {
-        modifier(SubtleGlow(color: color))
+    func glow(_ color: Color, intensity: Double = 1.0) -> some View {
+        modifier(GlowEffect(color: color, intensity: intensity))
+    }
+
+    func floating() -> some View {
+        modifier(FloatingEffect())
+    }
+
+    func pulsingBadge(_ color: Color) -> some View {
+        modifier(PulsingBadge(color: color))
     }
 
     func sectionHeader() -> some View {
@@ -141,7 +308,13 @@ private extension View {
             .font(Theme.Font.caption)
             .foregroundColor(Theme.secondaryText)
             .textCase(.uppercase)
-            .tracking(0.8)
+            .tracking(1.0)
+    }
+
+    func sectionTitle() -> some View {
+        self
+            .font(Theme.Font.headline)
+            .foregroundColor(Theme.primaryText)
     }
 }
 
@@ -166,17 +339,30 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            // Subtle gradient background
-            LinearGradient(
-                colors: [
-                    Theme.background,
-                    Theme.background.opacity(0.95),
-                    Color(hex: "#EEF2F0")
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // Animated mesh-like gradient background
+            ZStack {
+                Theme.backgroundGradient
+                    .ignoresSafeArea()
+
+                // Decorative gradient orbs
+                Circle()
+                    .fill(Theme.brandGreen.opacity(0.08))
+                    .frame(width: 300, height: 300)
+                    .blur(radius: 80)
+                    .offset(x: -100, y: -200)
+
+                Circle()
+                    .fill(Theme.brandPurple.opacity(0.06))
+                    .frame(width: 250, height: 250)
+                    .blur(radius: 60)
+                    .offset(x: 150, y: 100)
+
+                Circle()
+                    .fill(Theme.brandGold.opacity(0.05))
+                    .frame(width: 200, height: 200)
+                    .blur(radius: 50)
+                    .offset(x: -80, y: 400)
+            }
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: Theme.sectionSpacing) {
@@ -272,6 +458,8 @@ private struct HeaderZone: View {
     let streak: Int
     let notificationCount: Int
 
+    @State private var scoreAnimated = false
+
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -284,113 +472,185 @@ private struct HeaderZone: View {
     private var scoreLabel: String {
         switch score {
         case 750...: return "Excellent"
-        case 700..<750: return "Very Efficient"
+        case 700..<750: return "Great"
         case 650..<700: return "Good"
-        default: return "Needs Work"
+        default: return "Building"
+        }
+    }
+
+    private var scoreColor: Color {
+        switch score {
+        case 750...: return Theme.success
+        case 700..<750: return Theme.brandGreen
+        case 650..<700: return Theme.brandGold
+        default: return Theme.info
         }
     }
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: Theme.spacing16) {
+            // Top row: Greeting + Notifications
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("\(greeting), \(userName)")
-                        .font(Theme.Font.title)
-                        .foregroundColor(Theme.primaryText)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(greeting)
+                        .font(Theme.Font.callout)
+                        .foregroundColor(Theme.secondaryText)
 
-                    Button {
-                        haptic()
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "location.fill")
-                                .font(.system(size: 10, weight: .medium))
-                            Text("\(location) \(zipCode)")
-                                .font(Theme.Font.caption)
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 9, weight: .bold))
-                        }
-                        .foregroundColor(Theme.accent)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Theme.accentLight)
-                        .clipShape(Capsule())
-                    }
-                    .buttonStyle(ScaleButtonStyle(scale: 0.96))
+                    Text(userName)
+                        .font(Theme.Font.largeTitle)
+                        .foregroundColor(Theme.primaryText)
                 }
 
                 Spacer()
 
+                // Notification bell with glow
                 Button { haptic() } label: {
                     ZStack {
+                        // Glow effect
+                        if notificationCount > 0 {
+                            Circle()
+                                .fill(Theme.danger.opacity(0.15))
+                                .frame(width: 52, height: 52)
+                                .blur(radius: 4)
+                        }
+
                         Circle()
                             .fill(Theme.cardBackground)
-                            .frame(width: 44, height: 44)
-                            .shadow(color: Theme.shadowColor, radius: 6, y: 2)
-                            .shadow(color: Theme.shadowColorLight, radius: 12, y: 4)
+                            .frame(width: 48, height: 48)
+                            .shadow(color: Color.black.opacity(0.06), radius: 8, y: 3)
 
-                        Image(systemName: "bell.fill")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundColor(Theme.accent)
+                        Image(systemName: notificationCount > 0 ? "bell.badge.fill" : "bell.fill")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundStyle(
+                                notificationCount > 0 ? Theme.danger : Theme.secondaryText
+                            )
+                            .symbolRenderingMode(.hierarchical)
 
                         if notificationCount > 0 {
                             Text("\(notificationCount)")
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.system(size: 11, weight: .bold))
                                 .foregroundColor(.white)
-                                .frame(width: 18, height: 18)
+                                .frame(width: 20, height: 20)
                                 .background(
                                     Circle()
                                         .fill(Theme.danger)
-                                        .shadow(color: Theme.danger.opacity(0.4), radius: 4, y: 2)
                                 )
-                                .offset(x: 12, y: -12)
+                                .offset(x: 14, y: -14)
+                                .pulsingBadge(Theme.danger)
                         }
                     }
                 }
-                .buttonStyle(ScaleButtonStyle(scale: 0.92))
+                .buttonStyle(ScaleButtonStyle(scale: 0.9))
             }
 
-            HStack(spacing: 10) {
-                // Score chip
+            // Score Card - Premium glassmorphism
+            HStack(spacing: Theme.spacing16) {
+                // Billix Score
+                HStack(spacing: Theme.spacing12) {
+                    // Score ring
+                    ZStack {
+                        Circle()
+                            .stroke(scoreColor.opacity(0.2), lineWidth: 4)
+                            .frame(width: 44, height: 44)
+
+                        Circle()
+                            .trim(from: 0, to: scoreAnimated ? CGFloat(score) / 850 : 0)
+                            .stroke(
+                                scoreColor,
+                                style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                            )
+                            .frame(width: 44, height: 44)
+                            .rotationEffect(.degrees(-90))
+
+                        Text("\(score)")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundColor(Theme.primaryText)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Billix Score")
+                            .font(Theme.Font.micro)
+                            .foregroundColor(Theme.tertiaryText)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+
+                        Text(scoreLabel)
+                            .font(Theme.Font.callout)
+                            .fontWeight(.semibold)
+                            .foregroundColor(scoreColor)
+                    }
+                }
+
+                Spacer()
+
+                // Divider
+                Rectangle()
+                    .fill(Theme.divider)
+                    .frame(width: 1, height: 36)
+
+                Spacer()
+
+                // Streak
+                HStack(spacing: Theme.spacing8) {
+                    ZStack {
+                        Circle()
+                            .fill(Theme.brandGold.opacity(0.15))
+                            .frame(width: 44, height: 44)
+
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Theme.goldGradient)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Streak")
+                            .font(Theme.Font.micro)
+                            .foregroundColor(Theme.tertiaryText)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+
+                        Text("\(streak) Days")
+                            .font(Theme.Font.callout)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Theme.brandGold)
+                    }
+                }
+            }
+            .padding(Theme.spacing16)
+            .glassCard(tint: Theme.brandGreen)
+
+            // Location pill
+            Button { haptic() } label: {
                 HStack(spacing: 6) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Theme.accent)
-                    Text("\(score)")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundColor(Theme.primaryText)
-                    Text("· \(scoreLabel)")
+                    Image(systemName: "mappin.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Theme.accentGradient)
+
+                    Text("\(location) · \(zipCode)")
                         .font(Theme.Font.caption)
                         .foregroundColor(Theme.secondaryText)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(Theme.tertiaryText)
                 }
                 .padding(.horizontal, 14)
-                .padding(.vertical, 10)
+                .padding(.vertical, 8)
                 .background(
                     Capsule()
                         .fill(Theme.cardBackground)
-                        .shadow(color: Theme.shadowColor, radius: 6, y: 2)
+                        .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
                 )
-
-                // Streak chip with subtle animation
-                HStack(spacing: 5) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 13))
-                        .symbolRenderingMode(.multicolor)
-                    Text("\(streak) Day Streak")
-                        .font(Theme.Font.caption)
-                        .fontWeight(.semibold)
-                }
-                .foregroundColor(Theme.warning)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(
-                    Capsule()
-                        .fill(Theme.warning.opacity(0.12))
-                )
-
-                Spacer()
             }
+            .buttonStyle(ScaleButtonStyle(scale: 0.96))
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, Theme.horizontalPadding)
+        .onAppear {
+            withAnimation(Theme.Animation.smooth.delay(0.3)) {
+                scoreAnimated = true
+            }
+        }
     }
 }
 
@@ -449,41 +709,84 @@ private struct QuickAction: Identifiable {
     let icon: String
     let title: String
     let color: Color
+    let gradient: LinearGradient
+
+    init(icon: String, title: String, color: Color) {
+        self.icon = icon
+        self.title = title
+        self.color = color
+        self.gradient = LinearGradient(
+            colors: [color, color.opacity(0.8)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
 }
 
 private struct QuickActionsZone: View {
     private let actions = [
-        QuickAction(icon: "plus.circle.fill", title: "Add Bill", color: Theme.accent),
-        QuickAction(icon: "square.and.arrow.up", title: "Upload", color: Theme.info),
-        QuickAction(icon: "arrow.left.arrow.right", title: "Compare", color: Theme.purple),
-        QuickAction(icon: "chart.pie.fill", title: "Budget", color: Theme.warning),
+        QuickAction(icon: "plus.circle.fill", title: "Add Bill", color: Theme.brandGreen),
+        QuickAction(icon: "doc.text.viewfinder", title: "Upload", color: Theme.info),
+        QuickAction(icon: "arrow.triangle.2.circlepath", title: "Compare", color: Theme.brandPurple),
+        QuickAction(icon: "chart.pie.fill", title: "Budget", color: Theme.brandGold),
     ]
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             ForEach(actions) { action in
-                Button { haptic() } label: {
-                    VStack(spacing: 10) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(action.color.opacity(0.12))
-                                .frame(width: 52, height: 52)
-
-                            Image(systemName: action.icon)
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundStyle(action.color.gradient)
-                        }
-
-                        Text(action.title)
-                            .font(Theme.Font.caption)
-                            .foregroundColor(Theme.primaryText)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(ScaleButtonStyle(scale: 0.94))
+                QuickActionButton(action: action)
             }
         }
         .padding(.horizontal, Theme.horizontalPadding)
+    }
+}
+
+private struct QuickActionButton: View {
+    let action: QuickAction
+    @State private var isPressed = false
+
+    var body: some View {
+        Button {
+            haptic()
+        } label: {
+            VStack(spacing: 10) {
+                ZStack {
+                    // Glow behind icon
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(action.color.opacity(0.2))
+                        .frame(width: 56, height: 56)
+                        .blur(radius: 4)
+                        .offset(y: 2)
+
+                    // Icon container
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [action.color.opacity(0.15), action.color.opacity(0.08)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(action.color.opacity(0.2), lineWidth: 1)
+                        )
+
+                    Image(systemName: action.icon)
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundStyle(action.gradient)
+                        .shadow(color: action.color.opacity(0.3), radius: 2, y: 1)
+                }
+
+                Text(action.title)
+                    .font(Theme.Font.caption)
+                    .foregroundColor(Theme.primaryText)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(ScaleButtonStyle(scale: 0.92))
     }
 }
 
