@@ -59,6 +59,18 @@
 		A6FF81842ED4F59D008330C9 /* RadialProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */; };
 		A6FF81862ED504CB008330C9 /* MediaPickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81852ED504CB008330C9 /* MediaPickers.swift */; };
 		A6FF81882ED50AB3008330C9 /* UploadMethodSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */; };
+		A6FF818B2ED65723008330C9 /* AllUploadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81892ED65723008330C9 /* AllUploadsView.swift */; };
+		A6FF818C2ED65723008330C9 /* UploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF818A2ED65723008330C9 /* UploadDetailView.swift */; };
+		A6FF819B2ED793BA008330C9 /* PointsHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81972ED793BA008330C9 /* PointsHistoryView.swift */; };
+		A6FF819C2ED793BA008330C9 /* RewardMarketplace.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81942ED793BA008330C9 /* RewardMarketplace.swift */; };
+		A6FF819D2ED793BA008330C9 /* ArcadeHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81912ED793BA008330C9 /* ArcadeHeroCard.swift */; };
+		A6FF819E2ED793BA008330C9 /* RewardsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF818D2ED793BA008330C9 /* RewardsModels.swift */; };
+		A6FF819F2ED793BA008330C9 /* WalletHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81952ED793BA008330C9 /* WalletHeaderView.swift */; };
+		A6FF81A02ED793BA008330C9 /* RewardsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81982ED793BA008330C9 /* RewardsHubView.swift */; };
+		A6FF81A12ED793BA008330C9 /* RewardCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81932ED793BA008330C9 /* RewardCard.swift */; };
+		A6FF81A22ED793BA008330C9 /* LeaderboardSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81922ED793BA008330C9 /* LeaderboardSection.swift */; };
+		A6FF81A32ED793BA008330C9 /* RewardsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF818F2ED793BA008330C9 /* RewardsViewModel.swift */; };
+		A6FF81A42ED7A000008330C9 /* GiftCardVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81A52ED7A000008330C9 /* GiftCardVisuals.swift */; };
 		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
 		F34AB25163A7004F64C6550E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF1E5E15C4654C0F526462A /* HomeView.swift */; };
 		F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89EC00ED13981D09603CF99 /* ExploreView.swift */; };
@@ -157,6 +169,18 @@
 		A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentedSelector.swift; sourceTree = "<group>"; };
 		A6FF81852ED504CB008330C9 /* MediaPickers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickers.swift; sourceTree = "<group>"; };
 		A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadMethodSelectionView.swift; sourceTree = "<group>"; };
+		A6FF81892ED65723008330C9 /* AllUploadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllUploadsView.swift; sourceTree = "<group>"; };
+		A6FF818A2ED65723008330C9 /* UploadDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadDetailView.swift; sourceTree = "<group>"; };
+		A6FF818D2ED793BA008330C9 /* RewardsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsModels.swift; sourceTree = "<group>"; };
+		A6FF818F2ED793BA008330C9 /* RewardsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsViewModel.swift; sourceTree = "<group>"; };
+		A6FF81912ED793BA008330C9 /* ArcadeHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcadeHeroCard.swift; sourceTree = "<group>"; };
+		A6FF81922ED793BA008330C9 /* LeaderboardSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardSection.swift; sourceTree = "<group>"; };
+		A6FF81932ED793BA008330C9 /* RewardCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardCard.swift; sourceTree = "<group>"; };
+		A6FF81942ED793BA008330C9 /* RewardMarketplace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardMarketplace.swift; sourceTree = "<group>"; };
+		A6FF81952ED793BA008330C9 /* WalletHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletHeaderView.swift; sourceTree = "<group>"; };
+		A6FF81972ED793BA008330C9 /* PointsHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsHistoryView.swift; sourceTree = "<group>"; };
+		A6FF81982ED793BA008330C9 /* RewardsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsHubView.swift; sourceTree = "<group>"; };
+		A6FF81A52ED7A000008330C9 /* GiftCardVisuals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftCardVisuals.swift; sourceTree = "<group>"; };
 		ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		C89EC00ED13981D09603CF99 /* ExploreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
 		EDF1E5E15C4654C0F526462A /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -227,6 +251,7 @@
 		2B2B2B2B2B2B2B2B2B2B2B2B /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				A6FF819A2ED793BA008330C9 /* Rewards */,
 				A6FF816D2ED4BB24008330C9 /* Upload */,
 				A6FF81472ECEB5A2008330C9 /* Network */,
 				A6FF81422ECEB50E008330C9 /* Services */,
@@ -463,6 +488,8 @@
 		A6FF816C2ED4BB24008330C9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A6FF81892ED65723008330C9 /* AllUploadsView.swift */,
+				A6FF818A2ED65723008330C9 /* UploadDetailView.swift */,
 				A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */,
 				A6FF815F2ED4BB24008330C9 /* Components */,
 				A6FF81652ED4BB24008330C9 /* QuickAdd */,
@@ -479,6 +506,55 @@
 				A6FF816C2ED4BB24008330C9 /* Views */,
 			);
 			path = Upload;
+			sourceTree = "<group>";
+		};
+		A6FF818E2ED793BA008330C9 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF818D2ED793BA008330C9 /* RewardsModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A6FF81902ED793BA008330C9 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF818F2ED793BA008330C9 /* RewardsViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A6FF81962ED793BA008330C9 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF81912ED793BA008330C9 /* ArcadeHeroCard.swift */,
+				A6FF81A52ED7A000008330C9 /* GiftCardVisuals.swift */,
+				A6FF81922ED793BA008330C9 /* LeaderboardSection.swift */,
+				A6FF81932ED793BA008330C9 /* RewardCard.swift */,
+				A6FF81942ED793BA008330C9 /* RewardMarketplace.swift */,
+				A6FF81952ED793BA008330C9 /* WalletHeaderView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		A6FF81992ED793BA008330C9 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF81962ED793BA008330C9 /* Components */,
+				A6FF81972ED793BA008330C9 /* PointsHistoryView.swift */,
+				A6FF81982ED793BA008330C9 /* RewardsHubView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A6FF819A2ED793BA008330C9 /* Rewards */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF818E2ED793BA008330C9 /* Models */,
+				A6FF81902ED793BA008330C9 /* ViewModels */,
+				A6FF81992ED793BA008330C9 /* Views */,
+			);
+			path = Rewards;
 			sourceTree = "<group>";
 		};
 		F9076D572ED19DC10051E1D8 /* Profile */ = {
@@ -704,6 +780,16 @@
 				A6FF81702ED4BB24008330C9 /* ScanUploadViewModel.swift in Sources */,
 				A6FF81712ED4BB24008330C9 /* QuickAddStep2Provider.swift in Sources */,
 				A6FF81722ED4BB24008330C9 /* ScanUploadProgressView.swift in Sources */,
+				A6FF819B2ED793BA008330C9 /* PointsHistoryView.swift in Sources */,
+				A6FF819C2ED793BA008330C9 /* RewardMarketplace.swift in Sources */,
+				A6FF819D2ED793BA008330C9 /* ArcadeHeroCard.swift in Sources */,
+				A6FF819E2ED793BA008330C9 /* RewardsModels.swift in Sources */,
+				A6FF819F2ED793BA008330C9 /* WalletHeaderView.swift in Sources */,
+				A6FF81A02ED793BA008330C9 /* RewardsHubView.swift in Sources */,
+				A6FF81A12ED793BA008330C9 /* RewardCard.swift in Sources */,
+				A6FF81A22ED793BA008330C9 /* LeaderboardSection.swift in Sources */,
+				A6FF81A32ED793BA008330C9 /* RewardsViewModel.swift in Sources */,
+				A6FF81A42ED7A000008330C9 /* GiftCardVisuals.swift in Sources */,
 				A6FF81732ED4BB24008330C9 /* QuickAddStep4Result.swift in Sources */,
 				A6FF81742ED4BB24008330C9 /* UploadViewModel.swift in Sources */,
 				A6FF81752ED4BB24008330C9 /* QuickAddStep3Amount.swift in Sources */,
@@ -741,6 +827,8 @@
 				A6FF81202ECEB3BC008330C9 /* BillsExploreView.swift in Sources */,
 				A6FF81482ECEB5A2008330C9 /* NetworkError.swift in Sources */,
 				A6FF81212ECEB3BC008330C9 /* ExploreTabView.swift in Sources */,
+				A6FF818B2ED65723008330C9 /* AllUploadsView.swift in Sources */,
+				A6FF818C2ED65723008330C9 /* UploadDetailView.swift in Sources */,
 				A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */,
 				F9076D582ED19DC10051E1D8 /* BillHealthSnapshot.swift in Sources */,
 				F9076D672ED19DEE0051E1D8 /* ProfileSectionCard.swift in Sources */,

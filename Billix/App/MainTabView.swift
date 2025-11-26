@@ -15,7 +15,7 @@ struct MainTabView: View {
                 case 2:
                     UploadHubView()
                 case 3:
-                    HealthView()
+                    RewardsHubView()
                 case 4:
                     ProfileView()
                 default:
@@ -41,7 +41,7 @@ struct CustomBottomNavBar: View {
         ("house.fill", "Home", Color.billixLoginTeal),
         ("chart.bar.xaxis", "Explore", Color.blue),
         ("arrow.up.doc.fill", "Upload", Color.billixMoneyGreen),
-        ("heart.text.square.fill", "Health", Color.red),
+        ("star.circle.fill", "Rewards", Color.billixPrizeOrange),
         ("person.crop.circle.fill", "Profile", Color.billixDarkGreen)
     ]
 

@@ -43,6 +43,14 @@ extension Color {
     static let billixFaqGreen = Color(hex: "#429459")        // FAQ green
     static let billixGraphGray = Color(hex: "#2a2c3e")       // Graph text
 
+    // Rewards/Arcade Colors
+    static let billixArcadeGold = Color(hex: "#FFD700")     // Bright gold for wins/points
+    static let billixPrizeOrange = Color(hex: "#FF8C00")    // Prize/reward accent
+    static let billixLeaderGold = Color(hex: "#FFD700")     // 1st place
+    static let billixLeaderSilver = Color(hex: "#C0C0C0")   // 2nd place
+    static let billixLeaderBronze = Color(hex: "#CD7F32")   // 3rd place
+    static let billixGamePurple = Color(hex: "#8B5CF6")     // Game/arcade accent
+
     // Login Screen Colors
     static let billixLoginGreen = Color(hex: "#b8e6b8")      // Login background - richer green
     static let billixLoginTeal = Color(hex: "#00796b")       // Login primary color
