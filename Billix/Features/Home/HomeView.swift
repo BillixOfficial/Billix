@@ -11,62 +11,137 @@ import SwiftUI
 // MARK: - Theme
 
 private enum Theme {
-    // Colors - Softer, calmer palette
-    static let background = Color(hex: "#F7F9F8")
+    // MARK: - Colors
+    static let background = Color(hex: "#F5F7F6")
     static let cardBackground = Color.white
-    static let primaryText = Color(hex: "#2D3B35")
-    static let secondaryText = Color(hex: "#8B9A94")
-    static let accent = Color(hex: "#5B8A6B")
-    static let accentLight = Color(hex: "#5B8A6B").opacity(0.08)
+    static let primaryText = Color(hex: "#1A2421")
+    static let secondaryText = Color(hex: "#6B7B75")
+    static let tertiaryText = Color(hex: "#9BA8A2")
+    static let accent = Color(hex: "#4A7C59")
+    static let accentLight = Color(hex: "#4A7C59").opacity(0.08)
 
-    // Semantic colors - Muted versions
-    static let success = Color(hex: "#4CAF7A")
-    static let warning = Color(hex: "#E8A54B")
-    static let danger = Color(hex: "#E07A6B")
-    static let info = Color(hex: "#5BA4D4")
-    static let purple = Color(hex: "#9B7EB8")
+    // Semantic colors
+    static let success = Color(hex: "#3D9A6E")
+    static let warning = Color(hex: "#E09D3D")
+    static let danger = Color(hex: "#D66B5B")
+    static let info = Color(hex: "#4A9BD9")
+    static let purple = Color(hex: "#8B6CAF")
 
-    // Spacing - More breathing room
+    // MARK: - Typography Scale
+    enum Font {
+        static let largeTitle = SwiftUI.Font.system(size: 28, weight: .bold, design: .rounded)
+        static let title = SwiftUI.Font.system(size: 22, weight: .bold, design: .rounded)
+        static let headline = SwiftUI.Font.system(size: 17, weight: .semibold)
+        static let body = SwiftUI.Font.system(size: 15, weight: .regular)
+        static let callout = SwiftUI.Font.system(size: 14, weight: .medium)
+        static let caption = SwiftUI.Font.system(size: 12, weight: .medium)
+        static let micro = SwiftUI.Font.system(size: 11, weight: .medium)
+    }
+
+    // MARK: - Spacing
     static let horizontalPadding: CGFloat = 20
     static let cardPadding: CGFloat = 16
-    static let sectionSpacing: CGFloat = 24
-    static let cardSpacing: CGFloat = 16
-    static let cornerRadius: CGFloat = 16
+    static let sectionSpacing: CGFloat = 28
+    static let cardSpacing: CGFloat = 14
+    static let cornerRadius: CGFloat = 18
+    static let smallRadius: CGFloat = 12
 
-    // Shadow - Subtler
-    static let shadowColor = Color.black.opacity(0.03)
-    static let shadowRadius: CGFloat = 8
+    // MARK: - Shadows (Layered for depth)
+    static let shadowColor = Color.black.opacity(0.04)
+    static let shadowRadius: CGFloat = 10
+    static let shadowY: CGFloat = 4
+
+    // Secondary shadow for layered effect
+    static let shadowColorLight = Color.black.opacity(0.02)
+    static let shadowRadiusLight: CGFloat = 20
+
+    // MARK: - Animation
+    enum Animation {
+        static let spring = SwiftUI.Animation.spring(response: 0.35, dampingFraction: 0.7)
+        static let quick = SwiftUI.Animation.easeOut(duration: 0.2)
+        static let smooth = SwiftUI.Animation.easeInOut(duration: 0.3)
+    }
 }
 
 // MARK: - Card Modifier
 
 private struct CardStyle: ViewModifier {
     var hasShadow: Bool = true
+    var padding: CGFloat = Theme.cardPadding
 
     func body(content: Content) -> some View {
         content
-            .padding(Theme.cardPadding)
-            .background(Theme.cardBackground)
-            .cornerRadius(Theme.cornerRadius)
-            .shadow(
-                color: hasShadow ? Theme.shadowColor : .clear,
-                radius: hasShadow ? Theme.shadowRadius : 0,
-                x: 0, y: 2
+            .padding(padding)
+            .background(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                    .fill(Theme.cardBackground)
+                    .shadow(
+                        color: hasShadow ? Theme.shadowColorLight : .clear,
+                        radius: hasShadow ? Theme.shadowRadiusLight : 0,
+                        x: 0, y: 8
+                    )
+                    .shadow(
+                        color: hasShadow ? Theme.shadowColor : .clear,
+                        radius: hasShadow ? Theme.shadowRadius : 0,
+                        x: 0, y: Theme.shadowY
+                    )
+            )
+    }
+}
+
+// MARK: - Animated Card Modifier
+
+private struct AnimatedCardStyle: ViewModifier {
+    @State private var isVisible = false
+    let delay: Double
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(isVisible ? 1 : 0)
+            .offset(y: isVisible ? 0 : 12)
+            .onAppear {
+                withAnimation(Theme.Animation.spring.delay(delay)) {
+                    isVisible = true
+                }
+            }
+    }
+}
+
+// MARK: - Subtle Glow Modifier
+
+private struct SubtleGlow: ViewModifier {
+    let color: Color
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                    .fill(color.opacity(0.08))
+                    .blur(radius: 8)
+                    .offset(y: 4)
             )
     }
 }
 
 private extension View {
-    func cardStyle(shadow: Bool = true) -> some View {
-        modifier(CardStyle(hasShadow: shadow))
+    func cardStyle(shadow: Bool = true, padding: CGFloat = Theme.cardPadding) -> some View {
+        modifier(CardStyle(hasShadow: shadow, padding: padding))
+    }
+
+    func animatedCard(delay: Double = 0) -> some View {
+        modifier(AnimatedCardStyle(delay: delay))
+    }
+
+    func subtleGlow(_ color: Color) -> some View {
+        modifier(SubtleGlow(color: color))
     }
 
     func sectionHeader() -> some View {
         self
-            .font(.system(size: 15, weight: .semibold))
+            .font(Theme.Font.caption)
             .foregroundColor(Theme.secondaryText)
             .textCase(.uppercase)
-            .tracking(0.5)
+            .tracking(0.8)
     }
 }
 
@@ -91,7 +166,17 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            Theme.background.ignoresSafeArea()
+            // Subtle gradient background
+            LinearGradient(
+                colors: [
+                    Theme.background,
+                    Theme.background.opacity(0.95),
+                    Color(hex: "#EEF2F0")
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: Theme.sectionSpacing) {
@@ -105,47 +190,70 @@ struct HomeView: View {
                             streak: streakDays,
                             notificationCount: notificationCount
                         )
+                        .animatedCard(delay: 0)
+
                         WeatherTipZone()
+                            .animatedCard(delay: 0.05)
+
                         BillSnapshotZone()
+                            .animatedCard(delay: 0.1)
                     }
 
                     // SECTION 2: Actions
                     VStack(spacing: Theme.cardSpacing) {
                         SearchBarZone(searchText: $searchText)
+                            .animatedCard(delay: 0.15)
+
                         QuickActionsZone()
+                            .animatedCard(delay: 0.2)
+
                         SavingsGoalZone(current: currentSavings, goal: savingsGoal)
+                            .animatedCard(delay: 0.25)
                     }
 
                     // SECTION 3: Engagement
                     VStack(spacing: Theme.cardSpacing) {
                         MicroTasksZone()
+                            .animatedCard(delay: 0.3)
+
                         AchievementBadgesZone()
+                            .animatedCard(delay: 0.35)
                     }
 
                     // SECTION 4: Market Data
                     VStack(spacing: Theme.cardSpacing) {
                         BillTickerZone(zipCode: userZip)
+                            .animatedCard(delay: 0.4)
+
                         FlashDropZone()
+                            .animatedCard(delay: 0.45)
                     }
 
                     // SECTION 5: Discovery
                     VStack(spacing: Theme.cardSpacing) {
                         ClustersTeaser(zipCode: userZip)
+                            .animatedCard(delay: 0.5)
+
                         DailyBillBrief()
+                            .animatedCard(delay: 0.55)
                     }
 
                     // SECTION 6: Community
                     CommunityPollZone()
+                        .animatedCard(delay: 0.6)
 
                     // SECTION 7: Growth
                     VStack(spacing: Theme.cardSpacing) {
                         LearnToLowerZone()
+                            .animatedCard(delay: 0.65)
+
                         InviteEarnBanner()
+                            .animatedCard(delay: 0.7)
                     }
 
                     Spacer().frame(height: 100)
                 }
-                .padding(.top, 12)
+                .padding(.top, 16)
             }
             .refreshable {
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -183,26 +291,31 @@ private struct HeaderZone: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
+        VStack(spacing: 14) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("\(greeting), \(userName)")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .font(Theme.Font.title)
                         .foregroundColor(Theme.primaryText)
 
                     Button {
                         haptic()
                     } label: {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 5) {
                             Image(systemName: "location.fill")
-                                .font(.system(size: 11))
+                                .font(.system(size: 10, weight: .medium))
                             Text("\(location) \(zipCode)")
-                                .font(.system(size: 13, weight: .medium))
+                                .font(Theme.Font.caption)
                             Image(systemName: "chevron.down")
-                                .font(.system(size: 10, weight: .semibold))
+                                .font(.system(size: 9, weight: .bold))
                         }
                         .foregroundColor(Theme.accent)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Theme.accentLight)
+                        .clipShape(Capsule())
                     }
+                    .buttonStyle(ScaleButtonStyle(scale: 0.96))
                 }
 
                 Spacer()
@@ -211,24 +324,29 @@ private struct HeaderZone: View {
                     ZStack {
                         Circle()
                             .fill(Theme.cardBackground)
-                            .frame(width: 40, height: 40)
-                            .shadow(color: Theme.shadowColor, radius: 4)
+                            .frame(width: 44, height: 44)
+                            .shadow(color: Theme.shadowColor, radius: 6, y: 2)
+                            .shadow(color: Theme.shadowColorLight, radius: 12, y: 4)
 
                         Image(systemName: "bell.fill")
-                            .font(.system(size: 16))
+                            .font(.system(size: 17, weight: .medium))
                             .foregroundColor(Theme.accent)
 
                         if notificationCount > 0 {
                             Text("\(notificationCount)")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.white)
-                                .frame(width: 16, height: 16)
-                                .background(Theme.danger)
-                                .clipShape(Circle())
-                                .offset(x: 10, y: -10)
+                                .frame(width: 18, height: 18)
+                                .background(
+                                    Circle()
+                                        .fill(Theme.danger)
+                                        .shadow(color: Theme.danger.opacity(0.4), radius: 4, y: 2)
+                                )
+                                .offset(x: 12, y: -12)
                         }
                     }
                 }
+                .buttonStyle(ScaleButtonStyle(scale: 0.92))
             }
 
             HStack(spacing: 10) {
@@ -238,30 +356,36 @@ private struct HeaderZone: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(Theme.accent)
                     Text("\(score)")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.primaryText)
                     Text("· \(scoreLabel)")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Theme.Font.caption)
                         .foregroundColor(Theme.secondaryText)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Theme.cardBackground)
-                .cornerRadius(20)
-                .shadow(color: Theme.shadowColor, radius: 4)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(Theme.cardBackground)
+                        .shadow(color: Theme.shadowColor, radius: 6, y: 2)
+                )
 
-                // Streak chip
-                HStack(spacing: 4) {
+                // Streak chip with subtle animation
+                HStack(spacing: 5) {
                     Image(systemName: "flame.fill")
-                        .font(.system(size: 14))
+                        .font(.system(size: 13))
+                        .symbolRenderingMode(.multicolor)
                     Text("\(streak) Day Streak")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(Theme.Font.caption)
+                        .fontWeight(.semibold)
                 }
                 .foregroundColor(Theme.warning)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color(hex: "#FEF3E2"))
-                .cornerRadius(20)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(Theme.warning.opacity(0.12))
+                )
 
                 Spacer()
             }
@@ -274,35 +398,46 @@ private struct HeaderZone: View {
 
 private struct SearchBarZone: View {
     @Binding var searchText: String
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         HStack(spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 16))
-                    .foregroundColor(Theme.secondaryText)
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(isFocused ? Theme.accent : Theme.tertiaryText)
 
-                TextField("Search bills, providers, tips...", text: $searchText)
-                    .font(.system(size: 15))
-                    .foregroundColor(Theme.primaryText)
+            TextField("Search bills, providers, tips...", text: $searchText)
+                .font(Theme.Font.body)
+                .foregroundColor(Theme.primaryText)
+                .focused($isFocused)
 
-                if !searchText.isEmpty {
-                    Button {
+            if !searchText.isEmpty {
+                Button {
+                    withAnimation(Theme.Animation.quick) {
                         searchText = ""
-                        haptic()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(Theme.secondaryText)
                     }
+                    haptic()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(Theme.tertiaryText)
                 }
+                .transition(.scale.combined(with: .opacity))
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(Theme.cardBackground)
-            .cornerRadius(12)
-            .shadow(color: Theme.shadowColor, radius: 4, x: 0, y: 2)
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.smallRadius, style: .continuous)
+                .fill(Theme.cardBackground)
+                .shadow(color: Theme.shadowColorLight, radius: 16, y: 6)
+                .shadow(color: Theme.shadowColor, radius: 6, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.smallRadius, style: .continuous)
+                .stroke(isFocused ? Theme.accent.opacity(0.3) : Color.clear, lineWidth: 1.5)
+        )
+        .animation(Theme.Animation.quick, value: isFocused)
         .padding(.horizontal, Theme.horizontalPadding)
     }
 }
@@ -325,24 +460,27 @@ private struct QuickActionsZone: View {
     ]
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             ForEach(actions) { action in
                 Button { haptic() } label: {
-                    VStack(spacing: 8) {
-                        Image(systemName: action.icon)
-                            .font(.system(size: 24))
-                            .foregroundColor(action.color)
-                            .frame(width: 50, height: 50)
-                            .background(action.color.opacity(0.12))
-                            .cornerRadius(14)
+                    VStack(spacing: 10) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(action.color.opacity(0.12))
+                                .frame(width: 52, height: 52)
+
+                            Image(systemName: action.icon)
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundStyle(action.color.gradient)
+                        }
 
                         Text(action.title)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Theme.Font.caption)
                             .foregroundColor(Theme.primaryText)
                     }
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(ScaleButtonStyle())
+                .buttonStyle(ScaleButtonStyle(scale: 0.94))
             }
         }
         .padding(.horizontal, Theme.horizontalPadding)
@@ -354,6 +492,7 @@ private struct QuickActionsZone: View {
 private struct SavingsGoalZone: View {
     let current: Double
     let goal: Double
+    @State private var animatedProgress: Double = 0
 
     private var progress: Double {
         min(current / goal, 1.0)
@@ -364,38 +503,40 @@ private struct SavingsGoalZone: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack {
                 HStack(spacing: 8) {
                     Image(systemName: "target")
-                        .font(.system(size: 16))
-                        .foregroundColor(Theme.success)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Theme.success.gradient)
                     Text("Monthly Savings Goal").sectionHeader()
                 }
                 Spacer()
                 Text("\(percentComplete)%")
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
                     .foregroundColor(Theme.success)
+                    .contentTransition(.numericText())
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("$\(Int(current))")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.primaryText)
+                        .contentTransition(.numericText())
                     Text("of $\(Int(goal))")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Theme.Font.callout)
                         .foregroundColor(Theme.secondaryText)
                     Spacer()
                 }
 
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Theme.success.opacity(0.15))
-                            .frame(height: 12)
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Theme.success.opacity(0.12))
+                            .frame(height: 10)
 
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .fill(
                                 LinearGradient(
                                     colors: [Theme.success, Theme.accent],
@@ -403,21 +544,24 @@ private struct SavingsGoalZone: View {
                                     endPoint: .trailing
                                 )
                             )
-                            .frame(width: geo.size.width * progress, height: 12)
+                            .frame(width: geo.size.width * animatedProgress, height: 10)
+                            .shadow(color: Theme.success.opacity(0.3), radius: 4, y: 2)
                     }
                 }
-                .frame(height: 12)
+                .frame(height: 10)
 
                 Text("$\(Int(goal - current)) more to reach your goal!")
-                    .font(.system(size: 13))
-                    .foregroundColor(Theme.secondaryText)
+                    .font(Theme.Font.caption)
+                    .foregroundColor(Theme.tertiaryText)
             }
-            .padding(Theme.cardPadding)
-            .background(Theme.cardBackground)
-            .cornerRadius(Theme.cornerRadius)
-            .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
+            .cardStyle()
         }
         .padding(.horizontal, Theme.horizontalPadding)
+        .onAppear {
+            withAnimation(Theme.Animation.spring.delay(0.3)) {
+                animatedProgress = progress
+            }
+        }
     }
 }
 
@@ -713,6 +857,7 @@ private struct MicroTaskCard: View {
 
 private struct FlashDropZone: View {
     @State private var timeRemaining = 11565
+    @State private var isPulsing = false
 
     private var formattedTime: String {
         let h = timeRemaining / 3600
@@ -723,67 +868,91 @@ private struct FlashDropZone: View {
 
     var body: some View {
         Button { haptic(.medium) } label: {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
                 HStack {
                     HStack(spacing: 6) {
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 14))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.yellow)
+                            .shadow(color: .yellow.opacity(0.5), radius: 4)
                         Text("FLASH DROP")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundColor(.white)
-                            .tracking(1)
+                            .tracking(1.2)
                     }
 
                     Spacer()
 
-                    HStack(spacing: 4) {
+                    HStack(spacing: 5) {
                         Image(systemName: "clock.fill")
-                            .font(.system(size: 11))
+                            .font(.system(size: 10, weight: .medium))
                         Text(formattedTime)
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                            .contentTransition(.numericText())
                     }
-                    .foregroundColor(.white.opacity(0.9))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color.white.opacity(0.2))
-                    .cornerRadius(8)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(.white.opacity(0.2))
+                            .overlay(
+                                Capsule()
+                                    .stroke(.white.opacity(0.3), lineWidth: 1)
+                            )
+                    )
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text("AT&T Fiber")
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     Text("Switch & Save ~$18/mo + 500 Bonus Points")
-                        .font(.system(size: 14))
+                        .font(Theme.Font.callout)
                         .foregroundColor(.white.opacity(0.9))
                 }
 
                 HStack {
                     Text("Claim Offer")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(Theme.Font.callout)
+                        .fontWeight(.semibold)
                         .foregroundColor(Theme.accent)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Color.white)
-                        .cornerRadius(10)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 11)
+                        .background(
+                            Capsule()
+                                .fill(.white)
+                                .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                        )
 
                     Spacer()
 
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.7))
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white.opacity(0.6))
                 }
             }
-            .padding(18)
+            .padding(20)
             .background(
-                LinearGradient(
-                    colors: [Theme.accent, Color(hex: "#3D6B4F")],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+                ZStack {
+                    // Base gradient
+                    LinearGradient(
+                        colors: [Theme.accent, Color(hex: "#2D5A42")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+
+                    // Subtle pattern overlay
+                    LinearGradient(
+                        colors: [.white.opacity(0.08), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
             )
-            .cornerRadius(20)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius + 2, style: .continuous))
+            .shadow(color: Theme.accent.opacity(0.25), radius: 12, y: 6)
+            .shadow(color: Theme.shadowColor, radius: 6, y: 2)
         }
         .buttonStyle(ScaleButtonStyle(scale: 0.98))
         .padding(.horizontal, Theme.horizontalPadding)
@@ -1109,38 +1278,46 @@ private struct PlaybookCard: View {
 private struct InviteEarnBanner: View {
     var body: some View {
         Button { haptic(.medium) } label: {
-            HStack(spacing: 14) {
-                Image(systemName: "gift.fill")
-                    .font(.system(size: 28))
-                    .foregroundColor(Theme.purple)
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(Theme.purple.opacity(0.15))
+                        .frame(width: 48, height: 48)
+
+                    Image(systemName: "gift.fill")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(Theme.purple.gradient)
+                }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Give $5, Get $5")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(Theme.Font.headline)
                         .foregroundColor(Theme.primaryText)
                     Text("Invite friends to verify their bills")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.caption)
                         .foregroundColor(Theme.secondaryText)
                 }
 
                 Spacer()
 
-                Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(Theme.purple)
+                Image(systemName: "arrow.up.right.circle.fill")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(Theme.purple.gradient)
             }
-            .padding(Theme.cardPadding)
+            .padding(18)
             .background(
-                LinearGradient(
-                    colors: [Theme.purple.opacity(0.1), Theme.purple.opacity(0.15)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(16)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Theme.purple.opacity(0.3), lineWidth: 1)
+                RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Theme.purple.opacity(0.08), Theme.purple.opacity(0.12)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.cornerRadius, style: .continuous)
+                            .stroke(Theme.purple.opacity(0.2), lineWidth: 1)
+                    )
             )
         }
         .buttonStyle(ScaleButtonStyle(scale: 0.98))
