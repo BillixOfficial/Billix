@@ -13,7 +13,7 @@ struct MainTabView: View {
                 case 1:
                     ExploreView()
                 case 2:
-                    UploadView()
+                    UploadHubView()
                 case 3:
                     HealthView()
                 case 4:
