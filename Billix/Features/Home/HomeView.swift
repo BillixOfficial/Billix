@@ -95,7 +95,7 @@ struct HomeView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: Theme.sectionSpacing) {
-                    // Top section - Header & Search
+                    // SECTION 1: Context & Status
                     VStack(spacing: Theme.cardSpacing) {
                         HeaderZone(
                             userName: userName,
@@ -105,43 +105,39 @@ struct HomeView: View {
                             streak: streakDays,
                             notificationCount: notificationCount
                         )
-                        SearchBarZone(searchText: $searchText)
+                        WeatherTipZone()
+                        BillSnapshotZone()
                     }
 
-                    // Actions & Progress
+                    // SECTION 2: Actions
                     VStack(spacing: Theme.cardSpacing) {
+                        SearchBarZone(searchText: $searchText)
                         QuickActionsZone()
                         SavingsGoalZone(current: currentSavings, goal: savingsGoal)
                     }
 
-                    // Gamification
-                    AchievementBadgesZone()
-
-                    // Market Data
-                    BillTickerZone(zipCode: userZip)
-
-                    // Engagement
+                    // SECTION 3: Engagement
                     VStack(spacing: Theme.cardSpacing) {
                         MicroTasksZone()
+                        AchievementBadgesZone()
+                    }
+
+                    // SECTION 4: Market Data
+                    VStack(spacing: Theme.cardSpacing) {
+                        BillTickerZone(zipCode: userZip)
                         FlashDropZone()
                     }
 
-                    // Tips & Insights
+                    // SECTION 5: Discovery
                     VStack(spacing: Theme.cardSpacing) {
-                        WeatherTipZone()
+                        ClustersTeaser(zipCode: userZip)
                         DailyBillBrief()
                     }
 
-                    // Providers
-                    ClustersTeaser(zipCode: userZip)
-
-                    // Community
+                    // SECTION 6: Community
                     CommunityPollZone()
 
-                    // Bills
-                    BillSnapshotZone()
-
-                    // Education & Growth
+                    // SECTION 7: Growth
                     VStack(spacing: Theme.cardSpacing) {
                         LearnToLowerZone()
                         InviteEarnBanner()
@@ -323,7 +319,7 @@ private struct QuickAction: Identifiable {
 private struct QuickActionsZone: View {
     private let actions = [
         QuickAction(icon: "plus.circle.fill", title: "Add Bill", color: Theme.accent),
-        QuickAction(icon: "doc.text.viewfinder", title: "Scan", color: Theme.info),
+        QuickAction(icon: "square.and.arrow.up", title: "Upload", color: Theme.info),
         QuickAction(icon: "arrow.left.arrow.right", title: "Compare", color: Theme.purple),
         QuickAction(icon: "chart.pie.fill", title: "Budget", color: Theme.warning),
     ]
