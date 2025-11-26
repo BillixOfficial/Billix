@@ -83,8 +83,8 @@ struct RootView: View {
 struct SplashView: View {
     var body: some View {
         ZStack {
-            // Golden amber background to match logo
-            Color(hex: "#E8B54D")
+            // Cream background to match logo
+            Color(hex: "#EFDCBB")
                 .ignoresSafeArea()
 
             VStack(spacing: 32) {
@@ -95,7 +95,7 @@ struct SplashView: View {
                     .frame(width: 280, height: 280)
 
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
+                    .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#2D5A5E")))
                     .scaleEffect(1.3)
             }
         }
