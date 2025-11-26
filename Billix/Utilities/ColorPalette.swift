@@ -47,6 +47,10 @@ extension Color {
     static let billixLoginGreen = Color(hex: "#b8e6b8")      // Login background - richer green
     static let billixLoginTeal = Color(hex: "#00796b")       // Login primary color
 
+    // Profile Screen Colors (from Figma)
+    static let billixProfileBlue = Color(hex: "#E2F4FF")     // Profile page light blue background
+    static let billixProfileDarkBlue = Color(hex: "#1E3A5F") // Profile header text dark blue
+
     // Legacy colors for backward compatibility
     static let billixMutedPurple = billixPurple
     static let billixYellowGold = billixGoldenAmber

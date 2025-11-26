@@ -11,7 +11,6 @@
 		2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */; };
 		56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C58A5E4A878AC7816EB3122 /* HealthView.swift */; };
 		997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81513DE947C6002A28D674AD /* AuthViewModel.swift */; };
-		A64F7F512ECBB46B005576C5 /* FileValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4F2ECBB46B005576C5 /* FileValidator.swift */; };
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */; };
 		A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */; };
@@ -810,7 +809,6 @@
 				24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */,
 				F9076D4C2ED19DA20051E1D8 /* AuthService.swift in Sources */,
 				F9076DBE2ED50D430051E1D8 /* SupabaseService.swift in Sources */,
-				A6FF810C2ECBB980008330C9 /* AnalysisResultsView.swift in Sources */,
 				A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */,
 				2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */,
 				997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */,
