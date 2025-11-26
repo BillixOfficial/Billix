@@ -11,30 +11,31 @@ import SwiftUI
 // MARK: - Theme
 
 private enum Theme {
-    // Colors
-    static let background = Color(hex: "#EDF3EF")
+    // Colors - Softer, calmer palette
+    static let background = Color(hex: "#F7F9F8")
     static let cardBackground = Color.white
-    static let primaryText = Color(hex: "#1A2F23")
-    static let secondaryText = Color(hex: "#6B7280")
+    static let primaryText = Color(hex: "#2D3B35")
+    static let secondaryText = Color(hex: "#8B9A94")
     static let accent = Color(hex: "#5B8A6B")
-    static let accentLight = Color(hex: "#5B8A6B").opacity(0.12)
+    static let accentLight = Color(hex: "#5B8A6B").opacity(0.08)
 
-    // Semantic colors
-    static let success = Color(hex: "#27AE60")
-    static let warning = Color(hex: "#E67E22")
-    static let danger = Color(hex: "#E74C3C")
-    static let info = Color(hex: "#3498DB")
-    static let purple = Color(hex: "#9B59B6")
+    // Semantic colors - Muted versions
+    static let success = Color(hex: "#4CAF7A")
+    static let warning = Color(hex: "#E8A54B")
+    static let danger = Color(hex: "#E07A6B")
+    static let info = Color(hex: "#5BA4D4")
+    static let purple = Color(hex: "#9B7EB8")
 
-    // Spacing
+    // Spacing - More breathing room
     static let horizontalPadding: CGFloat = 20
     static let cardPadding: CGFloat = 16
-    static let cardSpacing: CGFloat = 12
-    static let cornerRadius: CGFloat = 14
+    static let sectionSpacing: CGFloat = 24
+    static let cardSpacing: CGFloat = 16
+    static let cornerRadius: CGFloat = 16
 
-    // Shadow
-    static let shadowColor = Color.black.opacity(0.04)
-    static let shadowRadius: CGFloat = 6
+    // Shadow - Subtler
+    static let shadowColor = Color.black.opacity(0.03)
+    static let shadowRadius: CGFloat = 8
 }
 
 // MARK: - Card Modifier
@@ -62,8 +63,10 @@ private extension View {
 
     func sectionHeader() -> some View {
         self
-            .font(.system(size: 17, weight: .semibold, design: .rounded))
-            .foregroundColor(Theme.primaryText)
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundColor(Theme.secondaryText)
+            .textCase(.uppercase)
+            .tracking(0.5)
     }
 }
 
@@ -91,32 +94,62 @@ struct HomeView: View {
             Theme.background.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: Theme.cardSpacing) {
-                    HeaderZone(
-                        userName: userName,
-                        location: userCity,
-                        zipCode: userZip,
-                        score: billixScore,
-                        streak: streakDays,
-                        notificationCount: notificationCount
-                    )
-                    SearchBarZone(searchText: $searchText)
-                    QuickActionsZone()
-                    SavingsGoalZone(current: currentSavings, goal: savingsGoal)
+                VStack(spacing: Theme.sectionSpacing) {
+                    // Top section - Header & Search
+                    VStack(spacing: Theme.cardSpacing) {
+                        HeaderZone(
+                            userName: userName,
+                            location: userCity,
+                            zipCode: userZip,
+                            score: billixScore,
+                            streak: streakDays,
+                            notificationCount: notificationCount
+                        )
+                        SearchBarZone(searchText: $searchText)
+                    }
+
+                    // Actions & Progress
+                    VStack(spacing: Theme.cardSpacing) {
+                        QuickActionsZone()
+                        SavingsGoalZone(current: currentSavings, goal: savingsGoal)
+                    }
+
+                    // Gamification
                     AchievementBadgesZone()
+
+                    // Market Data
                     BillTickerZone(zipCode: userZip)
-                    MicroTasksZone()
-                    FlashDropZone()
-                    WeatherTipZone()
+
+                    // Engagement
+                    VStack(spacing: Theme.cardSpacing) {
+                        MicroTasksZone()
+                        FlashDropZone()
+                    }
+
+                    // Tips & Insights
+                    VStack(spacing: Theme.cardSpacing) {
+                        WeatherTipZone()
+                        DailyBillBrief()
+                    }
+
+                    // Providers
                     ClustersTeaser(zipCode: userZip)
-                    DailyBillBrief()
+
+                    // Community
                     CommunityPollZone()
+
+                    // Bills
                     BillSnapshotZone()
-                    LearnToLowerZone()
-                    InviteEarnBanner()
+
+                    // Education & Growth
+                    VStack(spacing: Theme.cardSpacing) {
+                        LearnToLowerZone()
+                        InviteEarnBanner()
+                    }
+
                     Spacer().frame(height: 100)
                 }
-                .padding(.top, 8)
+                .padding(.top, 12)
             }
             .refreshable {
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
