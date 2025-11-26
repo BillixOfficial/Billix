@@ -200,19 +200,6 @@ extension View {
     }
 }
 
-// MARK: - Button Styles
-
-/// A button style that scales down when pressed with spring animation
-struct ScaleButtonStyle: ButtonStyle {
-    var scale: CGFloat = 0.95
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? scale : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
-    }
-}
-
 // MARK: - Custom Shapes
 
 struct CoinShape: Shape {
