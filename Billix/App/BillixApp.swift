@@ -83,26 +83,20 @@ struct RootView: View {
 struct SplashView: View {
     var body: some View {
         ZStack {
-            // Cream/beige background to match logo
-            Color(hex: "#F5F0E6")
+            // Golden amber background to match logo
+            Color(hex: "#E8B54D")
                 .ignoresSafeArea()
 
-            VStack(spacing: 24) {
-                // Billix Logo
+            VStack(spacing: 32) {
+                // Billix Logo - larger size
                 Image("billix_logo")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 180, height: 180)
-                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
-
-                Text("Billix")
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hex: "#2D5A5E"))
+                    .frame(width: 280, height: 280)
 
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#5B8A6B")))
-                    .scaleEffect(1.2)
-                    .padding(.top, 16)
+                    .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
+                    .scaleEffect(1.3)
             }
         }
     }
