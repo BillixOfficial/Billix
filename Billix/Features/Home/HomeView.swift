@@ -81,6 +81,10 @@ struct HomeView: View {
     @State private var userCity = "Royal Oak, MI"
     @State private var billixScore = 742
     @State private var streakDays = 6
+    @State private var searchText = ""
+    @State private var notificationCount = 3
+    @State private var savingsGoal = 500.0
+    @State private var currentSavings = 127.0
 
     var body: some View {
         ZStack {
@@ -93,11 +97,17 @@ struct HomeView: View {
                         location: userCity,
                         zipCode: userZip,
                         score: billixScore,
-                        streak: streakDays
+                        streak: streakDays,
+                        notificationCount: notificationCount
                     )
+                    SearchBarZone(searchText: $searchText)
+                    QuickActionsZone()
+                    SavingsGoalZone(current: currentSavings, goal: savingsGoal)
+                    AchievementBadgesZone()
                     BillTickerZone(zipCode: userZip)
                     MicroTasksZone()
                     FlashDropZone()
+                    WeatherTipZone()
                     ClustersTeaser(zipCode: userZip)
                     DailyBillBrief()
                     CommunityPollZone()
@@ -123,6 +133,7 @@ private struct HeaderZone: View {
     let zipCode: String
     let score: Int
     let streak: Int
+    let notificationCount: Int
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -178,10 +189,15 @@ private struct HeaderZone: View {
                             .font(.system(size: 16))
                             .foregroundColor(Theme.accent)
 
-                        Circle()
-                            .fill(Theme.danger)
-                            .frame(width: 8, height: 8)
-                            .offset(x: 8, y: -8)
+                        if notificationCount > 0 {
+                            Text("\(notificationCount)")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 16, height: 16)
+                                .background(Theme.danger)
+                                .clipShape(Circle())
+                                .offset(x: 10, y: -10)
+                        }
                     }
                 }
             }
@@ -221,6 +237,297 @@ private struct HeaderZone: View {
                 Spacer()
             }
         }
+        .padding(.horizontal, Theme.horizontalPadding)
+    }
+}
+
+// MARK: - Search Bar
+
+private struct SearchBarZone: View {
+    @Binding var searchText: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16))
+                    .foregroundColor(Theme.secondaryText)
+
+                TextField("Search bills, providers, tips...", text: $searchText)
+                    .font(.system(size: 15))
+                    .foregroundColor(Theme.primaryText)
+
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                        haptic()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(Theme.secondaryText)
+                    }
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(Theme.cardBackground)
+            .cornerRadius(12)
+            .shadow(color: Theme.shadowColor, radius: 4, x: 0, y: 2)
+        }
+        .padding(.horizontal, Theme.horizontalPadding)
+    }
+}
+
+// MARK: - Quick Actions
+
+private struct QuickAction: Identifiable {
+    let id = UUID()
+    let icon: String
+    let title: String
+    let color: Color
+}
+
+private struct QuickActionsZone: View {
+    private let actions = [
+        QuickAction(icon: "plus.circle.fill", title: "Add Bill", color: Theme.accent),
+        QuickAction(icon: "doc.text.viewfinder", title: "Scan", color: Theme.info),
+        QuickAction(icon: "arrow.left.arrow.right", title: "Compare", color: Theme.purple),
+        QuickAction(icon: "chart.pie.fill", title: "Budget", color: Theme.warning),
+    ]
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ForEach(actions) { action in
+                Button { haptic() } label: {
+                    VStack(spacing: 8) {
+                        Image(systemName: action.icon)
+                            .font(.system(size: 24))
+                            .foregroundColor(action.color)
+                            .frame(width: 50, height: 50)
+                            .background(action.color.opacity(0.12))
+                            .cornerRadius(14)
+
+                        Text(action.title)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(Theme.primaryText)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(ScaleButtonStyle())
+            }
+        }
+        .padding(.horizontal, Theme.horizontalPadding)
+    }
+}
+
+// MARK: - Savings Goal Progress
+
+private struct SavingsGoalZone: View {
+    let current: Double
+    let goal: Double
+
+    private var progress: Double {
+        min(current / goal, 1.0)
+    }
+
+    private var percentComplete: Int {
+        Int(progress * 100)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "target")
+                        .font(.system(size: 16))
+                        .foregroundColor(Theme.success)
+                    Text("Monthly Savings Goal").sectionHeader()
+                }
+                Spacer()
+                Text("\(percentComplete)%")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(Theme.success)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("$\(Int(current))")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.primaryText)
+                    Text("of $\(Int(goal))")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Theme.secondaryText)
+                    Spacer()
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Theme.success.opacity(0.15))
+                            .frame(height: 12)
+
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Theme.success, Theme.accent],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: geo.size.width * progress, height: 12)
+                    }
+                }
+                .frame(height: 12)
+
+                Text("$\(Int(goal - current)) more to reach your goal!")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.secondaryText)
+            }
+            .padding(Theme.cardPadding)
+            .background(Theme.cardBackground)
+            .cornerRadius(Theme.cornerRadius)
+            .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
+        }
+        .padding(.horizontal, Theme.horizontalPadding)
+    }
+}
+
+// MARK: - Achievement Badges
+
+private struct Achievement: Identifiable {
+    let id = UUID()
+    let icon: String
+    let title: String
+    let color: Color
+    let isUnlocked: Bool
+}
+
+private struct AchievementBadgesZone: View {
+    private let achievements = [
+        Achievement(icon: "star.fill", title: "First Bill", color: Theme.warning, isUnlocked: true),
+        Achievement(icon: "flame.fill", title: "7 Day Streak", color: Theme.danger, isUnlocked: true),
+        Achievement(icon: "dollarsign.circle.fill", title: "$100 Saved", color: Theme.success, isUnlocked: true),
+        Achievement(icon: "person.2.fill", title: "Referral", color: Theme.purple, isUnlocked: false),
+        Achievement(icon: "crown.fill", title: "Bill Master", color: Theme.info, isUnlocked: false),
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "trophy.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(Theme.warning)
+                    Text("Achievements").sectionHeader()
+                }
+                Spacer()
+                Text("\(achievements.filter { $0.isUnlocked }.count)/\(achievements.count)")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Theme.secondaryText)
+            }
+            .padding(.horizontal, Theme.horizontalPadding)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(achievements) { achievement in
+                        AchievementBadge(achievement: achievement)
+                    }
+                }
+                .padding(.horizontal, Theme.horizontalPadding)
+            }
+        }
+    }
+}
+
+private struct AchievementBadge: View {
+    let achievement: Achievement
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .fill(achievement.isUnlocked ? achievement.color.opacity(0.15) : Color.gray.opacity(0.1))
+                    .frame(width: 56, height: 56)
+
+                Image(systemName: achievement.icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(achievement.isUnlocked ? achievement.color : Color.gray.opacity(0.4))
+
+                if !achievement.isUnlocked {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.gray)
+                        .offset(x: 18, y: 18)
+                }
+            }
+
+            Text(achievement.title)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(achievement.isUnlocked ? Theme.primaryText : Theme.secondaryText)
+                .lineLimit(1)
+        }
+        .frame(width: 70)
+    }
+}
+
+// MARK: - Weather-Based Tip
+
+private struct WeatherTipZone: View {
+    var body: some View {
+        Button { haptic() } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.orange, Color.yellow],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 50, height: 50)
+
+                    Image(systemName: "sun.max.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text("92°F Today")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(Theme.primaryText)
+                        Text("· Royal Oak")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.secondaryText)
+                    }
+
+                    Text("Set AC to 78° to save ~$8 this week")
+                        .font(.system(size: 13))
+                        .foregroundColor(Theme.secondaryText)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "#CBD5E0"))
+            }
+            .padding(14)
+            .background(
+                LinearGradient(
+                    colors: [Color.orange.opacity(0.08), Color.yellow.opacity(0.05)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .cornerRadius(Theme.cornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                    .stroke(Color.orange.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .buttonStyle(ScaleButtonStyle())
         .padding(.horizontal, Theme.horizontalPadding)
     }
 }
