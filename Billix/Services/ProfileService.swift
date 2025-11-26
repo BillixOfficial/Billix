@@ -89,7 +89,7 @@ class ProfileService: ProfileServiceProtocol {
 
         let userId = session.user.id
 
-        async let vaultResult: UserVault = supabase.database
+        async let vaultResult: UserVault = supabase
             .from("user_vault")
             .select()
             .eq("id", value: userId.uuidString)
@@ -97,7 +97,7 @@ class ProfileService: ProfileServiceProtocol {
             .execute()
             .value
 
-        async let profileResult: UserProfileDB = supabase.database
+        async let profileResult: UserProfileDB = supabase
             .from("user_profiles")
             .select()
             .eq("id", value: userId.uuidString)
@@ -122,7 +122,7 @@ class ProfileService: ProfileServiceProtocol {
 
         guard !updates.isEmpty else { return }
 
-        try await supabase.database
+        try await supabase
             .from("user_profiles")
             .update(updates)
             .eq("id", value: session.user.id.uuidString)
@@ -134,21 +134,15 @@ class ProfileService: ProfileServiceProtocol {
             throw ProfileError.notAuthenticated
         }
 
-        var updates: [String: Any] = [:]
+        var updates: [String: String] = [:]
         if let zipCode = zipCode { updates["zip_code"] = zipCode }
-        if let marketplaceOptOut = marketplaceOptOut { updates["marketplace_opt_out"] = marketplaceOptOut }
+        if let marketplaceOptOut = marketplaceOptOut { updates["marketplace_opt_out"] = String(marketplaceOptOut) }
 
         guard !updates.isEmpty else { return }
 
-        // Convert to string dict for Supabase
-        var stringUpdates: [String: String] = [:]
-        for (key, value) in updates {
-            stringUpdates[key] = String(describing: value)
-        }
-
-        try await supabase.database
+        try await supabase
             .from("user_vault")
-            .update(stringUpdates)
+            .update(updates)
             .eq("id", value: session.user.id.uuidString)
             .execute()
     }
@@ -204,7 +198,7 @@ class ProfileService: ProfileServiceProtocol {
             .getPublicURL(path: path)
 
         // Update profile with new avatar URL
-        try await supabase.database
+        try await supabase
             .from("user_profiles")
             .update(["avatar_url": publicURL.absoluteString])
             .eq("id", value: userId.uuidString)

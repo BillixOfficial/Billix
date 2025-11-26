@@ -2,7 +2,6 @@ import Foundation
 import Supabase
 
 /// Singleton service providing access to the Supabase client
-@MainActor
 class SupabaseService {
     static let shared = SupabaseService()
 
@@ -13,19 +12,5 @@ class SupabaseService {
             supabaseURL: URL(string: Config.supabaseURL)!,
             supabaseKey: Config.supabaseAnonKey
         )
-    }
-
-    // MARK: - Convenience Accessors
-
-    var database: PostgrestClient {
-        client.database
-    }
-
-    var auth: AuthClient {
-        client.auth
-    }
-
-    var storage: SupabaseStorageClient {
-        client.storage
     }
 }

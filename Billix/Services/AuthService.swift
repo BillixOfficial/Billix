@@ -37,6 +37,16 @@ class AuthService: ObservableObject {
     // MARK: - Initialization
     private init() {
         setupAuthStateListener()
+
+        // Fallback: If no auth event fires within 3 seconds, set isLoading to false
+        // This prevents the app from being stuck on splash screen forever
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            if self.isLoading {
+                print("⚠️ Auth timeout - no session event received")
+                self.isLoading = false
+            }
+        }
     }
 
     deinit {
@@ -91,6 +101,20 @@ class AuthService: ObservableObject {
         let userId = session.user.id
 
         do {
+            // First verify the user actually exists (handles case where user was deleted but session cached)
+            let userExists = await verifyUserExists(userId: userId)
+
+            if !userExists {
+                // User was deleted but session is cached - sign out
+                print("⚠️ User no longer exists, signing out cached session")
+                try? await supabase.auth.signOut()
+                self.currentUser = nil
+                self.isAuthenticated = false
+                self.needsOnboarding = false
+                self.isLoading = false
+                return
+            }
+
             // Check if user has completed onboarding (has vault record)
             let vaultExists = await checkVaultExists(userId: userId)
 
@@ -117,23 +141,35 @@ class AuthService: ObservableObject {
         self.isLoading = false
     }
 
+    private func verifyUserExists(userId: UUID) async -> Bool {
+        do {
+            // Make an API call to verify the session is still valid
+            // If user was deleted, this will fail with auth error
+            _ = try await supabase.auth.user()
+            return true
+        } catch {
+            print("⚠️ User verification failed: \(error)")
+            return false
+        }
+    }
+
     private func checkVaultExists(userId: UUID) async -> Bool {
         do {
-            let _: [UserVault] = try await supabase.database
+            let results: [UserVault] = try await supabase
                 .from("user_vault")
                 .select()
                 .eq("id", value: userId.uuidString)
                 .execute()
                 .value
 
-            return true
+            return !results.isEmpty
         } catch {
             return false
         }
     }
 
     private func fetchUserData(userId: UUID) async throws -> CombinedUser {
-        async let vaultResult: UserVault = supabase.database
+        async let vaultResult: UserVault = supabase
             .from("user_vault")
             .select()
             .eq("id", value: userId.uuidString)
@@ -141,7 +177,7 @@ class AuthService: ObservableObject {
             .execute()
             .value
 
-        async let profileResult: UserProfileDB = supabase.database
+        async let profileResult: UserProfileDB = supabase
             .from("user_profiles")
             .select()
             .eq("id", value: userId.uuidString)
@@ -155,7 +191,7 @@ class AuthService: ObservableObject {
     }
 
     private func updateLastLogin(userId: UUID) async throws {
-        try await supabase.database
+        try await supabase
             .from("user_vault")
             .update(["last_login_at": ISO8601DateFormatter().string(from: Date())])
             .eq("id", value: userId.uuidString)
@@ -246,7 +282,9 @@ class AuthService: ObservableObject {
     }
 
     /// Sign up with email and password
-    func signUp(email: String, password: String) async throws {
+    /// Returns true if email confirmation is required, false if user is signed in immediately
+    @discardableResult
+    func signUp(email: String, password: String) async throws -> Bool {
         isLoading = true
         defer { isLoading = false }
 
@@ -266,9 +304,24 @@ class AuthService: ObservableObject {
 
             if let session = response.session {
                 await handleSession(session)
+                print("✅ Sign up successful - user signed in")
+                return false // No email confirmation needed
             } else {
-                // Email confirmation required
-                print("✅ Sign up successful - check email for confirmation")
+                // If no session returned, attempt automatic sign-in
+                // (works when email confirmation is disabled in Supabase)
+                do {
+                    let signInSession = try await supabase.auth.signIn(
+                        email: email,
+                        password: password
+                    )
+                    await handleSession(signInSession)
+                    print("✅ Sign up successful - auto signed in")
+                    return false
+                } catch {
+                    // Email confirmation truly required
+                    print("⚠️ Sign up successful - email confirmation required")
+                    return true
+                }
             }
         } catch {
             throw AuthError.signUpFailed(error.localizedDescription)
@@ -285,9 +338,11 @@ class AuthService: ObservableObject {
         goal: String? = nil
     ) async throws {
         isLoading = true
-        defer { isLoading = false }
+        // NOTE: Removed defer - set isLoading explicitly at the end to ensure
+        // SwiftUI processes needsOnboarding change before loading state changes
 
         guard let session = try? await supabase.auth.session else {
+            isLoading = false
             throw AuthError.noUserLoggedIn
         }
 
@@ -296,42 +351,58 @@ class AuthService: ObservableObject {
 
         // Upload avatar if provided
         if let imageData = avatarData {
-            avatarUrl = try await uploadAvatar(userId: userId, imageData: imageData)
+            do {
+                avatarUrl = try await uploadAvatar(userId: userId, imageData: imageData)
+            } catch {
+                // Continue without avatar if upload fails
+                print("⚠️ Avatar upload failed: \(error)")
+            }
         }
 
-        // Create user vault record
-        let vaultInsert = UserVaultInsert(
-            id: userId,
-            zipCode: zipCode,
-            state: nil,
-            marketplaceOptOut: false
-        )
+        do {
+            // Create user vault record
+            let vaultInsert = UserVaultInsert(
+                id: userId,
+                zipCode: zipCode,
+                state: nil,
+                marketplaceOptOut: false
+            )
 
-        try await supabase.database
-            .from("user_vault")
-            .insert(vaultInsert)
-            .execute()
+            try await supabase
+                .from("user_vault")
+                .insert(vaultInsert)
+                .execute()
 
-        // Create user profile record
-        let profileInsert = UserProfileInsert(
-            id: userId,
-            displayName: displayName,
-            avatarUrl: avatarUrl,
-            goal: goal
-        )
+            // Create user profile record
+            let profileInsert = UserProfileInsert(
+                id: userId,
+                displayName: displayName,
+                avatarUrl: avatarUrl,
+                goal: goal
+            )
 
-        try await supabase.database
-            .from("user_profiles")
-            .insert(profileInsert)
-            .execute()
+            try await supabase
+                .from("user_profiles")
+                .insert(profileInsert)
+                .execute()
 
-        // Fetch the created user data
-        let user = try await fetchUserData(userId: userId)
-        self.currentUser = user
-        self.needsOnboarding = false
-        self.appleProvidedName = nil
+            // Fetch the created user data
+            let user = try await fetchUserData(userId: userId)
 
-        print("✅ Onboarding completed")
+            // Force SwiftUI to prepare for state change
+            self.objectWillChange.send()
+
+            // Update all state - set isLoading LAST to ensure view updates properly
+            self.currentUser = user
+            self.needsOnboarding = false
+            self.appleProvidedName = nil
+            self.isLoading = false
+
+            print("✅ Onboarding completed")
+        } catch {
+            isLoading = false
+            throw error
+        }
     }
 
     private func uploadAvatar(userId: UUID, imageData: Data) async throws -> String {
@@ -403,7 +474,7 @@ class AuthService: ObservableObject {
 
         guard !updates.isEmpty else { return }
 
-        try await supabase.database
+        try await supabase
             .from("user_profiles")
             .update(updates)
             .eq("id", value: userId.uuidString)
@@ -422,7 +493,7 @@ class AuthService: ObservableObject {
 
         let avatarUrl = try await uploadAvatar(userId: userId, imageData: imageData)
 
-        try await supabase.database
+        try await supabase
             .from("user_profiles")
             .update(["avatar_url": avatarUrl])
             .eq("id", value: userId.uuidString)

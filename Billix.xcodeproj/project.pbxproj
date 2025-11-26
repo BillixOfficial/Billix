@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */; };
-		997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81513DE947C6002A28D674AD /* AuthViewModel.swift */; };
 		24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */; };
+		2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */; };
 		56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C58A5E4A878AC7816EB3122 /* HealthView.swift */; };
+		997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81513DE947C6002A28D674AD /* AuthViewModel.swift */; };
 		A64F7F512ECBB46B005576C5 /* FileValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4F2ECBB46B005576C5 /* FileValidator.swift */; };
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F532ECBB46B005576C5 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4D2ECBB46B005576C5 /* APIClient.swift */; };
@@ -68,6 +68,15 @@
 		F9076D672ED19DEE0051E1D8 /* ProfileSectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D622ED19DEE0051E1D8 /* ProfileSectionCard.swift */; };
 		F9076D682ED19DEE0051E1D8 /* SettingsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D632ED19DEE0051E1D8 /* SettingsRow.swift */; };
 		F9076D692ED19DEE0051E1D8 /* SettingsToggleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D642ED19DEE0051E1D8 /* SettingsToggleRow.swift */; };
+		F9076DB12ED50AE30051E1D8 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB02ED50AE30051E1D8 /* Auth */; };
+		F9076DB32ED50AE30051E1D8 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB22ED50AE30051E1D8 /* Functions */; };
+		F9076DB52ED50AE30051E1D8 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB42ED50AE30051E1D8 /* PostgREST */; };
+		F9076DB72ED50AE30051E1D8 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB62ED50AE30051E1D8 /* Realtime */; };
+		F9076DB92ED50AE30051E1D8 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB82ED50AE30051E1D8 /* Storage */; };
+		F9076DBC2ED50BF10051E1D8 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DBB2ED50BF10051E1D8 /* Supabase */; };
+		F9076DBE2ED50D430051E1D8 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076DBD2ED50D430051E1D8 /* SupabaseService.swift */; };
+		F9076DC02ED50D520051E1D8 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076DBF2ED50D520051E1D8 /* OnboardingView.swift */; };
+		F9076DC22ED50D5A0051E1D8 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076DC12ED50D5A0051E1D8 /* OnboardingViewModel.swift */; };
 		F974B1D42EC9553B003EBF59 /* BillixApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B1D32EC9553B003EBF59 /* BillixApp.swift */; };
 		F974B1D62EC9553B003EBF59 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B1D52EC9553B003EBF59 /* ContentView.swift */; };
 		F974B1DA2EC9553C003EBF59 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F974B1D92EC9553C003EBF59 /* Assets.xcassets */; };
@@ -97,10 +106,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
-		81513DE947C6002A28D674AD /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		5C58A5E4A878AC7816EB3122 /* HealthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
+		81513DE947C6002A28D674AD /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysis.swift; sourceTree = "<group>"; };
 		A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredBill.swift; sourceTree = "<group>"; };
 		A64F7F4D2ECBB46B005576C5 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -158,6 +167,9 @@
 		F9076D622ED19DEE0051E1D8 /* ProfileSectionCard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileSectionCard.swift; sourceTree = "<group>"; };
 		F9076D632ED19DEE0051E1D8 /* SettingsRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
 		F9076D642ED19DEE0051E1D8 /* SettingsToggleRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsToggleRow.swift; sourceTree = "<group>"; };
+		F9076DBD2ED50D430051E1D8 /* SupabaseService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		F9076DBF2ED50D520051E1D8 /* OnboardingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		F9076DC12ED50D5A0051E1D8 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		F974B1D02EC9553B003EBF59 /* Billix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Billix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F974B1D32EC9553B003EBF59 /* BillixApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillixApp.swift; sourceTree = "<group>"; };
 		F974B1D52EC9553B003EBF59 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -178,6 +190,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F9076DB52ED50AE30051E1D8 /* PostgREST in Frameworks */,
+				F9076DB32ED50AE30051E1D8 /* Functions in Frameworks */,
+				F9076DBC2ED50BF10051E1D8 /* Supabase in Frameworks */,
+				F9076DB12ED50AE30051E1D8 /* Auth in Frameworks */,
+				F9076DB92ED50AE30051E1D8 /* Storage in Frameworks */,
+				F9076DB72ED50AE30051E1D8 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -237,6 +255,8 @@
 		8A8A8A8A8A8A8A8A8A8A8A8A /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				F9076DC12ED50D5A0051E1D8 /* OnboardingViewModel.swift */,
+				F9076DBF2ED50D520051E1D8 /* OnboardingView.swift */,
 				F974B2002EC955A1003EBF59 /* LoginView.swift */,
 				81513DE947C6002A28D674AD /* AuthViewModel.swift */,
 			);
@@ -307,6 +327,7 @@
 		A64F7F502ECBB46B005576C5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				F9076DBD2ED50D430051E1D8 /* SupabaseService.swift */,
 				F9076D492ED19DA20051E1D8 /* AuthService.swift */,
 				F9076D4A2ED19DA20051E1D8 /* MockDataService.swift */,
 				F9076D482ED19DA20051E1D8 /* ProfileService.swift */,
@@ -434,6 +455,13 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
+		F9076DBA2ED50BF10051E1D8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		F974B1C72EC9553B003EBF59 = {
 			isa = PBXGroup;
 			children = (
@@ -441,6 +469,7 @@
 				F974B1E62EC9553C003EBF59 /* BillixTests */,
 				F974B1F02EC9553C003EBF59 /* BillixUITests */,
 				F974B1D12EC9553B003EBF59 /* Products */,
+				F9076DBA2ED50BF10051E1D8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -510,6 +539,14 @@
 			dependencies = (
 			);
 			name = Billix;
+			packageProductDependencies = (
+				F9076DB02ED50AE30051E1D8 /* Auth */,
+				F9076DB22ED50AE30051E1D8 /* Functions */,
+				F9076DB42ED50AE30051E1D8 /* PostgREST */,
+				F9076DB62ED50AE30051E1D8 /* Realtime */,
+				F9076DB82ED50AE30051E1D8 /* Storage */,
+				F9076DBB2ED50BF10051E1D8 /* Supabase */,
+			);
 			productName = Billix;
 			productReference = F974B1D02EC9553B003EBF59 /* Billix.app */;
 			productType = "com.apple.product-type.application";
@@ -582,6 +619,9 @@
 				Base,
 			);
 			mainGroup = F974B1C72EC9553B003EBF59;
+			packageReferences = (
+				F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			productRefGroup = F974B1D12EC9553B003EBF59 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -624,6 +664,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F9076DC02ED50D520051E1D8 /* OnboardingView.swift in Sources */,
 				F974B2032EC955C0003EBF59 /* ColorPalette.swift in Sources */,
 				F974B1D62EC9553B003EBF59 /* ContentView.swift in Sources */,
 				F974B2012EC955A1003EBF59 /* LoginView.swift in Sources */,
@@ -666,6 +707,7 @@
 				A6FF810A2ECBB8C6008330C9 /* UploadProgressView.swift in Sources */,
 				A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */,
 				F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */,
+				F9076DC22ED50D5A0051E1D8 /* OnboardingViewModel.swift in Sources */,
 				56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */,
 				A6FF81172ECBD0DE008330C9 /* LineItemDisclosureView.swift in Sources */,
 				A6FF81182ECBD0DE008330C9 /* InsightsCarouselView.swift in Sources */,
@@ -685,10 +727,11 @@
 				A6FF811C2ECBD0DE008330C9 /* MarketplaceGaugeView.swift in Sources */,
 				24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */,
 				F9076D4C2ED19DA20051E1D8 /* AuthService.swift in Sources */,
+				F9076DBE2ED50D430051E1D8 /* SupabaseService.swift in Sources */,
 				A6FF810C2ECBB980008330C9 /* AnalysisResultsView.swift in Sources */,
-				A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */,				2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */,
+				A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */,
+				2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */,
 				997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */,
-
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1037,6 +1080,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F9076DB02ED50AE30051E1D8 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		F9076DB22ED50AE30051E1D8 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		F9076DB42ED50AE30051E1D8 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		F9076DB62ED50AE30051E1D8 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		F9076DB82ED50AE30051E1D8 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		F9076DBB2ED50BF10051E1D8 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F974B1C82EC9553B003EBF59 /* Project object */;
 }

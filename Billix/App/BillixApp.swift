@@ -39,20 +39,42 @@ struct BillixApp: App {
 struct RootView: View {
     @EnvironmentObject var authService: AuthService
 
+    /// Combined state for cleaner animation transitions
+    private var viewState: ViewState {
+        if authService.isLoading {
+            return .loading
+        } else if !authService.isAuthenticated {
+            return .login
+        } else if authService.needsOnboarding {
+            return .onboarding
+        } else {
+            return .main
+        }
+    }
+
+    private enum ViewState: Equatable {
+        case loading
+        case login
+        case onboarding
+        case main
+    }
+
     var body: some View {
         Group {
-            if authService.isLoading {
+            switch viewState {
+            case .loading:
                 SplashView()
-            } else if !authService.isAuthenticated {
+            case .login:
                 LoginView()
-            } else if authService.needsOnboarding {
-                OnboardingView()
-            } else {
+            case .onboarding:
+                NavigationStack {
+                    OnboardingView()
+                }
+            case .main:
                 MainTabView()
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: authService.isAuthenticated)
-        .animation(.easeInOut(duration: 0.3), value: authService.needsOnboarding)
+        .animation(.easeInOut(duration: 0.3), value: viewState)
     }
 }
 
