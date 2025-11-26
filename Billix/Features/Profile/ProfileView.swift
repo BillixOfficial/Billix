@@ -2,540 +2,799 @@
 //  ProfileView.swift
 //  Billix
 //
-//  Created by Billix Team
+//  Profile Page - All profile and settings content in tabs
 //
 
 import SwiftUI
 
-struct ProfileView: View {
-    @StateObject private var viewModel = ProfileViewModel()
-    @State private var showingImagePicker = false
+// MARK: - Profile Tab Enum
 
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                // Background
-                Color.billixLightGreen
-                    .ignoresSafeArea()
+enum ProfileTab: String, CaseIterable {
+    case about = "ABOUT"
+    case account = "ACCOUNT"
+    case settings = "SETTINGS"
+    case support = "SUPPORT"
+}
 
-                // Main content
-                ScrollView {
-                    VStack(spacing: 16) {
-                        // MARK: - Profile Header
-                        if let profile = viewModel.userProfile {
-                            ProfileHeaderView(
-                                profile: profile,
-                                onEditTap: {
-                                    viewModel.showEditProfile = true
-                                }
-                            )
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
-                        }
+// MARK: - Profile Data Model
 
-                        // MARK: - Billix Credits & Rewards
-                        if let credits = viewModel.credits {
-                            creditsSection(credits)
-                        }
+struct ProfileData {
+    var name: String
+    var email: String
+    var dateOfBirth: String
+    var address: String
+    var profileImageName: String?
+    var phone: String
 
-                        // MARK: - Bill Health Snapshot
-                        if let billHealth = viewModel.billHealth {
-                            billHealthSection(billHealth)
-                        }
+    // ABOUT tab data
+    var bio: String
+    var socialLinks: [SocialLink]
+    var website: String
 
-                        // MARK: - Goals & Focus Areas
-                        goalsSection()
+    var initials: String {
+        let components = name.split(separator: " ")
+        if components.count >= 2 {
+            return "\(components[0].prefix(1))\(components[1].prefix(1))".uppercased()
+        }
+        return String(name.prefix(2)).uppercased()
+    }
 
-                        // MARK: - Data Sources & Connections
-                        dataConnectionsSection()
+    static let preview = ProfileData(
+        name: "Emily Nelson",
+        email: "emilynelson@gmail.com",
+        dateOfBirth: "06/15/1990",
+        address: "123 Main St, Newark, NJ",
+        profileImageName: nil,
+        phone: "+1 (555) 123-4567",
+        bio: "Passionate about saving money and helping others manage their bills better. Always looking for the best deals!",
+        socialLinks: [
+            SocialLink(platform: "twitter", username: "@emilynelson"),
+            SocialLink(platform: "linkedin", username: "emilynelson"),
+            SocialLink(platform: "instagram", username: "@emily.nelson"),
+            SocialLink(platform: "facebook", username: "emily.nelson")
+        ],
+        website: "www.emilynelson.com"
+    )
+}
 
-                        // MARK: - Marketplace & Privacy
-                        marketplaceSection()
+struct SocialLink: Identifiable {
+    let id = UUID()
+    var platform: String
+    var username: String
 
-                        // MARK: - Notification Preferences
-                        notificationsSection()
-
-                        // MARK: - Security & Account
-                        securitySection()
-
-                        // MARK: - Help & About
-                        helpSection()
-
-                        // Bottom padding for tab bar
-                        Spacer().frame(height: 97)
-                    }
-                    .padding(.horizontal, 16)
-                }
-                .refreshable {
-                    await viewModel.refresh()
-                }
-
-                // Loading overlay
-                if viewModel.isLoading {
-                    Color.black.opacity(0.2)
-                        .ignoresSafeArea()
-
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(.billixMoneyGreen)
-                }
-            }
-            .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.inline)
-            .alert(viewModel.errorMessage ?? "", isPresented: $viewModel.showError) {
-                Button("OK", role: .cancel) { }
-            }
+    var iconName: String {
+        switch platform.lowercased() {
+        case "twitter", "x": return "paperplane.fill"
+        case "linkedin": return "link"
+        case "instagram": return "camera.fill"
+        case "facebook": return "person.2.fill"
+        default: return "link"
         }
     }
 
-    // MARK: - Credits Section
-    @ViewBuilder
-    private func creditsSection(_ credits: BillixCredits) -> some View {
-        ProfileSectionCard {
-            ProfileSectionHeader("Billix Credits & Rewards", icon: "star.fill")
-
-            VStack(alignment: .leading, spacing: 16) {
-                // Balance
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Your Balance")
-                            .font(.system(size: 13))
-                            .foregroundColor(.gray)
-
-                        Text("\(credits.balance)")
-                            .font(.system(size: 40, weight: .bold))
-                            .foregroundColor(Color.billixGoldenAmber)
-                    }
-
-                    Spacer()
-
-                    Button(action: {
-                        viewModel.showCreditsDetail = true
-                    }) {
-                        Text("View All")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.billixMoneyGreen)
-                    }
-                }
-                .padding(.horizontal, 16)
-
-                // Recent transactions
-                if !credits.recentTransactions.isEmpty {
-                    VStack(spacing: 0) {
-                        ForEach(Array(credits.recentTransactions.prefix(3))) { transaction in
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(transaction.description)
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.primary)
-
-                                    Text(transaction.formattedDate)
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gray)
-                                }
-
-                                Spacer()
-
-                                Text(transaction.amountString)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(
-                                        transaction.amount >= 0 ? .billixMoneyGreen : .red
-                                    )
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-
-                            if transaction.id != credits.recentTransactions.prefix(3).last?.id {
-                                ProfileDivider()
-                            }
-                        }
-                    }
-                }
-            }
-            .padding(.bottom, 12)
-        }
-    }
-
-    // MARK: - Bill Health Section
-    @ViewBuilder
-    private func billHealthSection(_ billHealth: BillHealthSnapshot) -> some View {
-        ProfileSectionCard {
-            ProfileSectionHeader("Bill Health", icon: "heart.text.square.fill")
-
-            VStack(spacing: 16) {
-                HStack(spacing: 20) {
-                    // Grade badge
-                    ZStack {
-                        Circle()
-                            .fill(gradeColor(billHealth.overallGrade))
-                            .frame(width: 70, height: 70)
-
-                        Text(billHealth.overallGrade)
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Monthly Bills:")
-                                .font(.system(size: 13))
-                                .foregroundColor(.gray)
-
-                            Spacer()
-
-                            Text(billHealth.monthlyBillsString)
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(.primary)
-                        }
-
-                        HStack {
-                            Text("Est. Savings:")
-                                .font(.system(size: 13))
-                                .foregroundColor(.gray)
-
-                            Spacer()
-
-                            Text(billHealth.estimatedSavingsString)
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(.billixMoneyGreen)
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-
-                // Category coverage
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Category Coverage")
-                        .font(.system(size: 13))
-                        .foregroundColor(.gray)
-                        .padding(.horizontal, 16)
-
-                    HStack(spacing: 12) {
-                        ForEach(billHealth.categoriesCovered) { category in
-                            VStack(spacing: 4) {
-                                Image(systemName: category.icon)
-                                    .font(.system(size: 18))
-                                    .foregroundColor(.billixMoneyGreen)
-
-                                Text(category.name.split(separator: " ").first ?? "")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(.gray)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                }
-            }
-            .padding(.bottom, 12)
-        }
-    }
-
-    // MARK: - Goals Section
-    @ViewBuilder
-    private func goalsSection() -> some View {
-        ProfileSectionCard {
-            ProfileSectionHeader("Goals & Focus Areas", icon: "target")
-
-            VStack(spacing: 0) {
-                // Savings goal
-                if let goal = viewModel.savingsGoal {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Monthly Savings Goal")
-                                .font(.system(size: 14, weight: .medium))
-
-                            Spacer()
-
-                            Text(goal.targetString + "/mo")
-                                .font(.system(size: 13))
-                                .foregroundColor(.gray)
-                        }
-
-                        // Progress bar
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 8)
-
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.billixMoneyGreen)
-                                .frame(width: CGFloat(goal.progress) * (UIScreen.main.bounds.width - 64), height: 8)
-                        }
-
-                        Text("\(goal.progressPercentage)% of goal (\(goal.currentString) saved)")
-                            .font(.system(size: 12))
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
-
-                    ProfileDivider()
-                }
-
-                // Focus areas
-                ForEach(viewModel.focusAreas) { area in
-                    SettingsToggleRow(
-                        title: area.title,
-                        icon: area.icon,
-                        iconColor: .billixPurple,
-                        isOn: Binding(
-                            get: { area.isEnabled },
-                            set: { _ in
-                                Task {
-                                    await viewModel.toggleFocusArea(area)
-                                }
-                            }
-                        )
-                    )
-
-                    if area.id != viewModel.focusAreas.last?.id {
-                        ProfileDivider()
-                    }
-                }
-            }
-            .padding(.vertical, 4)
-        }
-    }
-
-    // MARK: - Data Connections Section
-    @ViewBuilder
-    private func dataConnectionsSection() -> some View {
-        ProfileSectionCard {
-            ProfileSectionHeader("Data Sources & Connections", icon: "link")
-
-            VStack(spacing: 0) {
-                // Email ingestion
-                if let ingestion = viewModel.dataConnection?.ingestionChannels {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Email Bills To:")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.gray)
-
-                            Text(ingestion.emailAddress)
-                                .font(.system(size: 14))
-                                .foregroundColor(.billixMoneyGreen)
-                        }
-
-                        Spacer()
-
-                        Button(action: {
-                            viewModel.copyToClipboard(
-                                ingestion.emailAddress,
-                                message: "Email address copied!"
-                            )
-                        }) {
-                            Image(systemName: "doc.on.doc.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(.billixMoneyGreen)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-
-                    ProfileDivider()
-
-                    // SMS ingestion
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Text Bills To:")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.gray)
-
-                            Text(ingestion.smsNumber)
-                                .font(.system(size: 14))
-                                .foregroundColor(.billixMoneyGreen)
-                        }
-
-                        Spacer()
-
-                        Button(action: {
-                            viewModel.copyToClipboard(
-                                ingestion.smsNumber,
-                                message: "Phone number copied!"
-                            )
-                        }) {
-                            Image(systemName: "doc.on.doc.fill")
-                                .font(.system(size: 18))
-                                .foregroundColor(.billixMoneyGreen)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-
-                    ProfileDivider()
-
-                    // Uploads
-                    HStack {
-                        Image(systemName: "arrow.up.doc.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(.billixMoneyGreen)
-                            .frame(width: 28)
-
-                        Text(ingestion.uploadsText)
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray)
-
-                        Spacer()
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                }
-            }
-        }
-    }
-
-    // MARK: - Marketplace Section
-    @ViewBuilder
-    private func marketplaceSection() -> some View {
-        if let settings = viewModel.marketplaceSettings {
-            ProfileSectionCard {
-                ProfileSectionHeader("Marketplace & Privacy", icon: "chart.bar.xaxis")
-
-                VStack(spacing: 0) {
-                    SettingsToggleRow(
-                        title: "Marketplace Participation",
-                        subtitle: "Help others see what real people pay in your area",
-                        icon: "chart.line.uptrend.xyaxis",
-                        iconColor: .billixPurple,
-                        isOn: Binding(
-                            get: { settings.isMarketplaceEnabled },
-                            set: { newValue in
-                                var updated = settings
-                                updated.isMarketplaceEnabled = newValue
-                                Task {
-                                    await viewModel.updateMarketplaceSettings(updated)
-                                }
-                            }
-                        )
-                    )
-
-                    if settings.isMarketplaceEnabled {
-                        ProfileDivider()
-
-                        HStack {
-                            Text("You appear as:")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gray)
-
-                            Spacer()
-
-                            Text(settings.anonymityDescription)
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.billixMoneyGreen)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                    }
-                }
-                .padding(.vertical, 4)
-            }
-        }
-    }
-
-    // MARK: - Notifications Section
-    @ViewBuilder
-    private func notificationsSection() -> some View {
-        ProfileSectionCard {
-            VStack(spacing: 0) {
-                SettingsRow(
-                    title: "Notification Preferences",
-                    subtitle: "Manage alerts and updates",
-                    icon: "bell.fill",
-                    iconColor: .billixGoldenAmber,
-                    action: {
-                        viewModel.showNotificationSettings = true
-                    }
-                )
-            }
-        }
-    }
-
-    // MARK: - Security Section
-    @ViewBuilder
-    private func securitySection() -> some View {
-        ProfileSectionCard {
-            VStack(spacing: 0) {
-                SettingsRow(
-                    title: "Security & Account",
-                    subtitle: "Password, 2FA, and devices",
-                    icon: "lock.fill",
-                    iconColor: .red,
-                    action: {
-                        viewModel.showSecuritySettings = true
-                    }
-                )
-            }
-        }
-    }
-
-    // MARK: - Help Section
-    @ViewBuilder
-    private func helpSection() -> some View {
-        ProfileSectionCard {
-            VStack(spacing: 0) {
-                SettingsRow(
-                    title: "Help Center",
-                    subtitle: "Get help and support",
-                    icon: "questionmark.circle.fill",
-                    action: {
-                        // Open help center
-                    }
-                )
-
-                ProfileDivider()
-
-                SettingsRow(
-                    title: "Terms of Service",
-                    icon: "doc.text.fill",
-                    action: {
-                        // Open terms
-                    }
-                )
-
-                ProfileDivider()
-
-                SettingsRow(
-                    title: "Privacy Policy",
-                    icon: "hand.raised.fill",
-                    action: {
-                        // Open privacy policy
-                    }
-                )
-
-                ProfileDivider()
-
-                HStack {
-                    Text("App Version")
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-
-                    Spacer()
-
-                    Text("1.0.0")
-                        .font(.system(size: 13))
-                        .foregroundColor(.gray)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-            }
-            .padding(.vertical, 4)
-        }
-    }
-
-    // MARK: - Helpers
-    private func gradeColor(_ grade: String) -> Color {
-        switch grade {
-        case "A": return .green
-        case "B": return .blue
-        case "C": return .orange
-        case "D": return .orange
-        case "F": return .red
+    var color: Color {
+        switch platform.lowercased() {
+        case "twitter", "x": return Color(hex: "#1DA1F2")
+        case "linkedin": return Color(hex: "#0077B5")
+        case "instagram": return Color(hex: "#E4405F")
+        case "facebook": return Color(hex: "#1877F2")
         default: return .gray
         }
     }
 }
+
+// MARK: - Profile View
+
+struct ProfileView: View {
+    @StateObject private var viewModel = ProfileViewModel()
+    @State private var selectedTab: ProfileTab = .about
+    @State private var profileData = ProfileData.preview
+
+    // Settings states
+    @State private var biometricLock = false
+    @State private var neighborhoodStats = true
+    @State private var providerBidding = false
+    @State private var billDueDates = true
+    @State private var priceHikeAlerts = true
+    @State private var syncCalendar = false
+
+    // Colors - Clean professional palette
+    private let backgroundColor = Color(hex: "#F5F7F6")  // Soft off-white with slight green tint
+    private let selectedTabColor = Color(hex: "#4A7C59")  // Refined forest green
+    private let darkTextColor = Color(hex: "#2D3436")  // Rich dark gray
+    private let grayTextColor = Color(hex: "#636E72")  // Medium gray
+    private let lightGrayText = Color(hex: "#B2BEC3")  // Light gray
+    private let cardBackground = Color.white
+    private let accentGreen = Color(hex: "#4A7C59")
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                // Light blue background
+                backgroundColor
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Profile Header Section
+                        profileHeaderSection
+
+                        // Tab Selector
+                        tabSelector
+
+                        // Tab Content
+                        tabContent
+
+                        Spacer().frame(height: 100)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    // MARK: - Profile Header (Photo + Info)
+
+    private var profileHeaderSection: some View {
+        HStack(alignment: .top, spacing: 16) {
+            // Profile Photo - Rounded Rectangle (NOT circle)
+            profilePhoto
+
+            // Profile Info
+            VStack(alignment: .leading, spacing: 10) {
+                // Name
+                Text(profileData.name)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(darkTextColor)
+                    .tracking(-0.3)
+
+                // Email
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Email")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(lightGrayText)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+                    Text(profileData.email)
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(grayTextColor)
+                }
+
+                // Date of Birth
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Date of Birth")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(lightGrayText)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+                    Text(profileData.dateOfBirth)
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(grayTextColor)
+                }
+
+                // Address
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Address")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(lightGrayText)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+                    Text(profileData.address)
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(grayTextColor)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(cardBackground)
+                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
+        )
+    }
+
+    private var profilePhoto: some View {
+        ZStack {
+            // Rounded Rectangle Photo Container - Light grayish-blue background like Figma
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(hex: "#E8EEF4"))
+                .frame(width: 100, height: 130)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+
+            // Profile image or initials
+            if let imageName = profileData.profileImageName,
+               let uiImage = UIImage(named: imageName) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 100, height: 130)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            } else {
+                // Placeholder silhouette/initials
+                VStack(spacing: 6) {
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 44, weight: .light))
+                        .foregroundColor(Color(hex: "#B0C0D0"))
+                    Text(profileData.initials)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(hex: "#8899AA"))
+                }
+            }
+        }
+    }
+
+    // MARK: - Tab Selector
+
+    private var tabSelector: some View {
+        HStack(spacing: 2) {
+            ForEach(ProfileTab.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        selectedTab = tab
+                    }
+                } label: {
+                    Text(tab.rawValue)
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundColor(selectedTab == tab ? .white : grayTextColor)
+                        .tracking(0.3)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(
+                            Group {
+                                if selectedTab == tab {
+                                    Capsule()
+                                        .fill(selectedTabColor)
+                                        .shadow(color: selectedTabColor.opacity(0.3), radius: 4, x: 0, y: 2)
+                                } else {
+                                    Capsule()
+                                        .fill(Color.clear)
+                                }
+                            }
+                        )
+                }
+            }
+        }
+        .padding(4)
+        .background(
+            Capsule()
+                .fill(cardBackground)
+                .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 3)
+        )
+    }
+
+    // MARK: - Tab Content
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch selectedTab {
+        case .about:
+            aboutTabContent
+        case .account:
+            accountTabContent
+        case .settings:
+            settingsTabContent
+        case .support:
+            supportTabContent
+        }
+    }
+
+    // MARK: - ABOUT Tab Content (Bio, Social, Contact)
+
+    private var aboutTabContent: some View {
+        VStack(spacing: 14) {
+            // BIO Card
+            ProfileCard(title: "BIO") {
+                Text(profileData.bio)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(grayTextColor)
+                    .lineSpacing(5)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            // ON THE WEB Card
+            ProfileCard(title: "ON THE WEB") {
+                HStack(spacing: 14) {
+                    ForEach(profileData.socialLinks) { link in
+                        Button {
+                            // Open social link
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(link.color.opacity(0.12))
+                                    .frame(width: 48, height: 48)
+
+                                Image(systemName: link.iconName)
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(link.color)
+                            }
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                    }
+                    Spacer()
+                }
+            }
+
+            // WEBSITE & PHONE Card
+            ProfileCard(title: nil) {
+                VStack(spacing: 14) {
+                    // Website
+                    HStack(spacing: 14) {
+                        ZStack {
+                            Circle()
+                                .fill(Color(hex: "#EEF2FF"))
+                                .frame(width: 42, height: 42)
+
+                            Image(systemName: "globe")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color(hex: "#6366F1"))
+                        }
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("WEBSITE")
+                                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                .foregroundColor(lightGrayText)
+                                .tracking(0.8)
+                            Text(profileData.website)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(darkTextColor)
+                        }
+
+                        Spacer()
+                    }
+
+                    Divider()
+                        .background(Color(hex: "#E5E7EB"))
+
+                    // Phone
+                    HStack(spacing: 14) {
+                        ZStack {
+                            Circle()
+                                .fill(selectedTabColor.opacity(0.12))
+                                .frame(width: 42, height: 42)
+
+                            Image(systemName: "phone.fill")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(selectedTabColor)
+                        }
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("PHONE")
+                                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                .foregroundColor(lightGrayText)
+                                .tracking(0.8)
+                            Text(profileData.phone)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(darkTextColor)
+                        }
+
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - ACCOUNT Tab Content (Personal Info, Subscription)
+
+    private var accountTabContent: some View {
+        VStack(spacing: 16) {
+            // Personal Information Card
+            ProfileCard(title: "PERSONAL INFORMATION") {
+                VStack(spacing: 0) {
+                    ProfileSettingsRowLink(icon: "person.fill", iconColor: .blue, title: "Name", value: profileData.name)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsRowLink(icon: "envelope.fill", iconColor: .blue, title: "Email", value: profileData.email)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsRowLink(icon: "phone.fill", iconColor: .blue, title: "Phone Number", value: profileData.phone)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsRowLink(icon: "person.2.fill", iconColor: .blue, title: "Household", value: nil)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsRowLink(icon: "lock.fill", iconColor: .blue, title: "Change Password", value: nil)
+                }
+            }
+
+            // Subscription Card
+            ProfileCard(title: "SUBSCRIPTION") {
+                VStack(spacing: 0) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.blue.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "creditcard.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.blue)
+                        }
+
+                        Text("Current Plan")
+                            .font(.system(size: 15))
+                            .foregroundColor(darkTextColor)
+
+                        Spacer()
+
+                        Text("Free")
+                            .font(.system(size: 14))
+                            .foregroundColor(grayTextColor)
+                    }
+                    .padding(.vertical, 8)
+
+                    Divider().padding(.leading, 52)
+
+                    Button {
+                        // Upgrade to Prime
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.yellow.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "crown.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.yellow)
+                            }
+
+                            Text("Get Billix Prime - $6.99/mo")
+                                .font(.system(size: 15))
+                                .foregroundColor(darkTextColor)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(grayTextColor)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                }
+            }
+
+            // Referral Card
+            ProfileCard(title: "INVITE & EARN") {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.purple.opacity(0.15))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: "gift.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.purple)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Referral Code")
+                            .font(.system(size: 15))
+                            .foregroundColor(darkTextColor)
+                        Text("BILLIX-2024")
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundColor(.purple)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        UIPasteboard.general.string = "BILLIX-2024"
+                    } label: {
+                        Text("Copy")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(Color.purple))
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - SETTINGS Tab Content (Data, Privacy, Notifications)
+
+    private var settingsTabContent: some View {
+        VStack(spacing: 16) {
+            // Data Ingestion Card
+            ProfileCard(title: "DATA INGESTION") {
+                VStack(spacing: 0) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.blue.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "tray.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.blue)
+                        }
+
+                        Text("My Billix Email")
+                            .font(.system(size: 15))
+                            .foregroundColor(darkTextColor)
+
+                        Spacer()
+
+                        Button {
+                            UIPasteboard.general.string = "user@billix.app"
+                        } label: {
+                            Image(systemName: "doc.on.doc.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding(.vertical, 8)
+
+                    Divider().padding(.leading, 52)
+
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.blue.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "calendar")
+                                .font(.system(size: 16))
+                                .foregroundColor(.blue)
+                        }
+
+                        Text("Sync Calendar")
+                            .font(.system(size: 15))
+                            .foregroundColor(darkTextColor)
+
+                        Spacer()
+
+                        Toggle("", isOn: $syncCalendar)
+                            .labelsHidden()
+                            .tint(selectedTabColor)
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+
+            // Privacy & Trust Card
+            ProfileCard(title: "PRIVACY & TRUST") {
+                VStack(spacing: 0) {
+                    ProfileSettingsToggleRow(icon: "faceid", iconColor: .blue, title: "Biometric Lock", isOn: $biometricLock, tintColor: selectedTabColor)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsToggleRow(icon: "chart.bar.fill", iconColor: .blue, title: "Neighborhood Stats", isOn: $neighborhoodStats, tintColor: selectedTabColor)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsToggleRow(icon: "megaphone.fill", iconColor: .blue, title: "Provider Bidding", isOn: $providerBidding, tintColor: selectedTabColor)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsRowLink(icon: "square.and.arrow.up.fill", iconColor: .blue, title: "Export My Data", value: nil)
+                }
+            }
+
+            // Notifications Card
+            ProfileCard(title: "NOTIFICATIONS") {
+                VStack(spacing: 0) {
+                    ProfileSettingsToggleRow(icon: "bell.fill", iconColor: .blue, title: "Bill Due Dates", isOn: $billDueDates, tintColor: selectedTabColor)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsToggleRow(icon: "exclamationmark.triangle.fill", iconColor: .orange, title: "Price Hike Alerts", isOn: $priceHikeAlerts, tintColor: selectedTabColor)
+                }
+            }
+        }
+    }
+
+    // MARK: - SUPPORT Tab Content (Help, Legal, Account Actions)
+
+    private var supportTabContent: some View {
+        VStack(spacing: 16) {
+            // Help & Feedback Card
+            ProfileCard(title: "HELP & FEEDBACK") {
+                VStack(spacing: 0) {
+                    ProfileSettingsRowLink(icon: "exclamationmark.bubble.fill", iconColor: .orange, title: "Report AI Error", value: nil)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsRowLink(icon: "questionmark.circle.fill", iconColor: .blue, title: "Help Center", value: nil)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsRowLink(icon: "lightbulb.fill", iconColor: .yellow, title: "Suggest a Feature", value: nil)
+                }
+            }
+
+            // Legal Card
+            ProfileCard(title: "LEGAL") {
+                VStack(spacing: 0) {
+                    ProfileSettingsRowLink(icon: "doc.text.fill", iconColor: .gray, title: "Terms of Service", value: nil)
+                    Divider().padding(.leading, 52)
+                    ProfileSettingsRowLink(icon: "hand.raised.fill", iconColor: .gray, title: "Privacy Policy", value: nil)
+                    Divider().padding(.leading, 52)
+
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.gray.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "info.circle.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.gray)
+                        }
+
+                        Text("App Version")
+                            .font(.system(size: 15))
+                            .foregroundColor(darkTextColor)
+
+                        Spacer()
+
+                        Text("v1.0.2")
+                            .font(.system(size: 14))
+                            .foregroundColor(grayTextColor)
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+
+            // Account Actions Card
+            ProfileCard(title: "ACCOUNT ACTIONS") {
+                VStack(spacing: 0) {
+                    Button {
+                        Task {
+                            try? await AuthService.shared.signOut()
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.blue.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "rectangle.portrait.and.arrow.right.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.blue)
+                            }
+
+                            Text("Log Out")
+                                .font(.system(size: 15))
+                                .foregroundColor(darkTextColor)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(grayTextColor)
+                        }
+                        .padding(.vertical, 8)
+                    }
+
+                    Divider().padding(.leading, 52)
+
+                    Button {
+                        // Delete account
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.red.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "trash.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.red)
+                            }
+
+                            Text("Delete Account")
+                                .font(.system(size: 15))
+                                .foregroundColor(.red)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(grayTextColor)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Profile Card Component
+
+struct ProfileCard<Content: View>: View {
+    let title: String?
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if let title = title {
+                Text(title)
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundColor(Color(hex: "#9CA3AF"))
+                    .tracking(1.2)
+            }
+
+            content
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
+        )
+    }
+}
+
+// MARK: - Profile Settings Row Link
+
+struct ProfileSettingsRowLink: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let value: String?
+
+    private let darkTextColor = Color(hex: "#2D3436")
+    private let grayTextColor = Color(hex: "#636E72")
+
+    var body: some View {
+        Button {
+            // Navigate to edit
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(iconColor.opacity(0.10))
+                        .frame(width: 38, height: 38)
+                    Image(systemName: icon)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(iconColor)
+                }
+
+                Text(title)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(darkTextColor)
+
+                Spacer()
+
+                if let value = value {
+                    Text(value)
+                        .font(.system(size: 13))
+                        .foregroundColor(grayTextColor)
+                        .lineLimit(1)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "#CBD5E0"))
+            }
+            .padding(.vertical, 6)
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
+struct ProfileSettingsToggleRow: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    @Binding var isOn: Bool
+    let tintColor: Color
+
+    private let darkTextColor = Color(hex: "#2D3436")
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.10))
+                    .frame(width: 38, height: 38)
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(iconColor)
+            }
+
+            Text(title)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(darkTextColor)
+
+            Spacer()
+
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .tint(tintColor)
+                .scaleEffect(0.9)
+        }
+        .padding(.vertical, 6)
+    }
+}
+
 
 // MARK: - Preview
 
