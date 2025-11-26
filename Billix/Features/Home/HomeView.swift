@@ -8,6 +8,71 @@
 
 import SwiftUI
 
+// MARK: - Theme
+
+private enum Theme {
+    // Colors
+    static let background = Color(hex: "#EDF3EF")
+    static let cardBackground = Color.white
+    static let primaryText = Color(hex: "#1A2F23")
+    static let secondaryText = Color(hex: "#6B7280")
+    static let accent = Color(hex: "#5B8A6B")
+    static let accentLight = Color(hex: "#5B8A6B").opacity(0.12)
+
+    // Semantic colors
+    static let success = Color(hex: "#27AE60")
+    static let warning = Color(hex: "#E67E22")
+    static let danger = Color(hex: "#E74C3C")
+    static let info = Color(hex: "#3498DB")
+    static let purple = Color(hex: "#9B59B6")
+
+    // Spacing
+    static let horizontalPadding: CGFloat = 20
+    static let cardPadding: CGFloat = 16
+    static let cardSpacing: CGFloat = 12
+    static let cornerRadius: CGFloat = 14
+
+    // Shadow
+    static let shadowColor = Color.black.opacity(0.04)
+    static let shadowRadius: CGFloat = 6
+}
+
+// MARK: - Card Modifier
+
+private struct CardStyle: ViewModifier {
+    var hasShadow: Bool = true
+
+    func body(content: Content) -> some View {
+        content
+            .padding(Theme.cardPadding)
+            .background(Theme.cardBackground)
+            .cornerRadius(Theme.cornerRadius)
+            .shadow(
+                color: hasShadow ? Theme.shadowColor : .clear,
+                radius: hasShadow ? Theme.shadowRadius : 0,
+                x: 0, y: 2
+            )
+    }
+}
+
+private extension View {
+    func cardStyle(shadow: Bool = true) -> some View {
+        modifier(CardStyle(hasShadow: shadow))
+    }
+
+    func sectionHeader() -> some View {
+        self
+            .font(.system(size: 17, weight: .semibold, design: .rounded))
+            .foregroundColor(Theme.primaryText)
+    }
+}
+
+// MARK: - Haptic Helper
+
+private func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
+    UIImpactFeedbackGenerator(style: style).impactOccurred()
+}
+
 // MARK: - Home View
 
 struct HomeView: View {
@@ -19,13 +84,10 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            // Background - subtle green tint
-            Color(hex: "#EDF3EF")
-                .ignoresSafeArea()
+            Theme.background.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 16) {
-                    // Zone A: Header
+                VStack(spacing: Theme.cardSpacing) {
                     HeaderZone(
                         userName: userName,
                         location: userCity,
@@ -33,54 +95,29 @@ struct HomeView: View {
                         score: billixScore,
                         streak: streakDays
                     )
-
-                    // Zone B: Bill Ticker
                     BillTickerZone(zipCode: userZip)
-
-                    // Zone C: 30-Second Checkup
                     MicroTasksZone()
-
-                    // Zone D: Flash Drop Highlight
                     FlashDropZone()
-
-                    // Zone E: Clusters Teaser
                     ClustersTeaser(zipCode: userZip)
-
-                    // Zone F: Daily Bill Brief
                     DailyBillBrief()
-
-                    // Zone G: Community Poll
                     CommunityPollZone()
-
-                    // Zone H: Bill Snapshot
                     BillSnapshotZone()
-
-                    // Zone I: Learn to Lower
                     LearnToLowerZone()
-
-                    // Zone J: Invite & Earn
                     InviteEarnBanner()
-
-                    // Bottom spacer for tab bar
                     Spacer().frame(height: 100)
                 }
                 .padding(.top, 8)
             }
             .refreshable {
-                hapticFeedback(.success)
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
             }
         }
-    }
-
-    private func hapticFeedback(_ type: UINotificationFeedbackGenerator.FeedbackType) {
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(type)
     }
 }
 
 // MARK: - Zone A: Header
 
-struct HeaderZone: View {
+private struct HeaderZone: View {
     let userName: String
     let location: String
     let zipCode: String
@@ -89,30 +126,32 @@ struct HeaderZone: View {
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
-        if hour < 12 { return "Good Morning" }
-        else if hour < 17 { return "Good Afternoon" }
-        else { return "Good Evening" }
+        switch hour {
+        case 0..<12: return "Good Morning"
+        case 12..<17: return "Good Afternoon"
+        default: return "Good Evening"
+        }
     }
 
     private var scoreLabel: String {
-        if score >= 750 { return "Excellent" }
-        else if score >= 700 { return "Very Efficient" }
-        else if score >= 650 { return "Good" }
-        else { return "Needs Work" }
+        switch score {
+        case 750...: return "Excellent"
+        case 700..<750: return "Very Efficient"
+        case 650..<700: return "Good"
+        default: return "Needs Work"
+        }
     }
 
     var body: some View {
         VStack(spacing: 12) {
-            // Top row: Greeting and notification
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(greeting), \(userName)")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(hex: "#1A2F23"))
+                        .foregroundColor(Theme.primaryText)
 
-                    // Location (clickable)
                     Button {
-                        // Change zip action
+                        haptic()
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "location.fill")
@@ -122,65 +161,58 @@ struct HeaderZone: View {
                             Image(systemName: "chevron.down")
                                 .font(.system(size: 10, weight: .semibold))
                         }
-                        .foregroundColor(Color(hex: "#5B8A6B"))
+                        .foregroundColor(Theme.accent)
                     }
                 }
 
                 Spacer()
 
-                // Notification bell
-                Button {
-                    let generator = UIImpactFeedbackGenerator(style: .light)
-                    generator.impactOccurred()
-                } label: {
+                Button { haptic() } label: {
                     ZStack {
                         Circle()
-                            .fill(Color.white)
+                            .fill(Theme.cardBackground)
                             .frame(width: 40, height: 40)
-                            .shadow(color: Color.black.opacity(0.06), radius: 4, x: 0, y: 2)
+                            .shadow(color: Theme.shadowColor, radius: 4)
 
                         Image(systemName: "bell.fill")
                             .font(.system(size: 16))
-                            .foregroundColor(Color(hex: "#5B8A6B"))
+                            .foregroundColor(Theme.accent)
 
-                        // Notification badge
                         Circle()
-                            .fill(Color.red)
+                            .fill(Theme.danger)
                             .frame(width: 8, height: 8)
                             .offset(x: 8, y: -8)
                     }
                 }
             }
 
-            // Score and Streak chips
             HStack(spacing: 10) {
-                // Billix Score chip
+                // Score chip
                 HStack(spacing: 6) {
                     Image(systemName: "chart.line.uptrend.xyaxis")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "#5B8A6B"))
+                        .foregroundColor(Theme.accent)
                     Text("\(score)")
                         .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(hex: "#1A2F23"))
+                        .foregroundColor(Theme.primaryText)
                     Text("· \(scoreLabel)")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color(hex: "#6B7280"))
+                        .foregroundColor(Theme.secondaryText)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color.white)
+                .background(Theme.cardBackground)
                 .cornerRadius(20)
-                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+                .shadow(color: Theme.shadowColor, radius: 4)
 
                 // Streak chip
                 HStack(spacing: 4) {
                     Image(systemName: "flame.fill")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#E67E22"))
                     Text("\(streak) Day Streak")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color(hex: "#E67E22"))
                 }
+                .foregroundColor(Theme.warning)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(Color(hex: "#FEF3E2"))
@@ -189,173 +221,152 @@ struct HeaderZone: View {
                 Spacer()
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Theme.horizontalPadding)
     }
 }
 
 // MARK: - Zone B: Bill Ticker
 
-struct BillTickerZone: View {
-    let zipCode: String
-
-    let tickerItems = [
-        TickerItem(icon: "bolt.fill", category: "Electric", location: "48067", value: "$142.30", change: "+2.1%", isUp: true),
-        TickerItem(icon: "wifi", category: "Internet", location: "48067", value: "$71.20", change: "-0.6%", isUp: false),
-        TickerItem(icon: "flame.fill", category: "Gas", location: "48067", value: "$3.45", change: "+1.8%", isUp: true),
-        TickerItem(icon: "iphone", category: "Phone", location: "48067", value: "$85.00", change: "0%", isUp: false),
-    ]
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(tickerItems, id: \.category) { item in
-                    TickerCard(item: item)
-                }
-            }
-            .padding(.horizontal, 20)
-        }
-    }
-}
-
-struct TickerItem {
+private struct TickerItem: Identifiable {
+    let id = UUID()
     let icon: String
     let category: String
-    let location: String
     let value: String
     let change: String
     let isUp: Bool
 }
 
-struct TickerCard: View {
+private struct BillTickerZone: View {
+    let zipCode: String
+
+    private let items = [
+        TickerItem(icon: "bolt.fill", category: "Electric", value: "$142.30", change: "+2.1%", isUp: true),
+        TickerItem(icon: "wifi", category: "Internet", value: "$71.20", change: "-0.6%", isUp: false),
+        TickerItem(icon: "flame.fill", category: "Gas", value: "$3.45", change: "+1.8%", isUp: true),
+        TickerItem(icon: "iphone", category: "Phone", value: "$85.00", change: "0%", isUp: false),
+    ]
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(items) { item in
+                    TickerCard(item: item)
+                }
+            }
+            .padding(.horizontal, Theme.horizontalPadding)
+        }
+    }
+}
+
+private struct TickerCard: View {
     let item: TickerItem
 
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: item.icon)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(Color(hex: "#5B8A6B"))
+                .foregroundColor(Theme.accent)
                 .frame(width: 32, height: 32)
-                .background(Color(hex: "#5B8A6B").opacity(0.12))
+                .background(Theme.accentLight)
                 .cornerRadius(8)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.category)
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Color(hex: "#6B7280"))
+                    .foregroundColor(Theme.secondaryText)
                 HStack(spacing: 4) {
                     Text(item.value)
                         .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(hex: "#1A2F23"))
+                        .foregroundColor(Theme.primaryText)
                     Text(item.change)
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(item.isUp ? Color(hex: "#E74C3C") : Color(hex: "#27AE60"))
                     Image(systemName: item.isUp ? "arrow.up" : "arrow.down")
                         .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(item.isUp ? Color(hex: "#E74C3C") : Color(hex: "#27AE60"))
                 }
+                .foregroundColor(item.isUp ? Theme.danger : Theme.success)
             }
         }
         .padding(12)
-        .background(Color.white)
+        .background(Theme.cardBackground)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 }
 
-// MARK: - Zone C: Micro Tasks (30-Second Checkup)
+// MARK: - Zone C: Micro Tasks
 
-struct MicroTasksZone: View {
+private struct MicroTask: Identifiable {
+    let id = UUID()
+    let icon: String
+    let color: Color
+    let title: String
+    let subtitle: String
+    let points: Int
+}
+
+private struct MicroTasksZone: View {
+    private let tasks = [
+        MicroTask(icon: "checkmark.circle.fill", color: Theme.info, title: "Verify Transactions", subtitle: "Swipe 3 to confirm", points: 10),
+        MicroTask(icon: "hand.thumbsup.fill", color: Theme.purple, title: "Daily Vote", subtitle: "Is $65 too much for 500Mbps?", points: 5),
+        MicroTask(icon: "doc.text.viewfinder", color: Theme.warning, title: "Scan Receipt", subtitle: "Quick photo for points", points: 15),
+    ]
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("30-Second Checkup")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "#1A2F23"))
+                Text("30-Second Checkup").sectionHeader()
                 Spacer()
                 Text("Earn points")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Color(hex: "#5B8A6B"))
+                    .foregroundColor(Theme.accent)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Theme.horizontalPadding)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    MicroTaskCard(
-                        icon: "checkmark.circle.fill",
-                        iconColor: Color(hex: "#3498DB"),
-                        title: "Verify Transactions",
-                        subtitle: "Swipe 3 to confirm",
-                        points: 10,
-                        backgroundColor: Color(hex: "#EBF5FB")
-                    )
-
-                    MicroTaskCard(
-                        icon: "hand.thumbsup.fill",
-                        iconColor: Color(hex: "#9B59B6"),
-                        title: "Daily Vote",
-                        subtitle: "Is $65 too much for 500Mbps?",
-                        points: 5,
-                        backgroundColor: Color(hex: "#F5EEF8")
-                    )
-
-                    MicroTaskCard(
-                        icon: "doc.text.viewfinder",
-                        iconColor: Color(hex: "#E67E22"),
-                        title: "Scan Receipt",
-                        subtitle: "Quick photo for points",
-                        points: 15,
-                        backgroundColor: Color(hex: "#FEF5E7")
-                    )
+                    ForEach(tasks) { task in
+                        MicroTaskCard(task: task)
+                    }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, Theme.horizontalPadding)
             }
         }
     }
 }
 
-struct MicroTaskCard: View {
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let subtitle: String
-    let points: Int
-    let backgroundColor: Color
+private struct MicroTaskCard: View {
+    let task: MicroTask
 
     var body: some View {
-        Button {
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-        } label: {
+        Button { haptic() } label: {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Image(systemName: icon)
+                    Image(systemName: task.icon)
                         .font(.system(size: 22))
-                        .foregroundColor(iconColor)
-
+                        .foregroundColor(task.color)
                     Spacer()
-
-                    Text("+\(points) pts")
+                    Text("+\(task.points) pts")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(iconColor)
+                        .background(task.color)
                         .cornerRadius(10)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
+                    Text(task.title)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "#1A2F23"))
-                    Text(subtitle)
+                        .foregroundColor(Theme.primaryText)
+                    Text(task.subtitle)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#6B7280"))
+                        .foregroundColor(Theme.secondaryText)
                         .lineLimit(2)
                 }
             }
             .padding(14)
             .frame(width: 160)
-            .background(backgroundColor)
+            .background(task.color.opacity(0.1))
             .cornerRadius(16)
         }
         .buttonStyle(ScaleButtonStyle())
@@ -364,21 +375,18 @@ struct MicroTaskCard: View {
 
 // MARK: - Zone D: Flash Drop
 
-struct FlashDropZone: View {
-    @State private var timeRemaining = 11565 // seconds (3:12:45)
+private struct FlashDropZone: View {
+    @State private var timeRemaining = 11565
 
-    var formattedTime: String {
-        let hours = timeRemaining / 3600
-        let minutes = (timeRemaining % 3600) / 60
-        let seconds = timeRemaining % 60
-        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    private var formattedTime: String {
+        let h = timeRemaining / 3600
+        let m = (timeRemaining % 3600) / 60
+        let s = timeRemaining % 60
+        return String(format: "%02d:%02d:%02d", h, m, s)
     }
 
     var body: some View {
-        Button {
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
-        } label: {
+        Button { haptic(.medium) } label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     HStack(spacing: 6) {
@@ -410,7 +418,6 @@ struct FlashDropZone: View {
                     Text("AT&T Fiber")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(.white)
-
                     Text("Switch & Save ~$18/mo + 500 Bonus Points")
                         .font(.system(size: 14))
                         .foregroundColor(.white.opacity(0.9))
@@ -419,7 +426,7 @@ struct FlashDropZone: View {
                 HStack {
                     Text("Claim Offer")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "#5B8A6B"))
+                        .foregroundColor(Theme.accent)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
                         .background(Color.white)
@@ -435,7 +442,7 @@ struct FlashDropZone: View {
             .padding(18)
             .background(
                 LinearGradient(
-                    colors: [Color(hex: "#5B8A6B"), Color(hex: "#3D6B4F")],
+                    colors: [Theme.accent, Color(hex: "#3D6B4F")],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -443,86 +450,72 @@ struct FlashDropZone: View {
             .cornerRadius(20)
         }
         .buttonStyle(ScaleButtonStyle(scale: 0.98))
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Theme.horizontalPadding)
     }
 }
 
-// MARK: - Zone E: Clusters Teaser
+// MARK: - Zone E: Clusters
 
-struct ClustersTeaser: View {
+private struct ClusterItem: Identifiable {
+    let id = UUID()
+    let category: String
+    let icon: String
+    let providerCount: Int
+    let avgPrice: String
+}
+
+private struct ClustersTeaser: View {
     let zipCode: String
 
-    let clusters = [
-        ClusterItem(category: "Internet", providerCount: 4, avgPrice: "$71"),
-        ClusterItem(category: "Electricity", providerCount: 2, avgPrice: "$102"),
-        ClusterItem(category: "Phone", providerCount: 6, avgPrice: "$65"),
+    private let clusters = [
+        ClusterItem(category: "Internet", icon: "wifi", providerCount: 4, avgPrice: "$71"),
+        ClusterItem(category: "Electricity", icon: "bolt.fill", providerCount: 2, avgPrice: "$102"),
+        ClusterItem(category: "Phone", icon: "iphone", providerCount: 6, avgPrice: "$65"),
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Provider Clusters in \(zipCode)")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "#1A2F23"))
+                Text("Provider Clusters in \(zipCode)").sectionHeader()
                 Spacer()
-                Button {
-                    // View all
-                } label: {
+                Button { haptic() } label: {
                     Text("See All")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color(hex: "#5B8A6B"))
+                        .foregroundColor(Theme.accent)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Theme.horizontalPadding)
 
             VStack(spacing: 10) {
-                ForEach(clusters, id: \.category) { cluster in
+                ForEach(clusters) { cluster in
                     ClusterRow(cluster: cluster)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Theme.horizontalPadding)
         }
     }
 }
 
-struct ClusterItem {
-    let category: String
-    let providerCount: Int
-    let avgPrice: String
-}
-
-struct ClusterRow: View {
+private struct ClusterRow: View {
     let cluster: ClusterItem
 
-    var icon: String {
-        switch cluster.category {
-        case "Internet": return "wifi"
-        case "Electricity": return "bolt.fill"
-        case "Phone": return "iphone"
-        default: return "doc.fill"
-        }
-    }
-
     var body: some View {
-        Button {
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-        } label: {
+        Button { haptic() } label: {
             HStack(spacing: 14) {
-                Image(systemName: icon)
+                Image(systemName: cluster.icon)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color(hex: "#5B8A6B"))
+                    .foregroundColor(Theme.accent)
                     .frame(width: 36, height: 36)
-                    .background(Color(hex: "#5B8A6B").opacity(0.12))
+                    .background(Theme.accentLight)
                     .cornerRadius(10)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(cluster.category)
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Color(hex: "#1A2F23"))
+                        .foregroundColor(Theme.primaryText)
                     Text("\(cluster.providerCount) Providers · Avg \(cluster.avgPrice)")
                         .font(.system(size: 13))
-                        .foregroundColor(Color(hex: "#6B7280"))
+                        .foregroundColor(Theme.secondaryText)
                 }
 
                 Spacer()
@@ -531,10 +524,7 @@ struct ClusterRow: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(Color(hex: "#CBD5E0"))
             }
-            .padding(14)
-            .background(Color.white)
-            .cornerRadius(14)
-            .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+            .cardStyle()
         }
         .buttonStyle(ScaleButtonStyle())
     }
@@ -542,74 +532,65 @@ struct ClusterRow: View {
 
 // MARK: - Zone F: Daily Bill Brief
 
-struct DailyBillBrief: View {
+private struct DailyBillBrief: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "newspaper.fill")
                     .font(.system(size: 16))
-                    .foregroundColor(Color(hex: "#3498DB"))
-                Text("Daily Bill Brief")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "#1A2F23"))
+                    .foregroundColor(Theme.info)
+                Text("Daily Bill Brief").sectionHeader()
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 6) {
                     Image(systemName: "thermometer.sun.fill")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#E74C3C"))
+                        .foregroundColor(Theme.danger)
                     Text("Heatwave Incoming")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "#1A2F23"))
+                        .foregroundColor(Theme.primaryText)
                 }
 
                 Text("Expect electric bills to rise ~$12 this week. Pre-cool your home in the morning to save on peak rates.")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "#6B7280"))
+                    .foregroundColor(Theme.secondaryText)
                     .lineSpacing(4)
 
-                Button {
-                    // Read more
-                } label: {
+                Button { haptic() } label: {
                     Text("Read Full Tip")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color(hex: "#3498DB"))
+                        .foregroundColor(Theme.info)
                 }
                 .padding(.top, 4)
             }
-            .padding(16)
-            .background(Color(hex: "#EBF5FB"))
-            .cornerRadius(14)
+            .padding(Theme.cardPadding)
+            .background(Theme.info.opacity(0.1))
+            .cornerRadius(Theme.cornerRadius)
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Theme.horizontalPadding)
     }
 }
 
 // MARK: - Zone G: Community Poll
 
-struct CommunityPollZone: View {
-    let percentAgree = 73
-    let userPays = "$110"
-    let avgPays = "$120"
+private struct CommunityPollZone: View {
+    private let percentAgree = 73
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "chart.bar.fill")
                     .font(.system(size: 16))
-                    .foregroundColor(Color(hex: "#9B59B6"))
-                Text("Community Poll")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "#1A2F23"))
+                    .foregroundColor(Theme.purple)
+                Text("Community Poll").sectionHeader()
             }
 
             VStack(alignment: .leading, spacing: 12) {
                 Text("Is $120 for car insurance too high?")
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(Color(hex: "#1A2F23"))
+                    .foregroundColor(Theme.primaryText)
 
-                // Poll bar
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 6)
@@ -617,122 +598,116 @@ struct CommunityPollZone: View {
                             .frame(height: 28)
 
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(hex: "#9B59B6"))
+                            .fill(Theme.purple)
                             .frame(width: geo.size.width * CGFloat(percentAgree) / 100, height: 28)
 
-                        HStack {
-                            Text("\(percentAgree)% say YES")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.leading, 12)
-                            Spacer()
-                        }
+                        Text("\(percentAgree)% say YES")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.leading, 12)
                     }
                 }
                 .frame(height: 28)
 
                 HStack(spacing: 4) {
-                    Text("You pay \(userPays)")
+                    Text("You pay $110")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Color(hex: "#27AE60"))
+                        .foregroundColor(Theme.success)
                     Text("(Better than average)")
                         .font(.system(size: 13))
-                        .foregroundColor(Color(hex: "#6B7280"))
+                        .foregroundColor(Theme.secondaryText)
                 }
             }
-            .padding(16)
-            .background(Color(hex: "#F5EEF8"))
-            .cornerRadius(14)
+            .padding(Theme.cardPadding)
+            .background(Theme.purple.opacity(0.1))
+            .cornerRadius(Theme.cornerRadius)
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Theme.horizontalPadding)
     }
 }
 
 // MARK: - Zone H: Bill Snapshot
 
-struct BillSnapshotZone: View {
+private struct BillSnapshotZone: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "doc.text.fill")
                     .font(.system(size: 16))
-                    .foregroundColor(Color(hex: "#E67E22"))
-                Text("Bill Snapshot")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "#1A2F23"))
+                    .foregroundColor(Theme.warning)
+                Text("Bill Snapshot").sectionHeader()
                 Spacer()
-                Button {
-                    // View all bills
-                } label: {
+                Button { haptic() } label: {
                     Text("View All")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color(hex: "#5B8A6B"))
+                        .foregroundColor(Theme.accent)
                 }
             }
 
             VStack(spacing: 12) {
-                // Next bill due
                 HStack(spacing: 12) {
                     Image(systemName: "calendar.badge.clock")
                         .font(.system(size: 18))
-                        .foregroundColor(Color(hex: "#E74C3C"))
+                        .foregroundColor(Theme.danger)
                         .frame(width: 40, height: 40)
-                        .background(Color(hex: "#FDEDEC"))
+                        .background(Theme.danger.opacity(0.1))
                         .cornerRadius(10)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Next Due: Verizon")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "#1A2F23"))
+                            .foregroundColor(Theme.primaryText)
                         Text("$82.10 · Due in 5 days")
                             .font(.system(size: 13))
-                            .foregroundColor(Color(hex: "#6B7280"))
+                            .foregroundColor(Theme.secondaryText)
                     }
 
                     Spacer()
 
-                    Button {
-                        // Pay now
-                    } label: {
+                    Button { haptic() } label: {
                         Text("Pay")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.white)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
-                            .background(Color(hex: "#5B8A6B"))
+                            .background(Theme.accent)
                             .cornerRadius(8)
                     }
                 }
 
                 Divider()
 
-                // Monthly total
                 HStack {
                     Text("Total Monthly")
                         .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#6B7280"))
+                        .foregroundColor(Theme.secondaryText)
                     Spacer()
                     Text("$1,247")
                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(hex: "#1A2F23"))
+                        .foregroundColor(Theme.primaryText)
                 }
             }
-            .padding(16)
-            .background(Color.white)
-            .cornerRadius(14)
-            .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+            .cardStyle()
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Theme.horizontalPadding)
     }
 }
 
 // MARK: - Zone I: Learn to Lower
 
-struct LearnToLowerZone: View {
-    let playbooks = [
-        Playbook(icon: "phone.fill", title: "Negotiate Internet", duration: "15 min", color: Color(hex: "#3498DB")),
-        Playbook(icon: "xmark.circle.fill", title: "Cancel Gym", duration: "10 min", color: Color(hex: "#E74C3C")),
-        Playbook(icon: "car.fill", title: "Lower Insurance", duration: "20 min", color: Color(hex: "#9B59B6")),
+private struct PlaybookItem: Identifiable {
+    let id = UUID()
+    let icon: String
+    let title: String
+    let duration: String
+    let color: Color
+}
+
+private struct LearnToLowerZone: View {
+    private let playbooks = [
+        PlaybookItem(icon: "phone.fill", title: "Negotiate Internet", duration: "15 min", color: Theme.info),
+        PlaybookItem(icon: "xmark.circle.fill", title: "Cancel Gym", duration: "10 min", color: Theme.danger),
+        PlaybookItem(icon: "car.fill", title: "Lower Insurance", duration: "20 min", color: Theme.purple),
     ]
 
     var body: some View {
@@ -740,40 +715,28 @@ struct LearnToLowerZone: View {
             HStack(spacing: 8) {
                 Image(systemName: "book.fill")
                     .font(.system(size: 16))
-                    .foregroundColor(Color(hex: "#27AE60"))
-                Text("Learn to Lower")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(hex: "#1A2F23"))
+                    .foregroundColor(Theme.success)
+                Text("Learn to Lower").sectionHeader()
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Theme.horizontalPadding)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(playbooks, id: \.title) { playbook in
+                    ForEach(playbooks) { playbook in
                         PlaybookCard(playbook: playbook)
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, Theme.horizontalPadding)
             }
         }
     }
 }
 
-struct Playbook {
-    let icon: String
-    let title: String
-    let duration: String
-    let color: Color
-}
-
-struct PlaybookCard: View {
-    let playbook: Playbook
+private struct PlaybookCard: View {
+    let playbook: PlaybookItem
 
     var body: some View {
-        Button {
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-        } label: {
+        Button { haptic() } label: {
             VStack(alignment: .leading, spacing: 12) {
                 Image(systemName: playbook.icon)
                     .font(.system(size: 24))
@@ -785,21 +748,21 @@ struct PlaybookCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(playbook.title)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "#1A2F23"))
+                        .foregroundColor(Theme.primaryText)
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
                             .font(.system(size: 10))
                         Text(playbook.duration)
                             .font(.system(size: 12))
                     }
-                    .foregroundColor(Color(hex: "#6B7280"))
+                    .foregroundColor(Theme.secondaryText)
                 }
             }
             .padding(14)
             .frame(width: 140)
-            .background(Color.white)
-            .cornerRadius(14)
-            .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+            .background(Theme.cardBackground)
+            .cornerRadius(Theme.cornerRadius)
+            .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
         }
         .buttonStyle(ScaleButtonStyle())
     }
@@ -807,36 +770,33 @@ struct PlaybookCard: View {
 
 // MARK: - Zone J: Invite & Earn
 
-struct InviteEarnBanner: View {
+private struct InviteEarnBanner: View {
     var body: some View {
-        Button {
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
-        } label: {
+        Button { haptic(.medium) } label: {
             HStack(spacing: 14) {
                 Image(systemName: "gift.fill")
                     .font(.system(size: 28))
-                    .foregroundColor(Color(hex: "#9B59B6"))
+                    .foregroundColor(Theme.purple)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Give $5, Get $5")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(Color(hex: "#1A2F23"))
+                        .foregroundColor(Theme.primaryText)
                     Text("Invite friends to verify their bills")
                         .font(.system(size: 13))
-                        .foregroundColor(Color(hex: "#6B7280"))
+                        .foregroundColor(Theme.secondaryText)
                 }
 
                 Spacer()
 
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(Color(hex: "#9B59B6"))
+                    .foregroundColor(Theme.purple)
             }
-            .padding(16)
+            .padding(Theme.cardPadding)
             .background(
                 LinearGradient(
-                    colors: [Color(hex: "#F5EEF8"), Color(hex: "#EDE7F6")],
+                    colors: [Theme.purple.opacity(0.1), Theme.purple.opacity(0.15)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -844,17 +804,17 @@ struct InviteEarnBanner: View {
             .cornerRadius(16)
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color(hex: "#9B59B6").opacity(0.3), lineWidth: 1)
+                    .stroke(Theme.purple.opacity(0.3), lineWidth: 1)
             )
         }
         .buttonStyle(ScaleButtonStyle(scale: 0.98))
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Theme.horizontalPadding)
     }
 }
 
 // MARK: - Scale Button Style
 
-struct ScaleButtonStyle: ButtonStyle {
+private struct ScaleButtonStyle: ButtonStyle {
     var scale: CGFloat = 0.95
 
     func makeBody(configuration: Configuration) -> some View {
