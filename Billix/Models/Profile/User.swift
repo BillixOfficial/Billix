@@ -95,6 +95,63 @@ struct UserProfileDB: Identifiable, Codable, Equatable {
     }
 }
 
+// MARK: - Billix Profile (New profiles table)
+/// Matches the `profiles` table in Supabase
+
+struct BillixProfile: Codable, Equatable {
+    let userId: UUID
+    var handle: String
+    var displayName: String?
+    var zipCode: String
+    var city: String?
+    var state: String?
+    var bio: String?
+    var gender: String?
+    var birthday: String?
+    var trustScore: Int
+    var isTrustedHelper: Bool
+    var billsAnalyzedCount: Int
+    var badgeLevel: String
+    var subscriptionTier: String
+    var profileVisibility: String
+    var createdAt: Date
+    var updatedAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case handle
+        case displayName = "display_name"
+        case zipCode = "zip_code"
+        case city, state, bio, gender, birthday
+        case trustScore = "trust_score"
+        case isTrustedHelper = "is_trusted_helper"
+        case billsAnalyzedCount = "bills_analyzed_count"
+        case badgeLevel = "badge_level"
+        case subscriptionTier = "subscription_tier"
+        case profileVisibility = "profile_visibility"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+
+    var formattedLocation: String {
+        if let city = city, let state = state {
+            return "\(zipCode) (\(city), \(state))"
+        }
+        return zipCode
+    }
+
+    var initials: String {
+        guard let name = displayName, !name.isEmpty else {
+            return String(handle.prefix(2)).uppercased()
+        }
+        let components = name.split(separator: " ")
+        if components.count >= 2 {
+            return "\(components[0].prefix(1))\(components[1].prefix(1))".uppercased()
+        }
+        return String(name.prefix(2)).uppercased()
+    }
+}
+
 // MARK: - Combined User (Convenience Wrapper)
 /// Combines vault and profile data for app-level use
 
@@ -102,21 +159,38 @@ struct CombinedUser: Identifiable, Equatable {
     let id: UUID
     var vault: UserVault
     var profile: UserProfileDB
+    var billixProfile: BillixProfile?
+
+    var handle: String {
+        billixProfile?.handle ?? "user"
+    }
 
     var displayName: String {
-        profile.displayName ?? "User"
+        billixProfile?.displayName ?? profile.displayName ?? "User"
+    }
+
+    var fullDisplayName: String {
+        "@\(handle) \(displayName)"
     }
 
     var zipCode: String {
-        vault.zipCode
+        billixProfile?.zipCode ?? vault.zipCode
+    }
+
+    var formattedLocation: String {
+        billixProfile?.formattedLocation ?? vault.zipCode
+    }
+
+    var bio: String? {
+        billixProfile?.bio ?? profile.bio
     }
 
     var isNewUser: Bool {
-        profile.displayName == nil
+        profile.displayName == nil && billixProfile?.displayName == nil
     }
 
     var initials: String {
-        profile.initials
+        billixProfile?.initials ?? profile.initials
     }
 
     var memberSinceString: String {
@@ -285,11 +359,34 @@ extension UserProfileDB {
     )
 }
 
+extension BillixProfile {
+    static let preview = BillixProfile(
+        userId: UUID(),
+        handle: "ronaldrichards",
+        displayName: "Ronald Richards",
+        zipCode: "07054",
+        city: "Newark",
+        state: "NJ",
+        bio: "Helping my community save money on bills.",
+        gender: "male",
+        birthday: "1990-06-15",
+        trustScore: 75,
+        isTrustedHelper: true,
+        billsAnalyzedCount: 16,
+        badgeLevel: "silver",
+        subscriptionTier: "free",
+        profileVisibility: "public",
+        createdAt: Calendar.current.date(byAdding: .month, value: -3, to: Date()) ?? Date(),
+        updatedAt: Date()
+    )
+}
+
 extension CombinedUser {
     static let preview = CombinedUser(
         id: UUID(),
         vault: .preview,
-        profile: .preview
+        profile: .preview,
+        billixProfile: .preview
     )
 }
 

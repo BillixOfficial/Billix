@@ -9,18 +9,50 @@ import Foundation
 import SwiftUI
 import PhotosUI
 
+// MARK: - Gender Options
+
+enum GenderOption: String, CaseIterable, Identifiable {
+    case male = "male"
+    case female = "female"
+    case nonBinary = "non_binary"
+    case preferNotToSay = "prefer_not_to_say"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .male: return "Male"
+        case .female: return "Female"
+        case .nonBinary: return "Non-binary"
+        case .preferNotToSay: return "Prefer not to say"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .male: return "person.fill"
+        case .female: return "person.fill"
+        case .nonBinary: return "person.2.fill"
+        case .preferNotToSay: return "hand.raised.fill"
+        }
+    }
+}
+
 @MainActor
 class OnboardingViewModel: ObservableObject {
 
     // MARK: - Step Management
     @Published var currentStep = 1
-    let totalSteps = 4
+    let totalSteps = 6  // ZIP, Handle, Display Name, Avatar, Birthday, Gender
 
     // MARK: - Form Data
     @Published var zipCode = ""
+    @Published var handle = ""  // NEW: Username like @SavingsKing
     @Published var displayName = ""
     @Published var selectedImage: UIImage?
     @Published var selectedPhotoItem: PhotosPickerItem?
+    @Published var birthday: Date = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()  // NEW: Default to 25 years ago
+    @Published var selectedGender: GenderOption?  // NEW: Gender selection
     @Published var selectedGoal: GoalOption?
     @Published var customGoal = ""
 
@@ -32,20 +64,44 @@ class OnboardingViewModel: ObservableObject {
     @Published var imagePickerSource: UIImagePickerController.SourceType = .photoLibrary
 
     // MARK: - Validation
+
     var isZipCodeValid: Bool {
         let digitsOnly = zipCode.filter { $0.isNumber }
         return digitsOnly.count == 5
+    }
+
+    var isHandleValid: Bool {
+        let trimmed = handle.trimmingCharacters(in: .whitespaces)
+        // Handle must be 3-20 characters, alphanumeric and underscores only
+        let regex = "^[a-zA-Z0-9_]{3,20}$"
+        return trimmed.range(of: regex, options: .regularExpression) != nil
     }
 
     var isDisplayNameValid: Bool {
         displayName.trimmingCharacters(in: .whitespaces).count >= 2
     }
 
+    var isBirthdayValid: Bool {
+        // Must be at least 18 years old
+        let calendar = Calendar.current
+        let ageComponents = calendar.dateComponents([.year], from: birthday, to: Date())
+        return (ageComponents.year ?? 0) >= 18
+    }
+
+    var userAge: Int {
+        let calendar = Calendar.current
+        let ageComponents = calendar.dateComponents([.year], from: birthday, to: Date())
+        return ageComponents.year ?? 0
+    }
+
     var canProceedFromCurrentStep: Bool {
         switch currentStep {
         case 1: return isZipCodeValid
-        case 2: return isDisplayNameValid
-        case 3, 4: return true // Optional steps
+        case 2: return isHandleValid
+        case 3: return isDisplayNameValid
+        case 4: return true  // Avatar is optional
+        case 5: return isBirthdayValid
+        case 6: return true  // Gender is optional
         default: return false
         }
     }
@@ -55,6 +111,14 @@ class OnboardingViewModel: ObservableObject {
             return selected == .custom ? customGoal : selected.title
         }
         return nil
+    }
+
+    // Date range for birthday picker (18-100 years old)
+    var birthdayRange: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let minDate = calendar.date(byAdding: .year, value: -100, to: Date()) ?? Date()
+        let maxDate = calendar.date(byAdding: .year, value: -18, to: Date()) ?? Date()
+        return minDate...maxDate
     }
 
     // MARK: - Initialization
@@ -100,8 +164,8 @@ class OnboardingViewModel: ObservableObject {
     }
 
     func skipCurrentStep() {
-        // Only allow skipping optional steps (3 and 4)
-        guard currentStep >= 3 else { return }
+        // Only allow skipping optional steps (4: Avatar, 6: Gender)
+        guard currentStep == 4 || currentStep == 6 else { return }
 
         if currentStep < totalSteps {
             withAnimation(.easeInOut(duration: 0.3)) {
@@ -151,8 +215,11 @@ class OnboardingViewModel: ObservableObject {
         do {
             try await AuthService.shared.completeOnboarding(
                 zipCode: zipCode.filter { $0.isNumber },
+                handle: handle.trimmingCharacters(in: .whitespaces).lowercased(),
                 displayName: displayName.trimmingCharacters(in: .whitespaces),
                 avatarData: avatarData,
+                birthday: birthday,
+                gender: selectedGender?.rawValue,
                 goal: finalGoal
             )
         } catch {

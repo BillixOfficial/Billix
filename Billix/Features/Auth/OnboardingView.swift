@@ -33,9 +33,11 @@ struct OnboardingView: View {
                 Group {
                     switch viewModel.currentStep {
                     case 1: zipCodeStep
-                    case 2: displayNameStep
-                    case 3: avatarStep
-                    case 4: goalStep
+                    case 2: handleStep
+                    case 3: displayNameStep
+                    case 4: avatarStep
+                    case 5: birthdayStep
+                    case 6: genderStep
                     default: zipCodeStep
                     }
                 }
@@ -145,7 +147,75 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 2: Display Name
+    // MARK: - Step 2: Handle (Username)
+
+    private var handleStep: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            // Icon
+            Image(systemName: "at.circle.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.white)
+
+            // Title
+            Text("Pick a username")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+
+            // Subtitle
+            Text("This is your unique handle in the Billix community. Others will see this on the marketplace and leaderboards.")
+                .font(.body)
+                .foregroundColor(.white.opacity(0.8))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            // Input with @ prefix
+            HStack(spacing: 0) {
+                Text("@")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white.opacity(0.6))
+
+                TextField("", text: $viewModel.handle, prompt: Text("savingsking").foregroundColor(.white.opacity(0.4)))
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(.white)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+            }
+            .padding()
+            .background(Color.white.opacity(0.15))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(viewModel.isHandleValid ? Color.white : Color.white.opacity(0.3), lineWidth: 2)
+            )
+            .padding(.horizontal, 40)
+            .onChange(of: viewModel.handle) { _, newValue in
+                // Remove @ if typed and limit characters
+                let cleaned = newValue.replacingOccurrences(of: "@", with: "")
+                    .lowercased()
+                    .filter { $0.isLetter || $0.isNumber || $0 == "_" }
+                if cleaned.count > 20 {
+                    viewModel.handle = String(cleaned.prefix(20))
+                } else {
+                    viewModel.handle = cleaned
+                }
+            }
+
+            // Validation feedback
+            if !viewModel.handle.isEmpty && !viewModel.isHandleValid {
+                Text("3-20 characters, letters, numbers, and underscores only")
+                    .font(.caption)
+                    .foregroundColor(.orange.opacity(0.9))
+            }
+
+            Spacer()
+            Spacer()
+        }
+    }
+
+    // MARK: - Step 3: Display Name
 
     private var displayNameStep: some View {
         VStack(spacing: 24) {
@@ -163,7 +233,7 @@ struct OnboardingView: View {
                 .foregroundColor(.white)
 
             // Subtitle
-            Text("This is how you'll appear in the community.")
+            Text("This is your display name in the community.")
                 .font(.body)
                 .foregroundColor(.white.opacity(0.8))
                 .multilineTextAlignment(.center)
@@ -198,7 +268,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 3: Avatar
+    // MARK: - Step 4: Avatar
 
     private var avatarStep: some View {
         VStack(spacing: 24) {
@@ -288,35 +358,95 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 4: Goal
+    // MARK: - Step 5: Birthday
 
-    private var goalStep: some View {
+    private var birthdayStep: some View {
         VStack(spacing: 24) {
             Spacer()
 
+            // Icon
+            Image(systemName: "birthday.cake.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.white)
+
             // Title
-            Text("What's your main goal?")
+            Text("When's your birthday?")
                 .font(.title)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
 
             // Subtitle
-            Text("We'll personalize your experience based on what matters most to you.")
+            Text("We need this to verify you're 18+ for marketplace transactions and contracts.")
                 .font(.body)
                 .foregroundColor(.white.opacity(0.8))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
-            // Goal options
+            // Date Picker
+            DatePicker(
+                "",
+                selection: $viewModel.birthday,
+                in: viewModel.birthdayRange,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.wheel)
+            .labelsHidden()
+            .colorScheme(.dark)
+            .padding(.horizontal, 40)
+
+            // Age display
+            HStack(spacing: 8) {
+                if viewModel.isBirthdayValid {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("You're \(viewModel.userAge) years old")
+                        .foregroundColor(.white.opacity(0.8))
+                } else {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundColor(.orange)
+                    Text("You must be 18 or older")
+                        .foregroundColor(.orange.opacity(0.9))
+                }
+            }
+            .font(.callout)
+
+            Spacer()
+        }
+    }
+
+    // MARK: - Step 6: Gender
+
+    private var genderStep: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            // Icon
+            Image(systemName: "person.2.circle.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.white)
+
+            // Title
+            Text("How do you identify?")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+
+            // Subtitle
+            Text("Optional - helps us personalize your experience.")
+                .font(.body)
+                .foregroundColor(.white.opacity(0.8))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            // Gender options
             VStack(spacing: 12) {
-                ForEach(GoalOption.allCases) { goal in
-                    GoalOptionCard(
-                        goal: goal,
-                        isSelected: viewModel.selectedGoal == goal,
-                        customText: goal == .custom ? $viewModel.customGoal : nil
+                ForEach(GenderOption.allCases) { gender in
+                    GenderOptionCard(
+                        gender: gender,
+                        isSelected: viewModel.selectedGender == gender
                     ) {
                         withAnimation(.easeInOut(duration: 0.2)) {
-                            viewModel.selectedGoal = goal
+                            viewModel.selectedGender = gender
                         }
                     }
                 }
@@ -347,8 +477,8 @@ struct OnboardingView: View {
 
             Spacer()
 
-            // Skip button (only on optional steps)
-            if viewModel.currentStep >= 3 {
+            // Skip button (only on optional steps: 4 Avatar, 6 Gender)
+            if viewModel.currentStep == 4 || viewModel.currentStep == 6 {
                 Button {
                     viewModel.skipCurrentStep()
                 } label: {
@@ -382,6 +512,48 @@ struct OnboardingView: View {
             }
             .disabled(!viewModel.canProceedFromCurrentStep || viewModel.isLoading)
         }
+    }
+}
+
+// MARK: - Gender Option Card
+
+struct GenderOptionCard: View {
+    let gender: GenderOption
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 16) {
+                Image(systemName: gender.icon)
+                    .font(.title2)
+                    .foregroundColor(isSelected ? .white : .white.opacity(0.7))
+                    .frame(width: 44, height: 44)
+                    .background(isSelected ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
+                    .cornerRadius(12)
+
+                Text(gender.title)
+                    .font(.body)
+                    .fontWeight(isSelected ? .semibold : .regular)
+                    .foregroundColor(.white)
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(16)
+            .background(isSelected ? Color.white.opacity(0.2) : Color.white.opacity(0.1))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(isSelected ? Color.white : Color.clear, lineWidth: 2)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

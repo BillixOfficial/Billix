@@ -23,6 +23,11 @@ class AuthService: ObservableObject {
     @Published var isAuthenticated = false
     @Published var needsOnboarding = false
     @Published var isLoading = true
+    @Published var awaitingEmailVerification = false
+    @Published var pendingVerificationEmail: String?
+
+    // Temporary password storage for email verification polling (cleared after verification)
+    private var pendingVerificationPassword: String?
 
     // Temporary storage for Apple-provided name during onboarding
     var appleProvidedName: PersonNameComponents?
@@ -185,9 +190,18 @@ class AuthService: ObservableObject {
             .execute()
             .value
 
+        // Fetch from new profiles table
+        let billixProfileResult: BillixProfile? = try? await supabase
+            .from("profiles")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
         let (vault, profile) = try await (vaultResult, profileResult)
 
-        return CombinedUser(id: userId, vault: vault, profile: profile)
+        return CombinedUser(id: userId, vault: vault, profile: profile, billixProfile: billixProfileResult)
     }
 
     private func updateLastLogin(userId: UUID) async throws {
@@ -282,7 +296,7 @@ class AuthService: ObservableObject {
     }
 
     /// Sign up with email and password
-    /// Returns true if email confirmation is required, false if user is signed in immediately
+    /// Sets awaitingEmailVerification if confirmation is required
     @discardableResult
     func signUp(email: String, password: String) async throws -> Bool {
         isLoading = true
@@ -318,8 +332,11 @@ class AuthService: ObservableObject {
                     print("✅ Sign up successful - auto signed in")
                     return false
                 } catch {
-                    // Email confirmation truly required
-                    print("⚠️ Sign up successful - email confirmation required")
+                    // Email confirmation truly required - show verification screen
+                    print("✅ Sign up successful - awaiting email verification")
+                    self.pendingVerificationEmail = email
+                    self.pendingVerificationPassword = password
+                    self.awaitingEmailVerification = true
                     return true
                 }
             }
@@ -328,13 +345,69 @@ class AuthService: ObservableObject {
         }
     }
 
+    // MARK: - Email Verification
+
+    /// Check if user has verified their email (called by polling)
+    func checkEmailVerification() async -> Bool {
+        guard let email = pendingVerificationEmail,
+              let password = pendingVerificationPassword else { return false }
+
+        do {
+            // Try to sign in - if email is verified, this will succeed
+            let session = try await supabase.auth.signIn(
+                email: email,
+                password: password
+            )
+            // Success! User is verified and signed in
+            await handleSession(session)
+            awaitingEmailVerification = false
+            pendingVerificationEmail = nil
+            pendingVerificationPassword = nil
+            return true
+        } catch {
+            // Sign-in failed - email likely not verified yet
+            // Check if the error message indicates unverified email
+            let errorMessage = error.localizedDescription.lowercased()
+            if errorMessage.contains("confirm") || errorMessage.contains("verify") {
+                // Still waiting for email confirmation
+                return false
+            }
+            // Some other error - still return false but log it
+            print("⚠️ Email verification check error: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Resend verification email
+    func resendVerificationEmail(email: String) async throws {
+        do {
+            try await supabase.auth.resend(
+                email: email,
+                type: .signup
+            )
+            print("✅ Verification email resent to \(email)")
+        } catch {
+            throw AuthError.emailVerificationFailed(error.localizedDescription)
+        }
+    }
+
+    /// Cancel email verification and go back to login
+    func cancelEmailVerification() {
+        awaitingEmailVerification = false
+        pendingVerificationEmail = nil
+        pendingVerificationPassword = nil
+    }
+
     // MARK: - Onboarding Completion
 
-    /// Complete onboarding by creating vault and profile records
+    /// Complete onboarding by creating profile record in the new profiles table
     func completeOnboarding(
         zipCode: String,
+        handle: String,
         displayName: String,
         avatarData: Data? = nil,
+        birthday: Date,
+        gender: String? = nil,
         goal: String? = nil
     ) async throws {
         isLoading = true
@@ -347,19 +420,48 @@ class AuthService: ObservableObject {
         }
 
         let userId = session.user.id
-        var avatarUrl: String? = nil
 
-        // Upload avatar if provided
-        if let imageData = avatarData {
-            do {
-                avatarUrl = try await uploadAvatar(userId: userId, imageData: imageData)
-            } catch {
-                // Continue without avatar if upload fails
-                print("⚠️ Avatar upload failed: \(error)")
-            }
-        }
+        // Format birthday as ISO date string
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let birthdayString = dateFormatter.string(from: birthday)
 
         do {
+            // Look up city/state from zip code
+            let zipInfo = await ZipCodeService.shared.lookupZipCode(zipCode)
+
+            // Create profile record in the new profiles table
+            var profileData: [String: AnyJSON] = [
+                "user_id": .string(userId.uuidString),
+                "handle": .string(handle),
+                "display_name": .string(displayName),
+                "zip_code": .string(zipCode),
+                "birthday": .string(birthdayString),
+                "trust_score": .integer(0),
+                "is_trusted_helper": .bool(false),
+                "bills_analyzed_count": .integer(0),
+                "badge_level": .string("newbie"),
+                "subscription_tier": .string("free"),
+                "profile_visibility": .string("public")
+            ]
+
+            // Add city and state if zip lookup succeeded
+            if let zipInfo = zipInfo {
+                profileData["city"] = .string(zipInfo.city)
+                profileData["state"] = .string(zipInfo.state)
+            }
+
+            // Add optional gender if provided
+            if let gender = gender {
+                profileData["gender"] = .string(gender)
+            }
+
+            try await supabase
+                .from("profiles")
+                .insert(profileData)
+                .execute()
+
+            // Also create the legacy records for backward compatibility
             // Create user vault record
             let vaultInsert = UserVaultInsert(
                 id: userId,
@@ -374,16 +476,16 @@ class AuthService: ObservableObject {
                 .execute()
 
             // Create user profile record
-            let profileInsert = UserProfileInsert(
+            let legacyProfileInsert = UserProfileInsert(
                 id: userId,
                 displayName: displayName,
-                avatarUrl: avatarUrl,
+                avatarUrl: nil,
                 goal: goal
             )
 
             try await supabase
                 .from("user_profiles")
-                .insert(profileInsert)
+                .insert(legacyProfileInsert)
                 .execute()
 
             // Fetch the created user data
@@ -398,7 +500,7 @@ class AuthService: ObservableObject {
             self.appleProvidedName = nil
             self.isLoading = false
 
-            print("✅ Onboarding completed")
+            print("✅ Onboarding completed - profile created with handle @\(handle)")
         } catch {
             isLoading = false
             throw error
@@ -461,28 +563,48 @@ class AuthService: ObservableObject {
 
     // MARK: - Profile Updates
 
-    /// Update user profile
+    /// Update user profile (updates both legacy and new profiles tables)
     func updateProfile(displayName: String? = nil, bio: String? = nil, goal: String? = nil) async throws {
         guard let userId = currentUser?.id else {
             throw AuthError.noUserLoggedIn
         }
 
-        var updates: [String: String] = [:]
-        if let displayName = displayName { updates["display_name"] = displayName }
-        if let bio = bio { updates["bio"] = bio }
-        if let goal = goal { updates["goal"] = goal }
+        // Update legacy user_profiles table
+        var legacyUpdates: [String: String] = [:]
+        if let displayName = displayName { legacyUpdates["display_name"] = displayName }
+        if let bio = bio { legacyUpdates["bio"] = bio }
+        if let goal = goal { legacyUpdates["goal"] = goal }
 
-        guard !updates.isEmpty else { return }
+        if !legacyUpdates.isEmpty {
+            try await supabase
+                .from("user_profiles")
+                .update(legacyUpdates)
+                .eq("id", value: userId.uuidString)
+                .execute()
+        }
 
-        try await supabase
-            .from("user_profiles")
-            .update(updates)
-            .eq("id", value: userId.uuidString)
-            .execute()
+        // Update new profiles table
+        var profileUpdates: [String: String] = [:]
+        if let displayName = displayName { profileUpdates["display_name"] = displayName }
+        if let bio = bio { profileUpdates["bio"] = bio }
+
+        if !profileUpdates.isEmpty {
+            try await supabase
+                .from("profiles")
+                .update(profileUpdates)
+                .eq("user_id", value: userId.uuidString)
+                .execute()
+        }
 
         // Refresh user data
         let user = try await fetchUserData(userId: userId)
         self.currentUser = user
+    }
+
+    /// Update bio only
+    func updateBio(_ bio: String) async throws {
+        try await updateProfile(bio: bio)
+        print("✅ Bio updated")
     }
 
     /// Update avatar
