@@ -24,7 +24,7 @@ struct QuickAddStep2Provider: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.billixDarkGreen)
 
-                    Text("We'll find providers in your area")
+                    Text("We'll show your options")
                         .font(.system(size: 15))
                         .foregroundColor(.billixMediumGreen)
                 }
@@ -145,7 +145,7 @@ struct QuickAddStep2Provider: View {
                     .font(.system(size: 14))
                     .foregroundColor(.billixMoneyGreen)
 
-                Text("Providers in your area")
+                Text("Select your provider")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.billixDarkGreen)
             }
@@ -228,7 +228,7 @@ struct QuickAddStep2Provider: View {
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.billixDarkGreen)
 
-                Text("We don't have pricing data for providers in your area yet. Try Full Analysis to scan your bill and help build our database!")
+                Text("We don't have your provider in our database yet. Try Full Analysis to scan your bill and help us add it!")
                     .font(.system(size: 14))
                     .foregroundColor(.billixMediumGreen)
                     .multilineTextAlignment(.center)
@@ -383,35 +383,27 @@ struct ProviderCard: View {
                         .foregroundColor(isSelected ? .white : .billixMediumGreen)
                 }
 
-                // Provider info
+                // Provider info - name, category, verified check, and sample size
                 VStack(alignment: .leading, spacing: 4) {
                     Text(provider.name)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.billixDarkGreen)
 
-                    if let avgAmount = provider.formattedAvgAmount {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chart.bar.fill")
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(.billixMoneyGreen)
+                        Text(provider.category.capitalized)
+                            .font(.system(size: 12))
+                        // Only show sample size if 5 or more bills
+                        if let count = provider.sampleSize, count >= 5 {
+                            Text("•")
                                 .font(.system(size: 10))
-                            Text(avgAmount)
-                                .font(.system(size: 12, weight: .medium))
-                            if let sampleSize = provider.sampleSizeDescription {
-                                Text("•")
-                                    .font(.system(size: 10))
-                                Text(sampleSize)
-                                    .font(.system(size: 11))
-                            }
+                            Text("Based on \(count) bills")
+                                .font(.system(size: 11))
                         }
-                        .foregroundColor(.billixMediumGreen)
-                    } else {
-                        HStack(spacing: 4) {
-                            Image(systemName: "building.2.fill")
-                                .font(.system(size: 10))
-                            Text(provider.category.capitalized)
-                                .font(.system(size: 12))
-                        }
-                        .foregroundColor(.billixMediumGreen)
                     }
+                    .foregroundColor(.billixMediumGreen)
                 }
 
                 Spacer()

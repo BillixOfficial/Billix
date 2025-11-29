@@ -19,10 +19,10 @@ enum UploadSource: String, Codable, CaseIterable {
     var displayName: String {
         switch self {
         case .quickAdd: return "Quick Add"
-        case .camera: return "Camera"
-        case .photos: return "Photo Library"
-        case .documentScanner: return "Document Scanner"
-        case .documentPicker: return "File Picker"
+        case .camera: return "Full Analysis"
+        case .photos: return "Full Analysis"
+        case .documentScanner: return "Full Analysis"
+        case .documentPicker: return "Full Analysis"
         }
     }
 

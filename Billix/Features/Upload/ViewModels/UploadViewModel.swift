@@ -23,6 +23,8 @@ class UploadViewModel: ObservableObject {
     // Navigation
     @Published var showQuickAddFlow: Bool = false
     @Published var showScanUploadFlow: Bool = false
+    @Published var selectedUpload: RecentUpload?
+    @Published var selectedBill: StoredBill?
 
     // Media Pickers
     @Published var showCamera: Bool = false
@@ -30,6 +32,8 @@ class UploadViewModel: ObservableObject {
     @Published var showDocumentPicker: Bool = false
     @Published var selectedImage: UIImage?
     @Published var selectedDocumentURL: URL?
+    @Published var selectedFileData: Data?
+    @Published var selectedFileName: String?
 
     // MARK: - Dependencies
 
@@ -92,6 +96,16 @@ class UploadViewModel: ObservableObject {
         }
     }
 
+    func findStoredBill(for id: UUID) -> StoredBill? {
+        guard let context = modelContext else { return nil }
+
+        let descriptor = FetchDescriptor<StoredBill>(
+            predicate: #Predicate { $0.id == id }
+        )
+
+        return try? context.fetch(descriptor).first
+    }
+
     // MARK: - Actions
 
     func startQuickAdd() {
@@ -136,10 +150,33 @@ class UploadViewModel: ObservableObject {
 
     func handleDocumentSelected(_ url: URL) {
         selectedDocumentURL = url
-        // Process the document - convert to image if needed, then start scan upload flow
-        if let image = loadImageFromDocument(url) {
-            selectedImage = image
+
+        // Access security-scoped resource
+        guard url.startAccessingSecurityScopedResource() else {
+            print("Failed to access security-scoped resource")
+            return
+        }
+        defer { url.stopAccessingSecurityScopedResource() }
+
+        do {
+            let fileData = try Data(contentsOf: url)
+            let fileName = url.lastPathComponent
+
+            // Try to load as image first
+            if let image = UIImage(data: fileData) {
+                selectedImage = image
+                selectedFileData = nil
+                selectedFileName = nil
+            } else {
+                // Not an image (e.g., PDF) - store raw file data
+                selectedImage = nil
+                selectedFileData = fileData
+                selectedFileName = fileName
+            }
+
             showScanUploadFlow = true
+        } catch {
+            print("Failed to read file: \(error.localizedDescription)")
         }
     }
 

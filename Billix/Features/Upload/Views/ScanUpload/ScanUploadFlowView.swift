@@ -6,15 +6,21 @@
 //
 
 import SwiftUI
+import SwiftData
 
 /// Container for Scan/Upload flow
 struct ScanUploadFlowView: View {
     @StateObject private var viewModel: ScanUploadViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     let onComplete: () -> Void
 
-    init(preselectedImage: UIImage? = nil, onComplete: @escaping () -> Void) {
-        _viewModel = StateObject(wrappedValue: ScanUploadViewModel(preselectedImage: preselectedImage))
+    init(preselectedImage: UIImage? = nil, fileData: Data? = nil, fileName: String? = nil, onComplete: @escaping () -> Void) {
+        _viewModel = StateObject(wrappedValue: ScanUploadViewModel(
+            preselectedImage: preselectedImage,
+            fileData: fileData,
+            fileName: fileName
+        ))
         self.onComplete = onComplete
     }
 
@@ -23,7 +29,14 @@ struct ScanUploadFlowView: View {
             ZStack {
                 switch viewModel.uploadState {
                 case .idle, .selecting:
-                    ScanUploadOptionsView(viewModel: viewModel)
+                    // If we have preselected content, show progress immediately
+                    // The actual upload will start in onAppear via startIfReady()
+                    if viewModel.hasPreselectedContent {
+                        ScanUploadProgressView(viewModel: viewModel)
+                    } else {
+                        // Only show options if somehow no content was provided (fallback)
+                        ScanUploadOptionsView(viewModel: viewModel)
+                    }
 
                 case .uploading, .analyzing:
                     ScanUploadProgressView(viewModel: viewModel)
@@ -40,15 +53,22 @@ struct ScanUploadFlowView: View {
                     })
                 }
             }
-            .navigationTitle("Upload Bill")
+            .navigationTitle("Full Analysis")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(.billixChartBlue)
                 }
             }
+        }
+        .onAppear {
+            // Inject ModelContext into ViewModel for saving bills
+            viewModel.modelContext = modelContext
+            // Start processing if there's preselected content
+            viewModel.startIfReady()
         }
     }
 }

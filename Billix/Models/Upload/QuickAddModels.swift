@@ -36,6 +36,27 @@ struct BillProvider: Identifiable, Codable, Hashable {
         guard let count = sampleSize, count > 0 else { return nil }
         return "Based on \(count) bill\(count == 1 ? "" : "s")"
     }
+
+    /// Popularity indicator for provider cards (doesn't reveal amounts)
+    /// Shows social proof without spoiling the comparison reveal
+    var popularityDescription: String? {
+        guard let count = sampleSize, count > 0 else { return nil }
+        if count >= 50 {
+            return "Very popular"
+        } else if count >= 20 {
+            return "Popular choice"
+        } else if count >= 5 {
+            return "\(count) neighbors use this"
+        } else {
+            return "Available"
+        }
+    }
+
+    /// Whether we have enough data for a good comparison
+    var hasGoodData: Bool {
+        guard let count = sampleSize else { return false }
+        return count >= 5
+    }
 }
 
 // MARK: - Billing Frequency

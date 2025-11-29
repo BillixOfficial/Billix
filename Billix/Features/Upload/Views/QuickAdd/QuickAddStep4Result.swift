@@ -11,6 +11,7 @@ struct QuickAddStep4Result: View {
     @ObservedObject var viewModel: QuickAddViewModel
     var namespace: Namespace.ID
     let onComplete: () -> Void
+    var onSeeWhatImMissing: (() -> Void)?
 
     @State private var appeared = false
     @State private var showConfetti = false
@@ -70,6 +71,15 @@ struct QuickAddStep4Result: View {
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 appeared = true
+            }
+
+            // Auto-save the Quick Add result immediately
+            Task {
+                do {
+                    try await viewModel.saveQuickAddResult()
+                } catch {
+                    print("Failed to auto-save Quick Add result: \(error)")
+                }
             }
 
             // Trigger confetti after a short delay
@@ -230,28 +240,27 @@ struct QuickAddStep4Result: View {
         VStack(spacing: 16) {
             // Tip text
             HStack(spacing: 8) {
-                Image(systemName: "lightbulb.fill")
+                Image(systemName: "eye.fill")
                     .font(.system(size: 14))
-                    .foregroundColor(.billixSavingsYellow)
+                    .foregroundColor(.billixChartBlue)
 
-                Text("Upload your bill for detailed breakdown and savings tips")
+                Text("Get hidden fees, line-by-line breakdown & more savings")
                     .font(.system(size: 13))
                     .foregroundColor(.billixMediumGreen)
             }
             .padding(.horizontal, 8)
 
-            // Primary CTA - Upload Bill
+            // Primary CTA - See What I'm Missing
             Button {
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
-                // TODO: Navigate to upload flow
-                onComplete()
+                onSeeWhatImMissing?()
             } label: {
                 HStack(spacing: 12) {
-                    Image(systemName: "doc.fill")
+                    Image(systemName: "sparkle.magnifyingglass")
                         .font(.system(size: 16, weight: .semibold))
 
-                    Text("Upload Bill for Details")
+                    Text("See What I'm Missing")
                         .font(.system(size: 17, weight: .semibold))
                 }
                 .foregroundColor(.white)
@@ -259,13 +268,13 @@ struct QuickAddStep4Result: View {
                 .frame(height: 56)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.accentSecondary)
+                        .fill(Color.billixChartBlue)
                 )
-                .shadow(color: Color.accentSecondary.opacity(0.35), radius: 12, y: 6)
+                .shadow(color: Color.billixChartBlue.opacity(0.35), radius: 12, y: 6)
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
 
-            // Secondary CTA - Done
+            // Secondary CTA - Done (data already auto-saved on appear)
             Button {
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
@@ -346,7 +355,7 @@ struct QuickAddStep4Result: View {
         var body: some View {
             ZStack {
                 Color.billixLightGreen.ignoresSafeArea()
-                QuickAddStep4Result(viewModel: viewModel, namespace: namespace, onComplete: {})
+                QuickAddStep4Result(viewModel: viewModel, namespace: namespace, onComplete: {}, onSeeWhatImMissing: {})
             }
             .onAppear {
                 // Create mock result

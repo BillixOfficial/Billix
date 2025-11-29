@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 /// Container for the 4-step Quick Add flow with modern design
 struct QuickAddFlowView: View {
     @StateObject private var viewModel = QuickAddViewModel()
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @Namespace private var animation
     @State private var showProgress = true
     let onComplete: () -> Void
@@ -59,10 +61,18 @@ struct QuickAddFlowView: View {
                                     removal: .move(edge: .leading).combined(with: .opacity)
                                 ))
                         case .result:
-                            QuickAddStep4Result(viewModel: viewModel, namespace: animation, onComplete: {
-                                onComplete()
-                                dismiss()
-                            })
+                            QuickAddStep4Result(
+                                viewModel: viewModel,
+                                namespace: animation,
+                                onComplete: {
+                                    onComplete()
+                                    dismiss()
+                                },
+                                onSeeWhatImMissing: {
+                                    dismiss()
+                                    onSwitchToFullAnalysis?()
+                                }
+                            )
                             .transition(.asymmetric(
                                 insertion: .scale(scale: 0.9).combined(with: .opacity),
                                 removal: .opacity
@@ -75,6 +85,7 @@ struct QuickAddFlowView: View {
             }
             .navigationBarHidden(true)
             .onAppear {
+                viewModel.modelContext = modelContext
                 viewModel.onAppear()
             }
         }

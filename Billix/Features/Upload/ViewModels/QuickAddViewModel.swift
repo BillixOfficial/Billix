@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 
 /// ViewModel for the 4-step Quick Add flow
 @MainActor
@@ -51,10 +52,12 @@ class QuickAddViewModel: ObservableObject {
 
     // Step 4: Result
     @Published var result: QuickAddResult?
+    @Published var savedBillId: UUID?
 
     // MARK: - Dependencies
 
     private let uploadService: BillUploadServiceProtocol
+    var modelContext: ModelContext?
 
     // MARK: - Initialization
 
@@ -207,7 +210,32 @@ class QuickAddViewModel: ObservableObject {
         amount = ""
         frequency = .monthly
         result = nil
+        savedBillId = nil
         errorMessage = nil
+    }
+
+    // MARK: - Persistence
+
+    func saveQuickAddResult() async throws {
+        // Prevent duplicate saves
+        guard savedBillId == nil else { return }
+
+        guard let result = result,
+              let context = modelContext else { return }
+
+        let billId = UUID()
+        let storedBill = StoredBill(
+            id: billId,
+            uploadDate: Date(),
+            quickAddResult: result,
+            source: .quickAdd
+        )
+
+        context.insert(storedBill)
+        try context.save()
+
+        // Track the saved bill ID for potential upgrade
+        savedBillId = billId
     }
 
     // MARK: - Computed Properties
