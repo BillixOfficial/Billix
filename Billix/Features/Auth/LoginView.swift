@@ -2,14 +2,19 @@ import SwiftUI
 import AuthenticationServices
 
 struct LoginView: View {
+    @EnvironmentObject var authService: AuthService
     @State private var email = ""
     @State private var password = ""
+    @State private var confirmPassword = ""
     @State private var isSecured = true
-    @State private var isLoggedIn = false
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var showError = false
+    @State private var isSignUpMode = false
     @FocusState private var focusedField: Field?
 
     enum Field {
-        case email, password
+        case email, password, confirmPassword
     }
 
     var body: some View {
@@ -115,6 +120,7 @@ struct LoginView: View {
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 50)
                     .cornerRadius(16)
+                    .disabled(isLoading)
 
                     // Divider
                     HStack(spacing: 12) {
@@ -146,6 +152,7 @@ struct LoginView: View {
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                         )
+                        .disabled(isLoading)
 
                     // Password
                     HStack {
@@ -153,11 +160,11 @@ struct LoginView: View {
                             if isSecured {
                                 SecureField("Password", text: $password)
                                     .focused($focusedField, equals: .password)
-                                    .textContentType(.password)
+                                    .textContentType(isSignUpMode ? .newPassword : .password)
                             } else {
                                 TextField("Password", text: $password)
                                     .focused($focusedField, equals: .password)
-                                    .textContentType(.password)
+                                    .textContentType(isSignUpMode ? .newPassword : .password)
                                     .autocapitalization(.none)
                                     .disableAutocorrection(true)
                             }
@@ -180,76 +187,140 @@ struct LoginView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )
+                    .disabled(isLoading)
 
-                    // Forgot Password
-                    HStack {
-                        Spacer()
-                        Button("Forgot password?") {
-                            // UI only
+                    // Confirm Password (only in sign-up mode)
+                    if isSignUpMode {
+                        HStack {
+                            Group {
+                                if isSecured {
+                                    SecureField("Confirm Password", text: $confirmPassword)
+                                        .focused($focusedField, equals: .confirmPassword)
+                                        .textContentType(.newPassword)
+                                } else {
+                                    TextField("Confirm Password", text: $confirmPassword)
+                                        .focused($focusedField, equals: .confirmPassword)
+                                        .textContentType(.newPassword)
+                                        .autocapitalization(.none)
+                                        .disableAutocorrection(true)
+                                }
+                            }
+                            .font(.system(size: 16))
                         }
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.billixLoginTeal)
+                        .padding(16)
+                        .background(Color.white)
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
+                        .disabled(isLoading)
                     }
 
-                    // Sign In Button
+                    // Forgot Password (only in sign-in mode)
+                    if !isSignUpMode {
+                        HStack {
+                            Spacer()
+                            Button("Forgot password?") {
+                                handleForgotPassword()
+                            }
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.billixLoginTeal)
+                            .disabled(isLoading)
+                        }
+                    }
+
+                    // Sign In / Sign Up Button
                     Button(action: {
-                        handleLogin()
+                        if isSignUpMode {
+                            handleSignUp()
+                        } else {
+                            handleLogin()
+                        }
                     }) {
-                        Text("Sign In")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
-                            .background(Color.billixLoginTeal)
-                            .cornerRadius(16)
+                        HStack(spacing: 8) {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            }
+                            Text(isSignUpMode ? "Create Account" : "Sign In")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(isLoading ? Color.billixLoginTeal.opacity(0.7) : Color.billixLoginTeal)
+                        .cornerRadius(16)
                     }
                     .buttonStyle(ScaleButtonStyle())
                     .padding(.top, 8)
+                    .disabled(isLoading)
                 }
                 .padding(.horizontal, 32)
 
                 Spacer()
 
-                // Sign up
+                // Toggle between Sign In / Sign Up
                 HStack(spacing: 4) {
-                    Text("Don't have an account?")
+                    Text(isSignUpMode ? "Already have an account?" : "Don't have an account?")
                         .font(.system(size: 14))
                         .foregroundColor(.billixDarkGray)
                         .shadow(color: Color.white.opacity(0.5), radius: 1, x: 0, y: 0)
 
-                    Button("Sign up") {
-                        // UI only
+                    Button(isSignUpMode ? "Sign in" : "Sign up") {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isSignUpMode.toggle()
+                            // Clear fields when switching modes
+                            password = ""
+                            confirmPassword = ""
+                        }
                     }
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.billixLoginTeal)
                     .shadow(color: Color.white.opacity(0.6), radius: 2, x: 0, y: 0)
+                    .disabled(isLoading)
                 }
                 .padding(.bottom, 30)
             }
-
-            // Navigation to MainTabView
-            if isLoggedIn {
-                MainTabView()
-                    .transition(.opacity)
-            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "An error occurred")
         }
     }
 
+    // MARK: - Actions
+
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
         switch result {
-        case .success(_):
-            // In production, validate the credential with your backend
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
+        case .success(let authorization):
+            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+                showErrorMessage("Invalid Apple credential")
+                return
+            }
 
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                isLoggedIn = true
+            isLoading = true
+
+            Task {
+                do {
+                    try await authService.signInWithApple(credential: credential)
+                    // Navigation handled by RootView
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                } catch {
+                    showErrorMessage(error.localizedDescription)
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.error)
+                }
+                isLoading = false
             }
 
         case .failure(let error):
-            print("Apple Sign In failed: \(error.localizedDescription)")
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.error)
+            // Don't show error for user cancellation
+            if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
+                showErrorMessage(error.localizedDescription)
+            }
         }
     }
 
@@ -258,14 +329,113 @@ struct LoginView: View {
         hideKeyboard()
         focusedField = nil
 
-        // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-
-        // Skip validation - allow direct access to app (UI only, no auth)
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            isLoggedIn = true
+        // Validate
+        guard !email.isEmpty, !password.isEmpty else {
+            showErrorMessage("Please enter email and password")
+            return
         }
+
+        isLoading = true
+
+        Task {
+            do {
+                try await authService.signIn(email: email, password: password)
+                // Navigation handled by RootView
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+            } catch {
+                showErrorMessage(error.localizedDescription)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+            }
+            isLoading = false
+        }
+    }
+
+    private func handleSignUp() {
+        // Dismiss keyboard
+        hideKeyboard()
+        focusedField = nil
+
+        // Validate email
+        guard !email.isEmpty else {
+            showErrorMessage("Please enter your email")
+            return
+        }
+
+        guard email.contains("@") && email.contains(".") else {
+            showErrorMessage("Please enter a valid email address")
+            return
+        }
+
+        // Validate password
+        guard !password.isEmpty else {
+            showErrorMessage("Please enter a password")
+            return
+        }
+
+        guard password.count >= 6 else {
+            showErrorMessage("Password must be at least 6 characters")
+            return
+        }
+
+        // Validate passwords match
+        guard password == confirmPassword else {
+            showErrorMessage("Passwords do not match")
+            return
+        }
+
+        isLoading = true
+
+        Task {
+            do {
+                let needsEmailConfirmation = try await authService.signUp(email: email, password: password)
+
+                if needsEmailConfirmation {
+                    // Show message to check email
+                    showErrorMessage("Account created! Please check your email to confirm your account, then sign in.")
+                    // Switch back to sign-in mode so they can sign in after confirming
+                    withAnimation {
+                        isSignUpMode = false
+                        password = ""
+                        confirmPassword = ""
+                    }
+                } else {
+                    // Navigation handled by RootView - will go to onboarding
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                }
+            } catch {
+                showErrorMessage(error.localizedDescription)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+            }
+            isLoading = false
+        }
+    }
+
+    private func handleForgotPassword() {
+        guard !email.isEmpty else {
+            showErrorMessage("Please enter your email address")
+            return
+        }
+
+        isLoading = true
+
+        Task {
+            do {
+                try await authService.resetPassword(email: email)
+                showErrorMessage("Password reset email sent. Check your inbox.")
+            } catch {
+                showErrorMessage(error.localizedDescription)
+            }
+            isLoading = false
+        }
+    }
+
+    private func showErrorMessage(_ message: String) {
+        errorMessage = message
+        showError = true
     }
 
     private func hideKeyboard() {
@@ -307,4 +477,5 @@ struct WaveShape: Shape {
 
 #Preview {
     LoginView()
+        .environmentObject(AuthService.shared)
 }

@@ -63,6 +63,10 @@ extension Color {
     static let billixLoginGreen = Color(hex: "#b8e6b8")      // Login background - richer green
     static let billixLoginTeal = Color(hex: "#00796b")       // Login primary color
 
+    // Profile Screen Colors (from Figma)
+    static let billixProfileBlue = Color(hex: "#E2F4FF")     // Profile page light blue background
+    static let billixProfileDarkBlue = Color(hex: "#1E3A5F") // Profile header text dark blue
+
     // Legacy colors for backward compatibility
     static let billixMutedPurple = billixPurple
     static let billixYellowGold = billixGoldenAmber
@@ -96,5 +100,18 @@ extension Color {
             blue:  Double(b) / 255,
             opacity: Double(a) / 255
         )
+    }
+}
+
+// MARK: - Button Styles
+
+/// A button style that scales down when pressed with spring animation
+struct ScaleButtonStyle: ButtonStyle {
+    var scale: CGFloat = 0.95
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scale : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }

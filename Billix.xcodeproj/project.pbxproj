@@ -7,23 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0994198ECF734549D8447F73 /* MetricCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */; };
-		1E9A07228A4B7D85721A4F67 /* Phase2PriceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8D4E90E242E68772E4E62EC /* Phase2PriceView.swift */; };
+		026616F06A2AC97D284507A7 /* BountyCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010C6E2DD4FA58D78A2C9242 /* BountyCard.swift */; };
+		0B3978E45C38518CA2B82A3D /* MockMarketplaceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5028E3D5E60C51F1F213D4CC /* MockMarketplaceData.swift */; };
+		0E58FE07F481E233517930FA /* TickerHeaderZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08B85166487B826F6FAFA03 /* TickerHeaderZone.swift */; };
+		105CDC90740F2D3D993826F3 /* SellerFooterZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E1FA3E4B9B6F22CDA05B91 /* SellerFooterZone.swift */; };
+		16473D354B7EF3B1A7B15B25 /* MarketplaceTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EC8530D548AE6D712457E64 /* MarketplaceTheme.swift */; };
+		21B7E99EF6AF9B9219588A46 /* ServiceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0964190A2E5107305E47963E /* ServiceCard.swift */; };
 		24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */; };
+		24AA216361D28E576AA9F2C2 /* BillCardSideB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EC872B5F53651FCE3151157 /* BillCardSideB.swift */; };
 		2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */; };
-		385B58AA2932300730A3E75F /* Phase1LocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD18F404C1AB6E568F2C637 /* Phase1LocationView.swift */; };
-		436979DB30660B752BD3FF31 /* AnalysisCompareTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */; };
-		4946FB59E153457F1F8E4CB5 /* AnalysisSummaryTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200FCC5D4336A8B39C5D302F /* AnalysisSummaryTab.swift */; };
-		51BC9F8EAA514FFCF7952832 /* AnalysisDetailsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */; };
-		576C8368B32940A98FFAD7DA0A2CD192 /* BillAnalysisNewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A873DD8C8D4DC69E6FA313AE899BEC /* BillAnalysisNewComponents.swift */; };
+		4614EEB8EF0F53C5ED197D9C /* BillListing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904AD05D3A84D6A25E0D92DB /* BillListing.swift */; };
+		4A481D87CACB424C8A22B899 /* ClusterCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3144A8AD7B2C94D39FF81EFA /* ClusterCard.swift */; };
+		4EDF2DA492CE26CFAE5296F6 /* ScriptCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A754D4C404308C96FC0AC5B8 /* ScriptCard.swift */; };
+		5TAKE0VER1CARD23456789AB /* TakeoverCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6TAKE0VER2CARD34567890CD /* TakeoverCard.swift */; };
+		53D0235A4F9B5DDDA83914EC /* UnlockBlueprintSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D380EFC4805A1626AE3CE0 /* UnlockBlueprintSheet.swift */; };
 		56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C58A5E4A878AC7816EB3122 /* HealthView.swift */; };
-		71F9D6E1FBD38033425874D1 /* GeoGameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD72A50E94416FA6D5922173 /* GeoGameModels.swift */; };
-		7F26C08BB4A0D6E567CAB537 /* AnalysisResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C1289A81B8941234538D77 /* AnalysisResultsView.swift */; };
-		806CAE2976E63789BA6B5C75 /* GeoGameResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA53C39C57B0BCDBCDDED327 /* GeoGameResultView.swift */; };
-		80CF565D24702C448036E218 /* GeoGameFloatingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A22A1C332F1CD252F015A1D /* GeoGameFloatingCard.swift */; };
-		81389C8838FF9F765C1DED23 /* AnalysisBreakdownTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */; };
-		81DE022F1C0FDAF1622E8CA6 /* AnalysisResultsTabbedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */; };
+		63D72A126147271EDE056149 /* MarketplaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002C297BCE0CB75808BC2755 /* MarketplaceView.swift */; };
+		7E857670BC41595C6662AB3F /* PredictionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011374FF04C756DBDE3401FA /* PredictionCard.swift */; };
+		80463EA3D6F47BC4F7ED21E8 /* DynamicSpecsZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642259DC8C0DF251B973C750 /* DynamicSpecsZone.swift */; };
+		8160262B8986E8E8430FB93A /* MarketplaceItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ABFBBB24D03DF6AC2EB9314 /* MarketplaceItems.swift */; };
+		8B0C9D3F4868993ECC610BD2 /* BillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66665DF8017158206E5EF69 /* BillCardView.swift */; };
+		9378B9C9840992DB036549E4 /* FinancialSpreadZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B407070E54249D2D340339 /* FinancialSpreadZone.swift */; };
 		997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81513DE947C6002A28D674AD /* AuthViewModel.swift */; };
+		9FBD55C9B930DD08A6264CFC /* Cluster.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5843AA67D5B071D7E3CDFEA /* Cluster.swift */; };
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */; };
 		A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */; };
@@ -72,27 +78,15 @@
 		A6FF81842ED4F59D008330C9 /* RadialProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */; };
 		A6FF81862ED504CB008330C9 /* MediaPickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81852ED504CB008330C9 /* MediaPickers.swift */; };
 		A6FF81882ED50AB3008330C9 /* UploadMethodSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */; };
-		A6FF818B2ED65723008330C9 /* AllUploadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81892ED65723008330C9 /* AllUploadsView.swift */; };
-		A6FF818C2ED65723008330C9 /* UploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF818A2ED65723008330C9 /* UploadDetailView.swift */; };
-		A6FF819B2ED793BA008330C9 /* PointsHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81972ED793BA008330C9 /* PointsHistoryView.swift */; };
-		A6FF819C2ED793BA008330C9 /* RewardMarketplace.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81942ED793BA008330C9 /* RewardMarketplace.swift */; };
-		A6FF819D2ED793BA008330C9 /* ArcadeHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81912ED793BA008330C9 /* ArcadeHeroCard.swift */; };
-		A6FF819E2ED793BA008330C9 /* RewardsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF818D2ED793BA008330C9 /* RewardsModels.swift */; };
-		A6FF819F2ED793BA008330C9 /* WalletHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81952ED793BA008330C9 /* WalletHeaderView.swift */; };
-		A6FF81A02ED793BA008330C9 /* RewardsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81982ED793BA008330C9 /* RewardsHubView.swift */; };
-		A6FF81A12ED793BA008330C9 /* RewardCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81932ED793BA008330C9 /* RewardCard.swift */; };
-		A6FF81A22ED793BA008330C9 /* LeaderboardSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81922ED793BA008330C9 /* LeaderboardSection.swift */; };
-		A6FF81A32ED793BA008330C9 /* RewardsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF818F2ED793BA008330C9 /* RewardsViewModel.swift */; };
-		A6FF81A42ED7A000008330C9 /* GiftCardVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81A52ED7A000008330C9 /* GiftCardVisuals.swift */; };
-		AD28BDB209B37062E0E922A9 /* GeoGameMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A3595509F4117CCF749D56 /* GeoGameMapView.swift */; };
-		C1E31FCDBADA1A2717822F6A /* GeoGameContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCBF3D94FA4D8C34581EE1D /* GeoGameContainerView.swift */; };
-		C30C3AB930B5537508CE9CCB /* BillGaugeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */; };
-		D34981D370939777F0470C35 /* GeoGameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4C98778399C32A70EE33E0 /* GeoGameViewModel.swift */; };
-		DB8253FCB413B79C2E21A5DF /* GeoGameDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B1B83AA12D0CC4F3EB0432 /* GeoGameDataService.swift */; };
+		C93D6D9B9A4E2E8A36D2063C /* AskOwnerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */; };
+		CC5C4203C8C523C5D67F2851 /* BlueprintTeaseZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26718EDD5F14EC366ABD07C8 /* BlueprintTeaseZone.swift */; };
+		D50D3D7825651D05B03F2F66 /* MarketplaceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5074698E94CEABB71D652EA6 /* MarketplaceViewModel.swift */; };
+		D63C30C122E18342AF38C1F8 /* VSMeToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FF7CD7869BEA0A4DB5DD7D8 /* VSMeToggle.swift */; };
+		D8E729C509255F5015837DD4 /* PlaceBidSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD1BBF98A3A97EE7273155A /* PlaceBidSheet.swift */; };
 		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
+		DE7A061EF4C44553BCDA621A /* BillCardSideA.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */; };
 		F34AB25163A7004F64C6550E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF1E5E15C4654C0F526462A /* HomeView.swift */; };
 		F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89EC00ED13981D09603CF99 /* ExploreView.swift */; };
-		F7F8BA48AA3945F4AE7FA77B /* AnalysisResultsSimpleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */; };
 		F9076D4B2ED19DA20051E1D8 /* ProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D482ED19DA20051E1D8 /* ProfileService.swift */; };
 		F9076D4C2ED19DA20051E1D8 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D492ED19DA20051E1D8 /* AuthService.swift */; };
 		F9076D4D2ED19DA20051E1D8 /* MockDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D4A2ED19DA20051E1D8 /* MockDataService.swift */; };
@@ -107,6 +101,15 @@
 		F9076D672ED19DEE0051E1D8 /* ProfileSectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D622ED19DEE0051E1D8 /* ProfileSectionCard.swift */; };
 		F9076D682ED19DEE0051E1D8 /* SettingsRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D632ED19DEE0051E1D8 /* SettingsRow.swift */; };
 		F9076D692ED19DEE0051E1D8 /* SettingsToggleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D642ED19DEE0051E1D8 /* SettingsToggleRow.swift */; };
+		F9076DB12ED50AE30051E1D8 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB02ED50AE30051E1D8 /* Auth */; };
+		F9076DB32ED50AE30051E1D8 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB22ED50AE30051E1D8 /* Functions */; };
+		F9076DB52ED50AE30051E1D8 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB42ED50AE30051E1D8 /* PostgREST */; };
+		F9076DB72ED50AE30051E1D8 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB62ED50AE30051E1D8 /* Realtime */; };
+		F9076DB92ED50AE30051E1D8 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DB82ED50AE30051E1D8 /* Storage */; };
+		F9076DBC2ED50BF10051E1D8 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = F9076DBB2ED50BF10051E1D8 /* Supabase */; };
+		F9076DBE2ED50D430051E1D8 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076DBD2ED50D430051E1D8 /* SupabaseService.swift */; };
+		F9076DC02ED50D520051E1D8 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076DBF2ED50D520051E1D8 /* OnboardingView.swift */; };
+		F9076DC22ED50D5A0051E1D8 /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076DC12ED50D5A0051E1D8 /* OnboardingViewModel.swift */; };
 		F974B1D42EC9553B003EBF59 /* BillixApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B1D32EC9553B003EBF59 /* BillixApp.swift */; };
 		F974B1D62EC9553B003EBF59 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B1D52EC9553B003EBF59 /* ContentView.swift */; };
 		F974B1DA2EC9553C003EBF59 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F974B1D92EC9553C003EBF59 /* Assets.xcassets */; };
@@ -116,6 +119,14 @@
 		F974B1F42EC9553C003EBF59 /* BillixUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B1F32EC9553C003EBF59 /* BillixUITestsLaunchTests.swift */; };
 		F974B2012EC955A1003EBF59 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2002EC955A1003EBF59 /* LoginView.swift */; };
 		F974B2032EC955C0003EBF59 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2022EC955C0003EBF59 /* ColorPalette.swift */; };
+		FB021E8FC90B96BB845CCD82 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */; };
+		7EXP10RE1M0DELS12345678AB /* ExploreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */; };
+		7EXP10RE3V1EWM0DEL3456EF /* ExploreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */; };
+		7RECESS10NS1M12345678901 /* RecessionSimulatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */; };
+		7B1LLHEATMAP12345678ABCD /* BillHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1LLHEATMAP23456789CDEF /* BillHeatmapView.swift */; };
+		7MAKEMEM0VE123456789ABCD /* MakeMeMoveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8MAKEMEM0VE234567890CDEF /* MakeMeMoveView.swift */; };
+		7G0UGE1NDEX12345678ABCDE /* GougeIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8G0UGE1NDEX23456789BCDEF /* GougeIndexView.swift */; };
+		70UTAGEBOT1234567890ABCD /* OutageBotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80UTAGEBOT234567890BCDEF /* OutageBotView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -136,23 +147,28 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisBreakdownTab.swift; sourceTree = "<group>"; };
-		09A873DD8C8D4DC69E6FA313AE899BEC /* BillAnalysisNewComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysisNewComponents.swift; sourceTree = "<group>"; };
-		1BD18F404C1AB6E568F2C637 /* Phase1LocationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Phase1LocationView.swift; path = Billix/Features/Rewards/Views/GeoGame/Phase1LocationView.swift; sourceTree = "<group>"; };
-		200FCC5D4336A8B39C5D302F /* AnalysisSummaryTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisSummaryTab.swift; sourceTree = "<group>"; };
-		35B1B83AA12D0CC4F3EB0432 /* GeoGameDataService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameDataService.swift; path = Billix/Features/Rewards/Services/GeoGameDataService.swift; sourceTree = "<group>"; };
-		3A22A1C332F1CD252F015A1D /* GeoGameFloatingCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameFloatingCard.swift; path = Billix/Features/Rewards/Views/GeoGame/GeoGameFloatingCard.swift; sourceTree = "<group>"; };
-		3F4C98778399C32A70EE33E0 /* GeoGameViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameViewModel.swift; path = Billix/Features/Rewards/ViewModels/GeoGameViewModel.swift; sourceTree = "<group>"; };
-		3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisCompareTab.swift; sourceTree = "<group>"; };
+		002C297BCE0CB75808BC2755 /* MarketplaceView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceView.swift; sourceTree = "<group>"; };
+		010C6E2DD4FA58D78A2C9242 /* BountyCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BountyCard.swift; sourceTree = "<group>"; };
+		011374FF04C756DBDE3401FA /* PredictionCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PredictionCard.swift; sourceTree = "<group>"; };
+		0964190A2E5107305E47963E /* ServiceCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServiceCard.swift; sourceTree = "<group>"; };
+		09E1FA3E4B9B6F22CDA05B91 /* SellerFooterZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SellerFooterZone.swift; sourceTree = "<group>"; };
+		0ABFBBB24D03DF6AC2EB9314 /* MarketplaceItems.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceItems.swift; sourceTree = "<group>"; };
+		26718EDD5F14EC366ABD07C8 /* BlueprintTeaseZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BlueprintTeaseZone.swift; sourceTree = "<group>"; };
+		3144A8AD7B2C94D39FF81EFA /* ClusterCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClusterCard.swift; sourceTree = "<group>"; };
+		3DD1BBF98A3A97EE7273155A /* PlaceBidSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlaceBidSheet.swift; sourceTree = "<group>"; };
+		3EC8530D548AE6D712457E64 /* MarketplaceTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceTheme.swift; sourceTree = "<group>"; };
 		41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisDetailsTab.swift; sourceTree = "<group>"; };
 		4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
+		5028E3D5E60C51F1F213D4CC /* MockMarketplaceData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MockMarketplaceData.swift; sourceTree = "<group>"; };
+		5074698E94CEABB71D652EA6 /* MarketplaceViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceViewModel.swift; sourceTree = "<group>"; };
 		5C58A5E4A878AC7816EB3122 /* HealthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
-		62C1289A81B8941234538D77 /* AnalysisResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsView.swift; sourceTree = "<group>"; };
-		66A3595509F4117CCF749D56 /* GeoGameMapView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameMapView.swift; path = Billix/Features/Rewards/Views/GeoGame/GeoGameMapView.swift; sourceTree = "<group>"; };
-		758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCardView.swift; sourceTree = "<group>"; };
+		642259DC8C0DF251B973C750 /* DynamicSpecsZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DynamicSpecsZone.swift; sourceTree = "<group>"; };
+		707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FilterSheetView.swift; sourceTree = "<group>"; };
+		7EC872B5F53651FCE3151157 /* BillCardSideB.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillCardSideB.swift; sourceTree = "<group>"; };
+		7FF7CD7869BEA0A4DB5DD7D8 /* VSMeToggle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VSMeToggle.swift; sourceTree = "<group>"; };
+		80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AskOwnerSheet.swift; sourceTree = "<group>"; };
 		81513DE947C6002A28D674AD /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
-		9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsSimpleView.swift; sourceTree = "<group>"; };
+		904AD05D3A84D6A25E0D92DB /* BillListing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillListing.swift; sourceTree = "<group>"; };
 		A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysis.swift; sourceTree = "<group>"; };
 		A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredBill.swift; sourceTree = "<group>"; };
 		A64F7F4E2ECBB46B005576C5 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -201,27 +217,17 @@
 		A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentedSelector.swift; sourceTree = "<group>"; };
 		A6FF81852ED504CB008330C9 /* MediaPickers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickers.swift; sourceTree = "<group>"; };
 		A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadMethodSelectionView.swift; sourceTree = "<group>"; };
-		A6FF81892ED65723008330C9 /* AllUploadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllUploadsView.swift; sourceTree = "<group>"; };
-		A6FF818A2ED65723008330C9 /* UploadDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadDetailView.swift; sourceTree = "<group>"; };
-		A6FF818D2ED793BA008330C9 /* RewardsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsModels.swift; sourceTree = "<group>"; };
-		A6FF818F2ED793BA008330C9 /* RewardsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsViewModel.swift; sourceTree = "<group>"; };
-		A6FF81912ED793BA008330C9 /* ArcadeHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcadeHeroCard.swift; sourceTree = "<group>"; };
-		A6FF81922ED793BA008330C9 /* LeaderboardSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardSection.swift; sourceTree = "<group>"; };
-		A6FF81932ED793BA008330C9 /* RewardCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardCard.swift; sourceTree = "<group>"; };
-		A6FF81942ED793BA008330C9 /* RewardMarketplace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardMarketplace.swift; sourceTree = "<group>"; };
-		A6FF81952ED793BA008330C9 /* WalletHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletHeaderView.swift; sourceTree = "<group>"; };
-		A6FF81972ED793BA008330C9 /* PointsHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsHistoryView.swift; sourceTree = "<group>"; };
-		A6FF81982ED793BA008330C9 /* RewardsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsHubView.swift; sourceTree = "<group>"; };
-		A6FF81A52ED7A000008330C9 /* GiftCardVisuals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftCardVisuals.swift; sourceTree = "<group>"; };
-		A8D4E90E242E68772E4E62EC /* Phase2PriceView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Phase2PriceView.swift; path = Billix/Features/Rewards/Views/GeoGame/Phase2PriceView.swift; sourceTree = "<group>"; };
-		A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsTabbedView.swift; sourceTree = "<group>"; };
-		AA53C39C57B0BCDBCDDED327 /* GeoGameResultView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameResultView.swift; path = Billix/Features/Rewards/Views/GeoGame/GeoGameResultView.swift; sourceTree = "<group>"; };
+		A754D4C404308C96FC0AC5B8 /* ScriptCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptCard.swift; sourceTree = "<group>"; };
+		6TAKE0VER2CARD34567890CD /* TakeoverCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TakeoverCard.swift; sourceTree = "<group>"; };
 		ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		B3B407070E54249D2D340339 /* FinancialSpreadZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FinancialSpreadZone.swift; sourceTree = "<group>"; };
+		B9D380EFC4805A1626AE3CE0 /* UnlockBlueprintSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UnlockBlueprintSheet.swift; sourceTree = "<group>"; };
+		C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillCardSideA.swift; sourceTree = "<group>"; };
 		C89EC00ED13981D09603CF99 /* ExploreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
-		CD72A50E94416FA6D5922173 /* GeoGameModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameModels.swift; path = Billix/Features/Rewards/Models/GeoGameModels.swift; sourceTree = "<group>"; };
-		DCCBF3D94FA4D8C34581EE1D /* GeoGameContainerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameContainerView.swift; path = Billix/Features/Rewards/Views/GeoGame/GeoGameContainerView.swift; sourceTree = "<group>"; };
-		E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillGaugeView.swift; sourceTree = "<group>"; };
+		E5843AA67D5B071D7E3CDFEA /* Cluster.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Cluster.swift; sourceTree = "<group>"; };
 		EDF1E5E15C4654C0F526462A /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		F08B85166487B826F6FAFA03 /* TickerHeaderZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TickerHeaderZone.swift; sourceTree = "<group>"; };
+		F66665DF8017158206E5EF69 /* BillCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillCardView.swift; sourceTree = "<group>"; };
 		F9076D482ED19DA20051E1D8 /* ProfileService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileService.swift; sourceTree = "<group>"; };
 		F9076D492ED19DA20051E1D8 /* AuthService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		F9076D4A2ED19DA20051E1D8 /* MockDataService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockDataService.swift; sourceTree = "<group>"; };
@@ -236,6 +242,9 @@
 		F9076D622ED19DEE0051E1D8 /* ProfileSectionCard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileSectionCard.swift; sourceTree = "<group>"; };
 		F9076D632ED19DEE0051E1D8 /* SettingsRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsRow.swift; sourceTree = "<group>"; };
 		F9076D642ED19DEE0051E1D8 /* SettingsToggleRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsToggleRow.swift; sourceTree = "<group>"; };
+		F9076DBD2ED50D430051E1D8 /* SupabaseService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		F9076DBF2ED50D520051E1D8 /* OnboardingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		F9076DC12ED50D5A0051E1D8 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
 		F974B1D02EC9553B003EBF59 /* Billix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Billix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F974B1D32EC9553B003EBF59 /* BillixApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillixApp.swift; sourceTree = "<group>"; };
 		F974B1D52EC9553B003EBF59 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -249,6 +258,13 @@
 		F974B1F32EC9553C003EBF59 /* BillixUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillixUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		F974B2002EC955A1003EBF59 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		F974B2022EC955C0003EBF59 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
+		8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreModels.swift; sourceTree = "<group>"; };
+		8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreViewModel.swift; sourceTree = "<group>"; };
+		8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecessionSimulatorView.swift; sourceTree = "<group>"; };
+		8B1LLHEATMAP23456789CDEF /* BillHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillHeatmapView.swift; sourceTree = "<group>"; };
+		8MAKEMEM0VE234567890CDEF /* MakeMeMoveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MakeMeMoveView.swift; sourceTree = "<group>"; };
+		8G0UGE1NDEX23456789BCDEF /* GougeIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GougeIndexView.swift; sourceTree = "<group>"; };
+		80UTAGEBOT234567890BCDEF /* OutageBotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutageBotView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -256,6 +272,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F9076DB52ED50AE30051E1D8 /* PostgREST in Frameworks */,
+				F9076DB32ED50AE30051E1D8 /* Functions in Frameworks */,
+				F9076DBC2ED50BF10051E1D8 /* Supabase in Frameworks */,
+				F9076DB12ED50AE30051E1D8 /* Auth in Frameworks */,
+				F9076DB92ED50AE30051E1D8 /* Storage in Frameworks */,
+				F9076DB72ED50AE30051E1D8 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,6 +298,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		101F0D8A5A5F348A5F547DDC /* Marketplace */ = {
+			isa = PBXGroup;
+			children = (
+				3EC8530D548AE6D712457E64 /* MarketplaceTheme.swift */,
+				002C297BCE0CB75808BC2755 /* MarketplaceView.swift */,
+				BBA6423B12D33DEF828EEA3E /* Models */,
+				F4BE36FE48A2712E3F58A23B /* ViewModels */,
+				A4C6E83221EA5E2F1A2183B3 /* Components */,
+			);
+			name = Marketplace;
+			path = Marketplace;
+			sourceTree = "<group>";
+		};
 		1A1A1A1A1A1A1A1A1A1A1A1A /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -289,7 +324,6 @@
 		2B2B2B2B2B2B2B2B2B2B2B2B /* Features */ = {
 			isa = PBXGroup;
 			children = (
-				A6FF819A2ED793BA008330C9 /* Rewards */,
 				A6FF816D2ED4BB24008330C9 /* Upload */,
 				A6FF81472ECEB5A2008330C9 /* Network */,
 				A6FF81422ECEB50E008330C9 /* Services */,
@@ -301,8 +335,17 @@
 				8C8C8C8C8C8C8C8C8C8C8C8C /* Explore */,
 				8E8E8E8E8E8E8E8E8E8E8E8E /* Health */,
 				8F8F8F8F8F8F8F8F8F8F8F8F /* Profile */,
+				101F0D8A5A5F348A5F547DDC /* Marketplace */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		4AEF99D1A3AD3C5730256A3F /* Common */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Common;
+			path = Common;
 			sourceTree = "<group>";
 		};
 		4D4D4D4D4D4D4D4D4D4D4D4D /* Utilities */ = {
@@ -313,9 +356,64 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
+		58B5CFE2F4FAF9EF27877A08 /* Zones */ = {
+			isa = PBXGroup;
+			children = (
+				F08B85166487B826F6FAFA03 /* TickerHeaderZone.swift */,
+				B3B407070E54249D2D340339 /* FinancialSpreadZone.swift */,
+				642259DC8C0DF251B973C750 /* DynamicSpecsZone.swift */,
+				26718EDD5F14EC366ABD07C8 /* BlueprintTeaseZone.swift */,
+				09E1FA3E4B9B6F22CDA05B91 /* SellerFooterZone.swift */,
+			);
+			name = Zones;
+			path = Zones;
+			sourceTree = "<group>";
+		};
+		6C1E8A2FED618577C9C3633B /* BillCard */ = {
+			isa = PBXGroup;
+			children = (
+				F66665DF8017158206E5EF69 /* BillCardView.swift */,
+				C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */,
+				7EC872B5F53651FCE3151157 /* BillCardSideB.swift */,
+				7FF7CD7869BEA0A4DB5DD7D8 /* VSMeToggle.swift */,
+				58B5CFE2F4FAF9EF27877A08 /* Zones */,
+			);
+			name = BillCard;
+			path = BillCard;
+			sourceTree = "<group>";
+		};
+		6E2B234E8BFF54B052C30AA4 /* Cards */ = {
+			isa = PBXGroup;
+			children = (
+				6C1E8A2FED618577C9C3633B /* BillCard */,
+				010C6E2DD4FA58D78A2C9242 /* BountyCard.swift */,
+				3144A8AD7B2C94D39FF81EFA /* ClusterCard.swift */,
+				011374FF04C756DBDE3401FA /* PredictionCard.swift */,
+				A754D4C404308C96FC0AC5B8 /* ScriptCard.swift */,
+				0964190A2E5107305E47963E /* ServiceCard.swift */,
+				6TAKE0VER2CARD34567890CD /* TakeoverCard.swift */,
+			);
+			name = Cards;
+			path = Cards;
+			sourceTree = "<group>";
+		};
+		7F426075B4D85A7F0840BA9A /* Sheets */ = {
+			isa = PBXGroup;
+			children = (
+				707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */,
+				B9D380EFC4805A1626AE3CE0 /* UnlockBlueprintSheet.swift */,
+				80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */,
+				3DD1BBF98A3A97EE7273155A /* PlaceBidSheet.swift */,
+			);
+			name = Sheets;
+			path = Sheets;
+			sourceTree = "<group>";
+		};
 		8A8A8A8A8A8A8A8A8A8A8A8A /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				F9076DC12ED50D5A0051E1D8 /* OnboardingViewModel.swift */,
+				F9076DBF2ED50D520051E1D8 /* OnboardingView.swift */,
 				F974B2002EC955A1003EBF59 /* LoginView.swift */,
 				81513DE947C6002A28D674AD /* AuthViewModel.swift */,
 			);
@@ -334,6 +432,7 @@
 			isa = PBXGroup;
 			children = (
 				A6FF81282ECEB3E5008330C9 /* Components */,
+				9EXP10REM0DELSGR0UP12345 /* Models */,
 				A6FF81232ECEB3D3008330C9 /* ViewModels */,
 				A6FF811F2ECEB3BC008330C9 /* Views */,
 				C89EC00ED13981D09603CF99 /* ExploreView.swift */,
@@ -359,6 +458,17 @@
 			path = Profile;
 			sourceTree = "<group>";
 		};
+		A4C6E83221EA5E2F1A2183B3 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				6E2B234E8BFF54B052C30AA4 /* Cards */,
+				7F426075B4D85A7F0840BA9A /* Sheets */,
+				4AEF99D1A3AD3C5730256A3F /* Common */,
+			);
+			name = Components;
+			path = Components;
+			sourceTree = "<group>";
+		};
 		A64F7F4C2ECBB46B005576C5 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -374,6 +484,7 @@
 		A64F7F502ECBB46B005576C5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				F9076DBD2ED50D430051E1D8 /* SupabaseService.swift */,
 				A6FF814E2ED4BAF4008330C9 /* Upload */,
 				F9076D492ED19DA20051E1D8 /* AuthService.swift */,
 				F9076D4A2ED19DA20051E1D8 /* MockDataService.swift */,
@@ -397,6 +508,7 @@
 			isa = PBXGroup;
 			children = (
 				A6FF81222ECEB3D3008330C9 /* BillsExploreViewModel.swift */,
+				8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -404,11 +516,24 @@
 		A6FF81282ECEB3E5008330C9 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				8B1LLHEATMAP23456789CDEF /* BillHeatmapView.swift */,
 				A6FF81252ECEB3E5008330C9 /* BillMarketplaceCard.swift */,
 				A6FF81262ECEB3E5008330C9 /* BillsFilterBarView.swift */,
 				A6FF81272ECEB3E5008330C9 /* BillsStatsHeaderView.swift */,
+				8G0UGE1NDEX23456789BCDEF /* GougeIndexView.swift */,
+				8MAKEMEM0VE234567890CDEF /* MakeMeMoveView.swift */,
+				80UTAGEBOT234567890BCDEF /* OutageBotView.swift */,
+				8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		9EXP10REM0DELSGR0UP12345 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 		A6FF812E2ECEB47C008330C9 /* Models */ = {
@@ -492,16 +617,6 @@
 			children = (
 				A6FF81852ED504CB008330C9 /* MediaPickers.swift */,
 				A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */,
-				62C1289A81B8941234538D77 /* AnalysisResultsView.swift */,
-				9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */,
-				A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */,
-				200FCC5D4336A8B39C5D302F /* AnalysisSummaryTab.swift */,
-				031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */,
-				3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */,
-				434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */,
-				09A873DD8C8D4DC69E6FA313AE899BEC /* BillAnalysisNewComponents.swift */,
-				E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */,
-				758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */,
 				A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */,
 				A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */,
 				A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */,
@@ -536,8 +651,6 @@
 		A6FF816C2ED4BB24008330C9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				A6FF81892ED65723008330C9 /* AllUploadsView.swift */,
-				A6FF818A2ED65723008330C9 /* UploadDetailView.swift */,
 				A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */,
 				A6FF815F2ED4BB24008330C9 /* Components */,
 				A6FF81652ED4BB24008330C9 /* QuickAdd */,
@@ -556,69 +669,25 @@
 			path = Upload;
 			sourceTree = "<group>";
 		};
-		A6FF818E2ED793BA008330C9 /* Models */ = {
+		BBA6423B12D33DEF828EEA3E /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				A6FF818D2ED793BA008330C9 /* RewardsModels.swift */,
+				904AD05D3A84D6A25E0D92DB /* BillListing.swift */,
+				E5843AA67D5B071D7E3CDFEA /* Cluster.swift */,
+				0ABFBBB24D03DF6AC2EB9314 /* MarketplaceItems.swift */,
+				5028E3D5E60C51F1F213D4CC /* MockMarketplaceData.swift */,
 			);
+			name = Models;
 			path = Models;
 			sourceTree = "<group>";
 		};
-		A6FF81902ED793BA008330C9 /* ViewModels */ = {
+		F4BE36FE48A2712E3F58A23B /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				A6FF818F2ED793BA008330C9 /* RewardsViewModel.swift */,
+				5074698E94CEABB71D652EA6 /* MarketplaceViewModel.swift */,
 			);
+			name = ViewModels;
 			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		A6FF81962ED793BA008330C9 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				A6FF81912ED793BA008330C9 /* ArcadeHeroCard.swift */,
-				A6FF81A52ED7A000008330C9 /* GiftCardVisuals.swift */,
-				A6FF81922ED793BA008330C9 /* LeaderboardSection.swift */,
-				A6FF81932ED793BA008330C9 /* RewardCard.swift */,
-				A6FF81942ED793BA008330C9 /* RewardMarketplace.swift */,
-				A6FF81952ED793BA008330C9 /* WalletHeaderView.swift */,
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
-		A6FF81992ED793BA008330C9 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				A6FF81962ED793BA008330C9 /* Components */,
-				A6FF81972ED793BA008330C9 /* PointsHistoryView.swift */,
-				A6FF81982ED793BA008330C9 /* RewardsHubView.swift */,
-				DE649AFC77E10A506EC061E6 /* GeoGame */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		A6FF819A2ED793BA008330C9 /* Rewards */ = {
-			isa = PBXGroup;
-			children = (
-				A6FF818E2ED793BA008330C9 /* Models */,
-				A6FF81902ED793BA008330C9 /* ViewModels */,
-				A6FF81992ED793BA008330C9 /* Views */,
-				E808C2A94AB5E7CAA247312D /* Services */,
-			);
-			path = Rewards;
-			sourceTree = "<group>";
-		};
-		DE649AFC77E10A506EC061E6 /* GeoGame */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = GeoGame;
-			sourceTree = "<group>";
-		};
-		E808C2A94AB5E7CAA247312D /* Services */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Services;
 			sourceTree = "<group>";
 		};
 		F9076D572ED19DC10051E1D8 /* Profile */ = {
@@ -646,6 +715,13 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
+		F9076DBA2ED50BF10051E1D8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		F974B1C72EC9553B003EBF59 = {
 			isa = PBXGroup;
 			children = (
@@ -653,15 +729,7 @@
 				F974B1E62EC9553C003EBF59 /* BillixTests */,
 				F974B1F02EC9553C003EBF59 /* BillixUITests */,
 				F974B1D12EC9553B003EBF59 /* Products */,
-				CD72A50E94416FA6D5922173 /* GeoGameModels.swift */,
-				3F4C98778399C32A70EE33E0 /* GeoGameViewModel.swift */,
-				35B1B83AA12D0CC4F3EB0432 /* GeoGameDataService.swift */,
-				DCCBF3D94FA4D8C34581EE1D /* GeoGameContainerView.swift */,
-				66A3595509F4117CCF749D56 /* GeoGameMapView.swift */,
-				3A22A1C332F1CD252F015A1D /* GeoGameFloatingCard.swift */,
-				1BD18F404C1AB6E568F2C637 /* Phase1LocationView.swift */,
-				A8D4E90E242E68772E4E62EC /* Phase2PriceView.swift */,
-				AA53C39C57B0BCDBCDDED327 /* GeoGameResultView.swift */,
+				F9076DBA2ED50BF10051E1D8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -731,6 +799,14 @@
 			dependencies = (
 			);
 			name = Billix;
+			packageProductDependencies = (
+				F9076DB02ED50AE30051E1D8 /* Auth */,
+				F9076DB22ED50AE30051E1D8 /* Functions */,
+				F9076DB42ED50AE30051E1D8 /* PostgREST */,
+				F9076DB62ED50AE30051E1D8 /* Realtime */,
+				F9076DB82ED50AE30051E1D8 /* Storage */,
+				F9076DBB2ED50BF10051E1D8 /* Supabase */,
+			);
 			productName = Billix;
 			productReference = F974B1D02EC9553B003EBF59 /* Billix.app */;
 			productType = "com.apple.product-type.application";
@@ -803,6 +879,9 @@
 				Base,
 			);
 			mainGroup = F974B1C72EC9553B003EBF59;
+			packageReferences = (
+				F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			productRefGroup = F974B1D12EC9553B003EBF59 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -845,6 +924,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F9076DC02ED50D520051E1D8 /* OnboardingView.swift in Sources */,
 				F974B2032EC955C0003EBF59 /* ColorPalette.swift in Sources */,
 				F974B1D62EC9553B003EBF59 /* ContentView.swift in Sources */,
 				F974B2012EC955A1003EBF59 /* LoginView.swift in Sources */,
@@ -853,16 +933,6 @@
 				A6FF81702ED4BB24008330C9 /* ScanUploadViewModel.swift in Sources */,
 				A6FF81712ED4BB24008330C9 /* QuickAddStep2Provider.swift in Sources */,
 				A6FF81722ED4BB24008330C9 /* ScanUploadProgressView.swift in Sources */,
-				A6FF819B2ED793BA008330C9 /* PointsHistoryView.swift in Sources */,
-				A6FF819C2ED793BA008330C9 /* RewardMarketplace.swift in Sources */,
-				A6FF819D2ED793BA008330C9 /* ArcadeHeroCard.swift in Sources */,
-				A6FF819E2ED793BA008330C9 /* RewardsModels.swift in Sources */,
-				A6FF819F2ED793BA008330C9 /* WalletHeaderView.swift in Sources */,
-				A6FF81A02ED793BA008330C9 /* RewardsHubView.swift in Sources */,
-				A6FF81A12ED793BA008330C9 /* RewardCard.swift in Sources */,
-				A6FF81A22ED793BA008330C9 /* LeaderboardSection.swift in Sources */,
-				A6FF81A32ED793BA008330C9 /* RewardsViewModel.swift in Sources */,
-				A6FF81A42ED7A000008330C9 /* GiftCardVisuals.swift in Sources */,
 				A6FF81732ED4BB24008330C9 /* QuickAddStep4Result.swift in Sources */,
 				A6FF81742ED4BB24008330C9 /* UploadViewModel.swift in Sources */,
 				A6FF81752ED4BB24008330C9 /* QuickAddStep3Amount.swift in Sources */,
@@ -892,16 +962,6 @@
 				A6FF81882ED50AB3008330C9 /* UploadMethodSelectionView.swift in Sources */,
 				A6FF81812ED4F59D008330C9 /* GlassmorphicCard.swift in Sources */,
 				A6FF81822ED4F59D008330C9 /* ConfettiView.swift in Sources */,
-				7F26C08BB4A0D6E567CAB537 /* AnalysisResultsView.swift in Sources */,
-				F7F8BA48AA3945F4AE7FA77B /* AnalysisResultsSimpleView.swift in Sources */,
-				81DE022F1C0FDAF1622E8CA6 /* AnalysisResultsTabbedView.swift in Sources */,
-				4946FB59E153457F1F8E4CB5 /* AnalysisSummaryTab.swift in Sources */,
-				81389C8838FF9F765C1DED23 /* AnalysisBreakdownTab.swift in Sources */,
-				436979DB30660B752BD3FF31 /* AnalysisCompareTab.swift in Sources */,
-				51BC9F8EAA514FFCF7952832 /* AnalysisDetailsTab.swift in Sources */,
-				576C8368B32940A98FFAD7DA0A2CD192 /* BillAnalysisNewComponents.swift in Sources */,
-				C30C3AB930B5537508CE9CCB /* BillGaugeView.swift in Sources */,
-				0994198ECF734549D8447F73 /* MetricCardView.swift in Sources */,
 				A6FF81832ED4F59D008330C9 /* SegmentedSelector.swift in Sources */,
 				A6FF81842ED4F59D008330C9 /* RadialProgressIndicator.swift in Sources */,
 				F9076D5B2ED19DC10051E1D8 /* DataConnection.swift in Sources */,
@@ -910,8 +970,6 @@
 				A6FF81202ECEB3BC008330C9 /* BillsExploreView.swift in Sources */,
 				A6FF81482ECEB5A2008330C9 /* NetworkError.swift in Sources */,
 				A6FF81212ECEB3BC008330C9 /* ExploreTabView.swift in Sources */,
-				A6FF818B2ED65723008330C9 /* AllUploadsView.swift in Sources */,
-				A6FF818C2ED65723008330C9 /* UploadDetailView.swift in Sources */,
 				A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */,
 				F9076D582ED19DC10051E1D8 /* BillHealthSnapshot.swift in Sources */,
 				F9076D672ED19DEE0051E1D8 /* ProfileSectionCard.swift in Sources */,
@@ -924,6 +982,14 @@
 				A6FF81532ED4BAF4008330C9 /* BillUploadServiceFactory.swift in Sources */,
 				A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */,
 				F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */,
+				7EXP10RE1M0DELS12345678AB /* ExploreModels.swift in Sources */,
+				7EXP10RE3V1EWM0DEL3456EF /* ExploreViewModel.swift in Sources */,
+				7RECESS10NS1M12345678901 /* RecessionSimulatorView.swift in Sources */,
+				7B1LLHEATMAP12345678ABCD /* BillHeatmapView.swift in Sources */,
+				7MAKEMEM0VE123456789ABCD /* MakeMeMoveView.swift in Sources */,
+				7G0UGE1NDEX12345678ABCDE /* GougeIndexView.swift in Sources */,
+				70UTAGEBOT1234567890ABCD /* OutageBotView.swift in Sources */,
+				F9076DC22ED50D5A0051E1D8 /* OnboardingViewModel.swift in Sources */,
 				56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */,
 				A6FF81432ECEB50E008330C9 /* MarketplaceService.swift in Sources */,
 				F9076D5F2ED19DC10051E1D8 /* NotificationPreferences.swift in Sources */,
@@ -937,18 +1003,36 @@
 				F9076D4D2ED19DA20051E1D8 /* MockDataService.swift in Sources */,
 				24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */,
 				F9076D4C2ED19DA20051E1D8 /* AuthService.swift in Sources */,
+				F9076DBE2ED50D430051E1D8 /* SupabaseService.swift in Sources */,
 				A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */,
 				2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */,
 				997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */,
-				71F9D6E1FBD38033425874D1 /* GeoGameModels.swift in Sources */,
-				D34981D370939777F0470C35 /* GeoGameViewModel.swift in Sources */,
-				DB8253FCB413B79C2E21A5DF /* GeoGameDataService.swift in Sources */,
-				C1E31FCDBADA1A2717822F6A /* GeoGameContainerView.swift in Sources */,
-				AD28BDB209B37062E0E922A9 /* GeoGameMapView.swift in Sources */,
-				80CF565D24702C448036E218 /* GeoGameFloatingCard.swift in Sources */,
-				385B58AA2932300730A3E75F /* Phase1LocationView.swift in Sources */,
-				1E9A07228A4B7D85721A4F67 /* Phase2PriceView.swift in Sources */,
-				806CAE2976E63789BA6B5C75 /* GeoGameResultView.swift in Sources */,
+				16473D354B7EF3B1A7B15B25 /* MarketplaceTheme.swift in Sources */,
+				63D72A126147271EDE056149 /* MarketplaceView.swift in Sources */,
+				4614EEB8EF0F53C5ED197D9C /* BillListing.swift in Sources */,
+				9FBD55C9B930DD08A6264CFC /* Cluster.swift in Sources */,
+				8160262B8986E8E8430FB93A /* MarketplaceItems.swift in Sources */,
+				0B3978E45C38518CA2B82A3D /* MockMarketplaceData.swift in Sources */,
+				D50D3D7825651D05B03F2F66 /* MarketplaceViewModel.swift in Sources */,
+				8B0C9D3F4868993ECC610BD2 /* BillCardView.swift in Sources */,
+				DE7A061EF4C44553BCDA621A /* BillCardSideA.swift in Sources */,
+				24AA216361D28E576AA9F2C2 /* BillCardSideB.swift in Sources */,
+				D63C30C122E18342AF38C1F8 /* VSMeToggle.swift in Sources */,
+				0E58FE07F481E233517930FA /* TickerHeaderZone.swift in Sources */,
+				9378B9C9840992DB036549E4 /* FinancialSpreadZone.swift in Sources */,
+				80463EA3D6F47BC4F7ED21E8 /* DynamicSpecsZone.swift in Sources */,
+				CC5C4203C8C523C5D67F2851 /* BlueprintTeaseZone.swift in Sources */,
+				105CDC90740F2D3D993826F3 /* SellerFooterZone.swift in Sources */,
+				026616F06A2AC97D284507A7 /* BountyCard.swift in Sources */,
+				4A481D87CACB424C8A22B899 /* ClusterCard.swift in Sources */,
+				7E857670BC41595C6662AB3F /* PredictionCard.swift in Sources */,
+				4EDF2DA492CE26CFAE5296F6 /* ScriptCard.swift in Sources */,
+				21B7E99EF6AF9B9219588A46 /* ServiceCard.swift in Sources */,
+				5TAKE0VER1CARD23456789AB /* TakeoverCard.swift in Sources */,
+				FB021E8FC90B96BB845CCD82 /* FilterSheetView.swift in Sources */,
+				53D0235A4F9B5DDDA83914EC /* UnlockBlueprintSheet.swift in Sources */,
+				C93D6D9B9A4E2E8A36D2063C /* AskOwnerSheet.swift in Sources */,
+				D8E729C509255F5015837DD4 /* PlaceBidSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1297,6 +1381,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F9076DB02ED50AE30051E1D8 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		F9076DB22ED50AE30051E1D8 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		F9076DB42ED50AE30051E1D8 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		F9076DB62ED50AE30051E1D8 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		F9076DB82ED50AE30051E1D8 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		F9076DBB2ED50BF10051E1D8 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F9076DAF2ED50AE30051E1D8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F974B1C82EC9553B003EBF59 /* Project object */;
 }
