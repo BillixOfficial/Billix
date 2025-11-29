@@ -79,16 +79,16 @@ class UploadViewModel: ObservableObject {
 
             // Update the upload in the list
             if let index = recentUploads.firstIndex(where: { $0.id == uploadId }) {
-                let updated = recentUploads[index]
+                let current = recentUploads[index]
                 // Create new instance with updated status
                 recentUploads[index] = RecentUpload(
-                    id: updated.id,
-                    provider: updated.provider,
-                    amount: updated.amount,
-                    source: updated.source,
+                    id: current.id,
+                    provider: current.provider,
+                    amount: current.amount,
+                    source: current.source,
                     status: status,
-                    uploadDate: updated.uploadDate,
-                    thumbnailName: updated.thumbnailName
+                    uploadDate: current.uploadDate,
+                    thumbnailName: current.thumbnailName
                 )
             }
         } catch {

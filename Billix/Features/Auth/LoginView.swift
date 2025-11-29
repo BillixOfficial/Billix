@@ -389,22 +389,12 @@ struct LoginView: View {
 
         Task {
             do {
-                let needsEmailConfirmation = try await authService.signUp(email: email, password: password)
-
-                if needsEmailConfirmation {
-                    // Show message to check email
-                    showErrorMessage("Account created! Please check your email to confirm your account, then sign in.")
-                    // Switch back to sign-in mode so they can sign in after confirming
-                    withAnimation {
-                        isSignUpMode = false
-                        password = ""
-                        confirmPassword = ""
-                    }
-                } else {
-                    // Navigation handled by RootView - will go to onboarding
-                    let generator = UINotificationFeedbackGenerator()
-                    generator.notificationOccurred(.success)
-                }
+                // AuthService handles the flow:
+                // - If email verification needed: shows EmailVerificationView
+                // - If no verification needed: proceeds to onboarding
+                try await authService.signUp(email: email, password: password)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
             } catch {
                 showErrorMessage(error.localizedDescription)
                 let generator = UINotificationFeedbackGenerator()

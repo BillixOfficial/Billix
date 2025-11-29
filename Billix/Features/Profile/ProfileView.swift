@@ -86,9 +86,63 @@ struct SocialLink: Identifiable {
 // MARK: - Profile View
 
 struct ProfileView: View {
+    @EnvironmentObject var authService: AuthService
     @StateObject private var viewModel = ProfileViewModel()
     @State private var selectedTab: ProfileTab = .about
-    @State private var profileData = ProfileData.preview
+
+    // Computed profile data from AuthService
+    private var profileData: ProfileData {
+        guard let user = authService.currentUser else {
+            return ProfileData.preview
+        }
+
+        // Format birthday if available
+        var birthdayString = ""
+        if let birthday = user.billixProfile?.birthday {
+            // Convert from yyyy-MM-dd to MM/dd/yyyy
+            let inputFormatter = DateFormatter()
+            inputFormatter.dateFormat = "yyyy-MM-dd"
+            let outputFormatter = DateFormatter()
+            outputFormatter.dateFormat = "MM/dd/yyyy"
+            if let date = inputFormatter.date(from: birthday) {
+                birthdayString = outputFormatter.string(from: date)
+            }
+        }
+
+        return ProfileData(
+            name: user.fullDisplayName,  // Shows "@handle DisplayName"
+            email: userEmail,
+            dateOfBirth: birthdayString,
+            address: user.formattedLocation,  // Shows "07030 (Jersey City, NJ)"
+            profileImageName: nil,
+            phone: "",
+            bio: user.bio ?? "No bio yet. Tap to add one!",
+            socialLinks: [],
+            website: ""
+        )
+    }
+
+    // Fetch email from Supabase session
+    private func fetchUserEmail() {
+        Task {
+            do {
+                let session = try await SupabaseService.shared.client.auth.session
+                await MainActor.run {
+                    userEmail = session.user.email ?? ""
+                }
+            } catch {
+                print("Failed to fetch user email: \(error)")
+            }
+        }
+    }
+
+    // User email from auth session
+    @State private var userEmail: String = ""
+
+    // Bio editing states
+    @State private var showBioEditor = false
+    @State private var editingBio = ""
+    @State private var isSavingBio = false
 
     // Settings states
     @State private var biometricLock = false
@@ -132,6 +186,76 @@ struct ProfileView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                fetchUserEmail()
+            }
+            .sheet(isPresented: $showBioEditor) {
+                bioEditorSheet
+            }
+        }
+    }
+
+    // MARK: - Bio Editor Sheet
+
+    private var bioEditorSheet: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("Edit your bio")
+                    .font(.headline)
+                    .foregroundColor(darkTextColor)
+
+                TextEditor(text: $editingBio)
+                    .font(.system(size: 16))
+                    .padding(12)
+                    .frame(minHeight: 150)
+                    .background(Color(hex: "#F5F7F6"))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+
+                Text("\(editingBio.count)/300 characters")
+                    .font(.caption)
+                    .foregroundColor(editingBio.count > 300 ? .red : grayTextColor)
+
+                Spacer()
+            }
+            .padding(20)
+            .navigationTitle("Bio")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showBioEditor = false
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveBio()
+                    }
+                    .disabled(isSavingBio || editingBio.count > 300)
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func saveBio() {
+        isSavingBio = true
+        Task {
+            do {
+                try await authService.updateBio(editingBio)
+                await MainActor.run {
+                    isSavingBio = false
+                    showBioEditor = false
+                }
+            } catch {
+                await MainActor.run {
+                    isSavingBio = false
+                }
+                print("Failed to save bio: \(error)")
+            }
         }
     }
 
@@ -207,24 +331,40 @@ struct ProfileView: View {
                 .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
 
             // Profile image or initials
-            if let imageName = profileData.profileImageName,
-               let uiImage = UIImage(named: imageName) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 100, height: 130)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-            } else {
-                // Placeholder silhouette/initials
-                VStack(spacing: 6) {
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 44, weight: .light))
-                        .foregroundColor(Color(hex: "#B0C0D0"))
-                    Text(profileData.initials)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(Color(hex: "#8899AA"))
+            if let avatarUrl = authService.currentUser?.profile.avatarUrl,
+               let url = URL(string: avatarUrl) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 100, height: 130)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    case .failure:
+                        profilePlaceholder
+                    case .empty:
+                        ProgressView()
+                            .frame(width: 100, height: 130)
+                    @unknown default:
+                        profilePlaceholder
+                    }
                 }
+            } else {
+                profilePlaceholder
             }
+        }
+    }
+
+    private var profilePlaceholder: some View {
+        // Placeholder silhouette/initials
+        VStack(spacing: 6) {
+            Image(systemName: "person.fill")
+                .font(.system(size: 44, weight: .light))
+                .foregroundColor(Color(hex: "#B0C0D0"))
+            Text(profileData.initials)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundColor(Color(hex: "#8899AA"))
         }
     }
 
@@ -287,14 +427,29 @@ struct ProfileView: View {
 
     private var aboutTabContent: some View {
         VStack(spacing: 14) {
-            // BIO Card
-            ProfileCard(title: "BIO") {
-                Text(profileData.bio)
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(grayTextColor)
-                    .lineSpacing(5)
-                    .fixedSize(horizontal: false, vertical: true)
+            // BIO Card - Tappable to edit
+            Button {
+                editingBio = authService.currentUser?.bio ?? ""
+                showBioEditor = true
+            } label: {
+                ProfileCard(title: "BIO") {
+                    HStack {
+                        Text(profileData.bio)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(grayTextColor)
+                            .lineSpacing(5)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .multilineTextAlignment(.leading)
+
+                        Spacer()
+
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(selectedTabColor.opacity(0.6))
+                    }
+                }
             }
+            .buttonStyle(PlainButtonStyle())
 
             // ON THE WEB Card
             ProfileCard(title: "ON THE WEB") {
@@ -800,4 +955,5 @@ struct ProfileSettingsToggleRow: View {
 
 #Preview {
     ProfileView()
+        .environmentObject(AuthService.shared)
 }

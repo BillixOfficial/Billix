@@ -43,6 +43,8 @@ struct RootView: View {
     private var viewState: ViewState {
         if authService.isLoading {
             return .loading
+        } else if authService.awaitingEmailVerification {
+            return .emailVerification
         } else if !authService.isAuthenticated {
             return .login
         } else if authService.needsOnboarding {
@@ -55,6 +57,7 @@ struct RootView: View {
     private enum ViewState: Equatable {
         case loading
         case login
+        case emailVerification
         case onboarding
         case main
     }
@@ -66,6 +69,8 @@ struct RootView: View {
                 SplashView()
             case .login:
                 LoginView()
+            case .emailVerification:
+                EmailVerificationView()
             case .onboarding:
                 NavigationStack {
                     OnboardingView()
