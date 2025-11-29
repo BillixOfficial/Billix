@@ -80,6 +80,23 @@ struct RewardsHubView: View {
             .presentationDetents([.medium])
             .presentationDragIndicator(.visible)
         }
+        .fullScreenCover(isPresented: $viewModel.showGeoGame) {
+            if let game = viewModel.activeGame {
+                GeoGameContainerView(
+                    initialGame: game,
+                    onComplete: { result in
+                        viewModel.handleGameResult(result)
+                    },
+                    onPlayAgain: {
+                        viewModel.playAgain()
+                    },
+                    onDismiss: {
+                        viewModel.closeGeoGame()
+                    }
+                )
+                .id(game.id) // Force view recreation when game changes
+            }
+        }
     }
 }
 
@@ -165,9 +182,7 @@ struct EarnPointsTabView: View {
                 // Daily Game Hero Card
                 DailyGameHeroCard(
                     game: viewModel.dailyGame,
-                    result: viewModel.todaysResult,
-                    hasPlayedToday: viewModel.hasPlayedToday,
-                    timeRemaining: viewModel.timeUntilNextGame,
+                    gamesPlayedToday: viewModel.gamesPlayedToday,
                     onPlay: {
                         viewModel.playDailyGame()
                     }
@@ -266,9 +281,7 @@ struct MarketplaceTabView: View {
 
 struct DailyGameHeroCard: View {
     let game: DailyGame?
-    let result: GameResult?
-    let hasPlayedToday: Bool
-    let timeRemaining: String
+    let gamesPlayedToday: Int
     let onPlay: () -> Void
 
     @State private var isAnimating = false
@@ -389,52 +402,17 @@ struct DailyGameHeroCard: View {
                             .offset(y: isAnimating ? -4 : 4)
 
                         // Icon
-                        if !hasPlayedToday {
-                            Image(systemName: "questionmark")
-                                .font(.system(size: 40, weight: .bold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.2), radius: 3)
-                                .rotationEffect(.degrees(isAnimating ? 5 : -5))
-                        } else {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 40, weight: .bold))
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.2), radius: 3)
-                        }
+                        Image(systemName: "questionmark")
+                            .font(.system(size: 40, weight: .bold))
+                            .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.2), radius: 3)
+                            .rotationEffect(.degrees(isAnimating ? 5 : -5))
                     }
                     .frame(width: 100)
 
                     // Content
                     VStack(alignment: .leading, spacing: 10) {
-                        if hasPlayedToday, let result = result {
-                            // Played state
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 18))
-                                        .foregroundColor(.billixMoneyGreen)
-
-                                    Text("Completed!")
-                                        .font(.system(size: 18, weight: .bold))
-                                        .foregroundColor(.white)
-                                }
-
-                                HStack(spacing: 4) {
-                                    Image(systemName: "star.fill")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.billixArcadeGold)
-
-                                    Text("+\(result.pointsEarned) pts")
-                                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
-                                }
-
-                                Text("Next in \(timeRemaining)")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.85))
-                            }
-                        } else if let game = game {
-                            // Play state
+                        if let game = game {
                             VStack(alignment: .leading, spacing: 9) {
                                 Text("Price Guessr")
                                     .font(.system(size: 22, weight: .bold))
@@ -460,6 +438,19 @@ struct DailyGameHeroCard: View {
                                         .font(.system(size: 14, weight: .medium))
                                         .foregroundColor(.white.opacity(0.85))
                                 }
+
+                                // Show games played if any
+                                if gamesPlayedToday > 0 {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "gamecontroller.fill")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.white.opacity(0.7))
+
+                                        Text("\(gamesPlayedToday) played today")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.85))
+                                    }
+                                }
                             }
                         }
 
@@ -477,7 +468,7 @@ struct DailyGameHeroCard: View {
             // Enhanced CTA Button with shine effect
             Button(action: onPlay) {
                 ZStack {
-                    Text(hasPlayedToday ? "Play Again Tomorrow" : "Play Now")
+                    Text("Play Now")
                         .font(.system(size: 17, weight: .bold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -485,44 +476,37 @@ struct DailyGameHeroCard: View {
                         .background(
                             ZStack {
                                 LinearGradient(
-                                    colors: hasPlayedToday ?
-                                    [Color.billixMediumGreen.opacity(0.6), Color.billixMediumGreen.opacity(0.5)] :
-                                    [Color.billixArcadeGold, Color.billixPrizeOrange],
+                                    colors: [Color.billixArcadeGold, Color.billixPrizeOrange],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
 
-                                // Shine overlay when not played
-                                if !hasPlayedToday {
-                                    LinearGradient(
-                                        colors: [
-                                            .clear,
-                                            .white.opacity(0.2),
-                                            .clear
-                                        ],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                    .offset(x: shimmerOffset)
-                                }
+                                // Shine overlay
+                                LinearGradient(
+                                    colors: [
+                                        .clear,
+                                        .white.opacity(0.2),
+                                        .clear
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                .offset(x: shimmerOffset)
                             }
                         )
 
-                    if !hasPlayedToday {
-                        HStack {
-                            Spacer()
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.trailing, 20)
-                        }
+                    HStack {
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.trailing, 20)
                     }
                 }
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.97))
-            .disabled(hasPlayedToday)
             .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: hasPlayedToday ? .clear : .billixArcadeGold.opacity(0.3), radius: 12, y: 6)
+            .shadow(color: .billixArcadeGold.opacity(0.3), radius: 12, y: 6)
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
             .offset(y: -10)

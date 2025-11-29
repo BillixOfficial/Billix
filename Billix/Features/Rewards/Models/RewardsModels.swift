@@ -8,6 +8,8 @@
 
 import Foundation
 import SwiftUI
+import CoreLocation
+import MapKit
 
 // MARK: - Tier System
 
@@ -125,6 +127,60 @@ enum RewardType: String, Codable, CaseIterable {
     }
 }
 
+// MARK: - Geo Game Support Types
+
+struct LocationCoordinate: Codable, Equatable {
+    let latitude: Double
+    let longitude: Double
+
+    var clCoordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+}
+
+struct MapRegionData: Codable, Equatable {
+    let centerLatitude: Double
+    let centerLongitude: Double
+    let pitch: Double
+    let heading: Double
+
+    var mapCamera: MapCamera {
+        MapCamera(
+            centerCoordinate: CLLocationCoordinate2D(
+                latitude: centerLatitude,
+                longitude: centerLongitude
+            ),
+            distance: 5000,
+            heading: heading,
+            pitch: pitch
+        )
+    }
+
+    func updatedCamera(heading: Double, distance: Double, pitch: Double) -> MapCamera {
+        MapCamera(
+            centerCoordinate: CLLocationCoordinate2D(
+                latitude: centerLatitude,
+                longitude: centerLongitude
+            ),
+            distance: distance,
+            heading: heading,
+            pitch: pitch
+        )
+    }
+}
+
+struct DecoyLocation: Identifiable, Codable, Equatable {
+    let id: UUID
+    let name: String
+    let displayLabel: String
+
+    init(id: UUID = UUID(), name: String, displayLabel: String) {
+        self.id = id
+        self.name = name
+        self.displayLabel = displayLabel
+    }
+}
+
 // MARK: - Daily Game (Price Guessr)
 
 struct DailyGame: Identifiable, Codable, Equatable {
@@ -139,12 +195,24 @@ struct DailyGame: Identifiable, Codable, Equatable {
     let unit: String             // "gallon", "month", etc.
     let expiresAt: Date
 
+    // GEO GAME EXTENSIONS (all optional for backward compatibility)
+    let gameMode: GameMode?              // .groceryRun or .apartmentHunt
+    let coordinates: LocationCoordinate? // Lat/long for map center
+    let mapRegion: MapRegionData?        // Camera settings (pitch, heading, zoom)
+    let decoyLocations: [DecoyLocation]? // Wrong answer choices (A/B/C/D)
+    let economicContext: String?         // "To live here, need $X/year"
+    let landmarkCoordinate: LocationCoordinate? // Famous landmark to center camera on
+
     var formattedSubject: String {
         "\(subject) in \(location)"
     }
 
     var priceRange: ClosedRange<Double> {
         minGuess...maxGuess
+    }
+
+    var isGeoGame: Bool {
+        gameMode != nil && coordinates != nil && mapRegion != nil
     }
 }
 
@@ -172,6 +240,25 @@ enum GameCategory: String, Codable, CaseIterable {
         case .utility: return .orange
         case .subscription: return .purple
         case .gas: return .red
+        }
+    }
+}
+
+enum GameMode: String, Codable {
+    case groceryRun = "The Grocery Run"
+    case apartmentHunt = "The Apartment Hunt"
+
+    var icon: String {
+        switch self {
+        case .groceryRun: return "cart.fill"
+        case .apartmentHunt: return "house.fill"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .groceryRun: return "Guess grocery prices around the world"
+        case .apartmentHunt: return "Estimate rent in different cities"
         }
     }
 }
@@ -367,7 +454,13 @@ extension DailyGame {
         minGuess: 2.00,
         maxGuess: 8.00,
         unit: "gallon",
-        expiresAt: Calendar.current.date(byAdding: .hour, value: 14, to: Date()) ?? Date()
+        expiresAt: Calendar.current.date(byAdding: .hour, value: 14, to: Date()) ?? Date(),
+        gameMode: nil,
+        coordinates: nil,
+        mapRegion: nil,
+        decoyLocations: nil,
+        economicContext: nil,
+        landmarkCoordinate: nil
     )
 }
 

@@ -22,8 +22,9 @@ class RewardsViewModel: ObservableObject {
 
     @Published var dailyGame: DailyGame? = .preview
     @Published var todaysResult: GameResult?
-    @Published var hasPlayedToday: Bool = false
-    @Published var timeUntilNextGame: String = ""
+    @Published var gamesPlayedToday: Int = 0
+    @Published var showGeoGame: Bool = false
+    @Published var activeGame: DailyGame?
 
     // MARK: - Marketplace
 
@@ -67,11 +68,11 @@ class RewardsViewModel: ObservableObject {
         try? await Task.sleep(nanoseconds: 500_000_000)
 
         // In real implementation, fetch from API
-        // For now, using preview data
+        // For now, using preview/mock data
         points = .preview
         rewards = Reward.previewRewards
         topSavers = LeaderboardEntry.previewEntries
-        dailyGame = .preview
+        dailyGame = GeoGameDataService.getTodaysGame()
 
         // Animate balance on load
         animateBalanceChange(to: points.balance)
@@ -142,10 +143,33 @@ class RewardsViewModel: ObservableObject {
     }
 
     func playDailyGame() {
-        // This would navigate to the game flow
-        // For now, just mark as played with a sample result
-        hasPlayedToday = true
-        todaysResult = .preview
+        // Get a random game each time for variety
+        activeGame = GeoGameDataService.getRandomGame()
+        showGeoGame = true
+    }
+
+    func handleGameResult(_ result: GameResult) {
+        todaysResult = result
+        gamesPlayedToday += 1
+
+        // Add points if earned
+        if result.pointsEarned > 0 {
+            addPoints(
+                result.pointsEarned,
+                description: "Geo Game #\(gamesPlayedToday)",
+                type: .gameWin
+            )
+        }
+    }
+
+    func closeGeoGame() {
+        showGeoGame = false
+        activeGame = nil
+    }
+
+    func playAgain() {
+        // Get a new random game
+        activeGame = GeoGameDataService.getRandomGame()
     }
 
     // MARK: - Private Methods
@@ -160,27 +184,6 @@ class RewardsViewModel: ObservableObject {
     }
 
     private func updateCountdown() {
-        guard let game = dailyGame else {
-            timeUntilNextGame = ""
-            return
-        }
-
-        let now = Date()
-        let remaining = game.expiresAt.timeIntervalSince(now)
-
-        if remaining <= 0 {
-            timeUntilNextGame = "New game available!"
-            hasPlayedToday = false
-            return
-        }
-
-        let hours = Int(remaining) / 3600
-        let minutes = (Int(remaining) % 3600) / 60
-
-        if hours > 0 {
-            timeUntilNextGame = "\(hours)h \(minutes)m"
-        } else {
-            timeUntilNextGame = "\(minutes)m"
-        }
+        // No longer using countdown - games are always available
     }
 }

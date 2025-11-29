@@ -7,9 +7,22 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0994198ECF734549D8447F73 /* MetricCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */; };
+		1E9A07228A4B7D85721A4F67 /* Phase2PriceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8D4E90E242E68772E4E62EC /* Phase2PriceView.swift */; };
 		24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */; };
 		2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */; };
+		385B58AA2932300730A3E75F /* Phase1LocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD18F404C1AB6E568F2C637 /* Phase1LocationView.swift */; };
+		436979DB30660B752BD3FF31 /* AnalysisCompareTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */; };
+		4946FB59E153457F1F8E4CB5 /* AnalysisSummaryTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200FCC5D4336A8B39C5D302F /* AnalysisSummaryTab.swift */; };
+		51BC9F8EAA514FFCF7952832 /* AnalysisDetailsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */; };
+		576C8368B32940A98FFAD7DA0A2CD192 /* BillAnalysisNewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A873DD8C8D4DC69E6FA313AE899BEC /* BillAnalysisNewComponents.swift */; };
 		56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C58A5E4A878AC7816EB3122 /* HealthView.swift */; };
+		71F9D6E1FBD38033425874D1 /* GeoGameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD72A50E94416FA6D5922173 /* GeoGameModels.swift */; };
+		7F26C08BB4A0D6E567CAB537 /* AnalysisResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C1289A81B8941234538D77 /* AnalysisResultsView.swift */; };
+		806CAE2976E63789BA6B5C75 /* GeoGameResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA53C39C57B0BCDBCDDED327 /* GeoGameResultView.swift */; };
+		80CF565D24702C448036E218 /* GeoGameFloatingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A22A1C332F1CD252F015A1D /* GeoGameFloatingCard.swift */; };
+		81389C8838FF9F765C1DED23 /* AnalysisBreakdownTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */; };
+		81DE022F1C0FDAF1622E8CA6 /* AnalysisResultsTabbedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */; };
 		997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81513DE947C6002A28D674AD /* AuthViewModel.swift */; };
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */; };
@@ -55,15 +68,6 @@
 		A6FF817C2ED4BB24008330C9 /* QuickAddFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81602ED4BB24008330C9 /* QuickAddFlowView.swift */; };
 		A6FF81812ED4F59D008330C9 /* GlassmorphicCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */; };
 		A6FF81822ED4F59D008330C9 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */; };
-		7F26C08BB4A0D6E567CAB537 /* AnalysisResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C1289A81B8941234538D77 /* AnalysisResultsView.swift */; };
-		81DE022F1C0FDAF1622E8CA6 /* AnalysisResultsTabbedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */; };
-		F7F8BA48AA3945F4AE7FA77B /* AnalysisResultsSimpleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */; };
-		4946FB59E153457F1F8E4CB5 /* AnalysisOverviewTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200FCC5D4336A8B39C5D302F /* AnalysisOverviewTab.swift */; };
-		81389C8838FF9F765C1DED23 /* AnalysisBreakdownTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */; };
-		436979DB30660B752BD3FF31 /* AnalysisCompareTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */; };
-		51BC9F8EAA514FFCF7952832 /* AnalysisDetailsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */; };
-		C30C3AB930B5537508CE9CCB /* BillGaugeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */; };
-		0994198ECF734549D8447F73 /* MetricCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */; };
 		A6FF81832ED4F59D008330C9 /* SegmentedSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */; };
 		A6FF81842ED4F59D008330C9 /* RadialProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */; };
 		A6FF81862ED504CB008330C9 /* MediaPickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81852ED504CB008330C9 /* MediaPickers.swift */; };
@@ -80,9 +84,15 @@
 		A6FF81A22ED793BA008330C9 /* LeaderboardSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81922ED793BA008330C9 /* LeaderboardSection.swift */; };
 		A6FF81A32ED793BA008330C9 /* RewardsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF818F2ED793BA008330C9 /* RewardsViewModel.swift */; };
 		A6FF81A42ED7A000008330C9 /* GiftCardVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81A52ED7A000008330C9 /* GiftCardVisuals.swift */; };
+		AD28BDB209B37062E0E922A9 /* GeoGameMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A3595509F4117CCF749D56 /* GeoGameMapView.swift */; };
+		C1E31FCDBADA1A2717822F6A /* GeoGameContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCBF3D94FA4D8C34581EE1D /* GeoGameContainerView.swift */; };
+		C30C3AB930B5537508CE9CCB /* BillGaugeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */; };
+		D34981D370939777F0470C35 /* GeoGameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4C98778399C32A70EE33E0 /* GeoGameViewModel.swift */; };
+		DB8253FCB413B79C2E21A5DF /* GeoGameDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B1B83AA12D0CC4F3EB0432 /* GeoGameDataService.swift */; };
 		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
 		F34AB25163A7004F64C6550E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF1E5E15C4654C0F526462A /* HomeView.swift */; };
 		F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89EC00ED13981D09603CF99 /* ExploreView.swift */; };
+		F7F8BA48AA3945F4AE7FA77B /* AnalysisResultsSimpleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */; };
 		F9076D4B2ED19DA20051E1D8 /* ProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D482ED19DA20051E1D8 /* ProfileService.swift */; };
 		F9076D4C2ED19DA20051E1D8 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D492ED19DA20051E1D8 /* AuthService.swift */; };
 		F9076D4D2ED19DA20051E1D8 /* MockDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D4A2ED19DA20051E1D8 /* MockDataService.swift */; };
@@ -126,10 +136,23 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisBreakdownTab.swift; sourceTree = "<group>"; };
+		09A873DD8C8D4DC69E6FA313AE899BEC /* BillAnalysisNewComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysisNewComponents.swift; sourceTree = "<group>"; };
+		1BD18F404C1AB6E568F2C637 /* Phase1LocationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Phase1LocationView.swift; path = Billix/Features/Rewards/Views/GeoGame/Phase1LocationView.swift; sourceTree = "<group>"; };
+		200FCC5D4336A8B39C5D302F /* AnalysisSummaryTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisSummaryTab.swift; sourceTree = "<group>"; };
+		35B1B83AA12D0CC4F3EB0432 /* GeoGameDataService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameDataService.swift; path = Billix/Features/Rewards/Services/GeoGameDataService.swift; sourceTree = "<group>"; };
+		3A22A1C332F1CD252F015A1D /* GeoGameFloatingCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameFloatingCard.swift; path = Billix/Features/Rewards/Views/GeoGame/GeoGameFloatingCard.swift; sourceTree = "<group>"; };
+		3F4C98778399C32A70EE33E0 /* GeoGameViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameViewModel.swift; path = Billix/Features/Rewards/ViewModels/GeoGameViewModel.swift; sourceTree = "<group>"; };
+		3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisCompareTab.swift; sourceTree = "<group>"; };
 		41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisDetailsTab.swift; sourceTree = "<group>"; };
 		4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		5C58A5E4A878AC7816EB3122 /* HealthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
+		62C1289A81B8941234538D77 /* AnalysisResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsView.swift; sourceTree = "<group>"; };
+		66A3595509F4117CCF749D56 /* GeoGameMapView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameMapView.swift; path = Billix/Features/Rewards/Views/GeoGame/GeoGameMapView.swift; sourceTree = "<group>"; };
+		758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCardView.swift; sourceTree = "<group>"; };
 		81513DE947C6002A28D674AD /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsSimpleView.swift; sourceTree = "<group>"; };
 		A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysis.swift; sourceTree = "<group>"; };
 		A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredBill.swift; sourceTree = "<group>"; };
 		A64F7F4E2ECBB46B005576C5 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -173,15 +196,6 @@
 		A6FF81692ED4BB24008330C9 /* ScanUploadResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanUploadResultView.swift; sourceTree = "<group>"; };
 		A6FF816B2ED4BB24008330C9 /* UploadHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadHubView.swift; sourceTree = "<group>"; };
 		A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfettiView.swift; sourceTree = "<group>"; };
-		62C1289A81B8941234538D77 /* AnalysisResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsView.swift; sourceTree = "<group>"; };
-		A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsTabbedView.swift; sourceTree = "<group>"; };
-		9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsSimpleView.swift; sourceTree = "<group>"; };
-		200FCC5D4336A8B39C5D302F /* AnalysisOverviewTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisOverviewTab.swift; sourceTree = "<group>"; };
-		031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisBreakdownTab.swift; sourceTree = "<group>"; };
-		3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisCompareTab.swift; sourceTree = "<group>"; };
-		434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisDetailsTab.swift; sourceTree = "<group>"; };
-		E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillGaugeView.swift; sourceTree = "<group>"; };
-		758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCardView.swift; sourceTree = "<group>"; };
 		A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassmorphicCard.swift; sourceTree = "<group>"; };
 		A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadialProgressIndicator.swift; sourceTree = "<group>"; };
 		A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentedSelector.swift; sourceTree = "<group>"; };
@@ -199,8 +213,14 @@
 		A6FF81972ED793BA008330C9 /* PointsHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsHistoryView.swift; sourceTree = "<group>"; };
 		A6FF81982ED793BA008330C9 /* RewardsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsHubView.swift; sourceTree = "<group>"; };
 		A6FF81A52ED7A000008330C9 /* GiftCardVisuals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftCardVisuals.swift; sourceTree = "<group>"; };
+		A8D4E90E242E68772E4E62EC /* Phase2PriceView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Phase2PriceView.swift; path = Billix/Features/Rewards/Views/GeoGame/Phase2PriceView.swift; sourceTree = "<group>"; };
+		A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsTabbedView.swift; sourceTree = "<group>"; };
+		AA53C39C57B0BCDBCDDED327 /* GeoGameResultView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameResultView.swift; path = Billix/Features/Rewards/Views/GeoGame/GeoGameResultView.swift; sourceTree = "<group>"; };
 		ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		C89EC00ED13981D09603CF99 /* ExploreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		CD72A50E94416FA6D5922173 /* GeoGameModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameModels.swift; path = Billix/Features/Rewards/Models/GeoGameModels.swift; sourceTree = "<group>"; };
+		DCCBF3D94FA4D8C34581EE1D /* GeoGameContainerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeoGameContainerView.swift; path = Billix/Features/Rewards/Views/GeoGame/GeoGameContainerView.swift; sourceTree = "<group>"; };
+		E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillGaugeView.swift; sourceTree = "<group>"; };
 		EDF1E5E15C4654C0F526462A /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		F9076D482ED19DA20051E1D8 /* ProfileService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileService.swift; sourceTree = "<group>"; };
 		F9076D492ED19DA20051E1D8 /* AuthService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
@@ -475,10 +495,11 @@
 				62C1289A81B8941234538D77 /* AnalysisResultsView.swift */,
 				9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */,
 				A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */,
-				200FCC5D4336A8B39C5D302F /* AnalysisOverviewTab.swift */,
+				200FCC5D4336A8B39C5D302F /* AnalysisSummaryTab.swift */,
 				031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */,
 				3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */,
 				434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */,
+				09A873DD8C8D4DC69E6FA313AE899BEC /* BillAnalysisNewComponents.swift */,
 				E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */,
 				758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */,
 				A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */,
@@ -570,6 +591,7 @@
 				A6FF81962ED793BA008330C9 /* Components */,
 				A6FF81972ED793BA008330C9 /* PointsHistoryView.swift */,
 				A6FF81982ED793BA008330C9 /* RewardsHubView.swift */,
+				DE649AFC77E10A506EC061E6 /* GeoGame */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -580,8 +602,23 @@
 				A6FF818E2ED793BA008330C9 /* Models */,
 				A6FF81902ED793BA008330C9 /* ViewModels */,
 				A6FF81992ED793BA008330C9 /* Views */,
+				E808C2A94AB5E7CAA247312D /* Services */,
 			);
 			path = Rewards;
+			sourceTree = "<group>";
+		};
+		DE649AFC77E10A506EC061E6 /* GeoGame */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = GeoGame;
+			sourceTree = "<group>";
+		};
+		E808C2A94AB5E7CAA247312D /* Services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Services;
 			sourceTree = "<group>";
 		};
 		F9076D572ED19DC10051E1D8 /* Profile */ = {
@@ -616,6 +653,15 @@
 				F974B1E62EC9553C003EBF59 /* BillixTests */,
 				F974B1F02EC9553C003EBF59 /* BillixUITests */,
 				F974B1D12EC9553B003EBF59 /* Products */,
+				CD72A50E94416FA6D5922173 /* GeoGameModels.swift */,
+				3F4C98778399C32A70EE33E0 /* GeoGameViewModel.swift */,
+				35B1B83AA12D0CC4F3EB0432 /* GeoGameDataService.swift */,
+				DCCBF3D94FA4D8C34581EE1D /* GeoGameContainerView.swift */,
+				66A3595509F4117CCF749D56 /* GeoGameMapView.swift */,
+				3A22A1C332F1CD252F015A1D /* GeoGameFloatingCard.swift */,
+				1BD18F404C1AB6E568F2C637 /* Phase1LocationView.swift */,
+				A8D4E90E242E68772E4E62EC /* Phase2PriceView.swift */,
+				AA53C39C57B0BCDBCDDED327 /* GeoGameResultView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -849,10 +895,11 @@
 				7F26C08BB4A0D6E567CAB537 /* AnalysisResultsView.swift in Sources */,
 				F7F8BA48AA3945F4AE7FA77B /* AnalysisResultsSimpleView.swift in Sources */,
 				81DE022F1C0FDAF1622E8CA6 /* AnalysisResultsTabbedView.swift in Sources */,
-				4946FB59E153457F1F8E4CB5 /* AnalysisOverviewTab.swift in Sources */,
+				4946FB59E153457F1F8E4CB5 /* AnalysisSummaryTab.swift in Sources */,
 				81389C8838FF9F765C1DED23 /* AnalysisBreakdownTab.swift in Sources */,
 				436979DB30660B752BD3FF31 /* AnalysisCompareTab.swift in Sources */,
 				51BC9F8EAA514FFCF7952832 /* AnalysisDetailsTab.swift in Sources */,
+				576C8368B32940A98FFAD7DA0A2CD192 /* BillAnalysisNewComponents.swift in Sources */,
 				C30C3AB930B5537508CE9CCB /* BillGaugeView.swift in Sources */,
 				0994198ECF734549D8447F73 /* MetricCardView.swift in Sources */,
 				A6FF81832ED4F59D008330C9 /* SegmentedSelector.swift in Sources */,
@@ -893,6 +940,15 @@
 				A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */,
 				2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */,
 				997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */,
+				71F9D6E1FBD38033425874D1 /* GeoGameModels.swift in Sources */,
+				D34981D370939777F0470C35 /* GeoGameViewModel.swift in Sources */,
+				DB8253FCB413B79C2E21A5DF /* GeoGameDataService.swift in Sources */,
+				C1E31FCDBADA1A2717822F6A /* GeoGameContainerView.swift in Sources */,
+				AD28BDB209B37062E0E922A9 /* GeoGameMapView.swift in Sources */,
+				80CF565D24702C448036E218 /* GeoGameFloatingCard.swift in Sources */,
+				385B58AA2932300730A3E75F /* Phase1LocationView.swift in Sources */,
+				1E9A07228A4B7D85721A4F67 /* Phase2PriceView.swift in Sources */,
+				806CAE2976E63789BA6B5C75 /* GeoGameResultView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
