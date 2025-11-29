@@ -39,18 +39,44 @@ class ScanUploadViewModel: ObservableObject {
 
     private let uploadService: BillUploadServiceProtocol
     var modelContext: ModelContext?
-    private var preselectedImage: UIImage?
+
+    // Preselected content (accessible for hasPreselectedContent check)
+    private(set) var preselectedImage: UIImage?
+    private(set) var preselectedFileData: Data?
+    private(set) var preselectedFileName: String?
+
+    /// Check if there's preselected content to upload
+    var hasPreselectedContent: Bool {
+        preselectedImage != nil || (preselectedFileData != nil && preselectedFileName != nil)
+    }
 
     // MARK: - Initialization
 
-    init(preselectedImage: UIImage? = nil, uploadService: BillUploadServiceProtocol? = nil) {
+    init(preselectedImage: UIImage? = nil, fileData: Data? = nil, fileName: String? = nil, uploadService: BillUploadServiceProtocol? = nil) {
         self.preselectedImage = preselectedImage
+        self.preselectedFileData = fileData
+        self.preselectedFileName = fileName
         self.uploadService = uploadService ?? BillUploadServiceFactory.create()
 
+        // If we have preselected content, set state to uploading immediately
+        // This prevents showing the options screen
+        if preselectedImage != nil || (fileData != nil && fileName != nil) {
+            self.uploadState = .uploading
+            self.statusMessage = "Preparing..."
+        }
+    }
+
+    /// Called after modelContext is set to start processing preselected content
+    func startIfReady() {
         // If image is preselected, start processing immediately
         if let image = preselectedImage {
             Task {
-                await processImage(image, source: .camera)
+                await processImage(image, source: .photos)
+            }
+        } else if let data = preselectedFileData, let name = preselectedFileName {
+            // If file data is preselected (e.g., PDF), start upload immediately
+            Task {
+                await uploadBill(fileData: data, fileName: name, source: .documentPicker)
             }
         }
     }

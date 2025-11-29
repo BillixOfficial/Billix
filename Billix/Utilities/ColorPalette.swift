@@ -51,6 +51,14 @@ extension Color {
     static let billixLeaderBronze = Color(hex: "#CD7F32")   // 3rd place
     static let billixGamePurple = Color(hex: "#8B5CF6")     // Game/arcade accent
 
+    // Tier System Colors
+    static let billixBronzeTier = Color(hex: "#CD7F32")     // Bronze tier
+    static let billixSilverTier = Color(hex: "#C0C0C0")     // Silver tier
+    static let billixGoldTier = Color(hex: "#FFD700")       // Gold tier
+    static let billixPlatinumTier = Color(hex: "#E5E4E2")   // Platinum tier
+    static let billixStreakOrange = Color(hex: "#FF6B35")   // Streak fire color
+    static let billixFlashRed = Color(hex: "#FF4757")       // Flash deal accent
+
     // Login Screen Colors
     static let billixLoginGreen = Color(hex: "#b8e6b8")      // Login background - richer green
     static let billixLoginTeal = Color(hex: "#00796b")       // Login primary color

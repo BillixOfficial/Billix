@@ -25,46 +25,32 @@ struct ArcadeHeroCard: View {
 
             // Content
             VStack(alignment: .leading, spacing: 0) {
-                // Top: Category badge and info
+                // Top: Badge
                 HStack {
-                    categoryBadge
+                    rewardBadge
 
                     Spacer()
-
-                    // Info button
-                    Button {
-                        showGameInfo.toggle()
-                    } label: {
-                        Image(systemName: "info.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                    .popover(isPresented: $showGameInfo, arrowEdge: .top) {
-                        GameInfoPopover()
-                            .presentationCompactAdaptation(.popover)
-                    }
                 }
                 .padding(.bottom, 16)
 
-                // Title and Subject
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Daily Price Guessr")
-                        .font(.system(size: 13, weight: .semibold))
+                // Large Title
+                Text("Daily Price\nGuessr")
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineSpacing(2)
+                    .padding(.bottom, 8)
+
+                // Subtitle
+                if let game = game {
+                    Text("Can you guess the price of\n**\(game.subject)**?")
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.white.opacity(0.9))
-
-                    if let game = game {
-                        Text("Guess the price of **\(game.subject)**")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-
-                        HStack(spacing: 4) {
-                            Image(systemName: "location.fill")
-                                .font(.system(size: 11))
-                            Text(game.location)
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .foregroundColor(.white.opacity(0.8))
-                    }
+                        .lineLimit(2)
+                } else {
+                    Text("Can you guess the price of\n**[Today's Item]**?")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white.opacity(0.9))
+                        .lineLimit(2)
                 }
 
                 Spacer()
@@ -76,7 +62,7 @@ struct ArcadeHeroCard: View {
                         playedStateView(result: result)
                     } else {
                         // Unplayed state - show CTA
-                        unplayedStateView
+                        playButton
                     }
                 }
             }
@@ -96,42 +82,69 @@ struct ArcadeHeroCard: View {
 
     private var backgroundLayer: some View {
         ZStack {
-            // Main gradient
+            // Main gradient - darker navy/purple
             LinearGradient(
                 colors: [
-                    Color.billixGamePurple,
-                    Color.billixGamePurple.opacity(0.8),
-                    Color(hex: "#6366F1")
+                    Color(hex: "#1a1d4a"),
+                    Color(hex: "#2d1f52"),
+                    Color(hex: "#4a2563")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
-            // Decorative circles
+            // Decorative elements on the right
             GeometryReader { geometry in
-                Circle()
-                    .fill(Color.white.opacity(0.1))
-                    .frame(width: 150, height: 150)
-                    .offset(x: geometry.size.width - 80, y: -40)
+                // Bar chart visualization
+                HStack(alignment: .bottom, spacing: 4) {
+                    BarColumn(height: 30, colors: [Color(hex: "#3b82f6"), Color(hex: "#60a5fa")])
+                    BarColumn(height: 45, colors: [Color(hex: "#8b5cf6"), Color(hex: "#a78bfa")])
+                    BarColumn(height: 25, colors: [Color(hex: "#ec4899"), Color(hex: "#f472b6")])
+                    BarColumn(height: 50, colors: [Color(hex: "#3b82f6"), Color(hex: "#60a5fa")])
+                    BarColumn(height: 35, colors: [Color(hex: "#8b5cf6"), Color(hex: "#a78bfa")])
+                }
+                .frame(width: 120, height: 60)
+                .opacity(0.6)
+                .offset(x: geometry.size.width - 150, y: geometry.size.height / 2 - 30)
 
-                Circle()
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 100, height: 100)
-                    .offset(x: geometry.size.width - 50, y: 80)
-
-                Circle()
-                    .fill(Color.billixArcadeGold.opacity(0.15))
-                    .frame(width: 80, height: 80)
-                    .offset(x: -20, y: geometry.size.height - 40)
+                // Trending arrow
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(Color(hex: "#3b82f6").opacity(0.7))
+                    .offset(x: geometry.size.width - 40, y: geometry.size.height / 2 - 50)
             }
 
-            // Category-specific illustration on the right
+            // Floating coins
             GeometryReader { geometry in
-                categoryIllustration
-                    .offset(x: geometry.size.width - 100, y: 20)
+                ForEach(0..<6, id: \.self) { index in
+                    CoinView()
+                        .offset(
+                            x: coinPositions[index].x * geometry.size.width,
+                            y: coinPositions[index].y * geometry.size.height
+                        )
+                }
+            }
+
+            // Price tag icons
+            GeometryReader { geometry in
+                PriceTagIcon(rotation: -15)
+                    .offset(x: geometry.size.width - 60, y: 20)
+
+                PriceTagIcon(rotation: 10)
+                    .offset(x: geometry.size.width - 100, y: geometry.size.height - 50)
             }
         }
     }
+
+    // Coin positions (percentage of width/height)
+    private let coinPositions: [(x: CGFloat, y: CGFloat)] = [
+        (0.15, 0.1),
+        (0.75, 0.05),
+        (0.85, 0.3),
+        (0.2, 0.7),
+        (0.65, 0.75),
+        (0.9, 0.85)
+    ]
 
     // MARK: - Category Illustration
 
@@ -172,85 +185,51 @@ struct ArcadeHeroCard: View {
         }
     }
 
-    // MARK: - Category Badge
+    // MARK: - Reward Badge
 
-    private var categoryBadge: some View {
-        HStack(spacing: 6) {
-            if let game = game {
-                Image(systemName: game.category.icon)
-                    .font(.system(size: 11, weight: .semibold))
-
-                Text(game.category.rawValue)
-                    .font(.system(size: 11, weight: .semibold))
-            }
-        }
-        .foregroundColor(.white)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(
-            Capsule()
-                .fill(Color.white.opacity(0.2))
-        )
-    }
-
-    // MARK: - Unplayed State
-
-    private var unplayedStateView: some View {
-        HStack {
-            // Reward badge
-            HStack(spacing: 4) {
-                Image(systemName: "star.fill")
-                    .font(.system(size: 12))
-                    .foregroundColor(.billixArcadeGold)
-
-                Text("Win up to 100 pts")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white)
-            }
+    private var rewardBadge: some View {
+        Text("WIN UP TO 200 PTS")
+            .font(.system(size: 11, weight: .bold))
+            .foregroundColor(Color(hex: "#1a1d4a"))
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill(Color.black.opacity(0.2))
+                    .fill(Color.billixArcadeGold)
             )
+    }
 
-            Spacer()
+    // MARK: - Play Button
 
-            // Play button with pulse
-            Button(action: {
-                let generator = UIImpactFeedbackGenerator(style: .medium)
-                generator.impactOccurred()
-                onPlay()
-            }) {
-                ZStack {
-                    // Pulsing ring
-                    Circle()
-                        .stroke(Color.white.opacity(0.5), lineWidth: 2)
-                        .frame(width: 56, height: 56)
-                        .scaleEffect(isPulsing ? 1.2 : 1.0)
-                        .opacity(isPulsing ? 0 : 1)
-                        .animation(.easeOut(duration: 1.5).repeatForever(autoreverses: false), value: isPulsing)
+    private var playButton: some View {
+        Button(action: {
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            onPlay()
+        }) {
+            HStack(spacing: 6) {
+                Text("PLAY NOW")
+                    .font(.system(size: 15, weight: .bold))
 
-                    // Button
-                    HStack(spacing: 6) {
-                        Text("Play")
-                            .font(.system(size: 15, weight: .bold))
-
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 12))
-                    }
-                    .foregroundColor(.billixGamePurple)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .fill(Color.white)
-                    )
-                    .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-                }
+                Image(systemName: "play.fill")
+                    .font(.system(size: 12))
             }
-            .buttonStyle(ScaleButtonStyle(scale: 0.95))
+            .foregroundColor(.white)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 14)
+            .background(
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#3b82f6"), Color(hex: "#2563eb")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+            )
+            .shadow(color: Color(hex: "#3b82f6").opacity(0.5), radius: 12, y: 6)
         }
+        .buttonStyle(ScaleButtonStyle(scale: 0.95))
     }
 
     // MARK: - Played State
@@ -554,6 +533,94 @@ struct GasIllustration: View {
                 .foregroundColor(.billixArcadeGold.opacity(0.7))
                 .offset(y: 15)
         }
+    }
+}
+
+// MARK: - Decorative Components
+
+struct CoinView: View {
+    @State private var isAnimating = false
+
+    var body: some View {
+        ZStack {
+            // Coin shadow
+            Ellipse()
+                .fill(Color.billixArcadeGold.opacity(0.3))
+                .frame(width: 20, height: 20)
+                .blur(radius: 2)
+                .offset(y: 2)
+
+            // Coin body
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.billixArcadeGold, Color(hex: "#d4a574")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 18, height: 18)
+                .overlay(
+                    Circle()
+                        .stroke(Color(hex: "#d4a574"), lineWidth: 1.5)
+                )
+
+            // Coin detail
+            Text("$")
+                .font(.system(size: 8, weight: .bold))
+                .foregroundColor(Color(hex: "#1a1d4a").opacity(0.6))
+        }
+        .rotationEffect(.degrees(isAnimating ? 360 : 0))
+        .animation(.linear(duration: 8).repeatForever(autoreverses: false), value: isAnimating)
+        .onAppear {
+            isAnimating = true
+        }
+    }
+}
+
+struct BarColumn: View {
+    let height: CGFloat
+    let colors: [Color]
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 3)
+            .fill(
+                LinearGradient(
+                    colors: colors,
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+            )
+            .frame(width: 12, height: height)
+    }
+}
+
+struct PriceTagIcon: View {
+    let rotation: Double
+
+    var body: some View {
+        ZStack {
+            // Tag body
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color.billixArcadeGold.opacity(0.25))
+                .frame(width: 35, height: 45)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.billixArcadeGold.opacity(0.5), lineWidth: 2)
+                )
+
+            // Question mark
+            Text("?")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(.white.opacity(0.8))
+
+            // Hole for tag string
+            Circle()
+                .fill(Color(hex: "#1a1d4a"))
+                .frame(width: 6, height: 6)
+                .offset(y: -16)
+        }
+        .rotationEffect(.degrees(rotation))
     }
 }
 

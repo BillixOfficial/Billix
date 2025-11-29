@@ -24,6 +24,7 @@ struct UploadHubView: View {
     @State private var showQuickAddInfo = false
     @State private var infoPulse = false
     @State private var quickAddInfoPulse = false
+    @State private var navigateToUploadMethods = false
 
     var body: some View {
         NavigationStack {
@@ -57,6 +58,9 @@ struct UploadHubView: View {
                 .scrollBounceBehavior(.basedOnSize)
             }
             .navigationBarHidden(true)
+            .navigationDestination(isPresented: $navigateToUploadMethods) {
+                UploadMethodSelectionView(viewModel: viewModel)
+            }
         }
         .onAppear {
             viewModel.modelContext = modelContext
@@ -73,19 +77,24 @@ struct UploadHubView: View {
                     viewModel.dismissFlows()
                     viewModel.handleUploadComplete()
                 },
-                onSwitchToFullAnalysis: {
-                    // Dismiss Quick Add and open Full Analysis after a short delay
+onSwitchToFullAnalysis: {
+                    // Dismiss Quick Add and navigate to upload method selection after a short delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        viewModel.showScanUploadFlow = true
+                        navigateToUploadMethods = true
                     }
                 }
             )
         }
         .sheet(isPresented: $viewModel.showScanUploadFlow) {
-            ScanUploadFlowView(preselectedImage: viewModel.selectedImage, onComplete: {
-                viewModel.dismissFlows()
-                viewModel.handleUploadComplete()
-            })
+            ScanUploadFlowView(
+                preselectedImage: viewModel.selectedImage,
+                fileData: viewModel.selectedFileData,
+                fileName: viewModel.selectedFileName,
+                onComplete: {
+                    viewModel.dismissFlows()
+                    viewModel.handleUploadComplete()
+                }
+            )
         }
         .sheet(isPresented: $viewModel.showCamera) {
             ImagePicker(sourceType: .camera) { image in
@@ -104,6 +113,11 @@ struct UploadHubView: View {
                 viewModel.handleDocumentSelected(url)
             }
             .ignoresSafeArea()
+        }
+        .sheet(item: $viewModel.selectedUpload) { upload in
+            if let bill = viewModel.findStoredBill(for: upload.id) {
+                UploadDetailView(upload: upload, storedBill: bill)
+            }
         }
     }
 
@@ -142,79 +156,81 @@ struct UploadHubView: View {
     // MARK: - Hero Progress Card (Figma style)
 
     private var heroProgressCard: some View {
-        Button(action: {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                viewModel.startQuickAdd()
-            }
-        }) {
-            ZStack {
-                // Gradient background like Figma
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.billixMoneyGreen,
-                                Color.billixMoneyGreen.opacity(0.85)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+        ZStack {
+            // Gradient background like Figma
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.billixMoneyGreen,
+                            Color.billixMoneyGreen.opacity(0.85)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
+                )
 
-                // Decorative circles in background (like Figma)
-                Circle()
-                    .fill(Color.white.opacity(0.1))
-                    .frame(width: 120, height: 120)
-                    .offset(x: 80, y: -30)
+            // Decorative circles in background (like Figma)
+            Circle()
+                .fill(Color.white.opacity(0.1))
+                .frame(width: 120, height: 120)
+                .offset(x: 80, y: -30)
 
-                Circle()
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 80, height: 80)
-                    .offset(x: 100, y: 40)
+            Circle()
+                .fill(Color.white.opacity(0.08))
+                .frame(width: 80, height: 80)
+                .offset(x: 100, y: 40)
 
-                HStack {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 8) {
-                            Text("Quick Add a Bill")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
+            HStack {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Text("Quick Add a Bill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
 
-                            // Info button with pulsing ring animation
-                            ZStack {
-                                // Single pulsing ring
-                                Circle()
-                                    .stroke(Color.white.opacity(0.5), lineWidth: 2)
-                                    .frame(width: 28, height: 28)
-                                    .scaleEffect(quickAddInfoPulse ? 1.3 : 1.0)
-                                    .opacity(quickAddInfoPulse ? 0 : 1)
-                                    .animation(.easeOut(duration: 2.5).repeatForever(autoreverses: false), value: quickAddInfoPulse)
+                        // Info button with pulsing ring animation
+                        ZStack {
+                            // Single pulsing ring
+                            Circle()
+                                .stroke(Color.white.opacity(0.5), lineWidth: 2)
+                                .frame(width: 28, height: 28)
+                                .scaleEffect(quickAddInfoPulse ? 1.3 : 1.0)
+                                .opacity(quickAddInfoPulse ? 0 : 1)
+                                .animation(.easeOut(duration: 2.5).repeatForever(autoreverses: false), value: quickAddInfoPulse)
 
-                                // Info button
-                                Button {
-                                    showQuickAddInfo.toggle()
-                                } label: {
-                                    Image(systemName: "info.circle.fill")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.white)
-                                        .shadow(color: .white.opacity(0.3), radius: 4)
-                                }
-                                .scaleEffect(quickAddInfoPulse ? 1.08 : 1.0)
-                                .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: quickAddInfoPulse)
-                                .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
-                                    QuickAddInfoPopover()
-                                        .presentationCompactAdaptation(.popover)
-                                }
+                            // Info button
+                            Button {
+                                showQuickAddInfo.toggle()
+                            } label: {
+                                Image(systemName: "info.circle.fill")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .shadow(color: .white.opacity(0.3), radius: 4)
                             }
-                            .onAppear {
-                                quickAddInfoPulse = true
+                            .scaleEffect(quickAddInfoPulse ? 1.08 : 1.0)
+                            .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: quickAddInfoPulse)
+                            .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
+                                QuickAddInfoPopover()
+                                    .presentationCompactAdaptation(.popover)
                             }
                         }
+                        .onAppear {
+                            quickAddInfoPulse = true
+                        }
+                    }
 
-                        Text("3 questions for rate comparison")
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(.white.opacity(0.85))
+                    Text("3 questions for rate comparison")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(.white.opacity(0.85))
 
-                        // CTA Button
+                    // CTA Button - Only this triggers the flow
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            viewModel.startQuickAdd()
+                        }
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.impactOccurred()
+                    } label: {
                         HStack(spacing: 6) {
                             Text("Start Now")
                                 .font(.system(size: 14, weight: .semibold))
@@ -231,20 +247,29 @@ struct UploadHubView: View {
                         )
                         .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .buttonStyle(ScaleButtonStyle(scale: 0.95))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                    // Arrow indicator
+                // Arrow indicator - Also triggers the flow
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        viewModel.startQuickAdd()
+                    }
+                    let generator = UIImpactFeedbackGenerator(style: .medium)
+                    generator.impactOccurred()
+                } label: {
                     Image(systemName: "arrow.right.circle.fill")
                         .font(.system(size: 44, weight: .regular))
                         .foregroundColor(.white.opacity(0.9))
-                        .padding(.trailing, 8)
                 }
-                .padding(20)
+                .buttonStyle(ScaleButtonStyle(scale: 0.9))
+                .padding(.trailing, 8)
             }
-            .frame(height: 160)
-            .shadow(color: .billixMoneyGreen.opacity(0.3), radius: 20, x: 0, y: 10)
+            .padding(20)
         }
-        .buttonStyle(PlainButtonStyle())
+        .frame(height: 160)
+        .shadow(color: .billixMoneyGreen.opacity(0.3), radius: 20, x: 0, y: 10)
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 20)
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
@@ -266,6 +291,19 @@ struct UploadHubView: View {
 
                 Spacer()
 
+                // View All button
+                if !viewModel.recentUploads.isEmpty {
+                    NavigationLink(destination: AllUploadsView()) {
+                        HStack(spacing: 4) {
+                            Text("View All")
+                                .font(.system(size: 14, weight: .medium))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(.billixChartBlue)
+                    }
+                }
+
                 if viewModel.isLoadingRecent {
                     ProgressView()
                         .scaleEffect(0.7)
@@ -286,8 +324,13 @@ struct UploadHubView: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
-                        ForEach(viewModel.recentUploads.prefix(5)) { upload in
-                            RecentUploadCard(upload: upload)
+                        ForEach(viewModel.recentUploads.prefix(4)) { upload in
+                            Button {
+                                viewModel.selectedUpload = upload
+                            } label: {
+                                RecentUploadCard(upload: upload)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                     .padding(.horizontal, 20)
@@ -468,16 +511,23 @@ struct RecentUploadCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Category/source label
-            Text(upload.source.displayName)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.billixMediumGreen)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(Color.billixMoneyGreen.opacity(0.1))
-                )
+            // Category/source label with Quick Add badge
+            HStack(spacing: 6) {
+                if upload.source == .quickAdd {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 9))
+                        .foregroundColor(.billixMoneyGreen)
+                }
+                Text(upload.source.displayName)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.billixMediumGreen)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(
+                Capsule()
+                    .fill(sourceBackgroundColor)
+            )
 
             // Provider name
             Text(upload.provider)
@@ -508,6 +558,12 @@ struct RecentUploadCard: View {
                 .fill(Color.white)
                 .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
         )
+    }
+
+    private var sourceBackgroundColor: Color {
+        upload.source == .quickAdd
+            ? Color.billixMoneyGreen.opacity(0.15)
+            : Color.billixMoneyGreen.opacity(0.1)
     }
 
     private func statusColor(for status: UploadStatus) -> Color {
@@ -618,7 +674,7 @@ struct QuickAddInfoPopover: View {
             }
 
             // Clarification note
-            Text("Note: For full analysis, use Upload option")
+            Text("Note: For full analysis, use Full Analysis option")
                 .font(.system(size: 10, weight: .medium))
                 .foregroundColor(.billixMediumGreen)
                 .padding(.top, 4)

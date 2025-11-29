@@ -55,6 +55,15 @@
 		A6FF817C2ED4BB24008330C9 /* QuickAddFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81602ED4BB24008330C9 /* QuickAddFlowView.swift */; };
 		A6FF81812ED4F59D008330C9 /* GlassmorphicCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */; };
 		A6FF81822ED4F59D008330C9 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */; };
+		7F26C08BB4A0D6E567CAB537 /* AnalysisResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62C1289A81B8941234538D77 /* AnalysisResultsView.swift */; };
+		81DE022F1C0FDAF1622E8CA6 /* AnalysisResultsTabbedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */; };
+		F7F8BA48AA3945F4AE7FA77B /* AnalysisResultsSimpleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */; };
+		4946FB59E153457F1F8E4CB5 /* AnalysisOverviewTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200FCC5D4336A8B39C5D302F /* AnalysisOverviewTab.swift */; };
+		81389C8838FF9F765C1DED23 /* AnalysisBreakdownTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */; };
+		436979DB30660B752BD3FF31 /* AnalysisCompareTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */; };
+		51BC9F8EAA514FFCF7952832 /* AnalysisDetailsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */; };
+		C30C3AB930B5537508CE9CCB /* BillGaugeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */; };
+		0994198ECF734549D8447F73 /* MetricCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */; };
 		A6FF81832ED4F59D008330C9 /* SegmentedSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */; };
 		A6FF81842ED4F59D008330C9 /* RadialProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */; };
 		A6FF81862ED504CB008330C9 /* MediaPickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81852ED504CB008330C9 /* MediaPickers.swift */; };
@@ -164,6 +173,15 @@
 		A6FF81692ED4BB24008330C9 /* ScanUploadResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanUploadResultView.swift; sourceTree = "<group>"; };
 		A6FF816B2ED4BB24008330C9 /* UploadHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadHubView.swift; sourceTree = "<group>"; };
 		A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfettiView.swift; sourceTree = "<group>"; };
+		62C1289A81B8941234538D77 /* AnalysisResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsView.swift; sourceTree = "<group>"; };
+		A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsTabbedView.swift; sourceTree = "<group>"; };
+		9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsSimpleView.swift; sourceTree = "<group>"; };
+		200FCC5D4336A8B39C5D302F /* AnalysisOverviewTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisOverviewTab.swift; sourceTree = "<group>"; };
+		031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisBreakdownTab.swift; sourceTree = "<group>"; };
+		3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisCompareTab.swift; sourceTree = "<group>"; };
+		434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisDetailsTab.swift; sourceTree = "<group>"; };
+		E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillGaugeView.swift; sourceTree = "<group>"; };
+		758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricCardView.swift; sourceTree = "<group>"; };
 		A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassmorphicCard.swift; sourceTree = "<group>"; };
 		A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadialProgressIndicator.swift; sourceTree = "<group>"; };
 		A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentedSelector.swift; sourceTree = "<group>"; };
@@ -454,6 +472,15 @@
 			children = (
 				A6FF81852ED504CB008330C9 /* MediaPickers.swift */,
 				A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */,
+				62C1289A81B8941234538D77 /* AnalysisResultsView.swift */,
+				9E8B6C1181934ED6B8EF3EC2 /* AnalysisResultsSimpleView.swift */,
+				A92D26CB67A3CE70EB9B4B0D /* AnalysisResultsTabbedView.swift */,
+				200FCC5D4336A8B39C5D302F /* AnalysisOverviewTab.swift */,
+				031056A5E8385803CB5928A7 /* AnalysisBreakdownTab.swift */,
+				3FB9959CBF95739648C28C5F /* AnalysisCompareTab.swift */,
+				434031BF335B814F5AB1E0D9 /* AnalysisDetailsTab.swift */,
+				E3E7F28001120B65B0AFE253 /* BillGaugeView.swift */,
+				758A655E544EEBEAB0D1D7B9 /* MetricCardView.swift */,
 				A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */,
 				A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */,
 				A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */,
@@ -819,6 +846,15 @@
 				A6FF81882ED50AB3008330C9 /* UploadMethodSelectionView.swift in Sources */,
 				A6FF81812ED4F59D008330C9 /* GlassmorphicCard.swift in Sources */,
 				A6FF81822ED4F59D008330C9 /* ConfettiView.swift in Sources */,
+				7F26C08BB4A0D6E567CAB537 /* AnalysisResultsView.swift in Sources */,
+				F7F8BA48AA3945F4AE7FA77B /* AnalysisResultsSimpleView.swift in Sources */,
+				81DE022F1C0FDAF1622E8CA6 /* AnalysisResultsTabbedView.swift in Sources */,
+				4946FB59E153457F1F8E4CB5 /* AnalysisOverviewTab.swift in Sources */,
+				81389C8838FF9F765C1DED23 /* AnalysisBreakdownTab.swift in Sources */,
+				436979DB30660B752BD3FF31 /* AnalysisCompareTab.swift in Sources */,
+				51BC9F8EAA514FFCF7952832 /* AnalysisDetailsTab.swift in Sources */,
+				C30C3AB930B5537508CE9CCB /* BillGaugeView.swift in Sources */,
+				0994198ECF734549D8447F73 /* MetricCardView.swift in Sources */,
 				A6FF81832ED4F59D008330C9 /* SegmentedSelector.swift in Sources */,
 				A6FF81842ED4F59D008330C9 /* RadialProgressIndicator.swift in Sources */,
 				F9076D5B2ED19DC10051E1D8 /* DataConnection.swift in Sources */,

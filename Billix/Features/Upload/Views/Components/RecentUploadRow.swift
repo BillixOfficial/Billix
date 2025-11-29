@@ -12,13 +12,28 @@ struct RecentUploadRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Source Icon
+            // Source Icon with Quick Add badge
             Circle()
                 .fill(sourceColor.opacity(0.2))
                 .frame(width: 44, height: 44)
                 .overlay(
-                    Image(systemName: upload.source.icon)
-                        .foregroundColor(sourceColor)
+                    ZStack {
+                        Image(systemName: upload.source.icon)
+                            .foregroundColor(sourceColor)
+
+                        // Quick Add badge overlay
+                        if upload.source == .quickAdd {
+                            Circle()
+                                .fill(Color.billixMoneyGreen)
+                                .frame(width: 14, height: 14)
+                                .overlay(
+                                    Image(systemName: "bolt.fill")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(.white)
+                                )
+                                .offset(x: 14, y: -14)
+                        }
+                    }
                 )
 
             // Content

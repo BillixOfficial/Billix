@@ -7,138 +7,264 @@
 
 import SwiftUI
 
-/// Full-screen view for selecting an upload method for full bill analysis
+/// Compact, no-scroll view for selecting an upload method for full bill analysis
+/// Follows industry best practices (Spotify, Duolingo, Headspace patterns)
 struct UploadMethodSelectionView: View {
     @ObservedObject var viewModel: UploadViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var showCamera = false
-    @State private var showGallery = false
-    @State private var showDocumentPicker = false
+    @State private var appeared = false
 
     var body: some View {
-        ZStack {
-            // Background
-            Color(red: 0.96, green: 0.97, blue: 1.0)
-                .ignoresSafeArea()
+        VStack(spacing: 0) {
+            // MARK: - Compact Hero Section
+            VStack(spacing: 8) {
+                // Gradient icon
+                Image(systemName: "doc.text.magnifyingglass")
+                    .font(.system(size: 40, weight: .medium))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.billixChartBlue, .billixMoneyGreen],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .opacity(appeared ? 1 : 0)
+                    .scaleEffect(appeared ? 1 : 0.8)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.1), value: appeared)
 
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 24) {
-                    // Header description + feature highlights
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Upload your bill to unlock AI-powered insights")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(.billixDarkGreen)
+                Text("Upload for Full Analysis")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.billixDarkGreen)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: appeared)
+            }
+            .padding(.top, 16)
 
-                        // Feature badges - all visible without scrolling
-                        HStack(spacing: 6) {
-                            FeatureBadge(icon: "list.bullet.rectangle", text: "Line-by-line")
-                            FeatureBadge(icon: "map", text: "Area comparison")
-                            FeatureBadge(icon: "dollarsign.circle", text: "Find savings")
-                        }
+            // MARK: - Upload Method Buttons (Horizontal Row) - NOW ON TOP
+            VStack(spacing: 12) {
+                Text("Choose upload method")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.billixMediumGreen)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+
+                HStack(spacing: 10) {
+                    UploadMethodButton(
+                        icon: "camera.fill",
+                        label: "Camera",
+                        color: .buttonCamera
+                    ) {
+                        viewModel.startCamera()
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
 
-                    // Section header for upload methods
-                    Text("Choose how to upload")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.billixMediumGreen)
-                        .textCase(.uppercase)
-                        .tracking(0.5)
-                        .padding(.horizontal, 20)
-
-                    // Upload method options
-                    VStack(spacing: 12) {
-                        // Camera
-                        UploadMethodRow(
-                            icon: "camera.fill",
-                            iconColor: .buttonCamera,
-                            title: "Upload with Camera",
-                            subtitle: "Take a photo of your bill"
-                        ) {
-                            showCamera = true
-                        }
-
-                        // Gallery
-                        UploadMethodRow(
-                            icon: "photo.on.rectangle",
-                            iconColor: .buttonGallery,
-                            title: "Choose from Gallery",
-                            subtitle: "Select from your photos"
-                        ) {
-                            showGallery = true
-                        }
-
-                        // Document
-                        UploadMethodRow(
-                            icon: "doc.fill",
-                            iconColor: .buttonDocument,
-                            title: "Upload Document",
-                            subtitle: "PDF or image file"
-                        ) {
-                            showDocumentPicker = true
-                        }
+                    UploadMethodButton(
+                        icon: "photo.fill",
+                        label: "Photos",
+                        color: .buttonGallery
+                    ) {
+                        viewModel.startGallery()
                     }
-                    .padding(.horizontal, 20)
 
-                    Spacer(minLength: 40)
+                    UploadMethodButton(
+                        icon: "doc.fill",
+                        label: "File",
+                        color: .buttonDocument
+                    ) {
+                        viewModel.startDocumentPicker()
+                    }
                 }
-                .padding(.top, 16)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : 15)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
+
+            // MARK: - Benefits List (Vertical Stack) - NOW ON BOTTOM
+            VStack(spacing: 0) {
+                BenefitRow(
+                    icon: "exclamationmark.triangle.fill",
+                    iconColor: .orange,
+                    title: "Spot hidden fees",
+                    subtitle: "Find charges you didn't know about"
+                )
+
+                Divider().padding(.leading, 52)
+
+                BenefitRow(
+                    icon: "list.bullet.rectangle.portrait",
+                    iconColor: .billixChartBlue,
+                    title: "See every charge",
+                    subtitle: "Line-by-line breakdown of your bill"
+                )
+
+                Divider().padding(.leading, 52)
+
+                BenefitRow(
+                    icon: "chart.line.uptrend.xyaxis",
+                    iconColor: .purple,
+                    title: "Track your usage",
+                    subtitle: "Understand patterns over time"
+                )
+
+                Divider().padding(.leading, 52)
+
+                BenefitRow(
+                    icon: "dollarsign.circle.fill",
+                    iconColor: .billixMoneyGreen,
+                    title: "Get savings tips",
+                    subtitle: "Personalized ways to lower your bill"
+                )
+            }
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.05), radius: 10, y: 2)
+            )
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : 20)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: appeared)
+
+            Spacer()
+        }
+        .background(Color.billixLightGreen.ignoresSafeArea())
+        .navigationTitle("Full Analysis")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            withAnimation {
+                appeared = true
             }
         }
-        .navigationTitle("Choose Upload Method")
-        .navigationBarTitleDisplayMode(.large)
-        .navigationBarBackButtonHidden(false)
-        // Present sheets directly from this view
-        .sheet(isPresented: $showCamera) {
+        // Present sheets
+        .sheet(isPresented: $viewModel.showCamera) {
             ImagePicker(sourceType: .camera) { image in
                 viewModel.handleImageSelected(image)
-                dismiss()
             }
             .ignoresSafeArea()
         }
-        .sheet(isPresented: $showGallery) {
+        .sheet(isPresented: $viewModel.showGallery) {
             ImagePicker(sourceType: .photoLibrary) { image in
                 viewModel.handleImageSelected(image)
-                dismiss()
             }
             .ignoresSafeArea()
         }
-        .sheet(isPresented: $showDocumentPicker) {
+        .sheet(isPresented: $viewModel.showDocumentPicker) {
             DocumentPicker { url in
                 viewModel.handleDocumentSelected(url)
-                dismiss()
             }
             .ignoresSafeArea()
+        }
+        .fullScreenCover(isPresented: $viewModel.showScanUploadFlow) {
+            ScanUploadFlowView(
+                preselectedImage: viewModel.selectedImage,
+                fileData: viewModel.selectedFileData,
+                fileName: viewModel.selectedFileName,
+                onComplete: {
+                    viewModel.showScanUploadFlow = false
+                    viewModel.handleUploadComplete()
+                    dismiss()
+                }
+            )
         }
     }
 }
 
-// MARK: - Feature Badge
+// MARK: - Benefit Row (List Item with Icon, Title, Subtitle)
 
-struct FeatureBadge: View {
+private struct BenefitRow: View {
     let icon: String
-    let text: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+
+    @State private var isAnimating = false
 
     var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: icon)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(.billixChartBlue)
+        HStack(spacing: 14) {
+            // Icon in colored circle with animation
+            ZStack {
+                // Pulsing background
+                Circle()
+                    .fill(iconColor.opacity(0.08))
+                    .frame(width: 44, height: 44)
+                    .scaleEffect(isAnimating ? 1.15 : 1.0)
+                    .opacity(isAnimating ? 0 : 0.6)
 
-            Text(text)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.billixDarkGreen)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                Circle()
+                    .fill(iconColor.opacity(0.12))
+                    .frame(width: 38, height: 38)
+
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(iconColor)
+                    .scaleEffect(isAnimating ? 1.1 : 1.0)
+            }
+            .animation(
+                .easeInOut(duration: 1.5)
+                .repeatForever(autoreverses: true),
+                value: isAnimating
+            )
+
+            // Text
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
+
+                Text(subtitle)
+                    .font(.system(size: 13))
+                    .foregroundColor(.billixMediumGreen)
+            }
+
+            Spacer()
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(Color.billixChartBlue.opacity(0.1))
-        )
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .onAppear {
+            // Stagger the animation start
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0...0.5)) {
+                isAnimating = true
+            }
+        }
+    }
+}
+
+// MARK: - Upload Method Button (Compact Square Button)
+
+private struct UploadMethodButton: View {
+    let icon: String
+    let label: String
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            action()
+        }) {
+            VStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(.white)
+
+                Text(label)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.95))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 72)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(color)
+                    .shadow(color: color.opacity(0.35), radius: 6, y: 3)
+            )
+        }
+        .buttonStyle(ScaleButtonStyle(scale: 0.96))
     }
 }
 

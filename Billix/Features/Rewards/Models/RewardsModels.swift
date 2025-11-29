@@ -9,6 +9,42 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Tier System
+
+enum RewardsTier: String, Codable {
+    case bronze = "Bronze"
+    case silver = "Silver"
+    case gold = "Gold"
+    case platinum = "Platinum"
+
+    var pointsRange: ClosedRange<Int> {
+        switch self {
+        case .bronze: return 0...999
+        case .silver: return 1000...2999
+        case .gold: return 3000...9999
+        case .platinum: return 10000...Int.max
+        }
+    }
+
+    var nextTier: RewardsTier? {
+        switch self {
+        case .bronze: return .silver
+        case .silver: return .gold
+        case .gold: return .platinum
+        case .platinum: return nil
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .bronze: return .billixBronzeTier
+        case .silver: return .billixSilverTier
+        case .gold: return .billixGoldTier
+        case .platinum: return .billixPlatinumTier
+        }
+    }
+}
+
 // MARK: - Rewards Points (Separate from BillixCredits)
 
 struct RewardsPoints: Codable, Equatable {

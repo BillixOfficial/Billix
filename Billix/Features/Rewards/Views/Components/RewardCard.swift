@@ -107,34 +107,16 @@ struct RewardCard: View {
         .buttonStyle(ScaleButtonStyle(scale: 0.97))
     }
 
-    // MARK: - Gift Card Visual (Brand-specific design)
+    // MARK: - Gift Card Visual (Generic design)
 
     @ViewBuilder
     private var giftCardVisual: some View {
-        switch reward.brand?.lowercased() {
-        case "amazon":
-            AmazonGiftCardVisual(value: reward.formattedValue)
-        case "starbucks":
-            StarbucksGiftCardVisual(value: reward.formattedValue)
-        case "target":
-            TargetGiftCardVisual(value: reward.formattedValue)
-        case "billix":
-            BillixGiftCardVisual(value: reward.formattedValue)
-        case "doordash":
-            DoorDashGiftCardVisual(value: reward.formattedValue)
-        case "uber":
-            UberGiftCardVisual(value: reward.formattedValue)
-        case "netflix":
-            NetflixGiftCardVisual(value: reward.formattedValue)
-        case "spotify":
-            SpotifyGiftCardVisual(value: reward.formattedValue)
-        default:
-            GenericGiftCardVisual(
-                value: reward.formattedValue,
-                color: accentColor,
-                type: reward.type
-            )
-        }
+        SimpleGiftCardVisual(
+            value: reward.formattedValue,
+            brandName: reward.brand ?? reward.type.rawValue,
+            color: accentColor,
+            type: reward.type
+        )
     }
 }
 
