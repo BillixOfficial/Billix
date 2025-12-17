@@ -8,31 +8,56 @@
 
 /* Begin PBXBuildFile section */
 		026616F06A2AC97D284507A7 /* BountyCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010C6E2DD4FA58D78A2C9242 /* BountyCard.swift */; };
+		04473EEB06DC470B82DCA7F2 /* Billix/Utilities/TypographyStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356536A013AE49BFAC0913C1 /* Billix/Utilities/TypographyStyles.swift */; };
+		08D120758A2C45E38383DC5F /* Billix/Utilities/AnimationModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD1DE91B69548D4B2D8ABA0 /* Billix/Utilities/AnimationModifiers.swift */; };
 		0B3978E45C38518CA2B82A3D /* MockMarketplaceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5028E3D5E60C51F1F213D4CC /* MockMarketplaceData.swift */; };
 		0E58FE07F481E233517930FA /* TickerHeaderZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08B85166487B826F6FAFA03 /* TickerHeaderZone.swift */; };
 		105CDC90740F2D3D993826F3 /* SellerFooterZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E1FA3E4B9B6F22CDA05B91 /* SellerFooterZone.swift */; };
+		12B8AABBC0EC521CAA0EE907 /* AllUploadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */; };
 		16473D354B7EF3B1A7B15B25 /* MarketplaceTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EC8530D548AE6D712457E64 /* MarketplaceTheme.swift */; };
 		21B7E99EF6AF9B9219588A46 /* ServiceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0964190A2E5107305E47963E /* ServiceCard.swift */; };
 		24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */; };
 		24AA216361D28E576AA9F2C2 /* BillCardSideB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EC872B5F53651FCE3151157 /* BillCardSideB.swift */; };
 		2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */; };
+		340E7267CB99535CD9E44748 /* BouncingPigLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAB209E825C16247ABD000C /* BouncingPigLoadingView.swift */; };
+		3C882A86A4134847B543CAFE /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26365EB6C107413EAA295BA9 /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift */; };
+		45ACBFCDBB434C6481C55A3D /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD1B78C91A154500A69DB025 /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift */; };
 		4614EEB8EF0F53C5ED197D9C /* BillListing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904AD05D3A84D6A25E0D92DB /* BillListing.swift */; };
 		4A481D87CACB424C8A22B899 /* ClusterCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3144A8AD7B2C94D39FF81EFA /* ClusterCard.swift */; };
+		4C6E6EF29EB32982216D7511 /* BillAnalysisNewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CE4C5AFDCCDD73CCE56C73C /* BillAnalysisNewComponents.swift */; };
 		4EDF2DA492CE26CFAE5296F6 /* ScriptCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A754D4C404308C96FC0AC5B8 /* ScriptCard.swift */; };
-		5TAKE0VER1CARD23456789AB /* TakeoverCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6TAKE0VER2CARD34567890CD /* TakeoverCard.swift */; };
+		503E0740478BEF02D2B31C15 /* AnalysisSaveMoneyTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = E19DB0EADA90394B7F05D82E /* AnalysisSaveMoneyTab.swift */; };
 		53D0235A4F9B5DDDA83914EC /* UnlockBlueprintSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D380EFC4805A1626AE3CE0 /* UnlockBlueprintSheet.swift */; };
 		56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C58A5E4A878AC7816EB3122 /* HealthView.swift */; };
+		5CD0907F6DACEFDE7B33C4E3 /* UserSessionProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5298D1A99907B333E9F76950 /* UserSessionProgress.swift */; };
+		5TAKE0VER1CARD23456789AB /* TakeoverCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6TAKE0VER2CARD34567890CD /* TakeoverCard.swift */; };
 		63D72A126147271EDE056149 /* MarketplaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002C297BCE0CB75808BC2755 /* MarketplaceView.swift */; };
+		680BB9D3534B76879FBC45C6 /* GameBoostsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BD4EDC4999053161C1DBAC6 /* GameBoostsCarousel.swift */; };
+		70UTAGEBOT1234567890ABCD /* OutageBotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80UTAGEBOT234567890BCDEF /* OutageBotView.swift */; };
+		78CC9A4B4CE73C72FDFDAFBF /* UploadDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 220D8D9D7A165939DA8EB413 /* UploadDetailView.swift */; };
+		7B1LLHEATMAP12345678ABCD /* BillHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1LLHEATMAP23456789CDEF /* BillHeatmapView.swift */; };
+		7CE6CD12C6EDD4CE467A348F /* BillGaugeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E10B4E61116F04FF1C3CF4D /* BillGaugeView.swift */; };
 		7E857670BC41595C6662AB3F /* PredictionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011374FF04C756DBDE3401FA /* PredictionCard.swift */; };
+		7EXP10RE1M0DELS12345678AB /* ExploreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */; };
+		7EXP10RE3V1EWM0DEL3456EF /* ExploreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */; };
+		7G0UGE1NDEX12345678ABCDE /* GougeIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8G0UGE1NDEX23456789BCDEF /* GougeIndexView.swift */; };
+		7MAKEMEM0VE123456789ABCD /* MakeMeMoveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8MAKEMEM0VE234567890CDEF /* MakeMeMoveView.swift */; };
+		7RECESS10NS1M12345678901 /* RecessionSimulatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */; };
 		80463EA3D6F47BC4F7ED21E8 /* DynamicSpecsZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642259DC8C0DF251B973C750 /* DynamicSpecsZone.swift */; };
 		8160262B8986E8E8430FB93A /* MarketplaceItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ABFBBB24D03DF6AC2EB9314 /* MarketplaceItems.swift */; };
 		8B0C9D3F4868993ECC610BD2 /* BillCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66665DF8017158206E5EF69 /* BillCardView.swift */; };
+		8B3A2A5EEB7F2AF184E4525B /* SessionGameContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E8B290FA340C69190B6D63 /* SessionGameContainerView.swift */; };
+		90A4EC43F0790A45FF24632D /* QuestionTimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45BC6B1579A272CE32820033 /* QuestionTimerView.swift */; };
 		9378B9C9840992DB036549E4 /* FinancialSpreadZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B407070E54249D2D340339 /* FinancialSpreadZone.swift */; };
+		94CA342EC160B25D39828956 /* AnalysisResultsTabbedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B9F33A8CBF65EB77DFCACC5 /* AnalysisResultsTabbedView.swift */; };
+		993537DB4B716E69509D618A /* GiftCardsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88BA3773C1EA797D5A5C420 /* GiftCardsCarousel.swift */; };
 		997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81513DE947C6002A28D674AD /* AuthViewModel.swift */; };
 		9FBD55C9B930DD08A6264CFC /* Cluster.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5843AA67D5B071D7E3CDFEA /* Cluster.swift */; };
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */; };
 		A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */; };
+		A6F3C78C2EEF74C300264730 /* LocationMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF828B2EECA1C5008330C9 /* LocationMapView.swift */; };
+		A6F3C78D2EEF74CC00264730 /* LocationRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82872EECA1C5008330C9 /* LocationRow.swift */; };
 		A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */; };
 		A6FF81102ECBBCE3008330C9 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF810F2ECBBCE3008330C9 /* APIError.swift */; };
 		A6FF81202ECEB3BC008330C9 /* BillsExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF811D2ECEB3BC008330C9 /* BillsExploreView.swift */; };
@@ -78,6 +103,60 @@
 		A6FF81842ED4F59D008330C9 /* RadialProgressIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */; };
 		A6FF81862ED504CB008330C9 /* MediaPickers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81852ED504CB008330C9 /* MediaPickers.swift */; };
 		A6FF81882ED50AB3008330C9 /* UploadMethodSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */; };
+		A6FF82402EDE3AD4008330C9 /* PointsHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF823B2EDE3AD4008330C9 /* PointsHistoryView.swift */; };
+		A6FF82412EDE3AD4008330C9 /* ArcadeHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82182EDE3AD4008330C9 /* ArcadeHeroCard.swift */; };
+		A6FF82422EDE3AD4008330C9 /* WalletHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82282EDE3AD4008330C9 /* WalletHeaderView.swift */; };
+		A6FF82432EDE3AD4008330C9 /* GeoGameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82102EDE3AD4008330C9 /* GeoGameModels.swift */; };
+		A6FF82442EDE3AD4008330C9 /* LeaderboardSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82212EDE3AD4008330C9 /* LeaderboardSection.swift */; };
+		A6FF82452EDE3AD4008330C9 /* GeoGameMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82322EDE3AD4008330C9 /* GeoGameMapView.swift */; };
+		A6FF82462EDE3AD4008330C9 /* WeeklyGiveawayCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82292EDE3AD4008330C9 /* WeeklyGiveawayCard.swift */; };
+		A6FF82472EDE3AD4008330C9 /* RewardsHowItWorksSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82252EDE3AD4008330C9 /* RewardsHowItWorksSheet.swift */; };
+		A6FF82482EDE3AD4008330C9 /* GiveawayEntryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF821E2EDE3AD4008330C9 /* GiveawayEntryCard.swift */; };
+		A6FF82492EDE3AD4008330C9 /* HeartLostAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82362EDE3AD4008330C9 /* HeartLostAnimation.swift */; };
+		A6FF824A2EDE3AD4008330C9 /* WelcomeRewardsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF822A2EDE3AD4008330C9 /* WelcomeRewardsSheet.swift */; };
+		A6FF824B2EDE3AD4008330C9 /* GameBoostsGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF821A2EDE3AD4008330C9 /* GameBoostsGrid.swift */; };
+		A6FF824C2EDE3AD4008330C9 /* GeoGameResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82342EDE3AD4008330C9 /* GeoGameResultView.swift */; };
+		A6FF824D2EDE3AD4008330C9 /* GeoGameFloatingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF822F2EDE3AD4008330C9 /* GeoGameFloatingCard.swift */; };
+		A6FF824E2EDE3AD4008330C9 /* ComboStreakView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF822C2EDE3AD4008330C9 /* ComboStreakView.swift */; };
+		A6FF824F2EDE3AD4008330C9 /* HealthBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82352EDE3AD4008330C9 /* HealthBarView.swift */; };
+		A6FF82502EDE3AD4008330C9 /* RewardMarketplace.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82242EDE3AD4008330C9 /* RewardMarketplace.swift */; };
+		A6FF82512EDE3AD4008330C9 /* Phase1LocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82372EDE3AD4008330C9 /* Phase1LocationView.swift */; };
+		A6FF82522EDE3AD4008330C9 /* GeoGameHowToPlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82312EDE3AD4008330C9 /* GeoGameHowToPlayView.swift */; };
+		A6FF82532EDE3AD4008330C9 /* GeoGameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82152EDE3AD4008330C9 /* GeoGameViewModel.swift */; };
+		A6FF82542EDE3AD4008330C9 /* GiftCardHeroSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF821B2EDE3AD4008330C9 /* GiftCardHeroSection.swift */; };
+		A6FF82552EDE3AD4008330C9 /* VirtualGoodsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82272EDE3AD4008330C9 /* VirtualGoodsCarousel.swift */; };
+		A6FF82562EDE3AD4008330C9 /* TierProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF823D2EDE3AD4008330C9 /* TierProgressView.swift */; };
+		A6FF82572EDE3AD4008330C9 /* FloatingParticles.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82192EDE3AD4008330C9 /* FloatingParticles.swift */; };
+		A6FF82582EDE3AD4008330C9 /* PriceGuessrIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82222EDE3AD4008330C9 /* PriceGuessrIcon.swift */; };
+		A6FF82592EDE3AD4008330C9 /* RewardsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF823C2EDE3AD4008330C9 /* RewardsHubView.swift */; };
+		A6FF825A2EDE3AD4008330C9 /* Phase2PriceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82382EDE3AD4008330C9 /* Phase2PriceView.swift */; };
+		A6FF825B2EDE3AD4008330C9 /* GiftCardsModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF821C2EDE3AD4008330C9 /* GiftCardsModal.swift */; };
+		A6FF825C2EDE3AD4008330C9 /* HomeTierProgressBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82202EDE3AD4008330C9 /* HomeTierProgressBanner.swift */; };
+		A6FF825D2EDE3AD4008330C9 /* ComboUnlockAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF822D2EDE3AD4008330C9 /* ComboUnlockAnimation.swift */; };
+		A6FF825E2EDE3AD4008330C9 /* GiftCardVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF821D2EDE3AD4008330C9 /* GiftCardVisuals.swift */; };
+		A6FF825F2EDE3AD4008330C9 /* RewardCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82232EDE3AD4008330C9 /* RewardCard.swift */; };
+		A6FF82602EDE3AD4008330C9 /* GeoGameOverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82332EDE3AD4008330C9 /* GeoGameOverView.swift */; };
+		A6FF82612EDE3AD4008330C9 /* GlassCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF821F2EDE3AD4008330C9 /* GlassCard.swift */; };
+		A6FF82622EDE3AD4008330C9 /* GeoGameFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82302EDE3AD4008330C9 /* GeoGameFlowView.swift */; };
+		A6FF82632EDE3AD4008330C9 /* TierUpCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82262EDE3AD4008330C9 /* TierUpCelebrationView.swift */; };
+		A6FF82642EDE3AD4008330C9 /* RewardsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82112EDE3AD4008330C9 /* RewardsModels.swift */; };
+		A6FF82652EDE3AD4008330C9 /* GeoGameContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF822E2EDE3AD4008330C9 /* GeoGameContainerView.swift */; };
+		A6FF82662EDE3AD4008330C9 /* ProgressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82392EDE3AD4008330C9 /* ProgressBarView.swift */; };
+		A6FF82672EDE3AD4008330C9 /* RewardsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82162EDE3AD4008330C9 /* RewardsViewModel.swift */; };
+		A6FF82682EDE3AD4008330C9 /* GeoGameDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82132EDE3AD4008330C9 /* GeoGameDataService.swift */; };
+		A6FF827C2EE6418A008330C9 /* UserGameSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82792EE6418A008330C9 /* UserGameSettings.swift */; };
+		A6FF827D2EE6418A008330C9 /* Season.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82762EE6418A008330C9 /* Season.swift */; };
+		A6FF827E2EE6418A008330C9 /* UserSeasonProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF827A2EE6418A008330C9 /* UserSeasonProgress.swift */; };
+		A6FF827F2EE6418A008330C9 /* SeasonLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82772EE6418A008330C9 /* SeasonLocation.swift */; };
+		A6FF82802EE6418A008330C9 /* SeasonPart.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82782EE6418A008330C9 /* SeasonPart.swift */; };
+		A6FF82822EE641A6008330C9 /* SeasonDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82812EE641A6008330C9 /* SeasonDataService.swift */; };
+		A6FF82842EE641DD008330C9 /* SeasonViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82832EE641DD008330C9 /* SeasonViewModel.swift */; };
+		A6FF82862EE6420A008330C9 /* SeasonGameContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82852EE6420A008330C9 /* SeasonGameContainerView.swift */; };
+		A6FF82902EECA1C5008330C9 /* SeasonSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF828D2EECA1C5008330C9 /* SeasonSelectionView.swift */; };
+		A6FF82912EECA1C5008330C9 /* PartSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF828C2EECA1C5008330C9 /* PartSelectionView.swift */; };
+		A6FF82932EECA1C5008330C9 /* PartCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82882EECA1C5008330C9 /* PartCard.swift */; };
+		A6FF82942EECA1C5008330C9 /* SeasonCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82892EECA1C5008330C9 /* SeasonCard.swift */; };
+		B42853C238F012FDE7F5C47F /* AnalysisComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41ECA1FDF3D80A03CE00E92 /* AnalysisComponents.swift */; };
 		C93D6D9B9A4E2E8A36D2063C /* AskOwnerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */; };
 		CC5C4203C8C523C5D67F2851 /* BlueprintTeaseZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26718EDD5F14EC366ABD07C8 /* BlueprintTeaseZone.swift */; };
 		D50D3D7825651D05B03F2F66 /* MarketplaceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5074698E94CEABB71D652EA6 /* MarketplaceViewModel.swift */; };
@@ -85,7 +164,11 @@
 		D8E729C509255F5015837DD4 /* PlaceBidSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD1BBF98A3A97EE7273155A /* PlaceBidSheet.swift */; };
 		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
 		DE7A061EF4C44553BCDA621A /* BillCardSideA.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */; };
+		EBC33E84E1E375DAEA261508 /* AnalysisDetailsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEB282CAB55E54C5BDDE1C0 /* AnalysisDetailsTab.swift */; };
+		ED2452AAD36A456AE11AB438 /* AnalysisSummaryTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB6CFB137E0296F8ADCDF63 /* AnalysisSummaryTab.swift */; };
+		ED5EF5B9E827DE7A7C2F751E /* AnalysisBreakdownTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C811776FB90B05B8190935B /* AnalysisBreakdownTab.swift */; };
 		F34AB25163A7004F64C6550E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF1E5E15C4654C0F526462A /* HomeView.swift */; };
+		F481B0C94242552459CC9E64 /* MetricCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D37190B759C30A9BA3FE82F /* MetricCardView.swift */; };
 		F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89EC00ED13981D09603CF99 /* ExploreView.swift */; };
 		F9076D4B2ED19DA20051E1D8 /* ProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D482ED19DA20051E1D8 /* ProfileService.swift */; };
 		F9076D4C2ED19DA20051E1D8 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9076D492ED19DA20051E1D8 /* AuthService.swift */; };
@@ -120,13 +203,6 @@
 		F974B2012EC955A1003EBF59 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2002EC955A1003EBF59 /* LoginView.swift */; };
 		F974B2032EC955C0003EBF59 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2022EC955C0003EBF59 /* ColorPalette.swift */; };
 		FB021E8FC90B96BB845CCD82 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */; };
-		7EXP10RE1M0DELS12345678AB /* ExploreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */; };
-		7EXP10RE3V1EWM0DEL3456EF /* ExploreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */; };
-		7RECESS10NS1M12345678901 /* RecessionSimulatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */; };
-		7B1LLHEATMAP12345678ABCD /* BillHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B1LLHEATMAP23456789CDEF /* BillHeatmapView.swift */; };
-		7MAKEMEM0VE123456789ABCD /* MakeMeMoveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8MAKEMEM0VE234567890CDEF /* MakeMeMoveView.swift */; };
-		7G0UGE1NDEX12345678ABCDE /* GougeIndexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8G0UGE1NDEX23456789BCDEF /* GougeIndexView.swift */; };
-		70UTAGEBOT1234567890ABCD /* OutageBotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80UTAGEBOT234567890BCDEF /* OutageBotView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -148,27 +224,48 @@
 
 /* Begin PBXFileReference section */
 		002C297BCE0CB75808BC2755 /* MarketplaceView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceView.swift; sourceTree = "<group>"; };
+		00E8B290FA340C69190B6D63 /* SessionGameContainerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SessionGameContainerView.swift; path = ../../../../../Billix/Features/Rewards/Views/GeoGame/SessionGameContainerView.swift; sourceTree = "<group>"; };
 		010C6E2DD4FA58D78A2C9242 /* BountyCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BountyCard.swift; sourceTree = "<group>"; };
 		011374FF04C756DBDE3401FA /* PredictionCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PredictionCard.swift; sourceTree = "<group>"; };
 		0964190A2E5107305E47963E /* ServiceCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServiceCard.swift; sourceTree = "<group>"; };
 		09E1FA3E4B9B6F22CDA05B91 /* SellerFooterZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SellerFooterZone.swift; sourceTree = "<group>"; };
 		0ABFBBB24D03DF6AC2EB9314 /* MarketplaceItems.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceItems.swift; sourceTree = "<group>"; };
+		220D8D9D7A165939DA8EB413 /* UploadDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadDetailView.swift; sourceTree = "<group>"; };
+		26365EB6C107413EAA295BA9 /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift; sourceTree = SOURCE_ROOT; };
 		26718EDD5F14EC366ABD07C8 /* BlueprintTeaseZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BlueprintTeaseZone.swift; sourceTree = "<group>"; };
 		3144A8AD7B2C94D39FF81EFA /* ClusterCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClusterCard.swift; sourceTree = "<group>"; };
+		356536A013AE49BFAC0913C1 /* Billix/Utilities/TypographyStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Utilities/TypographyStyles.swift; sourceTree = SOURCE_ROOT; };
+		3BD4EDC4999053161C1DBAC6 /* GameBoostsCarousel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameBoostsCarousel.swift; sourceTree = "<group>"; };
 		3DD1BBF98A3A97EE7273155A /* PlaceBidSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlaceBidSheet.swift; sourceTree = "<group>"; };
 		3EC8530D548AE6D712457E64 /* MarketplaceTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceTheme.swift; sourceTree = "<group>"; };
 		41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		45BC6B1579A272CE32820033 /* QuestionTimerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuestionTimerView.swift; sourceTree = "<group>"; };
 		4C3EA6BD6144E1D0004EE216 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
+		4DB6CFB137E0296F8ADCDF63 /* AnalysisSummaryTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisSummaryTab.swift; sourceTree = "<group>"; };
 		5028E3D5E60C51F1F213D4CC /* MockMarketplaceData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MockMarketplaceData.swift; sourceTree = "<group>"; };
 		5074698E94CEABB71D652EA6 /* MarketplaceViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceViewModel.swift; sourceTree = "<group>"; };
+		5298D1A99907B333E9F76950 /* UserSessionProgress.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UserSessionProgress.swift; path = ../../../Billix/Models/Seasons/UserSessionProgress.swift; sourceTree = "<group>"; };
 		5C58A5E4A878AC7816EB3122 /* HealthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
 		642259DC8C0DF251B973C750 /* DynamicSpecsZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DynamicSpecsZone.swift; sourceTree = "<group>"; };
+		6B9F33A8CBF65EB77DFCACC5 /* AnalysisResultsTabbedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisResultsTabbedView.swift; sourceTree = "<group>"; };
+		6TAKE0VER2CARD34567890CD /* TakeoverCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TakeoverCard.swift; sourceTree = "<group>"; };
 		707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FilterSheetView.swift; sourceTree = "<group>"; };
 		7EC872B5F53651FCE3151157 /* BillCardSideB.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillCardSideB.swift; sourceTree = "<group>"; };
 		7FF7CD7869BEA0A4DB5DD7D8 /* VSMeToggle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VSMeToggle.swift; sourceTree = "<group>"; };
 		80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AskOwnerSheet.swift; sourceTree = "<group>"; };
+		80UTAGEBOT234567890BCDEF /* OutageBotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutageBotView.swift; sourceTree = "<group>"; };
 		81513DE947C6002A28D674AD /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		8B1LLHEATMAP23456789CDEF /* BillHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillHeatmapView.swift; sourceTree = "<group>"; };
+		8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreModels.swift; sourceTree = "<group>"; };
+		8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreViewModel.swift; sourceTree = "<group>"; };
+		8G0UGE1NDEX23456789BCDEF /* GougeIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GougeIndexView.swift; sourceTree = "<group>"; };
+		8MAKEMEM0VE234567890CDEF /* MakeMeMoveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MakeMeMoveView.swift; sourceTree = "<group>"; };
+		8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecessionSimulatorView.swift; sourceTree = "<group>"; };
 		904AD05D3A84D6A25E0D92DB /* BillListing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillListing.swift; sourceTree = "<group>"; };
+		9C811776FB90B05B8190935B /* AnalysisBreakdownTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisBreakdownTab.swift; sourceTree = "<group>"; };
+		9CE4C5AFDCCDD73CCE56C73C /* BillAnalysisNewComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillAnalysisNewComponents.swift; sourceTree = "<group>"; };
+		9D37190B759C30A9BA3FE82F /* MetricCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MetricCardView.swift; sourceTree = "<group>"; };
+		9E10B4E61116F04FF1C3CF4D /* BillGaugeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillGaugeView.swift; sourceTree = "<group>"; };
 		A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysis.swift; sourceTree = "<group>"; };
 		A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredBill.swift; sourceTree = "<group>"; };
 		A64F7F4E2ECBB46B005576C5 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -217,17 +314,78 @@
 		A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentedSelector.swift; sourceTree = "<group>"; };
 		A6FF81852ED504CB008330C9 /* MediaPickers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPickers.swift; sourceTree = "<group>"; };
 		A6FF81872ED50AB3008330C9 /* UploadMethodSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadMethodSelectionView.swift; sourceTree = "<group>"; };
+		A6FF82102EDE3AD4008330C9 /* GeoGameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameModels.swift; sourceTree = "<group>"; };
+		A6FF82112EDE3AD4008330C9 /* RewardsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsModels.swift; sourceTree = "<group>"; };
+		A6FF82132EDE3AD4008330C9 /* GeoGameDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameDataService.swift; sourceTree = "<group>"; };
+		A6FF82152EDE3AD4008330C9 /* GeoGameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameViewModel.swift; sourceTree = "<group>"; };
+		A6FF82162EDE3AD4008330C9 /* RewardsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsViewModel.swift; sourceTree = "<group>"; };
+		A6FF82182EDE3AD4008330C9 /* ArcadeHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcadeHeroCard.swift; sourceTree = "<group>"; };
+		A6FF82192EDE3AD4008330C9 /* FloatingParticles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingParticles.swift; sourceTree = "<group>"; };
+		A6FF821A2EDE3AD4008330C9 /* GameBoostsGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameBoostsGrid.swift; sourceTree = "<group>"; };
+		A6FF821B2EDE3AD4008330C9 /* GiftCardHeroSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftCardHeroSection.swift; sourceTree = "<group>"; };
+		A6FF821C2EDE3AD4008330C9 /* GiftCardsModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftCardsModal.swift; sourceTree = "<group>"; };
+		A6FF821D2EDE3AD4008330C9 /* GiftCardVisuals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftCardVisuals.swift; sourceTree = "<group>"; };
+		A6FF821E2EDE3AD4008330C9 /* GiveawayEntryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiveawayEntryCard.swift; sourceTree = "<group>"; };
+		A6FF821F2EDE3AD4008330C9 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
+		A6FF82202EDE3AD4008330C9 /* HomeTierProgressBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTierProgressBanner.swift; sourceTree = "<group>"; };
+		A6FF82212EDE3AD4008330C9 /* LeaderboardSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardSection.swift; sourceTree = "<group>"; };
+		A6FF82222EDE3AD4008330C9 /* PriceGuessrIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceGuessrIcon.swift; sourceTree = "<group>"; };
+		A6FF82232EDE3AD4008330C9 /* RewardCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardCard.swift; sourceTree = "<group>"; };
+		A6FF82242EDE3AD4008330C9 /* RewardMarketplace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardMarketplace.swift; sourceTree = "<group>"; };
+		A6FF82252EDE3AD4008330C9 /* RewardsHowItWorksSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsHowItWorksSheet.swift; sourceTree = "<group>"; };
+		A6FF82262EDE3AD4008330C9 /* TierUpCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TierUpCelebrationView.swift; sourceTree = "<group>"; };
+		A6FF82272EDE3AD4008330C9 /* VirtualGoodsCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualGoodsCarousel.swift; sourceTree = "<group>"; };
+		A6FF82282EDE3AD4008330C9 /* WalletHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletHeaderView.swift; sourceTree = "<group>"; };
+		A6FF82292EDE3AD4008330C9 /* WeeklyGiveawayCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyGiveawayCard.swift; sourceTree = "<group>"; };
+		A6FF822A2EDE3AD4008330C9 /* WelcomeRewardsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeRewardsSheet.swift; sourceTree = "<group>"; };
+		A6FF822C2EDE3AD4008330C9 /* ComboStreakView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComboStreakView.swift; sourceTree = "<group>"; };
+		A6FF822D2EDE3AD4008330C9 /* ComboUnlockAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComboUnlockAnimation.swift; sourceTree = "<group>"; };
+		A6FF822E2EDE3AD4008330C9 /* GeoGameContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameContainerView.swift; sourceTree = "<group>"; };
+		A6FF822F2EDE3AD4008330C9 /* GeoGameFloatingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameFloatingCard.swift; sourceTree = "<group>"; };
+		A6FF82302EDE3AD4008330C9 /* GeoGameFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameFlowView.swift; sourceTree = "<group>"; };
+		A6FF82312EDE3AD4008330C9 /* GeoGameHowToPlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameHowToPlayView.swift; sourceTree = "<group>"; };
+		A6FF82322EDE3AD4008330C9 /* GeoGameMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameMapView.swift; sourceTree = "<group>"; };
+		A6FF82332EDE3AD4008330C9 /* GeoGameOverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameOverView.swift; sourceTree = "<group>"; };
+		A6FF82342EDE3AD4008330C9 /* GeoGameResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeoGameResultView.swift; sourceTree = "<group>"; };
+		A6FF82352EDE3AD4008330C9 /* HealthBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthBarView.swift; sourceTree = "<group>"; };
+		A6FF82362EDE3AD4008330C9 /* HeartLostAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartLostAnimation.swift; sourceTree = "<group>"; };
+		A6FF82372EDE3AD4008330C9 /* Phase1LocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase1LocationView.swift; sourceTree = "<group>"; };
+		A6FF82382EDE3AD4008330C9 /* Phase2PriceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase2PriceView.swift; sourceTree = "<group>"; };
+		A6FF82392EDE3AD4008330C9 /* ProgressBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBarView.swift; sourceTree = "<group>"; };
+		A6FF823B2EDE3AD4008330C9 /* PointsHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointsHistoryView.swift; sourceTree = "<group>"; };
+		A6FF823C2EDE3AD4008330C9 /* RewardsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsHubView.swift; sourceTree = "<group>"; };
+		A6FF823D2EDE3AD4008330C9 /* TierProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TierProgressView.swift; sourceTree = "<group>"; };
+		A6FF82762EE6418A008330C9 /* Season.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Season.swift; sourceTree = "<group>"; };
+		A6FF82772EE6418A008330C9 /* SeasonLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonLocation.swift; sourceTree = "<group>"; };
+		A6FF82782EE6418A008330C9 /* SeasonPart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonPart.swift; sourceTree = "<group>"; };
+		A6FF82792EE6418A008330C9 /* UserGameSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserGameSettings.swift; sourceTree = "<group>"; };
+		A6FF827A2EE6418A008330C9 /* UserSeasonProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSeasonProgress.swift; sourceTree = "<group>"; };
+		A6FF82812EE641A6008330C9 /* SeasonDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonDataService.swift; sourceTree = "<group>"; };
+		A6FF82832EE641DD008330C9 /* SeasonViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonViewModel.swift; sourceTree = "<group>"; };
+		A6FF82852EE6420A008330C9 /* SeasonGameContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonGameContainerView.swift; sourceTree = "<group>"; };
+		A6FF82872EECA1C5008330C9 /* LocationRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRow.swift; sourceTree = "<group>"; };
+		A6FF82882EECA1C5008330C9 /* PartCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartCard.swift; sourceTree = "<group>"; };
+		A6FF82892EECA1C5008330C9 /* SeasonCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonCard.swift; sourceTree = "<group>"; };
+		A6FF828B2EECA1C5008330C9 /* LocationMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationMapView.swift; sourceTree = "<group>"; };
+		A6FF828C2EECA1C5008330C9 /* PartSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartSelectionView.swift; sourceTree = "<group>"; };
+		A6FF828D2EECA1C5008330C9 /* SeasonSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonSelectionView.swift; sourceTree = "<group>"; };
 		A754D4C404308C96FC0AC5B8 /* ScriptCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptCard.swift; sourceTree = "<group>"; };
-		6TAKE0VER2CARD34567890CD /* TakeoverCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TakeoverCard.swift; sourceTree = "<group>"; };
 		ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		AD1B78C91A154500A69DB025 /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift; sourceTree = SOURCE_ROOT; };
+		AFD1DE91B69548D4B2D8ABA0 /* Billix/Utilities/AnimationModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Utilities/AnimationModifiers.swift; sourceTree = SOURCE_ROOT; };
 		B3B407070E54249D2D340339 /* FinancialSpreadZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FinancialSpreadZone.swift; sourceTree = "<group>"; };
+		B41ECA1FDF3D80A03CE00E92 /* AnalysisComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisComponents.swift; sourceTree = "<group>"; };
 		B9D380EFC4805A1626AE3CE0 /* UnlockBlueprintSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UnlockBlueprintSheet.swift; sourceTree = "<group>"; };
 		C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillCardSideA.swift; sourceTree = "<group>"; };
 		C89EC00ED13981D09603CF99 /* ExploreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		CAAB209E825C16247ABD000C /* BouncingPigLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BouncingPigLoadingView.swift; sourceTree = "<group>"; };
+		CEEB282CAB55E54C5BDDE1C0 /* AnalysisDetailsTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisDetailsTab.swift; sourceTree = "<group>"; };
+		E19DB0EADA90394B7F05D82E /* AnalysisSaveMoneyTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisSaveMoneyTab.swift; sourceTree = "<group>"; };
 		E5843AA67D5B071D7E3CDFEA /* Cluster.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Cluster.swift; sourceTree = "<group>"; };
 		EDF1E5E15C4654C0F526462A /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		F08B85166487B826F6FAFA03 /* TickerHeaderZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TickerHeaderZone.swift; sourceTree = "<group>"; };
 		F66665DF8017158206E5EF69 /* BillCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillCardView.swift; sourceTree = "<group>"; };
+		F88BA3773C1EA797D5A5C420 /* GiftCardsCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftCardsCarousel.swift; sourceTree = "<group>"; };
 		F9076D482ED19DA20051E1D8 /* ProfileService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileService.swift; sourceTree = "<group>"; };
 		F9076D492ED19DA20051E1D8 /* AuthService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		F9076D4A2ED19DA20051E1D8 /* MockDataService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockDataService.swift; sourceTree = "<group>"; };
@@ -258,13 +416,7 @@
 		F974B1F32EC9553C003EBF59 /* BillixUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillixUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		F974B2002EC955A1003EBF59 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		F974B2022EC955C0003EBF59 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
-		8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreModels.swift; sourceTree = "<group>"; };
-		8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreViewModel.swift; sourceTree = "<group>"; };
-		8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecessionSimulatorView.swift; sourceTree = "<group>"; };
-		8B1LLHEATMAP23456789CDEF /* BillHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillHeatmapView.swift; sourceTree = "<group>"; };
-		8MAKEMEM0VE234567890CDEF /* MakeMeMoveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MakeMeMoveView.swift; sourceTree = "<group>"; };
-		8G0UGE1NDEX23456789BCDEF /* GougeIndexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GougeIndexView.swift; sourceTree = "<group>"; };
-		80UTAGEBOT234567890BCDEF /* OutageBotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutageBotView.swift; sourceTree = "<group>"; };
+		FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AllUploadsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -307,7 +459,6 @@
 				F4BE36FE48A2712E3F58A23B /* ViewModels */,
 				A4C6E83221EA5E2F1A2183B3 /* Components */,
 			);
-			name = Marketplace;
 			path = Marketplace;
 			sourceTree = "<group>";
 		};
@@ -324,6 +475,7 @@
 		2B2B2B2B2B2B2B2B2B2B2B2B /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				A6FF823F2EDE3AD4008330C9 /* Rewards */,
 				A6FF816D2ED4BB24008330C9 /* Upload */,
 				A6FF81472ECEB5A2008330C9 /* Network */,
 				A6FF81422ECEB50E008330C9 /* Services */,
@@ -344,7 +496,6 @@
 			isa = PBXGroup;
 			children = (
 			);
-			name = Common;
 			path = Common;
 			sourceTree = "<group>";
 		};
@@ -365,7 +516,6 @@
 				26718EDD5F14EC366ABD07C8 /* BlueprintTeaseZone.swift */,
 				09E1FA3E4B9B6F22CDA05B91 /* SellerFooterZone.swift */,
 			);
-			name = Zones;
 			path = Zones;
 			sourceTree = "<group>";
 		};
@@ -378,7 +528,6 @@
 				7FF7CD7869BEA0A4DB5DD7D8 /* VSMeToggle.swift */,
 				58B5CFE2F4FAF9EF27877A08 /* Zones */,
 			);
-			name = BillCard;
 			path = BillCard;
 			sourceTree = "<group>";
 		};
@@ -393,7 +542,6 @@
 				0964190A2E5107305E47963E /* ServiceCard.swift */,
 				6TAKE0VER2CARD34567890CD /* TakeoverCard.swift */,
 			);
-			name = Cards;
 			path = Cards;
 			sourceTree = "<group>";
 		};
@@ -405,7 +553,6 @@
 				80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */,
 				3DD1BBF98A3A97EE7273155A /* PlaceBidSheet.swift */,
 			);
-			name = Sheets;
 			path = Sheets;
 			sourceTree = "<group>";
 		};
@@ -458,6 +605,14 @@
 			path = Profile;
 			sourceTree = "<group>";
 		};
+		9EXP10REM0DELSGR0UP12345 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		A4C6E83221EA5E2F1A2183B3 /* Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -465,13 +620,24 @@
 				7F426075B4D85A7F0840BA9A /* Sheets */,
 				4AEF99D1A3AD3C5730256A3F /* Common */,
 			);
-			name = Components;
 			path = Components;
+			sourceTree = "<group>";
+		};
+		A602F1F42EF33C1E00856DEE /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				356536A013AE49BFAC0913C1 /* Billix/Utilities/TypographyStyles.swift */,
+				AFD1DE91B69548D4B2D8ABA0 /* Billix/Utilities/AnimationModifiers.swift */,
+				AD1B78C91A154500A69DB025 /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift */,
+				26365EB6C107413EAA295BA9 /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		A64F7F4C2ECBB46B005576C5 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A6FF827B2EE6418A008330C9 /* Seasons */,
 				A6FF81562ED4BB03008330C9 /* Upload */,
 				F9076D572ED19DC10051E1D8 /* Profile */,
 				A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */,
@@ -484,6 +650,7 @@
 		A64F7F502ECBB46B005576C5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				A6FF82812EE641A6008330C9 /* SeasonDataService.swift */,
 				F9076DBD2ED50D430051E1D8 /* SupabaseService.swift */,
 				A6FF814E2ED4BAF4008330C9 /* Upload */,
 				F9076D492ED19DA20051E1D8 /* AuthService.swift */,
@@ -526,14 +693,6 @@
 				8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */,
 			);
 			path = Components;
-			sourceTree = "<group>";
-		};
-		9EXP10REM0DELSGR0UP12345 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */,
-			);
-			path = Models;
 			sourceTree = "<group>";
 		};
 		A6FF812E2ECEB47C008330C9 /* Models */ = {
@@ -615,12 +774,22 @@
 		A6FF815F2ED4BB24008330C9 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				CAAB209E825C16247ABD000C /* BouncingPigLoadingView.swift */,
 				A6FF81852ED504CB008330C9 /* MediaPickers.swift */,
 				A6FF817D2ED4F59D008330C9 /* ConfettiView.swift */,
 				A6FF817E2ED4F59D008330C9 /* GlassmorphicCard.swift */,
 				A6FF817F2ED4F59D008330C9 /* RadialProgressIndicator.swift */,
 				A6FF81802ED4F59D008330C9 /* SegmentedSelector.swift */,
 				A6FF815E2ED4BB24008330C9 /* RecentUploadRow.swift */,
+				6B9F33A8CBF65EB77DFCACC5 /* AnalysisResultsTabbedView.swift */,
+				4DB6CFB137E0296F8ADCDF63 /* AnalysisSummaryTab.swift */,
+				CEEB282CAB55E54C5BDDE1C0 /* AnalysisDetailsTab.swift */,
+				9CE4C5AFDCCDD73CCE56C73C /* BillAnalysisNewComponents.swift */,
+				9D37190B759C30A9BA3FE82F /* MetricCardView.swift */,
+				9E10B4E61116F04FF1C3CF4D /* BillGaugeView.swift */,
+				B41ECA1FDF3D80A03CE00E92 /* AnalysisComponents.swift */,
+				E19DB0EADA90394B7F05D82E /* AnalysisSaveMoneyTab.swift */,
+				9C811776FB90B05B8190935B /* AnalysisBreakdownTab.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -656,6 +825,8 @@
 				A6FF81652ED4BB24008330C9 /* QuickAdd */,
 				A6FF816A2ED4BB24008330C9 /* ScanUpload */,
 				A6FF816B2ED4BB24008330C9 /* UploadHubView.swift */,
+				FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */,
+				220D8D9D7A165939DA8EB413 /* UploadDetailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -669,6 +840,143 @@
 			path = Upload;
 			sourceTree = "<group>";
 		};
+		A6FF82122EDE3AD4008330C9 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF82102EDE3AD4008330C9 /* GeoGameModels.swift */,
+				A6FF82112EDE3AD4008330C9 /* RewardsModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A6FF82142EDE3AD4008330C9 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF82132EDE3AD4008330C9 /* GeoGameDataService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A6FF82172EDE3AD4008330C9 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF82832EE641DD008330C9 /* SeasonViewModel.swift */,
+				A6FF82152EDE3AD4008330C9 /* GeoGameViewModel.swift */,
+				A6FF82162EDE3AD4008330C9 /* RewardsViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A6FF822B2EDE3AD4008330C9 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				F88BA3773C1EA797D5A5C420 /* GiftCardsCarousel.swift */,
+				A6FF82182EDE3AD4008330C9 /* ArcadeHeroCard.swift */,
+				A6FF82192EDE3AD4008330C9 /* FloatingParticles.swift */,
+				A6FF821A2EDE3AD4008330C9 /* GameBoostsGrid.swift */,
+				A6FF821B2EDE3AD4008330C9 /* GiftCardHeroSection.swift */,
+				A6FF821C2EDE3AD4008330C9 /* GiftCardsModal.swift */,
+				A6FF821D2EDE3AD4008330C9 /* GiftCardVisuals.swift */,
+				A6FF821E2EDE3AD4008330C9 /* GiveawayEntryCard.swift */,
+				A6FF821F2EDE3AD4008330C9 /* GlassCard.swift */,
+				A6FF82202EDE3AD4008330C9 /* HomeTierProgressBanner.swift */,
+				A6FF82212EDE3AD4008330C9 /* LeaderboardSection.swift */,
+				A6FF82222EDE3AD4008330C9 /* PriceGuessrIcon.swift */,
+				A6FF82232EDE3AD4008330C9 /* RewardCard.swift */,
+				A6FF82242EDE3AD4008330C9 /* RewardMarketplace.swift */,
+				A6FF82252EDE3AD4008330C9 /* RewardsHowItWorksSheet.swift */,
+				A6FF82262EDE3AD4008330C9 /* TierUpCelebrationView.swift */,
+				A6FF82272EDE3AD4008330C9 /* VirtualGoodsCarousel.swift */,
+				A6FF82282EDE3AD4008330C9 /* WalletHeaderView.swift */,
+				A6FF82292EDE3AD4008330C9 /* WeeklyGiveawayCard.swift */,
+				A6FF822A2EDE3AD4008330C9 /* WelcomeRewardsSheet.swift */,
+				3BD4EDC4999053161C1DBAC6 /* GameBoostsCarousel.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		A6FF823A2EDE3AD4008330C9 /* GeoGame */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF82852EE6420A008330C9 /* SeasonGameContainerView.swift */,
+				A6FF822C2EDE3AD4008330C9 /* ComboStreakView.swift */,
+				A6FF822D2EDE3AD4008330C9 /* ComboUnlockAnimation.swift */,
+				A6FF822E2EDE3AD4008330C9 /* GeoGameContainerView.swift */,
+				A6FF822F2EDE3AD4008330C9 /* GeoGameFloatingCard.swift */,
+				A6FF82302EDE3AD4008330C9 /* GeoGameFlowView.swift */,
+				A6FF82312EDE3AD4008330C9 /* GeoGameHowToPlayView.swift */,
+				A6FF82322EDE3AD4008330C9 /* GeoGameMapView.swift */,
+				A6FF82332EDE3AD4008330C9 /* GeoGameOverView.swift */,
+				A6FF82342EDE3AD4008330C9 /* GeoGameResultView.swift */,
+				A6FF82352EDE3AD4008330C9 /* HealthBarView.swift */,
+				A6FF82362EDE3AD4008330C9 /* HeartLostAnimation.swift */,
+				A6FF82372EDE3AD4008330C9 /* Phase1LocationView.swift */,
+				A6FF82382EDE3AD4008330C9 /* Phase2PriceView.swift */,
+				A6FF82392EDE3AD4008330C9 /* ProgressBarView.swift */,
+				45BC6B1579A272CE32820033 /* QuestionTimerView.swift */,
+				00E8B290FA340C69190B6D63 /* SessionGameContainerView.swift */,
+			);
+			path = GeoGame;
+			sourceTree = "<group>";
+		};
+		A6FF823E2EDE3AD4008330C9 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF828E2EECA1C5008330C9 /* Seasons */,
+				A6FF822B2EDE3AD4008330C9 /* Components */,
+				A6FF823A2EDE3AD4008330C9 /* GeoGame */,
+				A6FF823B2EDE3AD4008330C9 /* PointsHistoryView.swift */,
+				A6FF823C2EDE3AD4008330C9 /* RewardsHubView.swift */,
+				A6FF823D2EDE3AD4008330C9 /* TierProgressView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A6FF823F2EDE3AD4008330C9 /* Rewards */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF82122EDE3AD4008330C9 /* Models */,
+				A6FF82142EDE3AD4008330C9 /* Services */,
+				A6FF82172EDE3AD4008330C9 /* ViewModels */,
+				A6FF823E2EDE3AD4008330C9 /* Views */,
+			);
+			path = Rewards;
+			sourceTree = "<group>";
+		};
+		A6FF827B2EE6418A008330C9 /* Seasons */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF82762EE6418A008330C9 /* Season.swift */,
+				A6FF82772EE6418A008330C9 /* SeasonLocation.swift */,
+				A6FF82782EE6418A008330C9 /* SeasonPart.swift */,
+				A6FF82792EE6418A008330C9 /* UserGameSettings.swift */,
+				A6FF827A2EE6418A008330C9 /* UserSeasonProgress.swift */,
+				5298D1A99907B333E9F76950 /* UserSessionProgress.swift */,
+			);
+			path = Seasons;
+			sourceTree = "<group>";
+		};
+		A6FF828A2EECA1C5008330C9 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF82872EECA1C5008330C9 /* LocationRow.swift */,
+				A6FF82882EECA1C5008330C9 /* PartCard.swift */,
+				A6FF82892EECA1C5008330C9 /* SeasonCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		A6FF828E2EECA1C5008330C9 /* Seasons */ = {
+			isa = PBXGroup;
+			children = (
+				A6FF828A2EECA1C5008330C9 /* Components */,
+				A6FF828B2EECA1C5008330C9 /* LocationMapView.swift */,
+				A6FF828C2EECA1C5008330C9 /* PartSelectionView.swift */,
+				A6FF828D2EECA1C5008330C9 /* SeasonSelectionView.swift */,
+			);
+			path = Seasons;
+			sourceTree = "<group>";
+		};
 		BBA6423B12D33DEF828EEA3E /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -677,7 +985,6 @@
 				0ABFBBB24D03DF6AC2EB9314 /* MarketplaceItems.swift */,
 				5028E3D5E60C51F1F213D4CC /* MockMarketplaceData.swift */,
 			);
-			name = Models;
 			path = Models;
 			sourceTree = "<group>";
 		};
@@ -686,7 +993,6 @@
 			children = (
 				5074698E94CEABB71D652EA6 /* MarketplaceViewModel.swift */,
 			);
-			name = ViewModels;
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
@@ -730,6 +1036,7 @@
 				F974B1F02EC9553C003EBF59 /* BillixUITests */,
 				F974B1D12EC9553B003EBF59 /* Products */,
 				F9076DBA2ED50BF10051E1D8 /* Frameworks */,
+				A602F1F42EF33C1E00856DEE /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -924,6 +1231,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04473EEB06DC470B82DCA7F2 /* Billix/Utilities/TypographyStyles.swift in Sources */,
+				08D120758A2C45E38383DC5F /* Billix/Utilities/AnimationModifiers.swift in Sources */,
+				45ACBFCDBB434C6481C55A3D /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift in Sources */,
+				3C882A86A4134847B543CAFE /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift in Sources */,
+				A6F3C78D2EEF74CC00264730 /* LocationRow.swift in Sources */,
+				A6F3C78C2EEF74C300264730 /* LocationMapView.swift in Sources */,
+				993537DB4B716E69509D618A /* GiftCardsCarousel.swift in Sources */,
+				340E7267CB99535CD9E44748 /* BouncingPigLoadingView.swift in Sources */,
 				F9076DC02ED50D520051E1D8 /* OnboardingView.swift in Sources */,
 				F974B2032EC955C0003EBF59 /* ColorPalette.swift in Sources */,
 				F974B1D62EC9553B003EBF59 /* ContentView.swift in Sources */,
@@ -943,6 +1258,11 @@
 				A6FF81792ED4BB24008330C9 /* RecentUploadRow.swift in Sources */,
 				A6FF817A2ED4BB24008330C9 /* ScanUploadOptionsView.swift in Sources */,
 				A6FF817B2ED4BB24008330C9 /* ScanUploadFlowView.swift in Sources */,
+				A6FF827C2EE6418A008330C9 /* UserGameSettings.swift in Sources */,
+				A6FF827D2EE6418A008330C9 /* Season.swift in Sources */,
+				A6FF827E2EE6418A008330C9 /* UserSeasonProgress.swift in Sources */,
+				A6FF827F2EE6418A008330C9 /* SeasonLocation.swift in Sources */,
+				A6FF82802EE6418A008330C9 /* SeasonPart.swift in Sources */,
 				A6FF817C2ED4BB24008330C9 /* QuickAddFlowView.swift in Sources */,
 				F974B1D42EC9553B003EBF59 /* BillixApp.swift in Sources */,
 				A6FF812F2ECEB47C008330C9 /* MarketplaceData.swift in Sources */,
@@ -982,6 +1302,7 @@
 				A6FF81532ED4BAF4008330C9 /* BillUploadServiceFactory.swift in Sources */,
 				A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */,
 				F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */,
+				A6FF82842EE641DD008330C9 /* SeasonViewModel.swift in Sources */,
 				7EXP10RE1M0DELS12345678AB /* ExploreModels.swift in Sources */,
 				7EXP10RE3V1EWM0DEL3456EF /* ExploreViewModel.swift in Sources */,
 				7RECESS10NS1M12345678901 /* RecessionSimulatorView.swift in Sources */,
@@ -997,6 +1318,52 @@
 				F9076D602ED19DC10051E1D8 /* User.swift in Sources */,
 				F9076D5D2ED19DC10051E1D8 /* FocusArea.swift in Sources */,
 				A6FF81292ECEB3E5008330C9 /* BillsFilterBarView.swift in Sources */,
+				A6FF82402EDE3AD4008330C9 /* PointsHistoryView.swift in Sources */,
+				A6FF82412EDE3AD4008330C9 /* ArcadeHeroCard.swift in Sources */,
+				A6FF82422EDE3AD4008330C9 /* WalletHeaderView.swift in Sources */,
+				A6FF82432EDE3AD4008330C9 /* GeoGameModels.swift in Sources */,
+				A6FF82442EDE3AD4008330C9 /* LeaderboardSection.swift in Sources */,
+				A6FF82452EDE3AD4008330C9 /* GeoGameMapView.swift in Sources */,
+				A6FF82462EDE3AD4008330C9 /* WeeklyGiveawayCard.swift in Sources */,
+				A6FF82472EDE3AD4008330C9 /* RewardsHowItWorksSheet.swift in Sources */,
+				A6FF82482EDE3AD4008330C9 /* GiveawayEntryCard.swift in Sources */,
+				A6FF82492EDE3AD4008330C9 /* HeartLostAnimation.swift in Sources */,
+				A6FF824A2EDE3AD4008330C9 /* WelcomeRewardsSheet.swift in Sources */,
+				A6FF824B2EDE3AD4008330C9 /* GameBoostsGrid.swift in Sources */,
+				A6FF824C2EDE3AD4008330C9 /* GeoGameResultView.swift in Sources */,
+				A6FF824D2EDE3AD4008330C9 /* GeoGameFloatingCard.swift in Sources */,
+				A6FF82862EE6420A008330C9 /* SeasonGameContainerView.swift in Sources */,
+				A6FF824E2EDE3AD4008330C9 /* ComboStreakView.swift in Sources */,
+				A6FF824F2EDE3AD4008330C9 /* HealthBarView.swift in Sources */,
+				A6FF82502EDE3AD4008330C9 /* RewardMarketplace.swift in Sources */,
+				A6FF82512EDE3AD4008330C9 /* Phase1LocationView.swift in Sources */,
+				A6FF82522EDE3AD4008330C9 /* GeoGameHowToPlayView.swift in Sources */,
+				A6FF82532EDE3AD4008330C9 /* GeoGameViewModel.swift in Sources */,
+				A6FF82542EDE3AD4008330C9 /* GiftCardHeroSection.swift in Sources */,
+				A6FF82902EECA1C5008330C9 /* SeasonSelectionView.swift in Sources */,
+				A6FF82912EECA1C5008330C9 /* PartSelectionView.swift in Sources */,
+				A6FF82932EECA1C5008330C9 /* PartCard.swift in Sources */,
+				A6FF82942EECA1C5008330C9 /* SeasonCard.swift in Sources */,
+				A6FF82552EDE3AD4008330C9 /* VirtualGoodsCarousel.swift in Sources */,
+				A6FF82562EDE3AD4008330C9 /* TierProgressView.swift in Sources */,
+				A6FF82572EDE3AD4008330C9 /* FloatingParticles.swift in Sources */,
+				A6FF82582EDE3AD4008330C9 /* PriceGuessrIcon.swift in Sources */,
+				A6FF82592EDE3AD4008330C9 /* RewardsHubView.swift in Sources */,
+				A6FF825A2EDE3AD4008330C9 /* Phase2PriceView.swift in Sources */,
+				A6FF825B2EDE3AD4008330C9 /* GiftCardsModal.swift in Sources */,
+				A6FF825C2EDE3AD4008330C9 /* HomeTierProgressBanner.swift in Sources */,
+				A6FF825D2EDE3AD4008330C9 /* ComboUnlockAnimation.swift in Sources */,
+				A6FF825E2EDE3AD4008330C9 /* GiftCardVisuals.swift in Sources */,
+				A6FF825F2EDE3AD4008330C9 /* RewardCard.swift in Sources */,
+				A6FF82602EDE3AD4008330C9 /* GeoGameOverView.swift in Sources */,
+				A6FF82612EDE3AD4008330C9 /* GlassCard.swift in Sources */,
+				A6FF82622EDE3AD4008330C9 /* GeoGameFlowView.swift in Sources */,
+				A6FF82632EDE3AD4008330C9 /* TierUpCelebrationView.swift in Sources */,
+				A6FF82642EDE3AD4008330C9 /* RewardsModels.swift in Sources */,
+				A6FF82652EDE3AD4008330C9 /* GeoGameContainerView.swift in Sources */,
+				A6FF82662EDE3AD4008330C9 /* ProgressBarView.swift in Sources */,
+				A6FF82672EDE3AD4008330C9 /* RewardsViewModel.swift in Sources */,
+				A6FF82682EDE3AD4008330C9 /* GeoGameDataService.swift in Sources */,
 				F9076D682ED19DEE0051E1D8 /* SettingsRow.swift in Sources */,
 				A6FF812A2ECEB3E5008330C9 /* BillsStatsHeaderView.swift in Sources */,
 				A6FF812B2ECEB3E5008330C9 /* BillMarketplaceCard.swift in Sources */,
@@ -1016,6 +1383,7 @@
 				D50D3D7825651D05B03F2F66 /* MarketplaceViewModel.swift in Sources */,
 				8B0C9D3F4868993ECC610BD2 /* BillCardView.swift in Sources */,
 				DE7A061EF4C44553BCDA621A /* BillCardSideA.swift in Sources */,
+				A6FF82822EE641A6008330C9 /* SeasonDataService.swift in Sources */,
 				24AA216361D28E576AA9F2C2 /* BillCardSideB.swift in Sources */,
 				D63C30C122E18342AF38C1F8 /* VSMeToggle.swift in Sources */,
 				0E58FE07F481E233517930FA /* TickerHeaderZone.swift in Sources */,
@@ -1033,6 +1401,21 @@
 				53D0235A4F9B5DDDA83914EC /* UnlockBlueprintSheet.swift in Sources */,
 				C93D6D9B9A4E2E8A36D2063C /* AskOwnerSheet.swift in Sources */,
 				D8E729C509255F5015837DD4 /* PlaceBidSheet.swift in Sources */,
+				12B8AABBC0EC521CAA0EE907 /* AllUploadsView.swift in Sources */,
+				78CC9A4B4CE73C72FDFDAFBF /* UploadDetailView.swift in Sources */,
+				94CA342EC160B25D39828956 /* AnalysisResultsTabbedView.swift in Sources */,
+				ED2452AAD36A456AE11AB438 /* AnalysisSummaryTab.swift in Sources */,
+				EBC33E84E1E375DAEA261508 /* AnalysisDetailsTab.swift in Sources */,
+				4C6E6EF29EB32982216D7511 /* BillAnalysisNewComponents.swift in Sources */,
+				F481B0C94242552459CC9E64 /* MetricCardView.swift in Sources */,
+				7CE6CD12C6EDD4CE467A348F /* BillGaugeView.swift in Sources */,
+				B42853C238F012FDE7F5C47F /* AnalysisComponents.swift in Sources */,
+				503E0740478BEF02D2B31C15 /* AnalysisSaveMoneyTab.swift in Sources */,
+				ED5EF5B9E827DE7A7C2F751E /* AnalysisBreakdownTab.swift in Sources */,
+				680BB9D3534B76879FBC45C6 /* GameBoostsCarousel.swift in Sources */,
+				90A4EC43F0790A45FF24632D /* QuestionTimerView.swift in Sources */,
+				5CD0907F6DACEFDE7B33C4E3 /* UserSessionProgress.swift in Sources */,
+				8B3A2A5EEB7F2AF184E4525B /* SessionGameContainerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
