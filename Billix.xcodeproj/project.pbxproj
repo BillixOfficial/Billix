@@ -203,6 +203,9 @@
 		F974B2012EC955A1003EBF59 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2002EC955A1003EBF59 /* LoginView.swift */; };
 		F974B2032EC955C0003EBF59 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2022EC955C0003EBF59 /* ColorPalette.swift */; };
 		FB021E8FC90B96BB845CCD82 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */; };
+		DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
+		0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -417,6 +420,9 @@
 		F974B2002EC955A1003EBF59 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		F974B2022EC955C0003EBF59 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
 		FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AllUploadsView.swift; sourceTree = "<group>"; };
+		83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressRing.swift; sourceTree = "<group>"; };
+		C362B529A9C1435B9DEC721F /* StarDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarDisplay.swift; sourceTree = "<group>"; };
+		BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonCardLarge.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -424,6 +430,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
+				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
+				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+
 				F9076DB52ED50AE30051E1D8 /* PostgREST in Frameworks */,
 				F9076DB32ED50AE30051E1D8 /* Functions in Frameworks */,
 				F9076DBC2ED50BF10051E1D8 /* Supabase in Frameworks */,
@@ -437,6 +447,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
+				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
+				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,6 +458,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
+				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
+				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -962,7 +980,13 @@
 				A6FF82872EECA1C5008330C9 /* LocationRow.swift */,
 				A6FF82882EECA1C5008330C9 /* PartCard.swift */,
 				A6FF82892EECA1C5008330C9 /* SeasonCard.swift */,
-			);
+				83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */,
+				C362B529A9C1435B9DEC721F /* StarDisplay.swift */,
+				BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */,
+							4E9836B2BD75402BAE66BB4E /* CircularProgressRing.swift */,
+				36B5F280B23F41E3A9F9CD00 /* StarDisplay.swift */,
+				274F2D96A7DB4A9C9BA11F0A /* SeasonCardLarge.swift */,
+);
 			path = Components;
 			sourceTree = "<group>";
 		};
@@ -1162,7 +1186,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					F974B1CF2EC9553B003EBF59 = {
 						CreatedOnToolsVersion = 15.4;
@@ -1205,6 +1229,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
+				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
+				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+
 				F974B1DE2EC9553C003EBF59 /* Preview Assets.xcassets in Resources */,
 				F974B1DA2EC9553C003EBF59 /* Assets.xcassets in Resources */,
 			);
@@ -1214,6 +1242,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
+				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
+				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1221,6 +1253,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
+				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
+				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1231,6 +1267,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
+				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
+				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+
 				04473EEB06DC470B82DCA7F2 /* Billix/Utilities/TypographyStyles.swift in Sources */,
 				08D120758A2C45E38383DC5F /* Billix/Utilities/AnimationModifiers.swift in Sources */,
 				45ACBFCDBB434C6481C55A3D /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift in Sources */,
@@ -1416,13 +1456,17 @@
 				90A4EC43F0790A45FF24632D /* QuestionTimerView.swift in Sources */,
 				5CD0907F6DACEFDE7B33C4E3 /* UserSessionProgress.swift in Sources */,
 				8B3A2A5EEB7F2AF184E4525B /* SessionGameContainerView.swift in Sources */,
-			);
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F974B1DF2EC9553C003EBF59 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
+				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
+				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+
 				F974B1E82EC9553C003EBF59 /* BillixTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1431,6 +1475,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
+				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
+				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+
 				F974B1F42EC9553C003EBF59 /* BillixUITestsLaunchTests.swift in Sources */,
 				F974B1F22EC9553C003EBF59 /* BillixUITests.swift in Sources */,
 			);
@@ -1486,6 +1534,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -1508,6 +1557,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -1547,6 +1597,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1562,6 +1613,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -1574,8 +1626,11 @@
 				CODE_SIGN_ENTITLEMENTS = Billix/Billix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Billix/Preview Content\"";
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -1610,8 +1665,11 @@
 				CODE_SIGN_ENTITLEMENTS = Billix/Billix.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Billix/Preview Content\"";
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -1641,10 +1699,10 @@
 		F974B1FB2EC9553C003EBF59 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				MACOSX_DEPLOYMENT_TARGET = 14.5;
@@ -1663,10 +1721,10 @@
 		F974B1FC2EC9553C003EBF59 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				MACOSX_DEPLOYMENT_TARGET = 14.5;
@@ -1685,9 +1743,9 @@
 		F974B1FE2EC9553C003EBF59 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				MACOSX_DEPLOYMENT_TARGET = 14.5;
@@ -1706,9 +1764,9 @@
 		F974B1FF2EC9553C003EBF59 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				MACOSX_DEPLOYMENT_TARGET = 14.5;

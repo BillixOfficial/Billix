@@ -13,23 +13,9 @@ struct SeasonThemeBackground: View {
     @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
-        ZStack {
-            // Base gradient (season-specific)
-            LinearGradient(
-                colors: gradientForSeason,
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            // Floating particles (reuse existing FloatingParticlesBackground)
-            if !reduceMotion {
-                FloatingParticlesBackground(
-                    particleCount: 8,
-                    colors: particleColorsForSeason
-                )
-            }
-        }
-        .ignoresSafeArea()
+        // Crisp off-white background - no green tint
+        Color(hex: "#FAFAFA")
+            .ignoresSafeArea()
     }
 
     // MARK: - Season-Specific Gradients
