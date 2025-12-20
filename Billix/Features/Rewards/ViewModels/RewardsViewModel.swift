@@ -177,7 +177,8 @@ class RewardsViewModel: ObservableObject {
     private func setupCountdownTimer() {
         updateCountdown()
         countdownTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            Task { @MainActor in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
                 self?.updateCountdown()
             }
         }

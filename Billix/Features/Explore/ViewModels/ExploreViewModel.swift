@@ -98,26 +98,25 @@ class ExploreViewModel: ObservableObject {
     // MARK: - Initialization
 
     init() {
-        loadMockData()
+        // Defer loading to avoid publishing during view updates
+        Task { @MainActor in
+            await loadMockData()
+        }
     }
 
     // MARK: - Data Loading
 
-    func loadMockData() {
+    func loadMockData() async {
         isLoading = true
 
-        Task {
-            try? await Task.sleep(nanoseconds: 300_000_000)
+        try? await Task.sleep(nanoseconds: 300_000_000)
 
-            await MainActor.run {
-                loadHeatmapData()
-                loadStrikePriceData()
-                loadGougeIndexData()
-                loadOutageBotData()
-                runStressTest()
-                isLoading = false
-            }
-        }
+        loadHeatmapData()
+        loadStrikePriceData()
+        loadGougeIndexData()
+        loadOutageBotData()
+        runStressTest()
+        isLoading = false
     }
 
     // MARK: - Recession Simulator

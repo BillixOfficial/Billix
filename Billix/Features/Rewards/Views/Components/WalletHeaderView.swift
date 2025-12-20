@@ -8,6 +8,37 @@
 
 import SwiftUI
 
+// MARK: - Theme (Billix Color Scheme)
+
+private enum Theme {
+    // Core Billix Colors
+    static let background = Color(hex: "#F7F9F8")
+    static let cardBackground = Color.white
+    static let primaryText = Color(hex: "#2D3B35")
+    static let secondaryText = Color(hex: "#8B9A94")
+    static let accent = Color(hex: "#5B8A6B")          // Billix Money Green
+    static let accentLight = Color(hex: "#5B8A6B").opacity(0.12)
+
+    // Semantic colors
+    static let success = Color(hex: "#4CAF7A")
+    static let warning = Color(hex: "#E8A54B")
+    static let info = Color(hex: "#5BA4D4")
+    static let purple = Color(hex: "#5D4DB1")
+
+    // Rewards colors (using Billix palette)
+    static let gold = Color(hex: "#D4A04E")            // Billix Gold
+    static let streak = Color(hex: "#4CAF7A")          // Green for streaks
+
+    // Spacing
+    static let horizontalPadding: CGFloat = 20
+    static let cardPadding: CGFloat = 16
+    static let cornerRadius: CGFloat = 16
+
+    // Shadow
+    static let shadowColor = Color.black.opacity(0.04)
+    static let shadowRadius: CGFloat = 10
+}
+
 struct WalletHeaderView: View {
     let points: Int
     let cashEquivalent: Double
@@ -37,13 +68,13 @@ struct WalletHeaderView: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [.billixArcadeGold, .billixPrizeOrange],
+                                colors: [Theme.purple, Theme.purple.opacity(0.8)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .frame(width: 52, height: 52)
-                        .shadow(color: .billixArcadeGold.opacity(0.4), radius: 8, x: 0, y: 4)
+                        .shadow(color: Theme.purple.opacity(0.3), radius: 8, x: 0, y: 4)
 
                     Image(systemName: "star.fill")
                         .font(.system(size: 24, weight: .semibold))
@@ -64,19 +95,19 @@ struct WalletHeaderView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text("\(points)")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundColor(.billixDarkGreen)
+                            .foregroundColor(Theme.primaryText)
                             .contentTransition(.numericText(value: Double(points)))
                             .animation(.spring(response: 0.5, dampingFraction: 0.8), value: points)
 
                         Text("pts")
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.billixMediumGreen)
+                            .foregroundColor(Theme.secondaryText)
                     }
 
                     // Cash equivalent
                     Text("≈ \(String(format: "$%.2f", cashEquivalent)) value")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.billixMediumGreen)
+                        .foregroundColor(Theme.secondaryText)
 
                     // Tier progress
                     if let nextTier = currentTier.nextTier {
@@ -92,17 +123,17 @@ struct WalletHeaderView: View {
                 Button(action: onHistoryTapped) {
                     ZStack {
                         Circle()
-                            .fill(Color.billixDarkGreen.opacity(0.1))
+                            .fill(Theme.primaryText.opacity(0.1))
                             .frame(width: 44, height: 44)
 
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.billixDarkGreen)
+                            .foregroundColor(Theme.primaryText)
                     }
                 }
                 .buttonStyle(ScaleButtonStyle(scale: 0.9))
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Theme.horizontalPadding)
             .padding(.top, 12)
             .padding(.bottom, 12)
 
@@ -118,9 +149,9 @@ struct WalletHeaderView: View {
                     // Gradient background
                     LinearGradient(
                         colors: [
-                            Color.billixArcadeGold.opacity(0.15),
-                            Color.billixPrizeOrange.opacity(0.08),
-                            Color.billixLightGreen
+                            Theme.purple.opacity(0.08),
+                            Theme.accent.opacity(0.05),
+                            Theme.background
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -129,12 +160,12 @@ struct WalletHeaderView: View {
                     // Decorative elements
                     GeometryReader { geometry in
                         Circle()
-                            .fill(Color.billixArcadeGold.opacity(0.1))
+                            .fill(Theme.purple.opacity(0.08))
                             .frame(width: 100, height: 100)
                             .offset(x: geometry.size.width - 60, y: -30)
 
                         Circle()
-                            .fill(Color.billixPrizeOrange.opacity(0.08))
+                            .fill(Theme.accent.opacity(0.06))
                             .frame(width: 60, height: 60)
                             .offset(x: geometry.size.width - 40, y: 50)
                     }
@@ -145,138 +176,15 @@ struct WalletHeaderView: View {
                         Rectangle()
                             .fill(
                                 LinearGradient(
-                                    colors: [.billixArcadeGold.opacity(0.3), .billixPrizeOrange.opacity(0.2), .clear],
+                                    colors: [Theme.purple.opacity(0.2), Theme.accent.opacity(0.15), .clear],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
-                            .frame(height: 2)
+                            .frame(height: 1)
                     }
                 }
             )
-        }
-    }
-}
-
-// MARK: - Streak Counter
-
-struct StreakCounter: View {
-    let streakCount: Int
-    let isAtRisk: Bool
-    let onTap: () -> Void
-
-    @State private var isPulsing = false
-
-    var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 4) {
-                Text("🔥")
-                    .font(.system(size: 14))
-                    .scaleEffect(isPulsing ? 1.1 : 1.0)
-
-                Text("\(streakCount)")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(isAtRisk ? .billixStreakOrange : .white)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(
-                        isAtRisk ?
-                        Color.billixStreakOrange.opacity(0.25) :
-                        Color.billixStreakOrange
-                    )
-                    .overlay(
-                        Capsule()
-                            .stroke(Color.billixStreakOrange, lineWidth: isAtRisk ? 2 : 0)
-                    )
-            )
-            .shadow(
-                color: .billixStreakOrange.opacity(isPulsing ? 0.6 : 0.3),
-                radius: isPulsing ? 8 : 4,
-                x: 0,
-                y: 2
-            )
-        }
-        .buttonStyle(ScaleButtonStyle(scale: 0.95))
-        .onAppear {
-            if isAtRisk {
-                withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
-                    isPulsing = true
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Tier Progress Ring
-
-struct TierProgressRing: View {
-    let currentTier: RewardsTier
-    let progress: Double
-    let showSparkles: Bool
-
-    @State private var animatedProgress: Double = 0.0
-    @State private var sparkleOffset: CGFloat = 0
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(Color.gray.opacity(0.2), lineWidth: 4)
-
-            Circle()
-                .trim(from: 0, to: animatedProgress)
-                .stroke(
-                    LinearGradient(
-                        colors: tierGradientColors,
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    style: StrokeStyle(lineWidth: 4, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-                .animation(.spring(response: 0.8, dampingFraction: 0.8), value: animatedProgress)
-
-            if showSparkles {
-                Circle()
-                    .fill(tierColor)
-                    .frame(width: 8, height: 8)
-                    .offset(x: 26)
-                    .rotationEffect(.degrees(360 * animatedProgress - 90))
-                    .shadow(color: tierColor, radius: 4)
-                    .opacity(sparkleOffset == 0 ? 1 : 0.7)
-                    .scaleEffect(sparkleOffset == 0 ? 1.2 : 1.0)
-                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: sparkleOffset)
-            }
-        }
-        .onAppear {
-            withAnimation(.spring(response: 1.0, dampingFraction: 0.7).delay(0.3)) {
-                animatedProgress = progress
-            }
-            if showSparkles {
-                withAnimation {
-                    sparkleOffset = 1
-                }
-            }
-        }
-    }
-
-    private var tierColor: Color {
-        switch currentTier {
-        case .bronze: return .billixBronzeTier
-        case .silver: return .billixSilverTier
-        case .gold: return .billixGoldTier
-        case .platinum: return .billixPlatinumTier
-        }
-    }
-
-    private var tierGradientColors: [Color] {
-        switch currentTier {
-        case .bronze: return [Color.billixBronzeTier, Color.billixBronzeTier.opacity(0.7)]
-        case .silver: return [Color.billixSilverTier, Color.billixSilverTier.opacity(0.7)]
-        case .gold: return [Color.billixGoldTier, Color.billixPrizeOrange]
-        case .platinum: return [Color.billixPlatinumTier, Color.billixSilverTier]
         }
     }
 }
@@ -309,12 +217,12 @@ struct StreakStatsCarousel: View {
             } label: {
                 ZStack {
                     Circle()
-                        .fill(Color.billixMoneyGreen.opacity(0.15))
+                        .fill(Theme.accent.opacity(0.15))
                         .frame(width: 36, height: 36)
 
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.billixMoneyGreen)
+                        .foregroundColor(Theme.accent)
                 }
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.9))
@@ -342,12 +250,12 @@ struct StreakStatsCarousel: View {
             } label: {
                 ZStack {
                     Circle()
-                        .fill(Color.billixMoneyGreen.opacity(0.15))
+                        .fill(Theme.accent.opacity(0.15))
                         .frame(width: 36, height: 36)
 
                     Image(systemName: "chevron.right")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.billixMoneyGreen)
+                        .foregroundColor(Theme.accent)
                 }
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.9))
@@ -379,17 +287,17 @@ struct WeeklyProgressSlide: View {
 
     private var streakColor: Color {
         switch streakCount {
-        case 4...Int.max: return Color(hex: "#FF6B35") // Hot streak - Orange/Red
-        case 2...3: return Color(hex: "#4A90E2") // Cooling - Blue
-        default: return Color.gray // No streak - Gray
+        case 4...Int.max: return Theme.streak   // Hot streak - Green
+        case 2...3: return Theme.info           // Building - Blue
+        default: return Theme.secondaryText     // No streak - Gray
         }
     }
 
-    private var fireEmoji: String {
+    private var streakIcon: String {
         switch streakCount {
-        case 4...Int.max: return "🔥" // Hot fire
-        case 2...3: return "❄️" // Ice/cooling
-        default: return "🔥" // Gray fire (will use gray color)
+        case 4...Int.max: return "flame.fill"
+        case 2...3: return "bolt.fill"
+        default: return "circle.dotted"
         }
     }
 
@@ -401,7 +309,7 @@ struct WeeklyProgressSlide: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(streakColor)
 
-                Text("Day Streak!")
+                Text("Day Streak")
                     .font(.system(size: 8, weight: .semibold))
                     .foregroundColor(streakColor)
             }
@@ -411,7 +319,7 @@ struct WeeklyProgressSlide: View {
                 // Title
                 Text("Weekly Progress")
                     .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(.billixMediumGreen)
+                    .foregroundColor(Theme.secondaryText)
 
                 // Days row
                 HStack(spacing: 4) {
@@ -419,12 +327,12 @@ struct WeeklyProgressSlide: View {
                         VStack(spacing: 2) {
                             Text(day)
                                 .font(.system(size: 9, weight: .semibold))
-                                .foregroundColor(.billixMediumGreen)
+                                .foregroundColor(Theme.secondaryText)
                                 .frame(width: 12)
 
                             ZStack {
                                 Circle()
-                                    .fill(progress[index] ? Color.billixArcadeGold : Color.gray.opacity(0.3))
+                                    .fill(progress[index] ? Theme.accent : Theme.secondaryText.opacity(0.2))
                                     .frame(width: 20, height: 20)
                                     .scaleEffect(animatedChecks[index] ? 1.0 : 0.8)
                                     .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(Double(index) * 0.08), value: animatedChecks[index])
@@ -443,9 +351,10 @@ struct WeeklyProgressSlide: View {
                 }
             }
 
-            // Fire emoji (dynamic based on streak)
-            Text(fireEmoji)
-                .font(.system(size: 32))
+            // Streak icon (dynamic based on streak)
+            Image(systemName: streakIcon)
+                .font(.system(size: 28, weight: .medium))
+                .foregroundColor(streakColor)
         }
         .onAppear {
             // Trigger animation on appear
@@ -470,7 +379,7 @@ struct MyBadgesSlide: View {
             // Title
             Text("My Badges")
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.billixMediumGreen)
+                .foregroundColor(Theme.secondaryText)
 
             // Badges row
             HStack(spacing: 8) {
@@ -561,5 +470,5 @@ struct RollingNumberView: View {
 
         Spacer()
     }
-    .background(Color.billixLightGreen)
+    .background(Theme.background)
 }

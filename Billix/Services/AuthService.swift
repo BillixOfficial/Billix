@@ -625,6 +625,17 @@ class AuthService: ObservableObject {
         let user = try await fetchUserData(userId: userId)
         self.currentUser = user
     }
+
+    /// Refresh user data from database
+    /// Call this after updating user profile fields to reflect changes in the UI
+    func refreshUserData() async throws {
+        guard let userId = currentUser?.id else {
+            throw AuthError.noUserLoggedIn
+        }
+
+        let user = try await fetchUserData(userId: userId)
+        self.currentUser = user
+    }
 }
 
 // MARK: - Auth Errors

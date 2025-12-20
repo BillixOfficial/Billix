@@ -112,7 +112,7 @@ struct ExploreView: View {
             .padding(.top, MarketplaceTheme.Spacing.md)
         }
         .refreshable {
-            viewModel.loadMockData()
+            await viewModel.loadMockData()
         }
     }
 
