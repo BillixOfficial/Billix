@@ -170,7 +170,7 @@ struct CombinedUser: Identifiable, Equatable {
     }
 
     var fullDisplayName: String {
-        "@\(handle) \(displayName)"
+        displayName
     }
 
     var zipCode: String {

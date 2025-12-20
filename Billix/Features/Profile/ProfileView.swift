@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import PhotosUI
+import StoreKit
 
 // MARK: - Profile Tab Enum
 
@@ -144,6 +146,12 @@ struct ProfileView: View {
     @State private var editingBio = ""
     @State private var isSavingBio = false
 
+    // Photo picker states
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var isUploadingPhoto = false
+    @State private var showPhotoError = false
+    @State private var photoErrorMessage = ""
+
     // Settings states
     @State private var biometricLock = false
     @State private var neighborhoodStats = true
@@ -151,6 +159,53 @@ struct ProfileView: View {
     @State private var billDueDates = true
     @State private var priceHikeAlerts = true
     @State private var syncCalendar = false
+
+    // Support states
+    @State private var showDeleteAccountAlert = false
+    @State private var showReportErrorSheet = false
+    @State private var showHelpCenterSheet = false
+    @State private var showSuggestFeatureSheet = false
+    @State private var feedbackText = ""
+    @State private var selectedErrorCategory = "Bill Analysis"
+    @State private var isSubmittingFeedback = false
+    @State private var showFeedbackSuccess = false
+
+    // Account editing states
+    @State private var showEditNameSheet = false
+    @State private var showEditEmailSheet = false
+    @State private var showChangePasswordSheet = false
+    @State private var showHouseholdSheet = false
+    @State private var showSubscriptionSheet = false
+    @State private var editingName = ""
+    @State private var editingEmail = ""
+    @State private var currentPassword = ""
+    @State private var newPassword = ""
+    @State private var confirmPassword = ""
+    @State private var isSavingAccount = false
+    @State private var accountErrorMessage = ""
+    @State private var showAccountError = false
+    @State private var showAccountSuccess = false
+    @State private var accountSuccessMessage = ""
+
+    // Household states
+    @State private var householdName = ""
+    @State private var householdInviteCode = ""
+    @State private var householdMembers: [HouseholdMember] = []
+    @State private var isCreatingHousehold = false
+    @State private var isJoiningHousehold = false
+    @State private var joinCode = ""
+
+    // Trust & Points (default values for new users)
+    @State private var userTrustScore: Int = 2  // Out of 5, start at 2
+    @State private var userBillixPoints: Int = 100  // Start with 100 points
+
+    // Username states
+    @State private var username: String = ""
+    @State private var showEditUsernameSheet = false
+    @State private var editingUsername = ""
+
+    // StoreKit
+    @StateObject private var storeKit = StoreKitService.shared
 
     // Colors - Clean professional palette
     private let backgroundColor = Color(hex: "#F5F7F6")  // Soft off-white with slight green tint
@@ -188,9 +243,13 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 fetchUserEmail()
+                generateRandomUsernameIfNeeded()
             }
             .sheet(isPresented: $showBioEditor) {
                 bioEditorSheet
+            }
+            .sheet(isPresented: $showEditUsernameSheet) {
+                usernameEditorSheet
             }
         }
     }
@@ -259,6 +318,140 @@ struct ProfileView: View {
         }
     }
 
+    // MARK: - Username Editor Sheet
+
+    private var usernameEditorSheet: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("Choose your unique username")
+                    .font(.headline)
+                    .foregroundColor(darkTextColor)
+
+                HStack {
+                    Text("@")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(grayTextColor)
+
+                    TextField("username", text: $editingUsername)
+                        .font(.system(size: 18))
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+                .padding(16)
+                .background(Color(hex: "#F5F7F6"))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+
+                Text("Username must be 3-20 characters, letters and numbers only")
+                    .font(.caption)
+                    .foregroundColor(grayTextColor)
+
+                Button {
+                    generateNewRandomUsername()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                        Text("Generate Random")
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(selectedTabColor)
+                }
+
+                Spacer()
+            }
+            .padding(20)
+            .navigationTitle("Username")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showEditUsernameSheet = false
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveUsername()
+                    }
+                    .disabled(editingUsername.count < 3 || editingUsername.count > 20)
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func generateRandomUsernameIfNeeded() {
+        if username.isEmpty {
+            username = generateRandomUsername()
+        }
+    }
+
+    private func generateNewRandomUsername() {
+        editingUsername = generateRandomUsername()
+    }
+
+    private func generateRandomUsername() -> String {
+        let adjectives = ["Swift", "Clever", "Savvy", "Smart", "Thrifty", "Lucky", "Happy", "Bright", "Cool", "Epic"]
+        let nouns = ["Saver", "Guru", "Pro", "Star", "Champ", "Hero", "Ninja", "Ace", "Boss", "Whiz"]
+        let randomNumber = Int.random(in: 100...999)
+        let adjective = adjectives.randomElement() ?? "Savvy"
+        let noun = nouns.randomElement() ?? "Saver"
+        return "\(adjective)\(noun)\(randomNumber)"
+    }
+
+    private func saveUsername() {
+        // Validate username
+        let cleaned = editingUsername.filter { $0.isLetter || $0.isNumber }
+        if cleaned.count >= 3 && cleaned.count <= 20 {
+            username = cleaned
+            showEditUsernameSheet = false
+        }
+    }
+
+    // MARK: - Photo Upload
+
+    private func uploadProfilePhoto(item: PhotosPickerItem) async {
+        await MainActor.run {
+            isUploadingPhoto = true
+        }
+
+        do {
+            // Load image data from picker
+            guard let imageData = try await item.loadTransferable(type: Data.self) else {
+                throw NSError(domain: "ProfileView", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to load image data"])
+            }
+
+            // Compress image if needed
+            let compressedData: Data
+            if let uiImage = UIImage(data: imageData) {
+                compressedData = uiImage.jpegData(compressionQuality: 0.7) ?? imageData
+            } else {
+                compressedData = imageData
+            }
+
+            // Use AuthService's updateAvatar method (handles upload + database update + refresh)
+            try await authService.updateAvatar(imageData: compressedData)
+
+            await MainActor.run {
+                isUploadingPhoto = false
+                selectedPhotoItem = nil
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
+
+        } catch {
+            await MainActor.run {
+                isUploadingPhoto = false
+                selectedPhotoItem = nil
+                photoErrorMessage = error.localizedDescription
+                showPhotoError = true
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
+            }
+            print("Failed to upload photo: \(error)")
+        }
+    }
+
     // MARK: - Profile Header (Photo + Info)
 
     private var profileHeaderSection: some View {
@@ -323,36 +516,78 @@ struct ProfileView: View {
     }
 
     private var profilePhoto: some View {
-        ZStack {
-            // Rounded Rectangle Photo Container - Light grayish-blue background like Figma
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(hex: "#E8EEF4"))
-                .frame(width: 100, height: 130)
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+            ZStack {
+                // Rounded Rectangle Photo Container - Light grayish-blue background like Figma
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color(hex: "#E8EEF4"))
+                    .frame(width: 100, height: 130)
+                    .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
 
-            // Profile image or initials
-            if let avatarUrl = authService.currentUser?.profile.avatarUrl,
-               let url = URL(string: avatarUrl) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 100, height: 130)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-                    case .failure:
-                        profilePlaceholder
-                    case .empty:
-                        ProgressView()
-                            .frame(width: 100, height: 130)
-                    @unknown default:
-                        profilePlaceholder
+                // Profile image or initials
+                if let avatarUrl = authService.currentUser?.profile.avatarUrl,
+                   let url = URL(string: avatarUrl) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 100, height: 130)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                        case .failure:
+                            profilePlaceholder
+                        case .empty:
+                            ProgressView()
+                                .frame(width: 100, height: 130)
+                        @unknown default:
+                            profilePlaceholder
+                        }
+                    }
+                } else {
+                    profilePlaceholder
+                }
+
+                // Upload overlay
+                if isUploadingPhoto {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.black.opacity(0.5))
+                        .frame(width: 100, height: 130)
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                }
+
+                // Camera icon overlay (bottom right)
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        ZStack {
+                            Circle()
+                                .fill(accentGreen)
+                                .frame(width: 28, height: 28)
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.white)
+                        }
+                        .offset(x: 4, y: 4)
                     }
                 }
-            } else {
-                profilePlaceholder
+                .frame(width: 100, height: 130)
             }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onChange(of: selectedPhotoItem) { _, newItem in
+            if let newItem = newItem {
+                Task {
+                    await uploadProfilePhoto(item: newItem)
+                }
+            }
+        }
+        .alert("Photo Upload Error", isPresented: $showPhotoError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(photoErrorMessage)
         }
     }
 
@@ -451,50 +686,97 @@ struct ProfileView: View {
             }
             .buttonStyle(PlainButtonStyle())
 
-            // ON THE WEB Card
-            ProfileCard(title: "ON THE WEB") {
-                HStack(spacing: 14) {
-                    ForEach(profileData.socialLinks) { link in
-                        Button {
-                            // Open social link
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(link.color.opacity(0.12))
-                                    .frame(width: 48, height: 48)
+            // BILLIX STATS Card
+            ProfileCard(title: "BILLIX STATS") {
+                VStack(spacing: 14) {
+                    // Trust Score (out of 5)
+                    HStack(spacing: 14) {
+                        ZStack {
+                            Circle()
+                                .fill(Color(hex: "#E8F5E9"))
+                                .frame(width: 42, height: 42)
 
-                                Image(systemName: link.iconName)
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(link.color)
+                            Image(systemName: "shield.checkered")
+                                .font(.system(size: 18))
+                                .foregroundColor(Color(hex: "#4CAF50"))
+                        }
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("TRUST SCORE")
+                                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                .foregroundColor(lightGrayText)
+                                .tracking(0.8)
+                            HStack(spacing: 4) {
+                                // Show filled and empty stars for trust score out of 5
+                                ForEach(0..<5, id: \.self) { index in
+                                    Image(systemName: index < userTrustScore ? "star.fill" : "star")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(index < userTrustScore ? Color(hex: "#4CAF50") : Color(hex: "#E0E0E0"))
+                                }
+                                Text("\(userTrustScore)/5")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(darkTextColor)
+                                    .padding(.leading, 4)
                             }
                         }
-                        .buttonStyle(ScaleButtonStyle())
-                    }
-                    Spacer()
-                }
-            }
 
-            // WEBSITE & PHONE Card
-            ProfileCard(title: nil) {
-                VStack(spacing: 14) {
-                    // Website
+                        Spacer()
+                    }
+
+                    Divider()
+                        .background(Color(hex: "#E5E7EB"))
+
+                    // Billix Points
+                    HStack(spacing: 14) {
+                        ZStack {
+                            Circle()
+                                .fill(Color(hex: "#F3E8FF"))
+                                .frame(width: 42, height: 42)
+
+                            Image(systemName: "star.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(Color(hex: "#5D4DB1"))
+                        }
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("BILLIX POINTS")
+                                .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                .foregroundColor(lightGrayText)
+                                .tracking(0.8)
+                            HStack(spacing: 4) {
+                                Text("\(userBillixPoints)")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(darkTextColor)
+                                Text("pts")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(grayTextColor)
+                            }
+                        }
+
+                        Spacer()
+                    }
+
+                    Divider()
+                        .background(Color(hex: "#E5E7EB"))
+
+                    // Member Since
                     HStack(spacing: 14) {
                         ZStack {
                             Circle()
                                 .fill(Color(hex: "#EEF2FF"))
                                 .frame(width: 42, height: 42)
 
-                            Image(systemName: "globe")
+                            Image(systemName: "calendar")
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(Color(hex: "#6366F1"))
                         }
 
                         VStack(alignment: .leading, spacing: 3) {
-                            Text("WEBSITE")
+                            Text("MEMBER SINCE")
                                 .font(.system(size: 10, weight: .semibold, design: .rounded))
                                 .foregroundColor(lightGrayText)
                                 .tracking(0.8)
-                            Text(profileData.website)
+                            Text(authService.currentUser?.memberSinceString.replacingOccurrences(of: "Member since: ", with: "") ?? "")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(darkTextColor)
                         }
@@ -505,24 +787,24 @@ struct ProfileView: View {
                     Divider()
                         .background(Color(hex: "#E5E7EB"))
 
-                    // Phone
+                    // Bills Analyzed
                     HStack(spacing: 14) {
                         ZStack {
                             Circle()
-                                .fill(selectedTabColor.opacity(0.12))
+                                .fill(Color(hex: "#FEF3E2"))
                                 .frame(width: 42, height: 42)
 
-                            Image(systemName: "phone.fill")
+                            Image(systemName: "doc.text.fill")
                                 .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(selectedTabColor)
+                                .foregroundColor(Color(hex: "#E8A54B"))
                         }
 
                         VStack(alignment: .leading, spacing: 3) {
-                            Text("PHONE")
+                            Text("BILLS ANALYZED")
                                 .font(.system(size: 10, weight: .semibold, design: .rounded))
                                 .foregroundColor(lightGrayText)
                                 .tracking(0.8)
-                            Text(profileData.phone)
+                            Text("\(authService.currentUser?.billixProfile?.billsAnalyzedCount ?? 0)")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(darkTextColor)
                         }
@@ -541,15 +823,55 @@ struct ProfileView: View {
             // Personal Information Card
             ProfileCard(title: "PERSONAL INFORMATION") {
                 VStack(spacing: 0) {
-                    ProfileSettingsRowLink(icon: "person.fill", iconColor: .blue, title: "Name", value: profileData.name)
+                    // Name - Editable
+                    Button {
+                        editingName = profileData.name
+                        showEditNameSheet = true
+                    } label: {
+                        AccountRowView(icon: "person.fill", iconColor: .blue, title: "Name", value: profileData.name)
+                    }
+
                     Divider().padding(.leading, 52)
-                    ProfileSettingsRowLink(icon: "envelope.fill", iconColor: .blue, title: "Email", value: profileData.email)
+
+                    // Email - Editable
+                    Button {
+                        editingEmail = userEmail
+                        showEditEmailSheet = true
+                    } label: {
+                        AccountRowView(icon: "envelope.fill", iconColor: .blue, title: "Email", value: profileData.email)
+                    }
+
                     Divider().padding(.leading, 52)
-                    ProfileSettingsRowLink(icon: "phone.fill", iconColor: .blue, title: "Phone Number", value: profileData.phone)
+
+                    // Username - Editable
+                    Button {
+                        editingUsername = username
+                        showEditUsernameSheet = true
+                    } label: {
+                        AccountRowView(icon: "at", iconColor: .purple, title: "Username", value: username.isEmpty ? "Not set" : "@\(username)")
+                    }
+
                     Divider().padding(.leading, 52)
-                    ProfileSettingsRowLink(icon: "person.2.fill", iconColor: .blue, title: "Household", value: nil)
+
+                    // Household - Opens management sheet
+                    Button {
+                        loadHouseholdData()
+                        showHouseholdSheet = true
+                    } label: {
+                        AccountRowView(icon: "person.2.fill", iconColor: .blue, title: "Household", value: householdName.isEmpty ? "Not set" : householdName)
+                    }
+
                     Divider().padding(.leading, 52)
-                    ProfileSettingsRowLink(icon: "lock.fill", iconColor: .blue, title: "Change Password", value: nil)
+
+                    // Change Password
+                    Button {
+                        currentPassword = ""
+                        newPassword = ""
+                        confirmPassword = ""
+                        showChangePasswordSheet = true
+                    } label: {
+                        AccountRowView(icon: "lock.fill", iconColor: .blue, title: "Change Password", value: nil)
+                    }
                 }
             }
 
@@ -572,38 +894,40 @@ struct ProfileView: View {
 
                         Spacer()
 
-                        Text("Free")
-                            .font(.system(size: 14))
-                            .foregroundColor(grayTextColor)
+                        Text(storeKit.isPremium ? "Prime" : "Free")
+                            .font(.system(size: 14, weight: storeKit.isPremium ? .semibold : .regular))
+                            .foregroundColor(storeKit.isPremium ? selectedTabColor : grayTextColor)
                     }
                     .padding(.vertical, 8)
 
-                    Divider().padding(.leading, 52)
+                    if !storeKit.isPremium {
+                        Divider().padding(.leading, 52)
 
-                    Button {
-                        // Upgrade to Prime
-                    } label: {
-                        HStack(spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.yellow.opacity(0.15))
-                                    .frame(width: 40, height: 40)
-                                Image(systemName: "crown.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.yellow)
+                        Button {
+                            showSubscriptionSheet = true
+                        } label: {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.yellow.opacity(0.15))
+                                        .frame(width: 40, height: 40)
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.yellow)
+                                }
+
+                                Text("Get Billix Prime - $4.99/mo")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(darkTextColor)
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(grayTextColor)
                             }
-
-                            Text("Get Billix Prime - $6.99/mo")
-                                .font(.system(size: 15))
-                                .foregroundColor(darkTextColor)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14))
-                                .foregroundColor(grayTextColor)
+                            .padding(.vertical, 8)
                         }
-                        .padding(.vertical, 8)
                     }
                 }
             }
@@ -633,6 +957,7 @@ struct ProfileView: View {
 
                     Button {
                         UIPasteboard.general.string = "BILLIX-2024"
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
                     } label: {
                         Text("Copy")
                             .font(.system(size: 13, weight: .medium))
@@ -643,6 +968,55 @@ struct ProfileView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showEditNameSheet) {
+            EditNameSheet(
+                name: $editingName,
+                isSaving: $isSavingAccount,
+                onSave: saveNameChange
+            )
+        }
+        .sheet(isPresented: $showEditEmailSheet) {
+            EditEmailSheet(
+                email: $editingEmail,
+                isSaving: $isSavingAccount,
+                onSave: saveEmailChange
+            )
+        }
+        .sheet(isPresented: $showChangePasswordSheet) {
+            ChangePasswordSheet(
+                currentPassword: $currentPassword,
+                newPassword: $newPassword,
+                confirmPassword: $confirmPassword,
+                isSaving: $isSavingAccount,
+                onSave: savePasswordChange
+            )
+        }
+        .sheet(isPresented: $showHouseholdSheet) {
+            HouseholdSheet(
+                householdName: $householdName,
+                inviteCode: $householdInviteCode,
+                members: $householdMembers,
+                joinCode: $joinCode,
+                isCreating: $isCreatingHousehold,
+                isJoining: $isJoiningHousehold,
+                onCreate: createHousehold,
+                onJoin: joinHousehold,
+                onLeave: leaveHousehold
+            )
+        }
+        .sheet(isPresented: $showSubscriptionSheet) {
+            SubscriptionSheet(storeKit: storeKit, accentColor: selectedTabColor)
+        }
+        .alert("Error", isPresented: $showAccountError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(accountErrorMessage)
+        }
+        .alert("Success", isPresented: $showAccountSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(accountSuccessMessage)
         }
     }
 
@@ -736,22 +1110,58 @@ struct ProfileView: View {
             // Help & Feedback Card
             ProfileCard(title: "HELP & FEEDBACK") {
                 VStack(spacing: 0) {
-                    ProfileSettingsRowLink(icon: "exclamationmark.bubble.fill", iconColor: .orange, title: "Report AI Error", value: nil)
+                    // Report AI Error
+                    Button {
+                        feedbackText = ""
+                        selectedErrorCategory = "Bill Analysis"
+                        showReportErrorSheet = true
+                    } label: {
+                        SupportRowView(icon: "exclamationmark.bubble.fill", iconColor: .orange, title: "Report AI Error", subtitle: "Help us improve our AI accuracy")
+                    }
+
                     Divider().padding(.leading, 52)
-                    ProfileSettingsRowLink(icon: "questionmark.circle.fill", iconColor: .blue, title: "Help Center", value: nil)
+
+                    // Help Center
+                    Button {
+                        showHelpCenterSheet = true
+                    } label: {
+                        SupportRowView(icon: "questionmark.circle.fill", iconColor: .blue, title: "Help Center", subtitle: "FAQs, guides, and tutorials")
+                    }
+
                     Divider().padding(.leading, 52)
-                    ProfileSettingsRowLink(icon: "lightbulb.fill", iconColor: .yellow, title: "Suggest a Feature", value: nil)
+
+                    // Suggest a Feature
+                    Button {
+                        feedbackText = ""
+                        showSuggestFeatureSheet = true
+                    } label: {
+                        SupportRowView(icon: "lightbulb.fill", iconColor: .yellow, title: "Suggest a Feature", subtitle: "We'd love to hear your ideas")
+                    }
                 }
             }
 
             // Legal Card
             ProfileCard(title: "LEGAL") {
                 VStack(spacing: 0) {
-                    ProfileSettingsRowLink(icon: "doc.text.fill", iconColor: .gray, title: "Terms of Service", value: nil)
-                    Divider().padding(.leading, 52)
-                    ProfileSettingsRowLink(icon: "hand.raised.fill", iconColor: .gray, title: "Privacy Policy", value: nil)
+                    // Terms of Service
+                    Button {
+                        openURL("https://www.billixapp.com/terms")
+                    } label: {
+                        SupportRowView(icon: "doc.text.fill", iconColor: .gray, title: "Terms of Service", subtitle: "Our terms and conditions")
+                    }
+
                     Divider().padding(.leading, 52)
 
+                    // Privacy Policy
+                    Button {
+                        openURL("https://www.billixapp.com/privacy")
+                    } label: {
+                        SupportRowView(icon: "hand.raised.fill", iconColor: .gray, title: "Privacy Policy", subtitle: "How we protect your data")
+                    }
+
+                    Divider().padding(.leading, 52)
+
+                    // App Version (not clickable)
                     HStack(spacing: 12) {
                         ZStack {
                             Circle()
@@ -762,15 +1172,24 @@ struct ProfileView: View {
                                 .foregroundColor(.gray)
                         }
 
-                        Text("App Version")
-                            .font(.system(size: 15))
-                            .foregroundColor(darkTextColor)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("App Version")
+                                .font(.system(size: 15))
+                                .foregroundColor(darkTextColor)
+                            Text("Build 1.0.2 (2024.12)")
+                                .font(.system(size: 12))
+                                .foregroundColor(grayTextColor)
+                        }
 
                         Spacer()
 
                         Text("v1.0.2")
-                            .font(.system(size: 14))
-                            .foregroundColor(grayTextColor)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(selectedTabColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(selectedTabColor.opacity(0.1))
+                            .cornerRadius(8)
                     }
                     .padding(.vertical, 8)
                 }
@@ -779,38 +1198,20 @@ struct ProfileView: View {
             // Account Actions Card
             ProfileCard(title: "ACCOUNT ACTIONS") {
                 VStack(spacing: 0) {
+                    // Log Out
                     Button {
                         Task {
                             try? await AuthService.shared.signOut()
                         }
                     } label: {
-                        HStack(spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.blue.opacity(0.15))
-                                    .frame(width: 40, height: 40)
-                                Image(systemName: "rectangle.portrait.and.arrow.right.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.blue)
-                            }
-
-                            Text("Log Out")
-                                .font(.system(size: 15))
-                                .foregroundColor(darkTextColor)
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14))
-                                .foregroundColor(grayTextColor)
-                        }
-                        .padding(.vertical, 8)
+                        SupportRowView(icon: "rectangle.portrait.and.arrow.right.fill", iconColor: .blue, title: "Log Out", subtitle: "Sign out of your account")
                     }
 
                     Divider().padding(.leading, 52)
 
+                    // Delete Account
                     Button {
-                        // Delete account
+                        showDeleteAccountAlert = true
                     } label: {
                         HStack(spacing: 12) {
                             ZStack {
@@ -822,9 +1223,14 @@ struct ProfileView: View {
                                     .foregroundColor(.red)
                             }
 
-                            Text("Delete Account")
-                                .font(.system(size: 15))
-                                .foregroundColor(.red)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Delete Account")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(.red)
+                                Text("Permanently delete all your data")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(grayTextColor)
+                            }
 
                             Spacer()
 
@@ -836,6 +1242,881 @@ struct ProfileView: View {
                     }
                 }
             }
+
+            // Contact Us Card
+            ProfileCard(title: "CONTACT US") {
+                VStack(spacing: 0) {
+                    // Email Support
+                    Button {
+                        openEmail(
+                            to: "info@billixapp.com",
+                            subject: "General Inquiry - Billix App",
+                            body: "Hi Billix Team,\n\n"
+                        )
+                    } label: {
+                        SupportRowView(icon: "envelope.fill", iconColor: selectedTabColor, title: "Email Support", subtitle: "info@billixapp.com")
+                    }
+
+                    Divider().padding(.leading, 52)
+
+                    // Website
+                    Button {
+                        openURL("https://www.billixapp.com")
+                    } label: {
+                        SupportRowView(icon: "globe", iconColor: Color(hex: "#6366F1"), title: "Visit Website", subtitle: "www.billixapp.com")
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showReportErrorSheet) {
+            ReportErrorSheet(
+                feedbackText: $feedbackText,
+                selectedCategory: $selectedErrorCategory,
+                isSubmitting: $isSubmittingFeedback,
+                onSubmit: submitErrorReport
+            )
+        }
+        .sheet(isPresented: $showHelpCenterSheet) {
+            HelpCenterSheet()
+        }
+        .sheet(isPresented: $showSuggestFeatureSheet) {
+            SuggestFeatureSheet(
+                feedbackText: $feedbackText,
+                isSubmitting: $isSubmittingFeedback,
+                onSubmit: submitFeatureSuggestion
+            )
+        }
+        .alert("Delete Account?", isPresented: $showDeleteAccountAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                openEmail(
+                    to: "support@billixapp.com",
+                    subject: "Account Deletion Request",
+                    body: """
+                    Hi Billix Team,
+
+                    I would like to request the deletion of my account.
+
+                    User ID: \(authService.currentUser?.id.uuidString ?? "Unknown")
+                    Email: \(userEmail)
+
+                    I understand this action is permanent and all my data will be deleted.
+
+                    Thank you.
+                    """
+                )
+            }
+        } message: {
+            Text("Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.")
+        }
+        .alert("Feedback Submitted!", isPresented: $showFeedbackSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Thank you for your feedback! We'll review it and get back to you if needed.")
+        }
+    }
+
+    // MARK: - Feedback Submission
+
+    private func submitErrorReport() {
+        isSubmittingFeedback = true
+        // In production, this would send to your backend
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            isSubmittingFeedback = false
+            showReportErrorSheet = false
+            showFeedbackSuccess = true
+            feedbackText = ""
+        }
+    }
+
+    private func submitFeatureSuggestion() {
+        isSubmittingFeedback = true
+        // In production, this would send to your backend
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            isSubmittingFeedback = false
+            showSuggestFeatureSheet = false
+            showFeedbackSuccess = true
+            feedbackText = ""
+        }
+    }
+
+    // MARK: - Account Update Functions
+
+    private func saveNameChange() {
+        isSavingAccount = true
+        Task {
+            do {
+                guard let userId = authService.currentUser?.id else {
+                    throw NSError(domain: "ProfileView", code: 1, userInfo: [NSLocalizedDescriptionKey: "User not found"])
+                }
+
+                // Update profiles table
+                try await SupabaseService.shared.client
+                    .from("profiles")
+                    .update(["display_name": editingName])
+                    .eq("user_id", value: userId.uuidString)
+                    .execute()
+
+                // Refresh user data to reflect changes in UI
+                try await authService.refreshUserData()
+
+                await MainActor.run {
+                    isSavingAccount = false
+                    showEditNameSheet = false
+                    accountSuccessMessage = "Name updated successfully!"
+                    showAccountSuccess = true
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            } catch {
+                await MainActor.run {
+                    isSavingAccount = false
+                    accountErrorMessage = error.localizedDescription
+                    showAccountError = true
+                }
+            }
+        }
+    }
+
+    private func saveEmailChange() {
+        isSavingAccount = true
+        Task {
+            do {
+                // Update email in Supabase Auth
+                try await SupabaseService.shared.client.auth.update(user: .init(email: editingEmail))
+
+                await MainActor.run {
+                    isSavingAccount = false
+                    showEditEmailSheet = false
+                    accountSuccessMessage = "A confirmation email has been sent to your new email address. Please verify to complete the change."
+                    showAccountSuccess = true
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            } catch {
+                await MainActor.run {
+                    isSavingAccount = false
+                    accountErrorMessage = error.localizedDescription
+                    showAccountError = true
+                }
+            }
+        }
+    }
+
+    private func savePasswordChange() {
+        guard newPassword == confirmPassword else {
+            accountErrorMessage = "Passwords do not match"
+            showAccountError = true
+            return
+        }
+
+        guard newPassword.count >= 8 else {
+            accountErrorMessage = "Password must be at least 8 characters"
+            showAccountError = true
+            return
+        }
+
+        isSavingAccount = true
+        Task {
+            do {
+                // Update password in Supabase Auth
+                try await SupabaseService.shared.client.auth.update(user: .init(password: newPassword))
+
+                await MainActor.run {
+                    isSavingAccount = false
+                    showChangePasswordSheet = false
+                    currentPassword = ""
+                    newPassword = ""
+                    confirmPassword = ""
+                    accountSuccessMessage = "Password changed successfully!"
+                    showAccountSuccess = true
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            } catch {
+                await MainActor.run {
+                    isSavingAccount = false
+                    accountErrorMessage = error.localizedDescription
+                    showAccountError = true
+                }
+            }
+        }
+    }
+
+    // MARK: - Household Functions
+
+    private func loadHouseholdData() {
+        Task {
+            guard let userId = authService.currentUser?.id else { return }
+
+            do {
+                // First check if user is in a household via household_members
+                let memberResponse: [HouseholdMemberDB] = try await SupabaseService.shared.client
+                    .from("household_members")
+                    .select("*, households(*)")
+                    .eq("user_id", value: userId.uuidString)
+                    .execute()
+                    .value
+
+                if let membership = memberResponse.first, let household = membership.households {
+                    await MainActor.run {
+                        householdName = household.name
+                        householdInviteCode = household.invite_code
+                    }
+
+                    // Load all members
+                    let membersResponse: [HouseholdMemberWithProfile] = try await SupabaseService.shared.client
+                        .from("household_members")
+                        .select("*, profiles(display_name, user_id)")
+                        .eq("household_id", value: household.id.uuidString)
+                        .execute()
+                        .value
+
+                    await MainActor.run {
+                        householdMembers = membersResponse.map { member in
+                            HouseholdMember(
+                                id: member.id,
+                                userId: member.user_id,
+                                name: member.profiles?.display_name ?? "Unknown",
+                                role: member.role,
+                                joinedAt: member.joined_at
+                            )
+                        }
+                    }
+                } else {
+                    await MainActor.run {
+                        householdName = ""
+                        householdInviteCode = ""
+                        householdMembers = []
+                    }
+                }
+            } catch {
+                print("Failed to load household: \(error)")
+            }
+        }
+    }
+
+    private func createHousehold() {
+        guard !householdName.isEmpty else {
+            accountErrorMessage = "Please enter a household name"
+            showAccountError = true
+            return
+        }
+
+        isCreatingHousehold = true
+        Task {
+            do {
+                guard let userId = authService.currentUser?.id else {
+                    throw NSError(domain: "ProfileView", code: 1, userInfo: [NSLocalizedDescriptionKey: "User not found"])
+                }
+
+                // Create household
+                let newHousehold = HouseholdInsert(name: householdName, owner_id: userId)
+                let response: [HouseholdDB] = try await SupabaseService.shared.client
+                    .from("households")
+                    .insert(newHousehold)
+                    .select()
+                    .execute()
+                    .value
+
+                guard let household = response.first else {
+                    throw NSError(domain: "ProfileView", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to create household"])
+                }
+
+                // Add owner as member
+                let member = HouseholdMemberInsert(household_id: household.id, user_id: userId, role: "owner")
+                try await SupabaseService.shared.client
+                    .from("household_members")
+                    .insert(member)
+                    .execute()
+
+                // Update profile with household_id
+                try await SupabaseService.shared.client
+                    .from("profiles")
+                    .update(["household_id": household.id.uuidString])
+                    .eq("user_id", value: userId.uuidString)
+                    .execute()
+
+                await MainActor.run {
+                    householdInviteCode = household.invite_code
+                    isCreatingHousehold = false
+                    loadHouseholdData()
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            } catch {
+                await MainActor.run {
+                    isCreatingHousehold = false
+                    accountErrorMessage = error.localizedDescription
+                    showAccountError = true
+                }
+            }
+        }
+    }
+
+    private func joinHousehold() {
+        guard !joinCode.isEmpty else {
+            accountErrorMessage = "Please enter an invite code"
+            showAccountError = true
+            return
+        }
+
+        isJoiningHousehold = true
+        Task {
+            do {
+                guard let userId = authService.currentUser?.id else {
+                    throw NSError(domain: "ProfileView", code: 1, userInfo: [NSLocalizedDescriptionKey: "User not found"])
+                }
+
+                // Find household by invite code
+                let households: [HouseholdDB] = try await SupabaseService.shared.client
+                    .from("households")
+                    .select()
+                    .eq("invite_code", value: joinCode.uppercased())
+                    .execute()
+                    .value
+
+                guard let household = households.first else {
+                    throw NSError(domain: "ProfileView", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid invite code"])
+                }
+
+                // Check member count
+                let memberCount: Int = try await SupabaseService.shared.client
+                    .from("household_members")
+                    .select("*", head: true, count: .exact)
+                    .eq("household_id", value: household.id.uuidString)
+                    .execute()
+                    .count ?? 0
+
+                guard memberCount < household.max_members else {
+                    throw NSError(domain: "ProfileView", code: 3, userInfo: [NSLocalizedDescriptionKey: "Household is full"])
+                }
+
+                // Add user as member
+                let member = HouseholdMemberInsert(household_id: household.id, user_id: userId, role: "member")
+                try await SupabaseService.shared.client
+                    .from("household_members")
+                    .insert(member)
+                    .execute()
+
+                // Update profile
+                try await SupabaseService.shared.client
+                    .from("profiles")
+                    .update(["household_id": household.id.uuidString])
+                    .eq("user_id", value: userId.uuidString)
+                    .execute()
+
+                await MainActor.run {
+                    isJoiningHousehold = false
+                    joinCode = ""
+                    loadHouseholdData()
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            } catch {
+                await MainActor.run {
+                    isJoiningHousehold = false
+                    accountErrorMessage = error.localizedDescription
+                    showAccountError = true
+                }
+            }
+        }
+    }
+
+    private func leaveHousehold() {
+        Task {
+            do {
+                guard let userId = authService.currentUser?.id else { return }
+
+                // Remove from household_members
+                try await SupabaseService.shared.client
+                    .from("household_members")
+                    .delete()
+                    .eq("user_id", value: userId.uuidString)
+                    .execute()
+
+                // Clear household_id in profiles using raw SQL
+                try await SupabaseService.shared.client
+                    .rpc("clear_household_id", params: ["p_user_id": userId.uuidString])
+                    .execute()
+
+                await MainActor.run {
+                    householdName = ""
+                    householdInviteCode = ""
+                    householdMembers = []
+                    showHouseholdSheet = false
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            } catch {
+                await MainActor.run {
+                    accountErrorMessage = error.localizedDescription
+                    showAccountError = true
+                }
+            }
+        }
+    }
+
+    // MARK: - Helper Functions
+
+    private func openURL(_ urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+        UIApplication.shared.open(url)
+    }
+
+    private func openEmail(to: String, subject: String, body: String) {
+        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let mailtoString = "mailto:\(to)?subject=\(encodedSubject)&body=\(encodedBody)"
+
+        if let url = URL(string: mailtoString) {
+            UIApplication.shared.open(url)
+        }
+    }
+}
+
+// MARK: - Support Row View
+
+struct SupportRowView: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+
+    private let darkTextColor = Color(hex: "#2D3436")
+    private let grayTextColor = Color(hex: "#636E72")
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(iconColor)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15))
+                    .foregroundColor(darkTextColor)
+                Text(subtitle)
+                    .font(.system(size: 12))
+                    .foregroundColor(grayTextColor)
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14))
+                .foregroundColor(grayTextColor)
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Report Error Sheet
+
+struct ReportErrorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var feedbackText: String
+    @Binding var selectedCategory: String
+    @Binding var isSubmitting: Bool
+    let onSubmit: () -> Void
+
+    private let categories = ["Bill Analysis", "Savings Calculation", "Provider Detection", "Amount Recognition", "Other"]
+    private let accentColor = Color(hex: "#4A7C59")
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header illustration
+                    ZStack {
+                        Circle()
+                            .fill(Color.orange.opacity(0.1))
+                            .frame(width: 80, height: 80)
+                        Image(systemName: "exclamationmark.bubble.fill")
+                            .font(.system(size: 36))
+                            .foregroundColor(.orange)
+                    }
+                    .padding(.top, 20)
+
+                    VStack(spacing: 8) {
+                        Text("Report an AI Error")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(Color(hex: "#2D3436"))
+
+                        Text("Help us improve by telling us what went wrong")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "#636E72"))
+                            .multilineTextAlignment(.center)
+                    }
+
+                    // Category Picker
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Error Category")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(hex: "#636E72"))
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(categories, id: \.self) { category in
+                                    Button {
+                                        selectedCategory = category
+                                    } label: {
+                                        Text(category)
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundColor(selectedCategory == category ? .white : Color(hex: "#2D3436"))
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                Capsule()
+                                                    .fill(selectedCategory == category ? accentColor : Color(hex: "#F0F0F0"))
+                                            )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Description Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Describe the Error")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(hex: "#636E72"))
+
+                        TextEditor(text: $feedbackText)
+                            .font(.system(size: 15))
+                            .frame(minHeight: 120)
+                            .padding(12)
+                            .background(Color(hex: "#F5F7F6"))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                            )
+                            .overlay(
+                                Group {
+                                    if feedbackText.isEmpty {
+                                        Text("What did you expect vs what happened?")
+                                            .font(.system(size: 15))
+                                            .foregroundColor(Color(hex: "#9CA3AF"))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 20)
+                                            .allowsHitTesting(false)
+                                    }
+                                },
+                                alignment: .topLeading
+                            )
+                    }
+
+                    // Submit Button
+                    Button {
+                        onSubmit()
+                    } label: {
+                        HStack {
+                            if isSubmitting {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Image(systemName: "paperplane.fill")
+                                Text("Submit Report")
+                            }
+                        }
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(feedbackText.isEmpty ? Color.gray : accentColor)
+                        .cornerRadius(12)
+                    }
+                    .disabled(feedbackText.isEmpty || isSubmitting)
+
+                    Spacer()
+                }
+                .padding(20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+}
+
+// MARK: - Help Center Sheet
+
+struct HelpCenterSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let accentColor = Color(hex: "#4A7C59")
+
+    private let faqItems: [(icon: String, question: String, answer: String)] = [
+        ("doc.text.viewfinder", "How do I upload a bill?", "Tap the Upload tab, then either take a photo of your bill or select one from your photo library. Our AI will analyze it automatically."),
+        ("chart.line.uptrend.xyaxis", "How does Billix find savings?", "We analyze your bills and compare them against thousands of rates in your area to find better deals with other providers."),
+        ("shield.checkmark", "Is my data secure?", "Yes! We use bank-level encryption to protect your data. We never sell your information and you can delete your account anytime."),
+        ("clock.arrow.circlepath", "How often should I upload bills?", "We recommend uploading bills monthly to track changes and catch any unexpected price increases."),
+        ("person.2", "What is bill swapping?", "Bill swapping lets you help others pay their bills in exchange for help with yours - building trust and community savings."),
+        ("dollarsign.circle", "Is Billix free?", "Yes! Billix is free to use. We offer optional premium features for power users who want advanced analytics.")
+    ]
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue.opacity(0.1))
+                            .frame(width: 80, height: 80)
+                        Image(systemName: "questionmark.circle.fill")
+                            .font(.system(size: 36))
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.top, 20)
+
+                    VStack(spacing: 8) {
+                        Text("Help Center")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(Color(hex: "#2D3436"))
+
+                        Text("Find answers to common questions")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "#636E72"))
+                    }
+
+                    // FAQ Items
+                    VStack(spacing: 12) {
+                        ForEach(faqItems, id: \.question) { item in
+                            FAQItemView(icon: item.icon, question: item.question, answer: item.answer)
+                        }
+                    }
+
+                    // Contact Support Button
+                    VStack(spacing: 12) {
+                        Text("Still need help?")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "#636E72"))
+
+                        Button {
+                            if let url = URL(string: "mailto:support@billixapp.com?subject=Help%20Request") {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "envelope.fill")
+                                Text("Contact Support")
+                            }
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(accentColor)
+                            .cornerRadius(12)
+                        }
+                    }
+                    .padding(.top, 8)
+
+                    Spacer()
+                }
+                .padding(20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+}
+
+struct FAQItemView: View {
+    let icon: String
+    let question: String
+    let answer: String
+
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: "#4A7C59").opacity(0.1))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: icon)
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "#4A7C59"))
+                    }
+
+                    Text(question)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Color(hex: "#2D3436"))
+                        .multilineTextAlignment(.leading)
+
+                    Spacer()
+
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(hex: "#9CA3AF"))
+                }
+                .padding(14)
+            }
+
+            if isExpanded {
+                Text(answer)
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(hex: "#636E72"))
+                    .lineSpacing(4)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 14)
+                    .padding(.leading, 48)
+            }
+        }
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+}
+
+// MARK: - Suggest Feature Sheet
+
+struct SuggestFeatureSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var feedbackText: String
+    @Binding var isSubmitting: Bool
+    let onSubmit: () -> Void
+
+    private let accentColor = Color(hex: "#4A7C59")
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header illustration
+                    ZStack {
+                        Circle()
+                            .fill(Color.yellow.opacity(0.15))
+                            .frame(width: 80, height: 80)
+                        Image(systemName: "lightbulb.fill")
+                            .font(.system(size: 36))
+                            .foregroundColor(.yellow)
+                    }
+                    .padding(.top, 20)
+
+                    VStack(spacing: 8) {
+                        Text("Suggest a Feature")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(Color(hex: "#2D3436"))
+
+                        Text("We'd love to hear your ideas for improving Billix")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "#636E72"))
+                            .multilineTextAlignment(.center)
+                    }
+
+                    // Idea Input
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Your Idea")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(hex: "#636E72"))
+
+                        TextEditor(text: $feedbackText)
+                            .font(.system(size: 15))
+                            .frame(minHeight: 150)
+                            .padding(12)
+                            .background(Color(hex: "#F5F7F6"))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                            )
+                            .overlay(
+                                Group {
+                                    if feedbackText.isEmpty {
+                                        Text("Describe your feature idea and how it would help you...")
+                                            .font(.system(size: 15))
+                                            .foregroundColor(Color(hex: "#9CA3AF"))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 20)
+                                            .allowsHitTesting(false)
+                                    }
+                                },
+                                alignment: .topLeading
+                            )
+                    }
+
+                    // Tips
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Tips for great suggestions:")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(hex: "#636E72"))
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            TipRow(text: "Describe the problem you're trying to solve")
+                            TipRow(text: "Explain how this would help you save money or time")
+                            TipRow(text: "Be specific about what you'd like to see")
+                        }
+                    }
+                    .padding(14)
+                    .background(Color(hex: "#FEF9E7"))
+                    .cornerRadius(12)
+
+                    // Submit Button
+                    Button {
+                        onSubmit()
+                    } label: {
+                        HStack {
+                            if isSubmitting {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Image(systemName: "paperplane.fill")
+                                Text("Submit Suggestion")
+                            }
+                        }
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(feedbackText.isEmpty ? Color.gray : accentColor)
+                        .cornerRadius(12)
+                    }
+                    .disabled(feedbackText.isEmpty || isSubmitting)
+
+                    Spacer()
+                }
+                .padding(20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+}
+
+struct TipRow: View {
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 12))
+                .foregroundColor(Color(hex: "#4A7C59"))
+            Text(text)
+                .font(.system(size: 12))
+                .foregroundColor(Color(hex: "#636E72"))
         }
     }
 }
@@ -950,6 +2231,853 @@ struct ProfileSettingsToggleRow: View {
     }
 }
 
+
+// MARK: - Account Row View
+
+struct AccountRowView: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let value: String?
+
+    private let darkTextColor = Color(hex: "#2D3436")
+    private let grayTextColor = Color(hex: "#636E72")
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.10))
+                    .frame(width: 38, height: 38)
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(iconColor)
+            }
+
+            Text(title)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(darkTextColor)
+
+            Spacer()
+
+            if let value = value {
+                Text(value)
+                    .font(.system(size: 13))
+                    .foregroundColor(grayTextColor)
+                    .lineLimit(1)
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "#CBD5E0"))
+        }
+        .padding(.vertical, 6)
+    }
+}
+
+// MARK: - Edit Name Sheet
+
+struct EditNameSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var name: String
+    @Binding var isSaving: Bool
+    let onSave: () -> Void
+
+    @State private var showConfirmation = false
+    private let accentColor = Color(hex: "#4A7C59")
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                ZStack {
+                    Circle()
+                        .fill(Color.blue.opacity(0.1))
+                        .frame(width: 70, height: 70)
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 30))
+                        .foregroundColor(.blue)
+                }
+                .padding(.top, 20)
+
+                Text("Edit Your Name")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(Color(hex: "#2D3436"))
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Display Name")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(hex: "#636E72"))
+
+                    TextField("Enter your name", text: $name)
+                        .font(.system(size: 16))
+                        .padding(14)
+                        .background(Color(hex: "#F5F7F6"))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
+                }
+                .padding(.horizontal, 20)
+
+                Button {
+                    showConfirmation = true
+                } label: {
+                    Text("Save Changes")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(name.isEmpty ? Color.gray : accentColor)
+                        .cornerRadius(12)
+                }
+                .disabled(name.isEmpty || isSaving)
+                .padding(.horizontal, 20)
+
+                Spacer()
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .alert("Confirm Name Change", isPresented: $showConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Confirm") { onSave() }
+            } message: {
+                Text("Are you sure you want to change your name to \"\(name)\"?")
+            }
+        }
+        .presentationDetents([.medium])
+    }
+}
+
+// MARK: - Edit Email Sheet
+
+struct EditEmailSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var email: String
+    @Binding var isSaving: Bool
+    let onSave: () -> Void
+
+    @State private var showConfirmation = false
+    private let accentColor = Color(hex: "#4A7C59")
+
+    var isValidEmail: Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                ZStack {
+                    Circle()
+                        .fill(Color.blue.opacity(0.1))
+                        .frame(width: 70, height: 70)
+                    Image(systemName: "envelope.fill")
+                        .font(.system(size: 30))
+                        .foregroundColor(.blue)
+                }
+                .padding(.top, 20)
+
+                VStack(spacing: 8) {
+                    Text("Change Email")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Color(hex: "#2D3436"))
+
+                    Text("A verification email will be sent to confirm")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(hex: "#636E72"))
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("New Email Address")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(hex: "#636E72"))
+
+                    TextField("Enter new email", text: $email)
+                        .font(.system(size: 16))
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .padding(14)
+                        .background(Color(hex: "#F5F7F6"))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(isValidEmail || email.isEmpty ? Color.gray.opacity(0.2) : Color.red.opacity(0.5), lineWidth: 1)
+                        )
+
+                    if !email.isEmpty && !isValidEmail {
+                        Text("Please enter a valid email address")
+                            .font(.system(size: 12))
+                            .foregroundColor(.red)
+                    }
+                }
+                .padding(.horizontal, 20)
+
+                Button {
+                    showConfirmation = true
+                } label: {
+                    HStack {
+                        if isSaving {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text("Update Email")
+                        }
+                    }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(!isValidEmail || isSaving ? Color.gray : accentColor)
+                    .cornerRadius(12)
+                }
+                .disabled(!isValidEmail || isSaving)
+                .padding(.horizontal, 20)
+
+                Spacer()
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .alert("Confirm Email Change", isPresented: $showConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Confirm") { onSave() }
+            } message: {
+                Text("We'll send a verification link to \(email). You'll need to verify before the change takes effect.")
+            }
+        }
+        .presentationDetents([.medium])
+    }
+}
+
+// MARK: - Change Password Sheet
+
+struct ChangePasswordSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var currentPassword: String
+    @Binding var newPassword: String
+    @Binding var confirmPassword: String
+    @Binding var isSaving: Bool
+    let onSave: () -> Void
+
+    @State private var showConfirmation = false
+    @State private var showCurrentPassword = false
+    @State private var showNewPassword = false
+    private let accentColor = Color(hex: "#4A7C59")
+
+    var passwordsMatch: Bool {
+        !newPassword.isEmpty && newPassword == confirmPassword
+    }
+
+    var isValidPassword: Bool {
+        newPassword.count >= 8
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue.opacity(0.1))
+                            .frame(width: 70, height: 70)
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.top, 20)
+
+                    Text("Change Password")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Color(hex: "#2D3436"))
+
+                    VStack(spacing: 16) {
+                        // New Password
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("New Password")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(hex: "#636E72"))
+
+                            HStack {
+                                if showNewPassword {
+                                    TextField("Enter new password", text: $newPassword)
+                                } else {
+                                    SecureField("Enter new password", text: $newPassword)
+                                }
+
+                                Button {
+                                    showNewPassword.toggle()
+                                } label: {
+                                    Image(systemName: showNewPassword ? "eye.slash.fill" : "eye.fill")
+                                        .foregroundColor(Color(hex: "#9CA3AF"))
+                                }
+                            }
+                            .font(.system(size: 16))
+                            .padding(14)
+                            .background(Color(hex: "#F5F7F6"))
+                            .cornerRadius(12)
+
+                            if !newPassword.isEmpty && !isValidPassword {
+                                Text("Password must be at least 8 characters")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.red)
+                            }
+                        }
+
+                        // Confirm Password
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Confirm Password")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(hex: "#636E72"))
+
+                            SecureField("Confirm new password", text: $confirmPassword)
+                                .font(.system(size: 16))
+                                .padding(14)
+                                .background(Color(hex: "#F5F7F6"))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(!confirmPassword.isEmpty && !passwordsMatch ? Color.red.opacity(0.5) : Color.clear, lineWidth: 1)
+                                )
+
+                            if !confirmPassword.isEmpty && !passwordsMatch {
+                                Text("Passwords do not match")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.red)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+
+                    Button {
+                        showConfirmation = true
+                    } label: {
+                        HStack {
+                            if isSaving {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Text("Update Password")
+                            }
+                        }
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(!isValidPassword || !passwordsMatch || isSaving ? Color.gray : accentColor)
+                        .cornerRadius(12)
+                    }
+                    .disabled(!isValidPassword || !passwordsMatch || isSaving)
+                    .padding(.horizontal, 20)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .alert("Confirm Password Change", isPresented: $showConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Change Password") { onSave() }
+            } message: {
+                Text("Are you sure you want to change your password?")
+            }
+        }
+        .presentationDetents([.medium])
+    }
+}
+
+// MARK: - Household Sheet
+
+struct HouseholdSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var householdName: String
+    @Binding var inviteCode: String
+    @Binding var members: [HouseholdMember]
+    @Binding var joinCode: String
+    @Binding var isCreating: Bool
+    @Binding var isJoining: Bool
+    let onCreate: () -> Void
+    let onJoin: () -> Void
+    let onLeave: () -> Void
+
+    @State private var showLeaveConfirmation = false
+    @State private var selectedTab = 0
+    private let accentColor = Color(hex: "#4A7C59")
+
+    var hasHousehold: Bool {
+        !inviteCode.isEmpty
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue.opacity(0.1))
+                            .frame(width: 70, height: 70)
+                        Image(systemName: "person.2.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.top, 20)
+
+                    Text(hasHousehold ? householdName : "Household")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(Color(hex: "#2D3436"))
+
+                    if hasHousehold {
+                        // Show household details
+                        householdDetailsView
+                    } else {
+                        // Show create/join options
+                        createJoinView
+                    }
+                }
+                .padding(20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .fontWeight(.semibold)
+                }
+            }
+            .alert("Leave Household?", isPresented: $showLeaveConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Leave", role: .destructive) { onLeave() }
+            } message: {
+                Text("Are you sure you want to leave this household?")
+            }
+        }
+        .presentationDetents([.large])
+    }
+
+    private var householdDetailsView: some View {
+        VStack(spacing: 20) {
+            // Invite Code Card
+            VStack(spacing: 12) {
+                Text("INVITE CODE")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(Color(hex: "#9CA3AF"))
+                    .tracking(1)
+
+                Text(inviteCode)
+                    .font(.system(size: 24, weight: .bold, design: .monospaced))
+                    .foregroundColor(accentColor)
+
+                Button {
+                    UIPasteboard.general.string = inviteCode
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                } label: {
+                    HStack {
+                        Image(systemName: "doc.on.doc.fill")
+                        Text("Copy Code")
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(accentColor)
+                    .cornerRadius(20)
+                }
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity)
+            .background(Color(hex: "#F5F7F6"))
+            .cornerRadius(16)
+
+            // Members List
+            VStack(alignment: .leading, spacing: 12) {
+                Text("MEMBERS (\(members.count))")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(Color(hex: "#9CA3AF"))
+                    .tracking(1)
+
+                ForEach(members) { member in
+                    HStack(spacing: 12) {
+                        Circle()
+                            .fill(accentColor.opacity(0.2))
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Text(String(member.name.prefix(1)).uppercased())
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(accentColor)
+                            )
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(member.name)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(Color(hex: "#2D3436"))
+
+                            Text(member.role.capitalized)
+                                .font(.system(size: 12))
+                                .foregroundColor(Color(hex: "#636E72"))
+                        }
+
+                        Spacer()
+
+                        if member.role == "owner" {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(.yellow)
+                        }
+                    }
+                    .padding(12)
+                    .background(Color.white)
+                    .cornerRadius(12)
+                }
+            }
+
+            // Leave Button
+            Button {
+                showLeaveConfirmation = true
+            } label: {
+                HStack {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                    Text("Leave Household")
+                }
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.red)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(12)
+            }
+            .padding(.top, 10)
+        }
+    }
+
+    private var createJoinView: some View {
+        VStack(spacing: 20) {
+            Text("Create a new household or join an existing one with an invite code")
+                .font(.system(size: 14))
+                .foregroundColor(Color(hex: "#636E72"))
+                .multilineTextAlignment(.center)
+
+            // Tab Selector
+            Picker("", selection: $selectedTab) {
+                Text("Create New").tag(0)
+                Text("Join Existing").tag(1)
+            }
+            .pickerStyle(.segmented)
+
+            if selectedTab == 0 {
+                // Create New
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Household Name")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(hex: "#636E72"))
+
+                    TextField("e.g., Smith Family", text: $householdName)
+                        .font(.system(size: 16))
+                        .padding(14)
+                        .background(Color(hex: "#F5F7F6"))
+                        .cornerRadius(12)
+                }
+
+                Button {
+                    onCreate()
+                } label: {
+                    HStack {
+                        if isCreating {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "plus.circle.fill")
+                            Text("Create Household")
+                        }
+                    }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(householdName.isEmpty || isCreating ? Color.gray : accentColor)
+                    .cornerRadius(12)
+                }
+                .disabled(householdName.isEmpty || isCreating)
+            } else {
+                // Join Existing
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Invite Code")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(hex: "#636E72"))
+
+                    TextField("Enter 8-character code", text: $joinCode)
+                        .font(.system(size: 16, design: .monospaced))
+                        .textInputAutocapitalization(.characters)
+                        .padding(14)
+                        .background(Color(hex: "#F5F7F6"))
+                        .cornerRadius(12)
+                }
+
+                Button {
+                    onJoin()
+                } label: {
+                    HStack {
+                        if isJoining {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "person.badge.plus")
+                            Text("Join Household")
+                        }
+                    }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(joinCode.isEmpty || isJoining ? Color.gray : accentColor)
+                    .cornerRadius(12)
+                }
+                .disabled(joinCode.isEmpty || isJoining)
+            }
+        }
+    }
+}
+
+// MARK: - Subscription Sheet
+
+struct SubscriptionSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var storeKit: StoreKitService
+    let accentColor: Color
+
+    @State private var isPurchasing = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    ZStack {
+                        Circle()
+                            .fill(Color.yellow.opacity(0.2))
+                            .frame(width: 90, height: 90)
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.yellow)
+                    }
+                    .padding(.top, 20)
+
+                    VStack(spacing: 8) {
+                        Text("Billix Prime")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(Color(hex: "#2D3436"))
+
+                        Text("Unlock premium features")
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#636E72"))
+                    }
+
+                    // Features List
+                    VStack(alignment: .leading, spacing: 16) {
+                        FeatureRow(icon: "chart.line.uptrend.xyaxis", text: "Advanced bill analytics")
+                        FeatureRow(icon: "bell.badge.fill", text: "Priority price drop alerts")
+                        FeatureRow(icon: "person.2.fill", text: "Unlimited household members")
+                        FeatureRow(icon: "doc.text.magnifyingglass", text: "AI-powered savings recommendations")
+                        FeatureRow(icon: "star.fill", text: "Early access to new features")
+                        FeatureRow(icon: "headphones", text: "Priority customer support")
+                    }
+                    .padding(20)
+                    .background(Color(hex: "#F5F7F6"))
+                    .cornerRadius(16)
+
+                    // Price Card
+                    VStack(spacing: 8) {
+                        Text("$4.99")
+                            .font(.system(size: 40, weight: .bold))
+                            .foregroundColor(accentColor)
+
+                        Text("per month")
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#636E72"))
+                    }
+                    .padding(.vertical, 20)
+
+                    // Subscribe Button
+                    Button {
+                        purchasePrime()
+                    } label: {
+                        HStack {
+                            if isPurchasing || storeKit.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Image(systemName: "crown.fill")
+                                Text("Subscribe to Prime")
+                            }
+                        }
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(isPurchasing ? Color.gray : accentColor)
+                        .cornerRadius(14)
+                    }
+                    .disabled(isPurchasing || storeKit.isLoading)
+
+                    // Restore Purchases
+                    Button {
+                        Task {
+                            await storeKit.restorePurchases()
+                        }
+                    } label: {
+                        Text("Restore Purchases")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(accentColor)
+                    }
+
+                    // Terms
+                    Text("Subscription automatically renews unless canceled at least 24 hours before the end of the current period. You can manage your subscription in your App Store settings.")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(hex: "#9CA3AF"))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+
+                    Spacer()
+                }
+                .padding(20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .alert("Purchase Error", isPresented: $showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
+        }
+        .presentationDetents([.large])
+    }
+
+    private func purchasePrime() {
+        isPurchasing = true
+
+        Task {
+            do {
+                // Try to get the monthly product from StoreKit
+                if let product = storeKit.monthlyProduct {
+                    _ = try await storeKit.purchase(product)
+                    await MainActor.run {
+                        isPurchasing = false
+                        if storeKit.isPremium {
+                            dismiss()
+                        }
+                    }
+                } else {
+                    // Fallback: simulate purchase for testing (remove in production)
+                    await MainActor.run {
+                        isPurchasing = false
+                        errorMessage = "Product not available. Please try again later."
+                        showError = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    isPurchasing = false
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
+        }
+    }
+}
+
+struct FeatureRow: View {
+    let icon: String
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 18))
+                .foregroundColor(Color(hex: "#4A7C59"))
+                .frame(width: 24)
+
+            Text(text)
+                .font(.system(size: 15))
+                .foregroundColor(Color(hex: "#2D3436"))
+
+            Spacer()
+
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 18))
+                .foregroundColor(Color(hex: "#4A7C59"))
+        }
+    }
+}
+
+// MARK: - Household Models
+
+struct HouseholdMember: Identifiable {
+    let id: UUID
+    let userId: UUID
+    let name: String
+    let role: String
+    let joinedAt: Date
+}
+
+struct HouseholdDB: Codable {
+    let id: UUID
+    let name: String
+    let invite_code: String
+    let owner_id: UUID
+    let max_members: Int
+    let created_at: Date
+    let updated_at: Date
+}
+
+struct HouseholdInsert: Codable {
+    let name: String
+    let owner_id: UUID
+}
+
+struct HouseholdMemberDB: Codable {
+    let id: UUID
+    let household_id: UUID
+    let user_id: UUID
+    let role: String
+    let joined_at: Date
+    let households: HouseholdDB?
+}
+
+struct HouseholdMemberInsert: Codable {
+    let household_id: UUID
+    let user_id: UUID
+    let role: String
+}
+
+struct HouseholdMemberWithProfile: Codable {
+    let id: UUID
+    let household_id: UUID
+    let user_id: UUID
+    let role: String
+    let joined_at: Date
+    let profiles: ProfileRef?
+}
+
+struct ProfileRef: Codable {
+    let display_name: String?
+    let user_id: UUID
+}
 
 // MARK: - Preview
 

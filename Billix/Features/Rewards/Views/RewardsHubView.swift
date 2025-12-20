@@ -9,6 +9,41 @@
 
 import SwiftUI
 
+// MARK: - Theme (Billix Color Scheme)
+
+private enum Theme {
+    // Core Billix Colors
+    static let background = Color(hex: "#F7F9F8")
+    static let cardBackground = Color.white
+    static let primaryText = Color(hex: "#2D3B35")
+    static let secondaryText = Color(hex: "#8B9A94")
+    static let accent = Color(hex: "#5B8A6B")          // Billix Money Green
+    static let accentLight = Color(hex: "#5B8A6B").opacity(0.12)
+
+    // Semantic colors
+    static let success = Color(hex: "#4CAF7A")
+    static let warning = Color(hex: "#E8A54B")
+    static let danger = Color(hex: "#E07A6B")
+    static let info = Color(hex: "#5BA4D4")            // Chart Blue
+    static let purple = Color(hex: "#5D4DB1")          // Billix Purple Accent
+
+    // Rewards/Points colors (using Billix palette)
+    static let gold = Color(hex: "#D4A04E")            // Billix Gold (coins)
+    static let highlight = Color(hex: "#5D4DB1")       // Purple for highlights
+    static let streak = Color(hex: "#4CAF7A")          // Green for streaks
+
+    // Spacing
+    static let horizontalPadding: CGFloat = 20
+    static let cardPadding: CGFloat = 16
+    static let sectionSpacing: CGFloat = 24
+    static let cardSpacing: CGFloat = 16
+    static let cornerRadius: CGFloat = 16
+
+    // Shadow
+    static let shadowColor = Color.black.opacity(0.04)
+    static let shadowRadius: CGFloat = 10
+}
+
 struct RewardsHubView: View {
 
     @StateObject private var viewModel = RewardsViewModel()
@@ -19,7 +54,7 @@ struct RewardsHubView: View {
         NavigationStack {
             ZStack {
                 // Background
-                Color.billixLightGreen
+                Theme.background
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -136,7 +171,7 @@ struct TabSelector: View {
                         Text(tab.rawValue)
                             .font(.system(size: 15, weight: .semibold))
                     }
-                    .foregroundColor(selectedTab == tab ? .white : .billixMediumGreen)
+                    .foregroundColor(selectedTab == tab ? .white : Theme.secondaryText)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(
@@ -144,12 +179,12 @@ struct TabSelector: View {
                             .fill(
                                 selectedTab == tab ?
                                 LinearGradient(
-                                    colors: [.billixArcadeGold, .billixPrizeOrange],
+                                    colors: [Theme.accent, Theme.accent.opacity(0.85)],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 ) :
                                 LinearGradient(
-                                    colors: [Color.billixMediumGreen.opacity(0.1), Color.billixMediumGreen.opacity(0.1)],
+                                    colors: [Theme.secondaryText.opacity(0.08), Theme.secondaryText.opacity(0.08)],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -158,7 +193,7 @@ struct TabSelector: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
                             .stroke(
-                                selectedTab == tab ? Color.clear : Color.billixBorderGreen,
+                                selectedTab == tab ? Color.clear : Theme.secondaryText.opacity(0.2),
                                 lineWidth: 1
                             )
                     )
@@ -166,7 +201,7 @@ struct TabSelector: View {
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, Theme.horizontalPadding)
     }
 }
 
@@ -285,246 +320,133 @@ struct DailyGameHeroCard: View {
     let onPlay: () -> Void
 
     @State private var isAnimating = false
-    @State private var shimmerOffset: CGFloat = -200
-    @State private var badgePulse = false
 
     var body: some View {
         VStack(spacing: 0) {
-            // "DAILY" badge with animation
-            HStack {
-                Spacer()
-                Text("DAILY")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.billixStreakOrange, Color.billixFlashRed],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .shadow(color: .billixStreakOrange.opacity(0.5), radius: badgePulse ? 8 : 4)
-                    )
-                    .scaleEffect(badgePulse ? 1.05 : 1.0)
-                    .offset(x: -12, y: 12)
-            }
-            .zIndex(1)
-
             ZStack {
-                // Clean solid purple background
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(hex: "#7C3AED"))  // Clean purple
-
-                // Decorative pattern overlay
-                GeometryReader { geometry in
-                    // Top-right accent circle
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color.billixArcadeGold.opacity(0.3), .clear],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 100
-                            )
-                        )
-                        .frame(width: 200, height: 200)
-                        .offset(x: geometry.size.width - 80, y: -60)
-
-                    // Bottom-left accent circle
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color.billixPrizeOrange.opacity(0.2), .clear],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 80
-                            )
-                        )
-                        .frame(width: 150, height: 150)
-                        .offset(x: -40, y: geometry.size.height - 50)
-                }
-
-                // Subtle shimmer
-                RoundedRectangle(cornerRadius: 24)
+                // Clean gradient background
+                RoundedRectangle(cornerRadius: Theme.cornerRadius + 4)
                     .fill(
                         LinearGradient(
-                            colors: [.clear, .white.opacity(0.1), .clear],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                            colors: [Theme.purple, Theme.purple.opacity(0.85)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
                     )
-                    .offset(x: shimmerOffset)
 
-                HStack(spacing: 20) {
-                    // Enhanced game visual
+                // Subtle pattern overlay
+                RoundedRectangle(cornerRadius: Theme.cornerRadius + 4)
+                    .fill(
+                        LinearGradient(
+                            colors: [.white.opacity(0.08), .clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                HStack(spacing: 16) {
+                    // Game icon
                     ZStack {
-                        // Glow rings
-                        ForEach(0..<2) { index in
-                            Circle()
-                                .stroke(Color.billixArcadeGold.opacity(0.3), lineWidth: 2)
-                                .frame(width: 90 + CGFloat(index * 12), height: 90 + CGFloat(index * 12))
-                                .opacity(isAnimating ? 0.0 : 0.5)
-                                .scaleEffect(isAnimating ? 1.4 : 1.0)
-                                .animation(
-                                    .easeOut(duration: 1.8)
-                                    .repeatForever(autoreverses: false)
-                                    .delay(Double(index) * 0.4),
-                                    value: isAnimating
+                        Circle()
+                            .fill(.white.opacity(0.15))
+                            .frame(width: 72, height: 72)
+
+                        Circle()
+                            .fill(.white.opacity(0.1))
+                            .frame(width: 60, height: 60)
+
+                        Image(systemName: "dollarsign.circle.fill")
+                            .font(.system(size: 32, weight: .medium))
+                            .foregroundColor(.white)
+                            .offset(y: isAnimating ? -2 : 2)
+                    }
+
+                    // Content
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Price Guessr")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.white)
+
+                            Spacer()
+
+                            // Daily badge
+                            Text("DAILY")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(Theme.purple)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(.white)
                                 )
                         }
 
-                        // Main circle
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.billixArcadeGold, Color.billixPrizeOrange],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 90, height: 90)
-                            .shadow(color: .billixArcadeGold.opacity(0.5), radius: 15, x: 0, y: 8)
-                            .overlay(
-                                Circle()
-                                    .fill(
-                                        RadialGradient(
-                                            colors: [.white.opacity(0.4), .clear],
-                                            center: .topLeading,
-                                            startRadius: 0,
-                                            endRadius: 45
-                                        )
-                                    )
-                            )
-                            .offset(y: isAnimating ? -4 : 4)
-
-                        // Icon
-                        Image(systemName: "questionmark")
-                            .font(.system(size: 40, weight: .bold))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.2), radius: 3)
-                            .rotationEffect(.degrees(isAnimating ? 5 : -5))
-                    }
-                    .frame(width: 100)
-
-                    // Content
-                    VStack(alignment: .leading, spacing: 10) {
                         if let game = game {
-                            VStack(alignment: .leading, spacing: 9) {
-                                Text("Price Guessr")
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
+                            Text("Guess the \(game.subject) price")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white.opacity(0.85))
+                        }
 
-                                HStack(spacing: 6) {
-                                    Image(systemName: "star.fill")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.billixArcadeGold)
+                        HStack(spacing: 16) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Theme.gold)
 
-                                    Text("Win up to 100 pts")
-                                        .font(.system(size: 15, weight: .semibold))
-                                        .foregroundColor(.white.opacity(0.95))
-                                }
+                                Text("Up to 100 pts")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.9))
+                            }
 
-                                HStack(spacing: 6) {
-                                    Image(systemName: "target")
+                            if gamesPlayedToday > 0 {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "checkmark.circle.fill")
                                         .font(.system(size: 12))
                                         .foregroundColor(.white.opacity(0.7))
 
-                                    Text("Guess: \(game.subject) price")
-                                        .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(.white.opacity(0.85))
-                                }
-
-                                // Show games played if any
-                                if gamesPlayedToday > 0 {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "gamecontroller.fill")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.white.opacity(0.7))
-
-                                        Text("\(gamesPlayedToday) played today")
-                                            .font(.system(size: 14, weight: .medium))
-                                            .foregroundColor(.white.opacity(0.85))
-                                    }
+                                    Text("\(gamesPlayedToday) played")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.7))
                                 }
                             }
                         }
-
-                        Spacer()
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Spacer(minLength: 8)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 20)
+                .padding(Theme.horizontalPadding)
             }
-            .frame(height: 150)
+            .frame(height: 130)
 
-            // Enhanced CTA Button with shine effect
+            // Play button
             Button(action: onPlay) {
-                ZStack {
+                HStack {
                     Text("Play Now")
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(
-                            ZStack {
-                                LinearGradient(
-                                    colors: [Color.billixArcadeGold, Color.billixPrizeOrange],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
+                        .font(.system(size: 16, weight: .bold))
 
-                                // Shine overlay
-                                LinearGradient(
-                                    colors: [
-                                        .clear,
-                                        .white.opacity(0.2),
-                                        .clear
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                                .offset(x: shimmerOffset)
-                            }
-                        )
-
-                    HStack {
-                        Spacer()
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.trailing, 20)
-                    }
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 12, weight: .bold))
                 }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Theme.accent)
+                )
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.97))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: .billixArcadeGold.opacity(0.3), radius: 12, y: 6)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
-            .offset(y: -10)
+            .padding(.horizontal, Theme.horizontalPadding)
+            .padding(.top, -8)
+            .padding(.bottom, 12)
         }
-        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.cornerRadius + 4)
+                .fill(Theme.cardBackground)
+                .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 4)
+        )
         .onAppear {
-            // Start animations
             withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
                 isAnimating = true
-            }
-
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                badgePulse = true
-            }
-
-            // Shimmer animation
-            withAnimation(.linear(duration: 2.5).repeatForever(autoreverses: false)) {
-                shimmerOffset = 400
             }
         }
     }
@@ -566,13 +488,13 @@ struct DailyTasksSection: View {
             HStack {
                 Text("Daily Tasks")
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(Theme.primaryText)
 
                 Spacer()
 
                 Text("Resets in 14h")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.billixMediumGreen)
+                    .foregroundColor(Theme.secondaryText)
             }
 
             // Tasks
@@ -630,13 +552,13 @@ struct WeeklyTasksSection: View {
             HStack {
                 Text("Weekly Tasks")
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(Theme.primaryText)
 
                 Spacer()
 
                 Text("Resets in 4 days")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.billixMediumGreen)
+                    .foregroundColor(Theme.secondaryText)
             }
 
             // Tasks
@@ -665,28 +587,28 @@ struct TaskCard: View {
             // Icon
             ZStack {
                 Circle()
-                    .fill(Color.billixMoneyGreen.opacity(0.15))
+                    .fill(Theme.accent.opacity(0.15))
                     .frame(width: 48, height: 48)
 
                 Image(systemName: task.icon)
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.billixMoneyGreen)
+                    .foregroundColor(Theme.accent)
             }
 
             // Info
             VStack(alignment: .leading, spacing: 4) {
                 Text(task.title)
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(Theme.primaryText)
 
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
                         .font(.system(size: 11))
-                        .foregroundColor(.billixArcadeGold)
+                        .foregroundColor(Theme.gold)
 
                     Text("+\(task.points) pts")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.billixMediumGreen)
+                        .foregroundColor(Theme.secondaryText)
                 }
 
                 // Progress bar (if applicable)
@@ -695,11 +617,11 @@ struct TaskCard: View {
                         GeometryReader { geometry in
                             ZStack(alignment: .leading) {
                                 RoundedRectangle(cornerRadius: 4)
-                                    .fill(Color.billixBorderGreen)
+                                    .fill(Theme.secondaryText.opacity(0.2))
                                     .frame(height: 4)
 
                                 RoundedRectangle(cornerRadius: 4)
-                                    .fill(Color.billixMoneyGreen)
+                                    .fill(Theme.accent)
                                     .frame(
                                         width: geometry.size.width * CGFloat(progress) / CGFloat(total),
                                         height: 4
@@ -710,7 +632,7 @@ struct TaskCard: View {
 
                         Text("\(progress)/\(total)")
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.billixMediumGreen)
+                            .foregroundColor(Theme.secondaryText)
                             .frame(width: 30)
                     }
                 }
@@ -723,17 +645,17 @@ struct TaskCard: View {
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 14))
-                        .foregroundColor(.billixMoneyGreen)
+                        .foregroundColor(Theme.success)
 
                     Text("Done")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.billixMoneyGreen)
+                        .foregroundColor(Theme.success)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
                 .background(
                     Capsule()
-                        .fill(Color.billixMoneyGreen.opacity(0.15))
+                        .fill(Theme.success.opacity(0.15))
                 )
             } else {
                 Button(action: onClaim) {
@@ -743,22 +665,18 @@ struct TaskCard: View {
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .background(
-                            LinearGradient(
-                                colors: [.billixArcadeGold, .billixPrizeOrange],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                            Capsule()
+                                .fill(Theme.accent)
                         )
-                        .cornerRadius(20)
                 }
                 .buttonStyle(ScaleButtonStyle(scale: 0.95))
             }
         }
-        .padding(16)
+        .padding(Theme.cardPadding)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                .fill(Theme.cardBackground)
+                .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
         )
     }
 }
@@ -774,7 +692,7 @@ struct LeaderboardTeaser: View {
             HStack {
                 Text("Leaderboard")
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(Theme.primaryText)
 
                 Spacer()
 
@@ -783,7 +701,7 @@ struct LeaderboardTeaser: View {
                 } label: {
                     Text("See all")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.billixChartBlue)
+                        .foregroundColor(Theme.info)
                 }
             }
 
@@ -793,11 +711,11 @@ struct LeaderboardTeaser: View {
                 }
             }
         }
-        .padding(20)
+        .padding(Theme.horizontalPadding)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: Theme.cornerRadius + 4)
+                .fill(Theme.cardBackground)
+                .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
         )
     }
 }
@@ -826,7 +744,7 @@ struct LeaderboardMiniRow: View {
             // Name
             Text(entry.displayName)
                 .font(.system(size: 14, weight: entry.isCurrentUser ? .bold : .medium))
-                .foregroundColor(entry.isCurrentUser ? .billixDarkGreen : .billixMediumGreen)
+                .foregroundColor(entry.isCurrentUser ? Theme.primaryText : Theme.secondaryText)
 
             Spacer()
 
@@ -834,11 +752,11 @@ struct LeaderboardMiniRow: View {
             HStack(spacing: 4) {
                 Image(systemName: "star.fill")
                     .font(.system(size: 11))
-                    .foregroundColor(.billixArcadeGold)
+                    .foregroundColor(Theme.gold)
 
                 Text("\(entry.pointsThisWeek)")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(Theme.primaryText)
             }
         }
         .padding(.vertical, 8)
@@ -869,7 +787,7 @@ struct FeaturedRewardCard: View {
                         .padding(.vertical, 6)
                         .background(
                             Capsule()
-                                .fill(Color.billixFlashRed)
+                                .fill(Theme.purple)
                         )
                         .offset(x: -12, y: 12)
                 }
@@ -889,45 +807,45 @@ struct FeaturedRewardCard: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(reward.title)
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.billixDarkGreen)
+                            .foregroundColor(Theme.primaryText)
                             .lineLimit(2)
 
                         if let value = reward.formattedValue {
                             Text(value)
                                 .font(.system(size: 24, weight: .bold, design: .rounded))
-                                .foregroundColor(.billixMoneyGreen)
+                                .foregroundColor(Theme.success)
                         }
 
                         HStack(spacing: 4) {
                             Image(systemName: "star.fill")
                                 .font(.system(size: 13))
-                                .foregroundColor(.billixArcadeGold)
+                                .foregroundColor(Theme.gold)
 
                             Text("\(reward.pointsCost) pts")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(canAfford ? .billixDarkGreen : .billixMediumGreen)
+                                .foregroundColor(canAfford ? Theme.primaryText : Theme.secondaryText)
                         }
                     }
 
                     Spacer()
                 }
-                .padding(20)
+                .padding(Theme.horizontalPadding)
             }
         }
         .buttonStyle(PlainButtonStyle())
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: Theme.cornerRadius + 8)
                 .fill(
                     LinearGradient(
                         colors: [
                             Color(hex: reward.accentColor).opacity(0.1),
-                            Color.white
+                            Theme.cardBackground
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+                .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius + 4, x: 0, y: 4)
         )
     }
 }
@@ -948,7 +866,7 @@ struct RewardGridSection: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("All Rewards")
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.billixDarkGreen)
+                .foregroundColor(Theme.primaryText)
 
             LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(rewards) { reward in
@@ -989,7 +907,7 @@ struct RewardGridCard: View {
                 // Title
                 Text(reward.title)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(Theme.primaryText)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .frame(height: 36)
@@ -998,7 +916,7 @@ struct RewardGridCard: View {
                 if let value = reward.formattedValue {
                     Text(value)
                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(.billixMoneyGreen)
+                        .foregroundColor(Theme.success)
                 }
 
                 Spacer()
@@ -1007,31 +925,31 @@ struct RewardGridCard: View {
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
                         .font(.system(size: 11))
-                        .foregroundColor(.billixArcadeGold)
+                        .foregroundColor(Theme.gold)
 
                     Text("\(reward.pointsCost)")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(canAfford ? .billixDarkGreen : .billixMediumGreen)
+                        .foregroundColor(canAfford ? Theme.primaryText : Theme.secondaryText)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
                     Capsule()
-                        .fill(Color.billixArcadeGold.opacity(0.15))
+                        .fill(Theme.gold.opacity(0.15))
                 )
             }
-            .padding(16)
+            .padding(Theme.cardPadding)
             .frame(maxWidth: .infinity)
             .frame(height: 200)
             .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.white)
-                    .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+                RoundedRectangle(cornerRadius: Theme.cornerRadius + 4)
+                    .fill(Theme.cardBackground)
+                    .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: Theme.cornerRadius + 4)
                     .stroke(
-                        canAfford ? Color.clear : Color.billixBorderGreen,
+                        canAfford ? Color.clear : Theme.secondaryText.opacity(0.2),
                         lineWidth: 1
                     )
             )
@@ -1094,17 +1012,17 @@ struct RewardRedeemSheet: View {
             VStack(spacing: 8) {
                 Text(reward.title)
                     .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(Theme.primaryText)
 
                 Text(reward.description)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.billixMediumGreen)
+                    .foregroundColor(Theme.secondaryText)
                     .multilineTextAlignment(.center)
 
                 if let value = reward.formattedValue {
                     Text(value)
                         .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(.billixMoneyGreen)
+                        .foregroundColor(Theme.success)
                         .padding(.top, 4)
                 }
             }
@@ -1113,17 +1031,17 @@ struct RewardRedeemSheet: View {
             HStack(spacing: 4) {
                 Image(systemName: "star.fill")
                     .font(.system(size: 16))
-                    .foregroundColor(.billixArcadeGold)
+                    .foregroundColor(Theme.gold)
 
                 Text("\(reward.pointsCost) pts")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(Theme.primaryText)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(Color.billixArcadeGold.opacity(0.15))
+                    .fill(Theme.gold.opacity(0.15))
             )
 
             Spacer()
@@ -1155,7 +1073,7 @@ struct RewardRedeemSheet: View {
                     .padding(.vertical, 16)
                     .background(
                         LinearGradient(
-                            colors: [.billixMoneyGreen, .billixMoneyGreen.opacity(0.8)],
+                            colors: [Theme.accent, Theme.accent.opacity(0.8)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -1168,19 +1086,19 @@ struct RewardRedeemSheet: View {
                 VStack(spacing: 8) {
                     Text("You need \(pointsNeeded) more pts")
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.billixMediumGreen)
+                        .foregroundColor(Theme.secondaryText)
 
                     Button {
                         dismiss()
                     } label: {
                         Text("Keep Earning")
                             .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.billixMoneyGreen)
+                            .foregroundColor(Theme.accent)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .stroke(Color.billixMoneyGreen, lineWidth: 2)
+                                    .stroke(Theme.accent, lineWidth: 2)
                             )
                     }
                     .buttonStyle(ScaleButtonStyle(scale: 0.97))
@@ -1188,7 +1106,7 @@ struct RewardRedeemSheet: View {
             }
         }
         .padding(24)
-        .background(Color.white)
+        .background(Theme.cardBackground)
     }
 }
 
