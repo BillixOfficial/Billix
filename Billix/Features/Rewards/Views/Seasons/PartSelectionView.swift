@@ -15,46 +15,62 @@ struct PartSelectionView: View {
 
     var body: some View {
         ZStack {
-            // Background
-            Color.billixLightGreen
+            // Themed background
+            SeasonThemeBackground(season: viewModel.selectedSeason)
                 .ignoresSafeArea()
 
             // Content
-            ScrollView {
-                VStack(spacing: 20) {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 0) {
                     // Header
                     VStack(spacing: 8) {
                         Text(seasonTitle)
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.billixDarkGreen)
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundColor(Color(hex: "#1F2937"))
 
                         Text("Choose a chapter")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(.billixMediumGreen)
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundColor(Color(hex: "#6B7280"))
                     }
-                    .padding(.top, 20)
-                    .padding(.bottom, 10)
+                    .padding(.top, 32)
+                    .padding(.bottom, 24)
 
-                    // Part cards
+                    // Part cards with connecting paths
                     if viewModel.isLoading && viewModel.seasonParts.isEmpty {
                         ProgressView()
                             .scaleEffect(1.5)
-                            .padding(.top, 40)
+                            .padding(.top, 60)
                     } else {
-                        ForEach(viewModel.seasonParts) { part in
+                        ForEach(Array(viewModel.seasonParts.enumerated()), id: \.element.id) { index, part in
                             let stats = viewModel.getCompletionStats(partId: part.id)
+                            let isUnlocked = part.unlockRequirement == 0 || stats.completed >= part.unlockRequirement
+                            let isLastPart = index == viewModel.seasonParts.count - 1
 
                             PartCard(
                                 part: part,
                                 progress: stats,
-                                isUnlocked: part.unlockRequirement == 0 || stats.completed >= part.unlockRequirement,
+                                isUnlocked: isUnlocked,
                                 onTap: {
                                     Task {
                                         await viewModel.startPartSession(part: part)
                                     }
                                 }
                             )
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, 24)
+
+                            // Progress path connector (if not last part)
+                            if !isLastPart {
+                                let nextPart = viewModel.seasonParts[index + 1]
+                                let nextStats = viewModel.getCompletionStats(partId: nextPart.id)
+                                let nextIsUnlocked = nextPart.unlockRequirement == 0 || nextStats.completed >= nextPart.unlockRequirement
+
+                                ProgressPathConnector(
+                                    isUnlocked: nextIsUnlocked,
+                                    isNextToUnlock: !nextIsUnlocked && isUnlocked,
+                                    height: 40
+                                )
+                                .padding(.horizontal, 24)
+                            }
                         }
                     }
 

@@ -9,6 +9,43 @@
 import Foundation
 import Supabase
 
+// MARK: - Season Completion Stats
+
+struct SeasonCompletionStats {
+    let completed: Int          // For session-based: parts passed. For location-based: locations completed
+    let total: Int             // Total parts or locations in season
+    let attempts: Int          // Total legitimate attempts (session-based only)
+    let passedParts: Int       // Number of parts passed (session-based only)
+    let isSessionBased: Bool   // True if season uses session-based gameplay
+}
+
+// MARK: - Part Completion Stats
+
+struct PartCompletionStats {
+    let completed: Int
+    let total: Int
+    let isSessionBased: Bool
+    let attempts: Int?        // For session mode
+    let hasPassed: Bool?      // For session mode
+
+    var displayText: String {
+        if isSessionBased {
+            if let passed = hasPassed, passed {
+                return "Passed"
+            } else {
+                return "\(attempts ?? 0) \(attempts == 1 ? "attempt" : "attempts")"
+            }
+        } else {
+            return "\(completed)/\(total)"
+        }
+    }
+
+    var progressPercent: Double {
+        guard total > 0 else { return 0 }
+        return Double(completed) / Double(total)
+    }
+}
+
 @MainActor
 class SeasonViewModel: ObservableObject {
 
@@ -31,7 +68,7 @@ class SeasonViewModel: ObservableObject {
     @Published var partCompletionCounts: [UUID: Int] = [:]
 
     // NEW: Cached season-level progress stats for all seasons
-    @Published var seasonCompletionStats: [UUID: (completed: Int, total: Int)] = [:]
+    @Published var seasonCompletionStats: [UUID: SeasonCompletionStats] = [:]
     @Published var allUserProgress: [UUID: UserSeasonProgress] = [:]
 
     // UI state
@@ -96,6 +133,7 @@ class SeasonViewModel: ObservableObject {
             return
         }
 
+        print("🔄 loadAllSeasonProgress() starting for user: \(userId.uuidString.prefix(8))...")
         // Don't set isLoading = true here, as this is a background operation
         errorMessage = nil
 
@@ -106,18 +144,59 @@ class SeasonViewModel: ObservableObject {
             // Group by season and calculate completion stats
             for season in seasons {
                 let seasonProgress = allProgress.filter { $0.seasonId == season.id }
-                let completedLocations = Set(seasonProgress.compactMap {
-                    $0.isCompleted ? $0.locationId : nil
-                })
 
-                // Calculate total locations for this season
-                let parts = try? await service.fetchSeasonParts(seasonId: season.id)
-                let total = parts?.reduce(0) { $0 + $1.totalLocations } ?? 0
+                // Separate location-based and session-based progress
+                let locationProgress = seasonProgress.filter { $0.locationId != nil }
+                let sessionProgress = seasonProgress.filter { $0.locationId == nil }
 
-                seasonCompletionStats[season.id] = (
-                    completed: completedLocations.count,
-                    total: total
-                )
+                // Determine if this is a session-based season
+                let isSessionBased = !sessionProgress.isEmpty
+
+                if isSessionBased {
+                    // Session-based season (like USA Roadtrip)
+
+                    // Count legitimate session attempts
+                    // Only count if: health == 0 OR total questions >= 30
+                    let legitimateAttempts = sessionProgress.filter { progress in
+                        (progress.finalHealth == 0) || (progress.totalAttempted >= 30)
+                    }
+
+                    // Count unique parts that have been passed
+                    let passedPartIds = Set(sessionProgress.compactMap { progress in
+                        progress.isCompleted ? progress.partId : nil
+                    })
+
+                    // Get total number of parts in this season
+                    let parts = try? await service.fetchSeasonParts(seasonId: season.id)
+                    let totalParts = parts?.count ?? 0
+
+                    seasonCompletionStats[season.id] = SeasonCompletionStats(
+                        completed: legitimateAttempts.count,  // Total attempts for display
+                        total: totalParts,                     // Total parts in season
+                        attempts: legitimateAttempts.count,    // Total legitimate attempts
+                        passedParts: passedPartIds.count,      // Number of parts passed
+                        isSessionBased: true
+                    )
+                } else {
+                    // Location-based season (like Global)
+
+                    // Count completed locations
+                    let completedLocations = Set(locationProgress.compactMap {
+                        $0.isCompleted ? $0.locationId : nil
+                    })
+
+                    // Calculate total locations for this season
+                    let parts = try? await service.fetchSeasonParts(seasonId: season.id)
+                    let totalLocations = parts?.reduce(0) { $0 + $1.totalLocations } ?? 0
+
+                    seasonCompletionStats[season.id] = SeasonCompletionStats(
+                        completed: completedLocations.count,
+                        total: totalLocations,
+                        attempts: 0,                           // Not applicable for location-based
+                        passedParts: 0,                        // Not applicable for location-based
+                        isSessionBased: false
+                    )
+                }
             }
 
             // Also cache all progress for quick lookup
@@ -128,7 +207,13 @@ class SeasonViewModel: ObservableObject {
                 }
             )
 
-            print("✅ Loaded progress for \(allProgress.count) locations across \(seasons.count) seasons")
+            print("✅ Loaded progress for \(allProgress.count) records across \(seasons.count) seasons")
+            // Log detailed stats for each season
+            for season in seasons {
+                if let stats = seasonCompletionStats[season.id] {
+                    print("   📊 \(season.title): \(stats.completed)/\(stats.total) completed")
+                }
+            }
         } catch {
             print("⚠️ Failed to load season progress: \(error)")
             // Non-blocking: show 0/0 if fails
@@ -233,36 +318,69 @@ class SeasonViewModel: ObservableObject {
 
     // MARK: - Progress Tracking
 
-    /// Get completion stats for a part
-    func getCompletionStats(partId: UUID) -> (completed: Int, total: Int) {
+    /// Detect if a part uses session-based or location-based gameplay
+    func getPartGameMode(partId: UUID) -> Bool {
+        // Find the season this part belongs to
+        guard let part = seasonParts.first(where: { $0.id == partId }),
+              let seasonStats = seasonCompletionStats[part.seasonId] else {
+            return false  // Default to location-based if unknown
+        }
+        return seasonStats.isSessionBased
+    }
+
+    /// Get completion stats for a part (NEW: Returns PartCompletionStats)
+    func getCompletionStats(partId: UUID) -> PartCompletionStats {
         let completedCount = partCompletionCounts[partId] ?? 0
         let part = seasonParts.first(where: { $0.id == partId })
         let total = part?.totalLocations ?? 0
-        return (completed: completedCount, total: total)
+        let isSessionBased = getPartGameMode(partId: partId)
+
+        if isSessionBased {
+            // For session mode: check if this part has been passed
+            // Get all progress for this part from allUserProgress
+            let partProgress = allUserProgress.values.filter { $0.partId == partId }
+            let passed = partProgress.contains { $0.isCompleted }
+            let attemptCount = partProgress.filter { progress in
+                // Count legitimate attempts (health == 0 or all questions answered)
+                (progress.finalHealth == 0) || (progress.totalAttempted >= 30)
+            }.count
+
+            return PartCompletionStats(
+                completed: passed ? 1 : 0,
+                total: 1,
+                isSessionBased: true,
+                attempts: attemptCount,
+                hasPassed: passed
+            )
+        } else {
+            // For location mode: use existing completion count
+            return PartCompletionStats(
+                completed: completedCount,
+                total: total,
+                isSessionBased: false,
+                attempts: nil,
+                hasPassed: nil
+            )
+        }
     }
 
     /// Get completion stats for a season
-    func getSeasonCompletionStats(seasonId: UUID) -> (completed: Int, total: Int) {
+    func getSeasonCompletionStats(seasonId: UUID) -> SeasonCompletionStats {
         // Use cached stats if available (from loadAllSeasonProgress)
         if let cached = seasonCompletionStats[seasonId] {
+            print("   🔍 getSeasonCompletionStats() returning CACHED: \(cached.attempts) attempts, \(cached.passedParts)/\(cached.total) passed")
             return cached
         }
 
-        // Fallback: calculate from loaded parts (if selectSeason was called)
-        let parts = seasonParts.filter { part in
-            seasonParts.contains(where: { $0.seasonId == seasonId })
-        }
-
-        guard !parts.isEmpty else {
-            return (0, 0)  // No data loaded yet
-        }
-
-        let totalLocations = parts.reduce(0) { $0 + $1.totalLocations }
-        let completedLocations = parts.reduce(0) { sum, part in
-            sum + (partCompletionCounts[part.id] ?? 0)
-        }
-
-        return (completed: completedLocations, total: totalLocations)
+        print("   ⚠️ getSeasonCompletionStats() NO CACHE - returning default")
+        // Fallback: return default stats
+        return SeasonCompletionStats(
+            completed: 0,
+            total: 0,
+            attempts: 0,
+            passedParts: 0,
+            isSessionBased: false
+        )
     }
 
     /// Get progress for a specific location
@@ -312,28 +430,38 @@ class SeasonViewModel: ObservableObject {
     }
 
     /// Save progress after completing a game
-    func saveGameProgress(location: SeasonLocation, session: GameSession) async {
-        guard let userId = currentUserId,
-              let seasonId = selectedSeason?.id,
-              let partId = selectedPart?.id else {
-            errorMessage = "Cannot save progress: invalid session"
+    func saveGameProgress(location: SeasonLocation, session: GameSession, seasonId: UUID? = nil, partId: UUID? = nil) async {
+        guard let userId = currentUserId else {
+            errorMessage = "Please log in to save progress"
+            print("❌ No user ID - cannot save progress")
+            return
+        }
+
+        // Use provided IDs or fall back to selected season/part
+        guard let finalSeasonId = seasonId ?? selectedSeason?.id,
+              let finalPartId = partId ?? selectedPart?.id else {
+            errorMessage = "Cannot save progress: missing season or part information"
+            print("❌ Missing seasonId or partId - seasonId: \(seasonId?.uuidString ?? "nil"), partId: \(partId?.uuidString ?? "nil"), selectedSeason: \(selectedSeason?.id.uuidString ?? "nil"), selectedPart: \(selectedPart?.id.uuidString ?? "nil")")
             return
         }
 
         isLoading = true
+        print("📝 Saving progress for location: \(location.locationName), userId: \(userId.uuidString), seasonId: \(finalSeasonId.uuidString), partId: \(finalPartId.uuidString)")
 
         do {
             // Save progress to database
             try await service.saveLocationProgress(
                 userId: userId,
-                seasonId: seasonId,
-                partId: partId,
+                seasonId: finalSeasonId,
+                partId: finalPartId,
                 locationId: location.id,
                 session: session
             )
 
-            // Reload progress to update UI
-            let progressArray = try await service.fetchUserProgress(userId: userId, seasonId: seasonId)
+            print("💾 Progress saved to database successfully")
+
+            // Reload progress to update UI and cache
+            let progressArray = try await service.fetchUserProgress(userId: userId, seasonId: finalSeasonId)
             userProgress = Dictionary(uniqueKeysWithValues:
                 progressArray.compactMap { progress in
                     guard let locationId = progress.locationId else { return nil }
@@ -341,11 +469,16 @@ class SeasonViewModel: ObservableObject {
                 }
             )
 
-            // Update completion count for this part
-            let count = try await service.getPartCompletionCount(userId: userId, partId: partId)
-            partCompletionCounts[partId] = count
+            print("🔄 Reloaded \(progressArray.count) progress records")
 
-            print("✅ Progress saved successfully for location: \(location.locationName)")
+            // Update completion count for this part
+            let count = try await service.getPartCompletionCount(userId: userId, partId: finalPartId)
+            partCompletionCounts[finalPartId] = count
+
+            // IMPORTANT: Also update the seasonCompletionStats cache for the season card
+            await loadAllSeasonProgress()
+
+            print("✅ Progress saved successfully for location: \(location.locationName) - Completion count: \(count)")
         } catch {
             errorMessage = "Failed to save progress: \(error.localizedDescription)"
             print("❌ Error saving progress: \(error)")
@@ -473,14 +606,30 @@ class SeasonViewModel: ObservableObject {
 
     /// Save session progress after completing a game
     func saveSessionProgress(session: GameSession) async {
-        guard let userId = currentUserId,
-              let seasonId = selectedSeason?.id,
+        guard let userId = currentUserId else {
+            errorMessage = "Please log in to save progress"
+            print("❌ No user ID - cannot save session progress")
+            return
+        }
+
+        guard let seasonId = selectedSeason?.id,
               let partId = activePartId else {
-            errorMessage = "Cannot save progress: invalid session"
+            errorMessage = "Cannot save progress: missing season or part information"
+            print("❌ Missing seasonId or partId for session - selectedSeason: \(selectedSeason?.id.uuidString ?? "nil"), activePartId: \(activePartId?.uuidString ?? "nil")")
+            return
+        }
+
+        // Only save if game actually ended (not quit mid-game)
+        let isLegitimateCompletion = session.health == 0 || session.currentQuestionIndex >= session.questions.count
+
+        if !isLegitimateCompletion {
+            print("⚠️ Game not completed legitimately - not saving progress")
+            print("   Health: \(session.health), Questions: \(session.currentQuestionIndex)/\(session.questions.count)")
             return
         }
 
         isLoading = true
+        print("📝 Saving session progress - userId: \(userId.uuidString), seasonId: \(seasonId.uuidString), partId: \(partId.uuidString), correct: \(session.questionsCorrect)/\(session.questions.count)")
 
         do {
             // Save session progress to database
@@ -490,6 +639,8 @@ class SeasonViewModel: ObservableObject {
                 partId: partId,
                 session: session
             )
+
+            print("💾 Session progress saved to database successfully")
 
             // Reload parts to update unlock status if passed
             seasonParts = try await service.fetchSeasonParts(seasonId: seasonId)
@@ -501,6 +652,9 @@ class SeasonViewModel: ObservableObject {
                     partCompletionCounts[part.id] = 1  // Mark as passed
                 }
             }
+
+            // IMPORTANT: Also update the seasonCompletionStats cache
+            await loadAllSeasonProgress()
 
             let totalCorrect = session.landmarksCorrect + session.pricesCorrect
             let hasPassed = totalCorrect >= 24

@@ -13,9 +13,32 @@ struct SeasonThemeBackground: View {
     @Environment(\.accessibilityReduceMotion) var reduceMotion
 
     var body: some View {
-        // Crisp off-white background - no green tint
-        Color(hex: "#FAFAFA")
-            .ignoresSafeArea()
+        ZStack {
+            // Base background color
+            Color(hex: "#F3F4F6")
+                .ignoresSafeArea()
+
+            // Subtle themed gradient overlay
+            if let season = season {
+                LinearGradient(
+                    colors: gradientForSeason.map { $0.opacity(0.08) },
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+
+                // Optional: Very subtle animated gradient shift
+                if !reduceMotion {
+                    LinearGradient(
+                        colors: gradientForSeason.map { $0.opacity(0.05) },
+                        startPoint: .topTrailing,
+                        endPoint: .bottomLeading
+                    )
+                    .ignoresSafeArea()
+                    .opacity(0.5)
+                }
+            }
+        }
     }
 
     // MARK: - Season-Specific Gradients
