@@ -42,7 +42,7 @@ struct AnalysisResultsView: View {
 
             // Tab content
             TabView(selection: $selectedTab) {
-                AnalysisOverviewTab(analysis: analysis)
+                AnalysisSummaryTab(analysis: analysis)
                     .tag(AnalysisTab.overview)
 
                 AnalysisBreakdownTab(analysis: analysis)
@@ -172,7 +172,7 @@ struct AnalysisResultsEmbeddedView: View {
 
             // Tab content - fixed height to avoid scroll issues
             TabView(selection: $selectedTab) {
-                AnalysisOverviewTab(analysis: analysis)
+                AnalysisSummaryTab(analysis: analysis)
                     .tag(AnalysisResultsView.AnalysisTab.overview)
 
                 AnalysisBreakdownTab(analysis: analysis)
@@ -278,7 +278,12 @@ struct AnalysisResultsEmbeddedView: View {
                 percentDiff: 11.3,
                 zipPrefix: "481",
                 position: .above
-            )
+            ),
+            plainEnglishSummary: nil,
+            redFlags: nil,
+            controllableCosts: nil,
+            savingsOpportunities: nil,
+            jargonGlossary: nil
         ),
         onComplete: {}
     )

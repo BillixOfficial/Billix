@@ -216,4 +216,259 @@ struct GeoGameDataService {
     static func getGamesByMode(_ mode: GameMode) -> [DailyGame] {
         return mockGames.filter { $0.gameMode == mode }
     }
+
+    // MARK: - Multi-Question Game Session
+
+    /// Mock questions for the new 12-question game format
+    /// Structure: 4 locations × 3 questions each
+    /// Q1: Location identification, Q2-3: Cost items for that location
+    static let mockQuestions: [GameQuestion] = [
+        // LOCATION 1: PHOENIX, AZ - Questions 1-3
+        // Q1: Location
+        GameQuestion(
+            subject: "Desert Landmark",
+            location: "Phoenix, AZ",
+            category: .grocery,
+            difficulty: .easy,
+            coordinates: LocationCoordinate(latitude: 33.4484, longitude: -112.0740),
+            mapRegion: MapRegionData(centerLatitude: 33.4484, centerLongitude: -112.0740, pitch: 45, heading: 0),
+            landmarkCoordinate: LocationCoordinate(latitude: 33.459965, longitude: -111.944751),
+            decoyLocations: [
+                DecoyLocation(name: "Phoenix, AZ", displayLabel: "A"),
+                DecoyLocation(name: "Las Vegas, NV", displayLabel: "B"),
+                DecoyLocation(name: "Tucson, AZ", displayLabel: "C"),
+                DecoyLocation(name: "Albuquerque, NM", displayLabel: "D")
+            ],
+            actualPrice: 0,  // Not used for location questions
+            minGuess: 0,
+            maxGuess: 0,
+            unit: "",
+            economicContext: "To live here, you need $52,000/year"
+        ),
+        // Q2: Food cost
+        GameQuestion(
+            subject: "Gallon of Milk",
+            location: "Phoenix, AZ",
+            category: .grocery,
+            difficulty: .easy,
+            coordinates: LocationCoordinate(latitude: 33.4484, longitude: -112.0740),
+            mapRegion: MapRegionData(centerLatitude: 33.4484, centerLongitude: -112.0740, pitch: 45, heading: 0),
+            landmarkCoordinate: LocationCoordinate(latitude: 33.459965, longitude: -111.944751),
+            decoyLocations: [],  // Not used for price questions
+            actualPrice: 3.89,
+            minGuess: 2.00,
+            maxGuess: 7.00,
+            unit: "gallon"
+        ),
+        // Q3: Transportation cost
+        GameQuestion(
+            subject: "Gallon of Gas",
+            location: "Phoenix, AZ",
+            category: .gas,
+            difficulty: .easy,
+            coordinates: LocationCoordinate(latitude: 33.4484, longitude: -112.0740),
+            mapRegion: MapRegionData(centerLatitude: 33.4484, centerLongitude: -112.0740, pitch: 45, heading: 0),
+            landmarkCoordinate: LocationCoordinate(latitude: 33.459965, longitude: -111.944751),
+            decoyLocations: [],
+            actualPrice: 3.45,
+            minGuess: 2.50,
+            maxGuess: 5.50,
+            unit: "gallon"
+        ),
+
+        // LOCATION 2: SEATTLE, WA - Questions 4-6
+        // Q4: Location
+        GameQuestion(
+            subject: "Pacific Northwest Landmark",
+            location: "Seattle, WA",
+            category: .grocery,
+            difficulty: .moderate,
+            coordinates: LocationCoordinate(latitude: 47.6062, longitude: -122.3321),
+            mapRegion: MapRegionData(centerLatitude: 47.6062, centerLongitude: -122.3321, pitch: 50, heading: 45),
+            landmarkCoordinate: LocationCoordinate(latitude: 47.6205, longitude: -122.3493),
+            decoyLocations: [
+                DecoyLocation(name: "Portland, OR", displayLabel: "A"),
+                DecoyLocation(name: "Seattle, WA", displayLabel: "B"),
+                DecoyLocation(name: "Vancouver, BC", displayLabel: "C"),
+                DecoyLocation(name: "Tacoma, WA", displayLabel: "D")
+            ],
+            actualPrice: 0,
+            minGuess: 0,
+            maxGuess: 0,
+            unit: "",
+            economicContext: "To live here, you need $78,000/year"
+        ),
+        // Q5: Food cost
+        GameQuestion(
+            subject: "Pound of Ground Beef",
+            location: "Seattle, WA",
+            category: .grocery,
+            difficulty: .moderate,
+            coordinates: LocationCoordinate(latitude: 47.6062, longitude: -122.3321),
+            mapRegion: MapRegionData(centerLatitude: 47.6062, centerLongitude: -122.3321, pitch: 50, heading: 45),
+            landmarkCoordinate: LocationCoordinate(latitude: 47.6205, longitude: -122.3493),
+            decoyLocations: [],
+            actualPrice: 6.49,
+            minGuess: 3.00,
+            maxGuess: 12.00,
+            unit: "pound"
+        ),
+        // Q6: Housing cost
+        GameQuestion(
+            subject: "Monthly Electric Bill (avg)",
+            location: "Seattle, WA",
+            category: .utility,
+            difficulty: .moderate,
+            coordinates: LocationCoordinate(latitude: 47.6062, longitude: -122.3321),
+            mapRegion: MapRegionData(centerLatitude: 47.6062, centerLongitude: -122.3321, pitch: 50, heading: 45),
+            landmarkCoordinate: LocationCoordinate(latitude: 47.6205, longitude: -122.3493),
+            decoyLocations: [],
+            actualPrice: 95.0,
+            minGuess: 50.0,
+            maxGuess: 200.0,
+            unit: "month"
+        ),
+
+        // LOCATION 3: MANHATTAN, NY - Questions 7-9
+        // Q7: Location
+        GameQuestion(
+            subject: "Iconic NYC Landmark",
+            location: "Manhattan, NY",
+            category: .rent,
+            difficulty: .hard,
+            coordinates: LocationCoordinate(latitude: 40.7580, longitude: -73.9855),
+            mapRegion: MapRegionData(centerLatitude: 40.7580, centerLongitude: -73.9855, pitch: 60, heading: 180),
+            landmarkCoordinate: LocationCoordinate(latitude: 40.7484, longitude: -73.9857),
+            decoyLocations: [
+                DecoyLocation(name: "Manhattan, NY", displayLabel: "A"),
+                DecoyLocation(name: "Brooklyn, NY", displayLabel: "B"),
+                DecoyLocation(name: "Jersey City, NJ", displayLabel: "C"),
+                DecoyLocation(name: "Philadelphia, PA", displayLabel: "D")
+            ],
+            actualPrice: 0,
+            minGuess: 0,
+            maxGuess: 0,
+            unit: "",
+            economicContext: "To live here, you need $120,000/year"
+        ),
+        // Q8: Housing cost
+        GameQuestion(
+            subject: "1-Bed Apartment (700 sq ft)",
+            location: "Manhattan, NY",
+            category: .rent,
+            difficulty: .hard,
+            coordinates: LocationCoordinate(latitude: 40.7580, longitude: -73.9855),
+            mapRegion: MapRegionData(centerLatitude: 40.7580, centerLongitude: -73.9855, pitch: 60, heading: 180),
+            landmarkCoordinate: LocationCoordinate(latitude: 40.7484, longitude: -73.9857),
+            decoyLocations: [],
+            actualPrice: 3850.0,
+            minGuess: 2000.0,
+            maxGuess: 6000.0,
+            unit: "month"
+        ),
+        // Q9: Food cost
+        GameQuestion(
+            subject: "Coffee (Starbucks Latte)",
+            location: "Manhattan, NY",
+            category: .grocery,
+            difficulty: .hard,
+            coordinates: LocationCoordinate(latitude: 40.7580, longitude: -73.9855),
+            mapRegion: MapRegionData(centerLatitude: 40.7580, centerLongitude: -73.9855, pitch: 60, heading: 180),
+            landmarkCoordinate: LocationCoordinate(latitude: 40.7484, longitude: -73.9857),
+            decoyLocations: [],
+            actualPrice: 5.75,
+            minGuess: 3.00,
+            maxGuess: 8.00,
+            unit: "cup"
+        ),
+
+        // LOCATION 4: SAN FRANCISCO, CA - Questions 10-12
+        // Q10: Location
+        GameQuestion(
+            subject: "Bay Area Landmark",
+            location: "San Francisco, CA",
+            category: .rent,
+            difficulty: .hard,
+            coordinates: LocationCoordinate(latitude: 37.7749, longitude: -122.4194),
+            mapRegion: MapRegionData(centerLatitude: 37.7749, centerLongitude: -122.4194, pitch: 50, heading: 270),
+            landmarkCoordinate: LocationCoordinate(latitude: 37.8199, longitude: -122.4783),
+            decoyLocations: [
+                DecoyLocation(name: "Oakland, CA", displayLabel: "A"),
+                DecoyLocation(name: "San Jose, CA", displayLabel: "B"),
+                DecoyLocation(name: "San Francisco, CA", displayLabel: "C"),
+                DecoyLocation(name: "Los Angeles, CA", displayLabel: "D")
+            ],
+            actualPrice: 0,
+            minGuess: 0,
+            maxGuess: 0,
+            unit: "",
+            economicContext: "To live here, you need $110,000/year"
+        ),
+        // Q11: Transportation cost
+        GameQuestion(
+            subject: "Monthly Muni Pass",
+            location: "San Francisco, CA",
+            category: .subscription,
+            difficulty: .hard,
+            coordinates: LocationCoordinate(latitude: 37.7749, longitude: -122.4194),
+            mapRegion: MapRegionData(centerLatitude: 37.7749, centerLongitude: -122.4194, pitch: 50, heading: 270),
+            landmarkCoordinate: LocationCoordinate(latitude: 37.8199, longitude: -122.4783),
+            decoyLocations: [],
+            actualPrice: 81.0,
+            minGuess: 40.0,
+            maxGuess: 150.0,
+            unit: "month"
+        ),
+        // Q12: Housing cost
+        GameQuestion(
+            subject: "1-Bed Apartment (700 sq ft)",
+            location: "San Francisco, CA",
+            category: .rent,
+            difficulty: .hard,
+            coordinates: LocationCoordinate(latitude: 37.7749, longitude: -122.4194),
+            mapRegion: MapRegionData(centerLatitude: 37.7749, centerLongitude: -122.4194, pitch: 50, heading: 270),
+            landmarkCoordinate: LocationCoordinate(latitude: 37.8199, longitude: -122.4783),
+            decoyLocations: [],
+            actualPrice: 3200.0,
+            minGuess: 1800.0,
+            maxGuess: 5000.0,
+            unit: "month"
+        )
+    ]
+
+    /// Generate a complete game session with 12 questions (4 locations × 3 questions each)
+    static func generateGameSession() -> GameSession {
+        // Group questions by location (every 3 questions = 1 location)
+        // Q1-3: Location 1, Q4-6: Location 2, Q7-9: Location 3, Q10-12: Location 4
+        let locationGroups = stride(from: 0, to: mockQuestions.count, by: 3).map { index in
+            Array(mockQuestions[index..<min(index + 3, mockQuestions.count)])
+        }
+
+        // Randomize the order of location groups, not individual questions
+        let shuffledGroups = locationGroups.shuffled()
+
+        // Flatten back to a single array
+        let shuffledQuestions = shuffledGroups.flatMap { $0 }
+
+        return GameSession(
+            id: UUID(),
+            questions: shuffledQuestions,
+            currentQuestionIndex: 0,
+            health: 3,
+            totalPoints: 0,
+            questionsCorrect: 0,
+            comboStreak: 0,
+            startedAt: Date()
+        )
+    }
+
+    /// Helper to determine if a question is a location question
+    static func isLocationQuestion(_ question: GameQuestion) -> Bool {
+        return !question.decoyLocations.isEmpty
+    }
+
+    /// Helper to determine if a question is a price question
+    static func isPriceQuestion(_ question: GameQuestion) -> Bool {
+        return question.decoyLocations.isEmpty && question.actualPrice > 0
+    }
 }

@@ -43,10 +43,12 @@ struct Phase2PriceView: View {
             }
 
             // Subject line
-            Text(viewModel.gameData.formattedSubject)
-                .font(.system(size: 15))
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+            if let question = viewModel.currentQuestion {
+                Text("\(question.subject) in \(question.location)")
+                    .font(.system(size: 15))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
 
             // Large price display
             Text(viewModel.formattedGuess)
@@ -59,16 +61,18 @@ struct Phase2PriceView: View {
                 .frame(height: 60)
 
             // Min/Max labels
-            HStack {
-                Text(formatPrice(viewModel.gameData.minGuess))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.secondary)
+            if let question = viewModel.currentQuestion {
+                HStack {
+                    Text(formatPrice(question.minGuess, category: question.category))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
 
-                Spacer()
+                    Spacer()
 
-                Text(formatPrice(viewModel.gameData.maxGuess))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.secondary)
+                    Text(formatPrice(question.maxGuess, category: question.category))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
             }
 
             // Lock in button
@@ -87,8 +91,8 @@ struct Phase2PriceView: View {
         .padding(24)
     }
 
-    private func formatPrice(_ price: Double) -> String {
-        if viewModel.gameData.category == .rent {
+    private func formatPrice(_ price: Double, category: GameCategory) -> String {
+        if category == .rent || category == .utility {
             return String(format: "$%.0f", price)
         } else {
             return String(format: "$%.2f", price)

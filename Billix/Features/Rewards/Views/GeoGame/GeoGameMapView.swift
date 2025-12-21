@@ -16,8 +16,8 @@ struct GeoGameMapView: View {
 
     var body: some View {
         ZStack {
-            // Map with pinch-to-zoom enabled
-            Map(position: $viewModel.cameraPosition, interactionModes: isInteractionEnabled ? [.pan, .rotate, .zoom] : []) {
+            // Map with drag and rotate only (no zoom)
+            Map(position: $viewModel.cameraPosition, interactionModes: isInteractionEnabled ? [.pan, .rotate] : []) {
                 // No markers - let users explore landmarks naturally
             }
             .mapStyle(.standard(elevation: .realistic, pointsOfInterest: .all, showsTraffic: false))
@@ -77,43 +77,6 @@ struct GeoGameMapView: View {
         }
     }
 
-    // MARK: - Zoom Controls
-
-    private var zoomControls: some View {
-        VStack(spacing: 0) {
-            // Zoom In Button
-            Button(action: {
-                viewModel.zoomIn()
-                let generator = UIImpactFeedbackGenerator(style: .light)
-                generator.impactOccurred()
-            }) {
-                Image(systemName: "plus")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 44, height: 44)
-                    .background(Color.black.opacity(0.7))
-            }
-
-            Divider()
-                .background(Color.white.opacity(0.3))
-                .frame(height: 1)
-
-            // Zoom Out Button
-            Button(action: {
-                viewModel.zoomOut()
-                let generator = UIImpactFeedbackGenerator(style: .light)
-                generator.impactOccurred()
-            }) {
-                Image(systemName: "minus")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 44, height: 44)
-                    .background(Color.black.opacity(0.7))
-            }
-        }
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.4), radius: 8, y: 2)
-    }
 }
 
 #Preview {

@@ -18,6 +18,32 @@ class RewardsViewModel: ObservableObject {
     @Published var points: RewardsPoints = .preview
     @Published var displayedBalance: Int = 0 // For animated counting
 
+    // Shop unlock logic - Day 2 retention driver
+    var canAccessRewardShop: Bool {
+        points.balance >= 8000  // Silver tier = Day 2 unlock
+    }
+
+    // MARK: - Tier System
+
+    // Current tier based on points balance
+    var currentTier: RewardsTier {
+        RewardsTier.allCases.last { tier in
+            points.balance >= tier.pointsRange.lowerBound
+        } ?? .bronze
+    }
+
+    // Progress to next tier (0.0 to 1.0)
+    var tierProgress: Double {
+        guard let nextTier = currentTier.nextTier else { return 1.0 }
+
+        let currentMin = Double(currentTier.pointsRange.lowerBound)
+        let nextMin = Double(nextTier.pointsRange.lowerBound)
+        let current = Double(points.balance)
+
+        let progress = (current - currentMin) / (nextMin - currentMin)
+        return max(0.0, min(progress, 1.0))
+    }
+
     // MARK: - Daily Game
 
     @Published var dailyGame: DailyGame? = .preview
@@ -25,10 +51,11 @@ class RewardsViewModel: ObservableObject {
     @Published var gamesPlayedToday: Int = 0
     @Published var showGeoGame: Bool = false
     @Published var activeGame: DailyGame?
+    @Published var showSeasonSelection: Bool = false
 
     // MARK: - Marketplace
 
-    @Published var rewards: [Reward] = Reward.previewRewards
+    @Published var rewards: [Reward] = Reward.previewRewardsWithCategories
     @Published var selectedReward: Reward?
 
     // MARK: - Leaderboard
@@ -70,7 +97,7 @@ class RewardsViewModel: ObservableObject {
         // In real implementation, fetch from API
         // For now, using preview/mock data
         points = .preview
-        rewards = Reward.previewRewards
+        rewards = Reward.previewRewardsWithCategories
         topSavers = LeaderboardEntry.previewEntries
         dailyGame = GeoGameDataService.getTodaysGame()
 
@@ -143,9 +170,8 @@ class RewardsViewModel: ObservableObject {
     }
 
     func playDailyGame() {
-        // Get a random game each time for variety
-        activeGame = GeoGameDataService.getRandomGame()
-        showGeoGame = true
+        // Show season selection view for structured progression
+        showSeasonSelection = true
     }
 
     func handleGameResult(_ result: GameResult) {

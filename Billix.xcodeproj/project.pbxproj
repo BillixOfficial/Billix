@@ -11,6 +11,7 @@
 		04473EEB06DC470B82DCA7F2 /* Billix/Utilities/TypographyStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356536A013AE49BFAC0913C1 /* Billix/Utilities/TypographyStyles.swift */; };
 		08D120758A2C45E38383DC5F /* Billix/Utilities/AnimationModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD1DE91B69548D4B2D8ABA0 /* Billix/Utilities/AnimationModifiers.swift */; };
 		0B3978E45C38518CA2B82A3D /* MockMarketplaceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5028E3D5E60C51F1F213D4CC /* MockMarketplaceData.swift */; };
+		0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
 		0E58FE07F481E233517930FA /* TickerHeaderZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08B85166487B826F6FAFA03 /* TickerHeaderZone.swift */; };
 		105CDC90740F2D3D993826F3 /* SellerFooterZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E1FA3E4B9B6F22CDA05B91 /* SellerFooterZone.swift */; };
 		12B8AABBC0EC521CAA0EE907 /* AllUploadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */; };
@@ -53,6 +54,32 @@
 		993537DB4B716E69509D618A /* GiftCardsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88BA3773C1EA797D5A5C420 /* GiftCardsCarousel.swift */; };
 		997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81513DE947C6002A28D674AD /* AuthViewModel.swift */; };
 		9FBD55C9B930DD08A6264CFC /* Cluster.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5843AA67D5B071D7E3CDFEA /* Cluster.swift */; };
+		A602F1F52EF3486300856DEE /* CircularProgressRing.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		A602F1F62EF3486300856DEE /* StarDisplay.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
+		A602F1F72EF3486300856DEE /* SeasonCardLarge.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
+		A602F1F82EF3486300856DEE /* CircularProgressRing.swift in Resources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		A602F1F92EF3486300856DEE /* StarDisplay.swift in Resources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
+		A602F1FA2EF3486300856DEE /* SeasonCardLarge.swift in Resources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
+		A602F1FB2EF3486300856DEE /* CircularProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		A602F1FC2EF3486300856DEE /* StarDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
+		A602F1FD2EF3486300856DEE /* SeasonCardLarge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
+		A602F1FE2EF3486300856DEE /* CircularProgressRing.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		A602F1FF2EF3486300856DEE /* StarDisplay.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
+		A602F2002EF3486300856DEE /* SeasonCardLarge.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
+		A602F2012EF3486300856DEE /* CircularProgressRing.swift in Resources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		A602F2022EF3486300856DEE /* StarDisplay.swift in Resources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
+		A602F2032EF3486300856DEE /* SeasonCardLarge.swift in Resources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
+		A602F2042EF3486300856DEE /* CircularProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		A602F2052EF3486300856DEE /* StarDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
+		A602F2062EF3486300856DEE /* SeasonCardLarge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
+		A602F2072EF3486300856DEE /* CircularProgressRing.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		A602F2082EF3486300856DEE /* StarDisplay.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
+		A602F2092EF3486300856DEE /* SeasonCardLarge.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
+		A602F20A2EF3486300856DEE /* CircularProgressRing.swift in Resources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		A602F20B2EF3486300856DEE /* StarDisplay.swift in Resources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
+		A602F20C2EF3486300856DEE /* SeasonCardLarge.swift in Resources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
+		A602F20F2EF7B92E00856DEE /* PartProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F20D2EF7B92E00856DEE /* PartProgressRing.swift */; };
+		A602F2102EF7B92E00856DEE /* ProgressPathConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F20E2EF7B92E00856DEE /* ProgressPathConnector.swift */; };
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */; };
 		A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */; };
@@ -156,6 +183,7 @@
 		A6FF82912EECA1C5008330C9 /* PartSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF828C2EECA1C5008330C9 /* PartSelectionView.swift */; };
 		A6FF82932EECA1C5008330C9 /* PartCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82882EECA1C5008330C9 /* PartCard.swift */; };
 		A6FF82942EECA1C5008330C9 /* SeasonCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82892EECA1C5008330C9 /* SeasonCard.swift */; };
+		AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
 		B42853C238F012FDE7F5C47F /* AnalysisComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41ECA1FDF3D80A03CE00E92 /* AnalysisComponents.swift */; };
 		C93D6D9B9A4E2E8A36D2063C /* AskOwnerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */; };
 		CC5C4203C8C523C5D67F2851 /* BlueprintTeaseZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26718EDD5F14EC366ABD07C8 /* BlueprintTeaseZone.swift */; };
@@ -164,6 +192,7 @@
 		D8E729C509255F5015837DD4 /* PlaceBidSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD1BBF98A3A97EE7273155A /* PlaceBidSheet.swift */; };
 		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
 		DE7A061EF4C44553BCDA621A /* BillCardSideA.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */; };
+		DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
 		EBC33E84E1E375DAEA261508 /* AnalysisDetailsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEB282CAB55E54C5BDDE1C0 /* AnalysisDetailsTab.swift */; };
 		ED2452AAD36A456AE11AB438 /* AnalysisSummaryTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB6CFB137E0296F8ADCDF63 /* AnalysisSummaryTab.swift */; };
 		ED5EF5B9E827DE7A7C2F751E /* AnalysisBreakdownTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C811776FB90B05B8190935B /* AnalysisBreakdownTab.swift */; };
@@ -203,9 +232,6 @@
 		F974B2012EC955A1003EBF59 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2002EC955A1003EBF59 /* LoginView.swift */; };
 		F974B2032EC955C0003EBF59 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2022EC955C0003EBF59 /* ColorPalette.swift */; };
 		FB021E8FC90B96BB845CCD82 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */; };
-		DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
-		AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
-		0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -258,6 +284,7 @@
 		80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AskOwnerSheet.swift; sourceTree = "<group>"; };
 		80UTAGEBOT234567890BCDEF /* OutageBotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutageBotView.swift; sourceTree = "<group>"; };
 		81513DE947C6002A28D674AD /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressRing.swift; sourceTree = "<group>"; };
 		8B1LLHEATMAP23456789CDEF /* BillHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillHeatmapView.swift; sourceTree = "<group>"; };
 		8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreModels.swift; sourceTree = "<group>"; };
 		8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreViewModel.swift; sourceTree = "<group>"; };
@@ -269,6 +296,8 @@
 		9CE4C5AFDCCDD73CCE56C73C /* BillAnalysisNewComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillAnalysisNewComponents.swift; sourceTree = "<group>"; };
 		9D37190B759C30A9BA3FE82F /* MetricCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MetricCardView.swift; sourceTree = "<group>"; };
 		9E10B4E61116F04FF1C3CF4D /* BillGaugeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillGaugeView.swift; sourceTree = "<group>"; };
+		A602F20D2EF7B92E00856DEE /* PartProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartProgressRing.swift; sourceTree = "<group>"; };
+		A602F20E2EF7B92E00856DEE /* ProgressPathConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPathConnector.swift; sourceTree = "<group>"; };
 		A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysis.swift; sourceTree = "<group>"; };
 		A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredBill.swift; sourceTree = "<group>"; };
 		A64F7F4E2ECBB46B005576C5 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -379,7 +408,9 @@
 		B3B407070E54249D2D340339 /* FinancialSpreadZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FinancialSpreadZone.swift; sourceTree = "<group>"; };
 		B41ECA1FDF3D80A03CE00E92 /* AnalysisComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisComponents.swift; sourceTree = "<group>"; };
 		B9D380EFC4805A1626AE3CE0 /* UnlockBlueprintSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UnlockBlueprintSheet.swift; sourceTree = "<group>"; };
+		BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonCardLarge.swift; sourceTree = "<group>"; };
 		C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillCardSideA.swift; sourceTree = "<group>"; };
+		C362B529A9C1435B9DEC721F /* StarDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarDisplay.swift; sourceTree = "<group>"; };
 		C89EC00ED13981D09603CF99 /* ExploreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
 		CAAB209E825C16247ABD000C /* BouncingPigLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BouncingPigLoadingView.swift; sourceTree = "<group>"; };
 		CEEB282CAB55E54C5BDDE1C0 /* AnalysisDetailsTab.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisDetailsTab.swift; sourceTree = "<group>"; };
@@ -420,9 +451,6 @@
 		F974B2002EC955A1003EBF59 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		F974B2022EC955C0003EBF59 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
 		FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AllUploadsView.swift; sourceTree = "<group>"; };
-		83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressRing.swift; sourceTree = "<group>"; };
-		C362B529A9C1435B9DEC721F /* StarDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarDisplay.swift; sourceTree = "<group>"; };
-		BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonCardLarge.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -430,10 +458,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
-				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
-				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
-
+				A602F1F52EF3486300856DEE /* CircularProgressRing.swift in Frameworks */,
+				A602F1F62EF3486300856DEE /* StarDisplay.swift in Frameworks */,
+				A602F1F72EF3486300856DEE /* SeasonCardLarge.swift in Frameworks */,
 				F9076DB52ED50AE30051E1D8 /* PostgREST in Frameworks */,
 				F9076DB32ED50AE30051E1D8 /* Functions in Frameworks */,
 				F9076DBC2ED50BF10051E1D8 /* Supabase in Frameworks */,
@@ -447,10 +474,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
-				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
-				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
-
+				A602F1FE2EF3486300856DEE /* CircularProgressRing.swift in Frameworks */,
+				A602F1FF2EF3486300856DEE /* StarDisplay.swift in Frameworks */,
+				A602F2002EF3486300856DEE /* SeasonCardLarge.swift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -458,10 +484,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
-				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
-				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
-
+				A602F2072EF3486300856DEE /* CircularProgressRing.swift in Frameworks */,
+				A602F2082EF3486300856DEE /* StarDisplay.swift in Frameworks */,
+				A602F2092EF3486300856DEE /* SeasonCardLarge.swift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -977,16 +1002,15 @@
 		A6FF828A2EECA1C5008330C9 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				A602F20D2EF7B92E00856DEE /* PartProgressRing.swift */,
+				A602F20E2EF7B92E00856DEE /* ProgressPathConnector.swift */,
 				A6FF82872EECA1C5008330C9 /* LocationRow.swift */,
 				A6FF82882EECA1C5008330C9 /* PartCard.swift */,
 				A6FF82892EECA1C5008330C9 /* SeasonCard.swift */,
 				83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */,
 				C362B529A9C1435B9DEC721F /* StarDisplay.swift */,
 				BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */,
-							4E9836B2BD75402BAE66BB4E /* CircularProgressRing.swift */,
-				36B5F280B23F41E3A9F9CD00 /* StarDisplay.swift */,
-				274F2D96A7DB4A9C9BA11F0A /* SeasonCardLarge.swift */,
-);
+			);
 			path = Components;
 			sourceTree = "<group>";
 		};
@@ -1229,10 +1253,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
-				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
-				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
-
+				A602F1F82EF3486300856DEE /* CircularProgressRing.swift in Resources */,
+				A602F1F92EF3486300856DEE /* StarDisplay.swift in Resources */,
+				A602F1FA2EF3486300856DEE /* SeasonCardLarge.swift in Resources */,
 				F974B1DE2EC9553C003EBF59 /* Preview Assets.xcassets in Resources */,
 				F974B1DA2EC9553C003EBF59 /* Assets.xcassets in Resources */,
 			);
@@ -1242,10 +1265,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
-				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
-				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
-
+				A602F2012EF3486300856DEE /* CircularProgressRing.swift in Resources */,
+				A602F2022EF3486300856DEE /* StarDisplay.swift in Resources */,
+				A602F2032EF3486300856DEE /* SeasonCardLarge.swift in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1253,10 +1275,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
-				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
-				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
-
+				A602F20A2EF3486300856DEE /* CircularProgressRing.swift in Resources */,
+				A602F20B2EF3486300856DEE /* StarDisplay.swift in Resources */,
+				A602F20C2EF3486300856DEE /* SeasonCardLarge.swift in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1270,7 +1291,6 @@
 				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
 				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
 				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
-
 				04473EEB06DC470B82DCA7F2 /* Billix/Utilities/TypographyStyles.swift in Sources */,
 				08D120758A2C45E38383DC5F /* Billix/Utilities/AnimationModifiers.swift in Sources */,
 				45ACBFCDBB434C6481C55A3D /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift in Sources */,
@@ -1411,6 +1431,8 @@
 				24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */,
 				F9076D4C2ED19DA20051E1D8 /* AuthService.swift in Sources */,
 				F9076DBE2ED50D430051E1D8 /* SupabaseService.swift in Sources */,
+				A602F20F2EF7B92E00856DEE /* PartProgressRing.swift in Sources */,
+				A602F2102EF7B92E00856DEE /* ProgressPathConnector.swift in Sources */,
 				A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */,
 				2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */,
 				997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */,
@@ -1456,17 +1478,16 @@
 				90A4EC43F0790A45FF24632D /* QuestionTimerView.swift in Sources */,
 				5CD0907F6DACEFDE7B33C4E3 /* UserSessionProgress.swift in Sources */,
 				8B3A2A5EEB7F2AF184E4525B /* SessionGameContainerView.swift in Sources */,
-);
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F974B1DF2EC9553C003EBF59 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
-				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
-				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
-
+				A602F1FB2EF3486300856DEE /* CircularProgressRing.swift in Sources */,
+				A602F1FC2EF3486300856DEE /* StarDisplay.swift in Sources */,
+				A602F1FD2EF3486300856DEE /* SeasonCardLarge.swift in Sources */,
 				F974B1E82EC9553C003EBF59 /* BillixTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1475,10 +1496,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
-				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
-				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
-
+				A602F2042EF3486300856DEE /* CircularProgressRing.swift in Sources */,
+				A602F2052EF3486300856DEE /* StarDisplay.swift in Sources */,
+				A602F2062EF3486300856DEE /* SeasonCardLarge.swift in Sources */,
 				F974B1F42EC9553C003EBF59 /* BillixUITestsLaunchTests.swift in Sources */,
 				F974B1F22EC9553C003EBF59 /* BillixUITests.swift in Sources */,
 			);

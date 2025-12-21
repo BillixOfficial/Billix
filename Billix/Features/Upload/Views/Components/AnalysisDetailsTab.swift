@@ -33,6 +33,11 @@ struct AnalysisDetailsTab: View {
                 // Total
                 totalSection
 
+                // NEW: Jargon Decoder
+                if let glossary = analysis.jargonGlossary, !glossary.isEmpty {
+                    JargonDecoderSection(glossary: glossary)
+                }
+
                 Spacer(minLength: 80)
             }
             .padding(.horizontal, 16)
@@ -313,12 +318,24 @@ struct ExpandableLineItemRow: View {
                             .frame(width: 16)
                     }
 
-                    // Description
-                    Text(item.description)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.billixDarkGreen)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
+                    // Description and badges
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(item.description)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.billixDarkGreen)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+
+                        // NEW: Negotiable/Avoidable badges
+                        HStack(spacing: 6) {
+                            if item.isNegotiable == true {
+                                NegotiableBadge()
+                            }
+                            if item.isAvoidable == true {
+                                AvoidableBadge()
+                            }
+                        }
+                    }
 
                     Spacer()
 
@@ -405,7 +422,13 @@ struct ExpandableLineItemRow: View {
             ],
             costBreakdown: nil,
             insights: nil,
-            marketplaceComparison: nil
+            marketplaceComparison: nil,
+            plainEnglishSummary: nil,
+            redFlags: nil,
+            controllableCosts: nil,
+            savingsOpportunities: nil,
+            jargonGlossary: nil,
+            assistancePrograms: nil
         )
     )
     .background(Color.billixLightGreen)

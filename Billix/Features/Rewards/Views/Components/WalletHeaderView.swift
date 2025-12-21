@@ -11,17 +11,18 @@ import SwiftUI
 struct WalletHeaderView: View {
     let points: Int
     let cashEquivalent: Double
+    let currentTier: RewardsTier
+    let tierProgress: Double  // 0.0 to 1.0 progress to next tier
     let onHistoryTapped: () -> Void
 
-    // Mock data for visual design
-    let currentTier: RewardsTier = .bronze
-    let tierProgress: Double = 0.45  // 45% to next tier
+    // Mock data for visual design (will be replaced with real data later)
     let streakCount: Int = 7
     let streakAtRisk: Bool = false
 
     @State private var animatedPoints: Int = 0
     @State private var showShimmer = false
     @State private var currentStatIndex: Int = 0
+    @State private var showHowItWorks = false
 
     // Computed property for points to next tier
     private var pointsToNextTier: Int {
@@ -32,31 +33,40 @@ struct WalletHeaderView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 16) {
-                // Points Icon with Tier Ring
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.billixArcadeGold, .billixPrizeOrange],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                // Points Icon with Tier Ring (Tappable)
+                Button(action: {
+                    showHowItWorks = true
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.impactOccurred()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [.billixArcadeGold, .billixPrizeOrange],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
+                            .frame(width: 52, height: 52)
+                            .shadow(color: .billixArcadeGold.opacity(0.4), radius: 8, x: 0, y: 4)
+
+                        // Billix logo (same as modal)
+                        Image("billix_logo_new")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 48, height: 48)
+
+                        // Tier Progress Ring
+                        TierProgressRing(
+                            currentTier: currentTier,
+                            progress: tierProgress,
+                            showSparkles: false
                         )
-                        .frame(width: 52, height: 52)
-                        .shadow(color: .billixArcadeGold.opacity(0.4), radius: 8, x: 0, y: 4)
-
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 24, weight: .semibold))
-                        .foregroundColor(.white)
-
-                    // Tier Progress Ring
-                    TierProgressRing(
-                        currentTier: currentTier,
-                        progress: tierProgress,
-                        showSparkles: false
-                    )
-                    .frame(width: 60, height: 60)
+                        .frame(width: 60, height: 60)
+                    }
                 }
+                .buttonStyle(ScaleButtonStyle(scale: 0.95))
 
                 // Points Balance with Tier Info
                 VStack(alignment: .leading, spacing: 4) {
@@ -155,57 +165,10 @@ struct WalletHeaderView: View {
                 }
             )
         }
-    }
-}
-
-// MARK: - Streak Counter
-
-struct StreakCounter: View {
-    let streakCount: Int
-    let isAtRisk: Bool
-    let onTap: () -> Void
-
-    @State private var isPulsing = false
-
-    var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 4) {
-                Text("🔥")
-                    .font(.system(size: 14))
-                    .scaleEffect(isPulsing ? 1.1 : 1.0)
-
-                Text("\(streakCount)")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(isAtRisk ? .billixStreakOrange : .white)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(
-                        isAtRisk ?
-                        Color.billixStreakOrange.opacity(0.25) :
-                        Color.billixStreakOrange
-                    )
-                    .overlay(
-                        Capsule()
-                            .stroke(Color.billixStreakOrange, lineWidth: isAtRisk ? 2 : 0)
-                    )
-            )
-            .shadow(
-                color: .billixStreakOrange.opacity(isPulsing ? 0.6 : 0.3),
-                radius: isPulsing ? 8 : 4,
-                x: 0,
-                y: 2
-            )
-        }
-        .buttonStyle(ScaleButtonStyle(scale: 0.95))
-        .onAppear {
-            if isAtRisk {
-                withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
-                    isPulsing = true
-                }
-            }
+        .sheet(isPresented: $showHowItWorks) {
+            RewardsHowItWorksSheet()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
     }
 }
@@ -289,13 +252,19 @@ struct StreakStatsCarousel: View {
     let toNextTier: Int
 
     @State private var currentIndex: Int = 0
+    @State private var timer: Timer?
 
     // Mock weekly progress (last 7 days, ordered Monday to Sunday, most recent = end)
-    private let weekDays = ["M", "T", "W", "T", "F", "S", "S"]
+    private let weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     private let weekProgress = [false, false, false, true, true, true, true] // 4-day streak (Thu-Sun)
 
-    // Mock badges
-    private let badges = [3, 7, 14, 30, 60]
+    // Tier badges (Bronze, Silver, Gold, Platinum, Diamond)
+    private let tierBadges: [(tier: String, isEarned: Bool)] = [
+        ("Bronze", true),
+        ("Silver", false),
+        ("Gold", false),
+        ("Platinum", false)
+    ]
 
     var body: some View {
         HStack(spacing: 8) {
@@ -306,16 +275,11 @@ struct StreakStatsCarousel: View {
                 }
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
+                resetTimer()
             } label: {
-                ZStack {
-                    Circle()
-                        .fill(Color.billixMoneyGreen.opacity(0.15))
-                        .frame(width: 36, height: 36)
-
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.billixMoneyGreen)
-                }
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.billixMoneyGreen)
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.9))
 
@@ -325,12 +289,12 @@ struct StreakStatsCarousel: View {
                 WeeklyProgressSlide(days: weekDays, progress: weekProgress)
                     .tag(0)
 
-                // Slide 2: My Badges
-                MyBadgesSlide(badges: badges)
+                // Slide 2: My Tier Badges
+                MyBadgesSlide(tierBadges: tierBadges)
                     .tag(1)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(height: 60)
+            .frame(height: 70)
 
             // Right Arrow
             Button {
@@ -339,20 +303,35 @@ struct StreakStatsCarousel: View {
                 }
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
+                resetTimer()
             } label: {
-                ZStack {
-                    Circle()
-                        .fill(Color.billixMoneyGreen.opacity(0.15))
-                        .frame(width: 36, height: 36)
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.billixMoneyGreen)
-                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.billixMoneyGreen)
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.9))
         }
         .padding(.horizontal, 4)
+        .onAppear {
+            startTimer()
+        }
+        .onDisappear {
+            timer?.invalidate()
+            timer = nil
+        }
+    }
+
+    private func startTimer() {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                currentIndex = currentIndex == 0 ? 1 : 0
+            }
+        }
+    }
+
+    private func resetTimer() {
+        startTimer()
     }
 }
 
@@ -385,11 +364,11 @@ struct WeeklyProgressSlide: View {
         }
     }
 
-    private var fireEmoji: String {
+    private var streakIcon: String {
         switch streakCount {
-        case 4...Int.max: return "🔥" // Hot fire
-        case 2...3: return "❄️" // Ice/cooling
-        default: return "🔥" // Gray fire (will use gray color)
+        case 4...Int.max: return "flame.fill" // Hot streak
+        case 2...3: return "snowflake" // Cooling streak
+        default: return "flame.fill" // No streak
         }
     }
 
@@ -420,7 +399,7 @@ struct WeeklyProgressSlide: View {
                             Text(day)
                                 .font(.system(size: 9, weight: .semibold))
                                 .foregroundColor(.billixMediumGreen)
-                                .frame(width: 12)
+                                .frame(width: 24)
 
                             ZStack {
                                 Circle()
@@ -443,9 +422,11 @@ struct WeeklyProgressSlide: View {
                 }
             }
 
-            // Fire emoji (dynamic based on streak)
-            Text(fireEmoji)
-                .font(.system(size: 32))
+            // Streak icon (dynamic based on streak)
+            Image(systemName: streakIcon)
+                .font(.system(size: 32, weight: .semibold))
+                .foregroundColor(streakColor)
+                .symbolEffect(.pulse, options: streakCount >= 4 ? .repeating : .default)
         }
         .onAppear {
             // Trigger animation on appear
@@ -463,51 +444,68 @@ struct WeeklyProgressSlide: View {
 // MARK: - My Badges Slide
 
 struct MyBadgesSlide: View {
-    let badges: [Int]
+    let tierBadges: [(tier: String, isEarned: Bool)]
 
     var body: some View {
         VStack(spacing: 8) {
             // Title
-            Text("My Badges")
+            Text("My Tier Badges")
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(.billixMediumGreen)
 
             // Badges row
-            HStack(spacing: 8) {
-                ForEach(Array(badges.enumerated()), id: \.offset) { index, count in
-                    BadgeHexagon(count: count, isEarned: index < 2)
+            HStack(spacing: 28) {
+                ForEach(Array(tierBadges.enumerated()), id: \.offset) { index, badge in
+                    TierBadgeHexagon(tier: badge.tier, isEarned: badge.isEarned)
                 }
             }
         }
     }
 }
 
-// MARK: - Badge Hexagon
+// MARK: - Tier Badge Hexagon
 
-struct BadgeHexagon: View {
-    let count: Int
+struct TierBadgeHexagon: View {
+    let tier: String
     let isEarned: Bool
 
     var body: some View {
-        ZStack {
-            // Hexagon shape (using SF Symbol)
-            Image(systemName: "hexagon.fill")
-                .font(.system(size: 32))
-                .foregroundColor(isEarned ? badgeColor : Color.gray.opacity(0.3))
+        VStack(spacing: 2) {
+            ZStack {
+                // Hexagon shape (using SF Symbol)
+                Image(systemName: "hexagon.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(isEarned ? badgeColor : Color.gray.opacity(0.3))
 
-            // Count
-            Text("\(count)")
-                .font(.system(size: 11, weight: .bold))
-                .foregroundColor(.white)
+                // Medal icon
+                Image(systemName: medalIcon)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+            }
+
+            // Tier label
+            Text(tier)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(isEarned ? badgeColor : Color.gray.opacity(0.6))
+        }
+    }
+
+    private var medalIcon: String {
+        switch tier {
+        case "Bronze": return "medal.fill"
+        case "Silver": return "medal.fill"
+        case "Gold": return "medal.fill"
+        case "Platinum": return "crown.fill"
+        default: return "medal.fill"
         }
     }
 
     private var badgeColor: Color {
-        switch count {
-        case 3: return Color(hex: "#E57373") // Light red
-        case 7: return Color(hex: "#F06292") // Pink
-        case 14: return Color(hex: "#BA68C8") // Purple
-        case 30: return Color(hex: "#64B5F6") // Blue
+        switch tier {
+        case "Bronze": return .billixBronzeTier
+        case "Silver": return .billixSilverTier
+        case "Gold": return .billixGoldTier
+        case "Platinum": return .billixPlatinumTier
         default: return .gray
         }
     }
@@ -551,11 +549,43 @@ struct RollingNumberView: View {
 
 // MARK: - Preview
 
-#Preview {
+#Preview("Bronze Tier - 1,450 pts") {
     VStack {
         WalletHeaderView(
             points: 1450,
-            cashEquivalent: 14.50,
+            cashEquivalent: 0.73,
+            currentTier: .bronze,
+            tierProgress: 0.18,  // 1,450 / 8,000 = ~18%
+            onHistoryTapped: {}
+        )
+
+        Spacer()
+    }
+    .background(Color.billixLightGreen)
+}
+
+#Preview("Silver Tier - 12,000 pts") {
+    VStack {
+        WalletHeaderView(
+            points: 12000,
+            cashEquivalent: 6.00,
+            currentTier: .silver,
+            tierProgress: 0.18,  // 4,000 / 22,000 = ~18%
+            onHistoryTapped: {}
+        )
+
+        Spacer()
+    }
+    .background(Color.billixLightGreen)
+}
+
+#Preview("Gold Tier - 45,000 pts") {
+    VStack {
+        WalletHeaderView(
+            points: 45000,
+            cashEquivalent: 22.50,
+            currentTier: .gold,
+            tierProgress: 0.21,  // 15,000 / 70,000 = ~21%
             onHistoryTapped: {}
         )
 

@@ -216,8 +216,37 @@ class RealBillUploadService: BillUploadServiceProtocol {
             struct UploadResponse: Decodable {
                 let analysis: BillAnalysis
             }
-            let apiResponse = try jsonDecoder.decode(UploadResponse.self, from: data)
-            return apiResponse.analysis
+
+            // DEBUG: Print raw JSON response
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📥 Backend Response JSON:")
+                print(jsonString)
+            }
+
+            do {
+                let apiResponse = try jsonDecoder.decode(UploadResponse.self, from: data)
+                print("✅ Successfully decoded BillAnalysis")
+                return apiResponse.analysis
+            } catch {
+                print("❌ Decoding Error: \(error)")
+                if let decodingError = error as? DecodingError {
+                    switch decodingError {
+                    case .keyNotFound(let key, let context):
+                        print("Missing key '\(key.stringValue)' at path: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))")
+                    case .typeMismatch(let type, let context):
+                        print("Type mismatch for type '\(type)' at path: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))")
+                        print("Debug: \(context.debugDescription)")
+                    case .valueNotFound(let type, let context):
+                        print("Value not found for type '\(type)' at path: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))")
+                    case .dataCorrupted(let context):
+                        print("Data corrupted at path: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))")
+                        print("Debug: \(context.debugDescription)")
+                    @unknown default:
+                        print("Unknown decoding error")
+                    }
+                }
+                throw UploadError.decodingFailed("Failed to decode bill analysis: \(error.localizedDescription)")
+            }
         case 400:
             let error = try? jsonDecoder.decode(UploadAPIErrorResponse.self, from: data)
             throw UploadError.validationFailed(error?.message ?? "Invalid file")

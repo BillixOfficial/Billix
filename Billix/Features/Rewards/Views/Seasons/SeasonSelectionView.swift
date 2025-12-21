@@ -85,7 +85,12 @@ struct SeasonSelectionView: View {
                            let firstSeason = viewModel.seasons.first(where: { !$0.isLocked }) {
                             let stats = viewModel.getSeasonCompletionStats(seasonId: firstSeason.id)
 
-                            if stats.completed > 0 && stats.completed < stats.total {
+                            // Show if: session-based with attempts OR location-based with partial completion
+                            let hasProgress = stats.isSessionBased
+                                ? (stats.attempts > 0 && stats.passedParts < stats.total)
+                                : (stats.completed > 0 && stats.completed < stats.total)
+
+                            if hasProgress {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text("Continue Playing")
                                         .font(.system(size: 20, weight: .bold))
@@ -116,9 +121,15 @@ struct SeasonSelectionView: View {
                                                     .font(.system(size: 16, weight: .bold))
                                                     .foregroundColor(.white)
 
-                                                Text("\(stats.completed)/\(stats.total) locations")
-                                                    .font(.system(size: 13, weight: .medium))
-                                                    .foregroundColor(.white.opacity(0.8))
+                                                if stats.isSessionBased {
+                                                    Text("\(stats.attempts) \(stats.attempts == 1 ? "play" : "plays") • \(stats.passedParts)/\(stats.total) passed")
+                                                        .font(.system(size: 13, weight: .medium))
+                                                        .foregroundColor(.white.opacity(0.8))
+                                                } else {
+                                                    Text("\(stats.completed)/\(stats.total) locations")
+                                                        .font(.system(size: 13, weight: .medium))
+                                                        .foregroundColor(.white.opacity(0.8))
+                                                }
                                             }
 
                                             Spacer()

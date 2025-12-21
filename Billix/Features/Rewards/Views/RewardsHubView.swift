@@ -27,6 +27,8 @@ struct RewardsHubView: View {
                     WalletHeaderView(
                         points: viewModel.displayedBalance,
                         cashEquivalent: viewModel.points.cashEquivalent,
+                        currentTier: viewModel.currentTier,
+                        tierProgress: viewModel.tierProgress,
                         onHistoryTapped: {
                             viewModel.showHistory = true
                         }
@@ -82,8 +84,8 @@ struct RewardsHubView: View {
         }
         .fullScreenCover(isPresented: $viewModel.showGeoGame) {
             if let game = viewModel.activeGame {
-                GeoGameContainerView(
-                    initialGame: game,
+                GeoGameFlowView(
+                    game: game,
                     onComplete: { result in
                         viewModel.handleGameResult(result)
                     },
@@ -96,6 +98,9 @@ struct RewardsHubView: View {
                 )
                 .id(game.id) // Force view recreation when game changes
             }
+        }
+        .fullScreenCover(isPresented: $viewModel.showSeasonSelection) {
+            SeasonSelectionView()
         }
     }
 }
@@ -196,6 +201,7 @@ struct EarnPointsTabView: View {
                 // Daily Tasks Section
                 DailyTasksSection()
                     .padding(.horizontal, 20)
+                    .padding(.top, 20)
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : 20)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.25), value: appeared)
@@ -232,48 +238,26 @@ struct EarnPointsTabView: View {
 
 struct MarketplaceTabView: View {
     @ObservedObject var viewModel: RewardsViewModel
-    @State private var appeared = false
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 20) {
-                // Featured Reward Hero Card
-                if let featured = viewModel.rewards.first {
-                    FeaturedRewardCard(
-                        reward: featured,
-                        userPoints: viewModel.points.balance,
-                        onTap: {
-                            viewModel.selectedReward = featured
-                        }
-                    )
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
-                }
-
-                // Rewards Grid
-                RewardGridSection(
-                    rewards: Array(viewModel.rewards.dropFirst()),
-                    userPoints: viewModel.points.balance,
-                    onRewardTapped: { reward in
-                        viewModel.selectedReward = reward
-                    }
-                )
-                .padding(.horizontal, 20)
-                .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : 20)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.25), value: appeared)
-
-                Spacer(minLength: 100)
+        RewardMarketplace(
+            rewards: viewModel.rewards,
+            userPoints: viewModel.points.balance,
+            canAccessShop: viewModel.canAccessRewardShop,
+            currentTier: viewModel.currentTier,
+            onRewardTapped: { reward in
+                viewModel.selectedReward = reward
+            },
+            onViewAllGiftCards: {
+                viewModel.showAllRewards = true
+            },
+            onViewAllGameBoosts: {
+                viewModel.showAllRewards = true
+            },
+            onViewAllVirtualGoods: {
+                viewModel.showAllRewards = true
             }
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                appeared = true
-            }
-        }
+        )
     }
 }
 
@@ -287,10 +271,20 @@ struct DailyGameHeroCard: View {
     @State private var isAnimating = false
     @State private var shimmerOffset: CGFloat = -200
     @State private var badgePulse = false
+    @State private var isPressed = false
+    @State private var tickerOffset: CGFloat = 0
+
+    // Mock streak data (TODO: Connect to actual streak tracking)
+    private let streakDays = 4
+    private let maxPlaysPerDay = 3
+
+    var playsRemaining: Int {
+        max(0, maxPlaysPerDay - gamesPlayedToday)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
-            // "DAILY" badge with animation
+            // "DAILY" badge with enhanced animation
             HStack {
                 Spacer()
                 Text("DAILY")
@@ -299,53 +293,74 @@ struct DailyGameHeroCard: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.billixStreakOrange, Color.billixFlashRed],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
+                        ZStack {
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.billixStreakOrange, Color.billixFlashRed],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
                                 )
-                            )
-                            .shadow(color: .billixStreakOrange.opacity(0.5), radius: badgePulse ? 8 : 4)
+                                .shadow(color: .billixStreakOrange.opacity(0.5), radius: badgePulse ? 8 : 4)
+
+                            // Shimmer effect
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.clear, .white.opacity(0.4), .clear],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .offset(x: shimmerOffset * 0.3)
+                        }
                     )
                     .scaleEffect(badgePulse ? 1.05 : 1.0)
                     .offset(x: -12, y: 12)
             }
             .zIndex(1)
+            .accessibilityLabel("Daily challenge available")
 
             ZStack {
-                // Clean solid purple background
+                // Solid background - Deep ocean blue for global travel theme
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(hex: "#7C3AED"))  // Clean purple
+                    .fill(Color(hex: "#0C4A6E"))
 
-                // Decorative pattern overlay
+                // Floating particles (subtle magical ambiance)
+                FloatingParticlesBackground(
+                    particleCount: 7,
+                    colors: [.white, Color.billixArcadeGold.opacity(0.8)]
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+
+                // Decorative pattern overlay (slightly enhanced)
                 GeometryReader { geometry in
                     // Top-right accent circle
                     Circle()
                         .fill(
                             RadialGradient(
-                                colors: [Color.billixArcadeGold.opacity(0.3), .clear],
+                                colors: [Color.billixArcadeGold.opacity(0.35), .clear],
                                 center: .center,
                                 startRadius: 0,
-                                endRadius: 100
+                                endRadius: 110
                             )
                         )
-                        .frame(width: 200, height: 200)
-                        .offset(x: geometry.size.width - 80, y: -60)
+                        .frame(width: 220, height: 220)
+                        .offset(x: geometry.size.width - 90, y: -70)
 
                     // Bottom-left accent circle
                     Circle()
                         .fill(
                             RadialGradient(
-                                colors: [Color.billixPrizeOrange.opacity(0.2), .clear],
+                                colors: [Color.billixPrizeOrange.opacity(0.25), .clear],
                                 center: .center,
                                 startRadius: 0,
-                                endRadius: 80
+                                endRadius: 85
                             )
                         )
-                        .frame(width: 150, height: 150)
-                        .offset(x: -40, y: geometry.size.height - 50)
+                        .frame(width: 170, height: 170)
+                        .offset(x: -50, y: geometry.size.height - 60)
                 }
 
                 // Subtle shimmer
@@ -359,159 +374,96 @@ struct DailyGameHeroCard: View {
                     )
                     .offset(x: shimmerOffset)
 
-                HStack(spacing: 20) {
-                    // Enhanced game visual
-                    ZStack {
-                        // Glow rings
-                        ForEach(0..<2) { index in
-                            Circle()
-                                .stroke(Color.billixArcadeGold.opacity(0.3), lineWidth: 2)
-                                .frame(width: 90 + CGFloat(index * 12), height: 90 + CGFloat(index * 12))
-                                .opacity(isAnimating ? 0.0 : 0.5)
-                                .scaleEffect(isAnimating ? 1.4 : 1.0)
-                                .animation(
-                                    .easeOut(duration: 1.8)
-                                    .repeatForever(autoreverses: false)
-                                    .delay(Double(index) * 0.4),
-                                    value: isAnimating
-                                )
-                        }
+                VStack(spacing: 16) {
+                    HStack(spacing: 0) {
+                        // Animated globe icon - shifted left
+                        PriceGuessrIcon()
+                            .frame(width: 168, height: 168)
+                            .offset(x: -30)
 
-                        // Main circle
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.billixArcadeGold, Color.billixPrizeOrange],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 90, height: 90)
-                            .shadow(color: .billixArcadeGold.opacity(0.5), radius: 15, x: 0, y: 8)
-                            .overlay(
-                                Circle()
-                                    .fill(
-                                        RadialGradient(
-                                            colors: [.white.opacity(0.4), .clear],
-                                            center: .topLeading,
-                                            startRadius: 0,
-                                            endRadius: 45
-                                        )
-                                    )
-                            )
-                            .offset(y: isAnimating ? -4 : 4)
-
-                        // Icon
-                        Image(systemName: "questionmark")
-                            .font(.system(size: 40, weight: .bold))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.2), radius: 3)
-                            .rotationEffect(.degrees(isAnimating ? 5 : -5))
-                    }
-                    .frame(width: 100)
-
-                    // Content
-                    VStack(alignment: .leading, spacing: 10) {
-                        if let game = game {
-                            VStack(alignment: .leading, spacing: 9) {
+                        // Simple content - title with price tag and reward
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(alignment: .bottom, spacing: 3) {
                                 Text("Price Guessr")
-                                    .font(.system(size: 22, weight: .bold))
+                                    .font(.system(size: 30, weight: .bold))
                                     .foregroundColor(.white)
-                                    .lineLimit(1)
 
-                                HStack(spacing: 6) {
-                                    Image(systemName: "star.fill")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.billixArcadeGold)
+                                // Price tag next to title
+                                PriceTag()
+                                    .scaleEffect(0.95)
+                            }
 
-                                    Text("Win up to 100 pts")
-                                        .font(.system(size: 15, weight: .semibold))
-                                        .foregroundColor(.white.opacity(0.95))
-                                }
+                            HStack(spacing: 6) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.billixArcadeGold)
 
-                                HStack(spacing: 6) {
-                                    Image(systemName: "target")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.white.opacity(0.7))
-
-                                    Text("Guess: \(game.subject) price")
-                                        .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(.white.opacity(0.85))
-                                }
-
-                                // Show games played if any
-                                if gamesPlayedToday > 0 {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "gamecontroller.fill")
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.white.opacity(0.7))
-
-                                        Text("\(gamesPlayedToday) played today")
-                                            .font(.system(size: 14, weight: .medium))
-                                            .foregroundColor(.white.opacity(0.85))
-                                    }
-                                }
+                                Text("Win up to 110 pts")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.95))
                             }
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .offset(x: -22)
 
-                        Spacer()
+                        Spacer(minLength: 0)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Spacer(minLength: 8)
+                    Spacer()
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 20)
-            }
-            .frame(height: 150)
 
-            // Enhanced CTA Button with shine effect
-            Button(action: onPlay) {
-                ZStack {
-                    Text("Play Now")
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(
-                            ZStack {
-                                LinearGradient(
-                                    colors: [Color.billixArcadeGold, Color.billixPrizeOrange],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-
-                                // Shine overlay
-                                LinearGradient(
-                                    colors: [
-                                        .clear,
-                                        .white.opacity(0.2),
-                                        .clear
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                                .offset(x: shimmerOffset)
-                            }
-                        )
-
+                // Centered Play Button
+                VStack {
+                    Spacer()
                     HStack {
                         Spacer()
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.trailing, 20)
+
+                        Button(action: {
+                            let generator = UIImpactFeedbackGenerator(style: .medium)
+                            generator.impactOccurred()
+                            onPlay()
+                        }) {
+                            Text("PLAY NOW")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 12)
+                                .background(
+                                    ZStack {
+                                        Capsule()
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [Color.billixArcadeGold, Color(hex: "#FFA500"), Color(hex: "#FF6B35")],
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+
+                                        // Pulse glow effect
+                                        Capsule()
+                                            .stroke(Color.billixArcadeGold.opacity(0.5), lineWidth: 2)
+                                            .blur(radius: 4)
+                                            .scaleEffect(badgePulse ? 1.05 : 1.0)
+                                    }
+                                )
+                                .shadow(color: .billixArcadeGold.opacity(0.4), radius: 10, x: 0, y: 4)
+                        }
+                        .buttonStyle(FABButtonStyle())
+                        .accessibilityLabel("Play today's Price Guessr challenge")
+                        .accessibilityHint("Double tap to start guessing prices")
+
+                        Spacer()
                     }
                 }
+                .padding(16)
             }
-            .buttonStyle(ScaleButtonStyle(scale: 0.97))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: .billixArcadeGold.opacity(0.3), radius: 12, y: 6)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
-            .offset(y: -10)
+            .frame(height: 200)
         }
         .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Daily Price Guessr game. Guess prices around the world. Win up to 110 points.")
         .onAppear {
             // Start animations
             withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
@@ -528,6 +480,40 @@ struct DailyGameHeroCard: View {
             }
         }
     }
+
+    // Helper function to get flag emoji for location
+    private func getFlagEmoji(for location: String) -> String {
+        // Simple mapping for common locations
+        let flagMap: [String: String] = [
+            "Manhattan, NY": "🇺🇸",
+            "Tokyo": "🇯🇵",
+            "London": "🇬🇧",
+            "Paris": "🇫🇷",
+            "Sydney": "🇦🇺",
+            "Toronto": "🇨🇦",
+            "Berlin": "🇩🇪",
+            "Mumbai": "🇮🇳"
+        ]
+
+        // Try to find exact match or partial match
+        for (key, flag) in flagMap {
+            if location.contains(key) || key.contains(location) {
+                return flag
+            }
+        }
+
+        return "🌎" // Default globe emoji
+    }
+}
+
+// MARK: - FAB Button Style
+
+struct FABButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
+    }
 }
 
 // MARK: - Daily Tasks Section
@@ -537,7 +523,7 @@ struct DailyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Check in today",
-            points: 10,
+            points: 200,  // $0.01 (20,000:1 ratio)
             icon: "calendar.badge.checkmark",
             isCompleted: true,
             type: .daily
@@ -545,7 +531,7 @@ struct DailyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Upload a bill",
-            points: 50,
+            points: 1500,  // $0.075
             icon: "doc.badge.plus",
             isCompleted: false,
             type: .daily
@@ -553,7 +539,7 @@ struct DailyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Compare 3 providers",
-            points: 30,
+            points: 800,  // $0.04
             icon: "chart.bar.fill",
             isCompleted: false,
             type: .daily
@@ -597,7 +583,7 @@ struct WeeklyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Refer a friend",
-            points: 200,
+            points: 4000,  // $0.20
             icon: "person.2.fill",
             isCompleted: false,
             type: .weekly
@@ -605,7 +591,7 @@ struct WeeklyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Upload 5 bills",
-            points: 150,
+            points: 3000,  // $0.15
             icon: "doc.on.doc.fill",
             isCompleted: false,
             type: .weekly,
@@ -615,7 +601,7 @@ struct WeeklyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Play Price Guessr 7 times",
-            points: 300,
+            points: 2000,  // $0.10
             icon: "gamecontroller.fill",
             isCompleted: false,
             type: .weekly,

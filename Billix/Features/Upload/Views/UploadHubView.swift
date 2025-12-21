@@ -18,6 +18,7 @@ struct UploadHubView: View {
 
     @StateObject private var viewModel = UploadViewModel()
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \StoredBill.uploadDate, order: .reverse) private var storedBills: [StoredBill]
     @State private var appeared = false
     @State private var fullAnalysisTapped = false
     @State private var showFullAnalysisInfo = false
@@ -25,6 +26,12 @@ struct UploadHubView: View {
     @State private var infoPulse = false
     @State private var quickAddInfoPulse = false
     @State private var navigateToUploadMethods = false
+    @State private var refreshTrigger = UUID()
+
+    // Derive recent uploads from SwiftData query (auto-updates on changes)
+    private var recentUploads: [RecentUpload] {
+        storedBills.prefix(4).compactMap { $0.toRecentUpload() }
+    }
 
     var body: some View {
         NavigationStack {
@@ -64,18 +71,23 @@ struct UploadHubView: View {
         }
         .onAppear {
             viewModel.modelContext = modelContext
-            Task {
-                await viewModel.loadRecentUploads()
-            }
+            // Force refresh when view appears
+            refreshTrigger = UUID()
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 appeared = true
             }
+        }
+        .task(id: refreshTrigger) {
+            // Task runs when refreshTrigger changes, causing view to re-render with latest @Query data
+            // Note: We now use @Query directly, so no need to manually load data
+            // Just triggering this task causes a refresh of the SwiftData query
         }
         .sheet(isPresented: $viewModel.showQuickAddFlow) {
             QuickAddFlowView(
                 onComplete: {
                     viewModel.dismissFlows()
-                    viewModel.handleUploadComplete()
+                    // Trigger refresh to show new upload
+                    refreshTrigger = UUID()
                 },
 onSwitchToFullAnalysis: {
                     // Dismiss Quick Add and navigate to upload method selection after a short delay
@@ -92,7 +104,8 @@ onSwitchToFullAnalysis: {
                 fileName: viewModel.selectedFileName,
                 onComplete: {
                     viewModel.dismissFlows()
-                    viewModel.handleUploadComplete()
+                    // Trigger refresh to show new upload
+                    refreshTrigger = UUID()
                 }
             )
         }
@@ -117,6 +130,12 @@ onSwitchToFullAnalysis: {
         .sheet(item: $viewModel.selectedUpload) { upload in
             if let bill = viewModel.findStoredBill(for: upload.id) {
                 UploadDetailView(upload: upload, storedBill: bill)
+            }
+        }
+        .onChange(of: viewModel.selectedUpload) { oldValue, newValue in
+            // Refresh uploads when detail sheet is dismissed
+            if oldValue != nil && newValue == nil {
+                refreshTrigger = UUID()
             }
         }
     }
@@ -292,7 +311,7 @@ onSwitchToFullAnalysis: {
                 Spacer()
 
                 // View All button
-                if !viewModel.recentUploads.isEmpty {
+                if !recentUploads.isEmpty {
                     NavigationLink(destination: AllUploadsView()) {
                         HStack(spacing: 4) {
                             Text("View All")
@@ -303,16 +322,10 @@ onSwitchToFullAnalysis: {
                         .foregroundColor(.billixChartBlue)
                     }
                 }
-
-                if viewModel.isLoadingRecent {
-                    ProgressView()
-                        .scaleEffect(0.7)
-                        .tint(.billixMoneyGreen)
-                }
             }
             .padding(.horizontal, 20)
 
-            if viewModel.recentUploads.isEmpty {
+            if recentUploads.isEmpty {
                 // Empty state card
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
@@ -324,7 +337,7 @@ onSwitchToFullAnalysis: {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
-                        ForEach(viewModel.recentUploads.prefix(4)) { upload in
+                        ForEach(recentUploads) { upload in
                             Button {
                                 viewModel.selectedUpload = upload
                             } label: {
@@ -582,36 +595,85 @@ struct EmptyUploadCard: View {
     var isSecondary: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(isSecondary ? "Personal" : "Get Started")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.billixMediumGreen)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(isSecondary ? Color.buttonDocument.opacity(0.1) : Color.billixMoneyGreen.opacity(0.1))
-                )
+        if isSecondary {
+            // Second card - guide to options above
+            VStack(spacing: 10) {
+                Spacer()
 
-            Text(isSecondary ? "Add your first bill" : "Upload a bill to begin")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.billixDarkGreen)
-                .lineLimit(2)
+                // Icon representing options
+                Image(systemName: "hand.tap.fill")
+                    .font(.system(size: 36))
+                    .foregroundColor(.billixChartBlue.opacity(0.5))
 
-            Spacer()
+                // Guide user to CTAs above
+                Text("Ready to Start?")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
+                    .multilineTextAlignment(.center)
 
-            // Empty progress bar
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color.billixMoneyGreen.opacity(0.2))
-                .frame(height: 4)
+                Text("Choose an option above")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.billixMediumGreen)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(14)
+            .frame(width: 150, height: 120)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                Color.billixChartBlue.opacity(0.25),
+                                style: StrokeStyle(lineWidth: 1.5, dash: [6, 3])
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
+            )
+        } else {
+            // First card - explain what will appear here
+            VStack(spacing: 10) {
+                Spacer()
+
+                // Icon representing empty/waiting
+                Image(systemName: "tray")
+                    .font(.system(size: 36))
+                    .foregroundColor(.billixMediumGreen.opacity(0.6))
+
+                // Informational message
+                Text("No Bills Yet")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
+                    .multilineTextAlignment(.center)
+
+                Text("Your uploads will show here")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.billixMediumGreen)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(14)
+            .frame(width: 150, height: 120)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                Color.billixMediumGreen.opacity(0.25),
+                                style: StrokeStyle(lineWidth: 1.5, dash: [6, 3])
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
+            )
         }
-        .padding(14)
-        .frame(width: 150, height: 120)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
-        )
     }
 }
 

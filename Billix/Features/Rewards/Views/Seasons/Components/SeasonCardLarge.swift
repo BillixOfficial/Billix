@@ -10,7 +10,7 @@ import SwiftUI
 
 struct SeasonCardLarge: View {
     let season: Season
-    let progress: (completed: Int, total: Int)
+    let progress: SeasonCompletionStats
     let isLocked: Bool
     let onTap: () -> Void
 
@@ -19,20 +19,44 @@ struct SeasonCardLarge: View {
 
     private var progressPercent: Double {
         guard progress.total > 0 else { return 0 }
-        return Double(progress.completed) / Double(progress.total)
+
+        if progress.isSessionBased {
+            // For session-based: percentage of parts passed
+            return Double(progress.passedParts) / Double(progress.total)
+        } else {
+            // For location-based: percentage of locations completed
+            return Double(progress.completed) / Double(progress.total)
+        }
     }
 
     private var starsEarned: Int {
-        // Calculate stars based on progress (0-3 stars)
-        // More generous thresholds for better visual feedback
-        if progressPercent >= 0.9 {
-            return 3
-        } else if progressPercent >= 0.5 {
-            return 2
-        } else if progressPercent > 0.0 {
-            return 1
+        if progress.isSessionBased {
+            // Progression-based stars for session-based seasons
+            // ⭐ 0 Stars = Not started (no legitimate attempts)
+            // ⭐ 1 Star = In Progress (at least 1 attempt, but no parts passed)
+            // ⭐⭐ 2 Stars = Halfway (at least 1 part passed, but not all)
+            // ⭐⭐⭐ 3 Stars = Complete (all parts passed)
+
+            if progress.passedParts >= progress.total && progress.total > 0 {
+                return 3  // All parts passed
+            } else if progress.passedParts > 0 {
+                return 2  // At least 1 part passed
+            } else if progress.attempts > 0 {
+                return 1  // At least 1 attempt
+            } else {
+                return 0  // Not started
+            }
         } else {
-            return 0
+            // Percentage-based stars for location-based seasons
+            if progressPercent >= 0.9 {
+                return 3
+            } else if progressPercent >= 0.5 {
+                return 2
+            } else if progressPercent > 0.0 {
+                return 1
+            } else {
+                return 0
+            }
         }
     }
 
@@ -131,37 +155,70 @@ struct SeasonCardLarge: View {
                     // Progress stats with optical alignment
                     if !isLocked {
                         HStack(spacing: 16) {
-                            // Locations completed
-                            HStack(spacing: 5) {
-                                Image(systemName: "map.fill")
+                            if progress.isSessionBased {
+                                // Session-based: Show attempts
+                                HStack(spacing: 5) {
+                                    Image(systemName: "gamecontroller.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Color(hex: "#6B7280"))
+
+                                    Text("\(progress.attempts) \(progress.attempts == 1 ? "play" : "plays")")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(Color(hex: "#1F2937"))
+                                        .lineLimit(1)
+                                        .offset(y: -0.5)
+                                }
+                                .alignmentGuide(.firstTextBaseline) { d in d[.bottom] }
+
+                                Text("•")
                                     .font(.system(size: 12))
-                                    .foregroundColor(Color(hex: "#6B7280"))
+                                    .foregroundColor(Color(hex: "#6B7280").opacity(0.5))
 
-                                Text("\(progress.completed)/\(progress.total)")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(Color(hex: "#1F2937"))
-                                    .lineLimit(1)
-                                    .offset(y: -0.5)  // Optical centering
-                            }
-                            .alignmentGuide(.firstTextBaseline) { d in d[.bottom] }
+                                // Parts passed
+                                HStack(spacing: 5) {
+                                    Image(systemName: "trophy.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Color(hex: "#6B7280"))
 
-                            Text("•")
-                                .font(.system(size: 12))
-                                .foregroundColor(Color(hex: "#6B7280").opacity(0.5))
+                                    Text("\(progress.passedParts)/\(progress.total) passed")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(Color(hex: "#1F2937"))
+                                        .lineLimit(1)
+                                        .offset(y: -0.5)
+                                }
+                            } else {
+                                // Location-based: Show locations completed
+                                HStack(spacing: 5) {
+                                    Image(systemName: "map.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Color(hex: "#6B7280"))
 
-                            // Progress percentage
-                            HStack(spacing: 5) {
-                                Image(systemName: "chart.bar.fill")
+                                    Text("\(progress.completed)/\(progress.total)")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(Color(hex: "#1F2937"))
+                                        .lineLimit(1)
+                                        .offset(y: -0.5)
+                                }
+                                .alignmentGuide(.firstTextBaseline) { d in d[.bottom] }
+
+                                Text("•")
                                     .font(.system(size: 12))
-                                    .foregroundColor(Color(hex: "#6B7280"))
+                                    .foregroundColor(Color(hex: "#6B7280").opacity(0.5))
 
-                                Text("\(Int(progressPercent * 100))%")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(Color(hex: "#1F2937"))
-                                    .lineLimit(1)
-                                    .offset(y: -0.5)  // Optical centering
+                                // Progress percentage
+                                HStack(spacing: 5) {
+                                    Image(systemName: "chart.bar.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Color(hex: "#6B7280"))
+
+                                    Text("\(Int(progressPercent * 100))%")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(Color(hex: "#1F2937"))
+                                        .lineLimit(1)
+                                        .offset(y: -0.5)
+                                }
+                                .alignmentGuide(.firstTextBaseline) { d in d[.bottom] }
                             }
-                            .alignmentGuide(.firstTextBaseline) { d in d[.bottom] }
                         }
                     } else {
                         // Release date info for locked seasons
@@ -225,7 +282,13 @@ struct SeasonCardButtonStyle: ButtonStyle {
             iconName: "flag.fill",
             createdAt: Date()
         ),
-        progress: (completed: 12, total: 20),
+        progress: SeasonCompletionStats(
+            completed: 4,
+            total: 2,
+            attempts: 4,
+            passedParts: 0,
+            isSessionBased: true
+        ),
         isLocked: false,
         onTap: {}
     )
@@ -245,7 +308,13 @@ struct SeasonCardButtonStyle: ButtonStyle {
             iconName: "globe.americas.fill",
             createdAt: Date()
         ),
-        progress: (completed: 0, total: 30),
+        progress: SeasonCompletionStats(
+            completed: 0,
+            total: 30,
+            attempts: 0,
+            passedParts: 0,
+            isSessionBased: false
+        ),
         isLocked: true,
         onTap: {}
     )
@@ -265,7 +334,13 @@ struct SeasonCardButtonStyle: ButtonStyle {
             iconName: "flag.fill",
             createdAt: Date()
         ),
-        progress: (completed: 20, total: 20),
+        progress: SeasonCompletionStats(
+            completed: 10,
+            total: 2,
+            attempts: 10,
+            passedParts: 2,
+            isSessionBased: true
+        ),
         isLocked: false,
         onTap: {}
     )

@@ -11,6 +11,8 @@ struct UploadDetailView: View {
     let upload: RecentUpload
     let storedBill: StoredBill
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         NavigationView {
@@ -36,6 +38,15 @@ struct UploadDetailView: View {
             .navigationTitle(upload.provider)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                }
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()
@@ -43,7 +54,19 @@ struct UploadDetailView: View {
                     .foregroundColor(.billixChartBlue)
                 }
             }
+            .confirmationDialog("Delete this bill?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+                Button("Delete", role: .destructive) {
+                    deleteBill()
+                }
+                Button("Cancel", role: .cancel) {}
+            }
         }
+    }
+
+    private func deleteBill() {
+        modelContext.delete(storedBill)
+        try? modelContext.save()
+        dismiss()
     }
 
     // MARK: - Header Section

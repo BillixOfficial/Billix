@@ -190,7 +190,7 @@ struct CostBreakdownSection: View {
             // Breakdown bars
             VStack(spacing: 12) {
                 ForEach(breakdown.sorted { $0.amount > $1.amount }, id: \.category) { item in
-                    CostBreakdownRow(
+                    AnalysisComponentCostRow(
                         category: item.category,
                         amount: item.amount,
                         percentage: item.percentage,
@@ -209,7 +209,7 @@ struct CostBreakdownSection: View {
 }
 
 /// Single row in cost breakdown
-private struct CostBreakdownRow: View {
+private struct AnalysisComponentCostRow: View {
     let category: String
     let amount: Double
     let percentage: Double

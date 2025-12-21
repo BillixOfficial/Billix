@@ -21,14 +21,14 @@ struct AnalysisResultsTabbedView: View {
 
     enum AnalysisTabType: String, CaseIterable {
         case summary = "Summary"
-        case breakdown = "Breakdown"
         case details = "Details"
+        case saveMoney = "Save Money"
 
         var icon: String {
             switch self {
             case .summary: return "square.grid.2x2.fill"
-            case .breakdown: return "chart.pie.fill"
             case .details: return "list.bullet.rectangle.fill"
+            case .saveMoney: return "dollarsign.circle.fill"
             }
         }
     }
@@ -48,14 +48,14 @@ struct AnalysisResultsTabbedView: View {
 
             // Swipeable Tab Content
             TabView(selection: $selectedTab) {
-                SummaryTabContent(analysis: analysis)
+                AnalysisSummaryTab(analysis: analysis)
                     .tag(AnalysisTabType.summary)
 
-                BreakdownTabContent(analysis: analysis)
-                    .tag(AnalysisTabType.breakdown)
-
-                DetailsTabContent(analysis: analysis)
+                AnalysisDetailsTab(analysis: analysis)
                     .tag(AnalysisTabType.details)
+
+                AnalysisSaveMoneyTab(analysis: analysis)
+                    .tag(AnalysisTabType.saveMoney)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: selectedTab)
@@ -109,15 +109,6 @@ struct AnalysisResultsTabbedView: View {
                 Text("$\(String(format: "%.2f", analysis.amount))")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.billixDarkGreen)
-            }
-
-            // Comparison Bar (if available)
-            if let comparison = analysis.marketplaceComparison {
-                CompactComparisonBar(
-                    position: comparison.position,
-                    percentDiff: comparison.percentDiff,
-                    areaAverage: comparison.areaAverage
-                )
             }
         }
         .padding(16)
@@ -1216,14 +1207,14 @@ struct AnalysisResultsTabbedEmbeddedView: View {
 
             // Swipeable Tab Content
             TabView(selection: $selectedTab) {
-                SummaryTabContent(analysis: analysis)
+                AnalysisSummaryTab(analysis: analysis)
                     .tag(AnalysisResultsTabbedView.AnalysisTabType.summary)
 
-                BreakdownTabContent(analysis: analysis)
-                    .tag(AnalysisResultsTabbedView.AnalysisTabType.breakdown)
-
-                DetailsTabContent(analysis: analysis)
+                AnalysisDetailsTab(analysis: analysis)
                     .tag(AnalysisResultsTabbedView.AnalysisTabType.details)
+
+                AnalysisSaveMoneyTab(analysis: analysis)
+                    .tag(AnalysisResultsTabbedView.AnalysisTabType.saveMoney)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: selectedTab)
@@ -1266,14 +1257,6 @@ struct AnalysisResultsTabbedEmbeddedView: View {
                 Text("$\(String(format: "%.2f", analysis.amount))")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.billixDarkGreen)
-            }
-
-            if let comparison = analysis.marketplaceComparison {
-                CompactComparisonBar(
-                    position: comparison.position,
-                    percentDiff: comparison.percentDiff,
-                    areaAverage: comparison.areaAverage
-                )
             }
         }
         .padding(16)
@@ -1395,7 +1378,13 @@ struct AnalysisResultsTabbedEmbeddedView: View {
                 percentDiff: 11.3,
                 zipPrefix: "481",
                 position: .above
-            )
+            ),
+            plainEnglishSummary: nil,
+            redFlags: nil,
+            controllableCosts: nil,
+            savingsOpportunities: nil,
+            jargonGlossary: nil,
+            assistancePrograms: nil
         ),
         onComplete: {}
     )

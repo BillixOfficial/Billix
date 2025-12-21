@@ -2,8 +2,8 @@
 //  PartSelectionView.swift
 //  Billix
 //
-//  Created by Claude Code
-//  View for selecting which part of a season to play
+//  Redesigned as "Expedition Ticket" selection screen
+//  Clean off-white background with timeline visualization
 //
 
 import SwiftUI
@@ -15,8 +15,8 @@ struct PartSelectionView: View {
 
     var body: some View {
         ZStack {
-            // Themed background
-            SeasonThemeBackground(season: viewModel.selectedSeason)
+            // Off-white background
+            Color(hex: "#FAFAFA")
                 .ignoresSafeArea()
 
             // Content
@@ -25,17 +25,17 @@ struct PartSelectionView: View {
                     // Header
                     VStack(spacing: 8) {
                         Text(seasonTitle)
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(Color(hex: "#1F2937"))
 
-                        Text("Choose a chapter")
-                            .font(.system(size: 17, weight: .medium))
+                        Text("Start your expedition")
+                            .font(.system(size: 15, weight: .medium))
                             .foregroundColor(Color(hex: "#6B7280"))
                     }
-                    .padding(.top, 32)
-                    .padding(.bottom, 24)
+                    .padding(.top, 24)
+                    .padding(.bottom, 32)
 
-                    // Part cards with connecting paths
+                    // Part cards with timeline connectors
                     if viewModel.isLoading && viewModel.seasonParts.isEmpty {
                         ProgressView()
                             .scaleEffect(1.5)
@@ -56,20 +56,19 @@ struct PartSelectionView: View {
                                     }
                                 }
                             )
-                            .padding(.horizontal, 24)
+                            .padding(.horizontal, 20)
 
-                            // Progress path connector (if not last part)
+                            // Timeline connector (if not last part)
                             if !isLastPart {
                                 let nextPart = viewModel.seasonParts[index + 1]
                                 let nextStats = viewModel.getCompletionStats(partId: nextPart.id)
                                 let nextIsUnlocked = nextPart.unlockRequirement == 0 || nextStats.completed >= nextPart.unlockRequirement
 
-                                ProgressPathConnector(
+                                TimelineConnector(
                                     isUnlocked: nextIsUnlocked,
-                                    isNextToUnlock: !nextIsUnlocked && isUnlocked,
                                     height: 40
                                 )
-                                .padding(.horizontal, 24)
+                                .padding(.horizontal, 20)
                             }
                         }
                     }
@@ -96,13 +95,14 @@ struct PartSelectionView: View {
                                 .fill(Color.red.opacity(0.1))
                         )
                         .padding(.horizontal, 20)
+                        .padding(.top, 20)
                     }
 
                     Spacer(minLength: 40)
                 }
             }
         }
-        .navigationTitle("Select Chapter")
+        .navigationTitle("Select Part")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $viewModel.showTutorial) {
             GeoGameHowToPlayView(

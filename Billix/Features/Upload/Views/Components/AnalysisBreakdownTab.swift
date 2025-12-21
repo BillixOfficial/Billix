@@ -33,6 +33,11 @@ struct AnalysisBreakdownTab: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
+                // NEW: What You Can Control
+                if let controlAnalysis = analysis.controllableCosts {
+                    ControlAnalysisSection(controlAnalysis: controlAnalysis)
+                }
+
                 // Donut chart
                 donutChartSection
 
@@ -330,7 +335,13 @@ struct InsightCard: View {
                 BillAnalysis.Insight(type: .savings, title: "Potential Savings", description: "You could save $14/month by switching to a time-of-use plan."),
                 BillAnalysis.Insight(type: .warning, title: "High Usage", description: "Your usage is 12% higher than last month.")
             ],
-            marketplaceComparison: nil
+            marketplaceComparison: nil,
+            plainEnglishSummary: nil,
+            redFlags: nil,
+            controllableCosts: nil,
+            savingsOpportunities: nil,
+            jargonGlossary: nil,
+            assistancePrograms: nil
         )
     )
     .background(Color.billixLightGreen)

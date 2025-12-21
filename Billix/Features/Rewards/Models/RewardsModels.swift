@@ -13,7 +13,7 @@ import MapKit
 
 // MARK: - Tier System
 
-enum RewardsTier: String, Codable {
+enum RewardsTier: String, Codable, CaseIterable {
     case bronze = "Bronze"
     case silver = "Silver"
     case gold = "Gold"
@@ -21,10 +21,10 @@ enum RewardsTier: String, Codable {
 
     var pointsRange: ClosedRange<Int> {
         switch self {
-        case .bronze: return 0...999
-        case .silver: return 1000...2999
-        case .gold: return 3000...9999
-        case .platinum: return 10000...Int.max
+        case .bronze: return 0...7999
+        case .silver: return 8000...29999
+        case .gold: return 30000...99999
+        case .platinum: return 100000...Int.max
         }
     }
 
@@ -55,7 +55,7 @@ struct RewardsPoints: Codable, Equatable {
     var transactions: [PointTransaction]
 
     var cashEquivalent: Double {
-        Double(balance) / 100.0 // 100 points = $1
+        Double(balance) / 2000.0 // 2,000 points = $1 (scaled economy)
     }
 
     var recentTransactions: [PointTransaction] {
@@ -95,6 +95,7 @@ enum PointTransactionType: String, Codable {
 struct Reward: Identifiable, Codable, Equatable {
     let id: UUID
     let type: RewardType
+    let category: RewardCategory  // New: categorization for marketplace sections
     let title: String
     let description: String
     let pointsCost: Int
@@ -113,16 +114,26 @@ struct Reward: Identifiable, Codable, Equatable {
     }
 }
 
+enum RewardCategory: String, Codable, CaseIterable {
+    case virtualGoods = "Virtual Goods"
+    case giveaway = "Giveaways"
+    case giftCard = "Gift Cards"
+}
+
 enum RewardType: String, Codable, CaseIterable {
     case billCredit = "Bill Credit"
     case giftCard = "Gift Card"
     case digitalGood = "Digital Good"
+    case giveawayEntry = "Giveaway Entry"
+    case customization = "Customization"
 
     var icon: String {
         switch self {
         case .billCredit: return "dollarsign.circle.fill"
         case .giftCard: return "giftcard.fill"
         case .digitalGood: return "sparkles"
+        case .giveawayEntry: return "ticket.fill"
+        case .customization: return "paintpalette.fill"
         }
     }
 }
@@ -341,8 +352,8 @@ struct LeaderboardEntry: Identifiable, Codable, Equatable {
 
 extension RewardsPoints {
     static let preview = RewardsPoints(
-        balance: 1450,
-        lifetimeEarned: 3200,
+        balance: 12000,  // Changed to 12,000 (Silver tier) to show unlocked shop
+        lifetimeEarned: 15000,
         transactions: [
             PointTransaction(
                 id: UUID(),
@@ -385,60 +396,225 @@ extension RewardsPoints {
 
 extension Reward {
     static let previewRewards: [Reward] = [
+        // $1 Quick Win Rewards
         Reward(
             id: UUID(),
             type: .billCredit,
-            title: "$5 Bill Credit",
-            description: "$5 off your next Billix Bill Pay",
-            pointsCost: 500,
+            category: .giftCard,
+            title: "$1 Bill Credit",
+            description: "$1 off your next Billix Bill Pay",
+            pointsCost: 2000,  // $1 @ 2,000:1 ratio
             brand: "Billix",
+            dollarValue: 1,
+            iconName: "dollarsign.circle.fill",
+            accentColor: "#5b8a6b"
+        ),
+        // $2.50 Rewards
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$2.50 Starbucks Gift Card",
+            description: "Use at any Starbucks location",
+            pointsCost: 5000,  // $2.50 @ 2,000:1 ratio
+            brand: "Starbucks",
+            dollarValue: 2.5,
+            iconName: "cup.and.saucer.fill",
+            accentColor: "#00704A"
+        ),
+        // $5 Rewards
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$5 Amazon Gift Card",
+            description: "Redeemable on Amazon.com",
+            pointsCost: 10000,  // $5 @ 2,000:1 ratio
+            brand: "Amazon",
             dollarValue: 5,
+            iconName: "gift.fill",
+            accentColor: "#FF9900"
+        ),
+        // $10 Rewards
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$10 Target Gift Card",
+            description: "Shop at Target stores or online",
+            pointsCost: 20000,  // $10 @ 2,000:1 ratio ✅
+            brand: "Target",
+            dollarValue: 10,
+            iconName: "target",
+            accentColor: "#CC0000"
+        ),
+        // Premium Digital Good
+        Reward(
+            id: UUID(),
+            type: .digitalGood,
+            category: .virtualGoods,
+            title: "Premium Market Data",
+            description: "Unlock 30 days of premium insights",
+            pointsCost: 15000,  // $7.50 @ 2,000:1 ratio
+            brand: nil,
+            dollarValue: 7.5,
+            iconName: "chart.line.uptrend.xyaxis",
+            accentColor: "#52b8df"
+        )
+    ]
+
+    // NEW: Complete preview data with all 4 categories (Gift Cards, Game Boosts, Virtual Goods, Giveaways)
+    static let previewRewardsWithCategories: [Reward] = [
+        // GAME BOOSTS (250-500 pts) - Power-ups for Price Guessr
+        Reward(
+            id: UUID(),
+            type: .digitalGood,
+            category: .virtualGoods,
+            title: "Extra Life",
+            description: "One more chance if you lose",
+            pointsCost: 500,
+            brand: nil,
+            dollarValue: nil,
+            iconName: "heart.fill",
+            accentColor: "#FF6B6B"
+        ),
+        Reward(
+            id: UUID(),
+            type: .digitalGood,
+            category: .virtualGoods,
+            title: "Skip Question",
+            description: "Pass a difficult question",
+            pointsCost: 300,
+            brand: nil,
+            dollarValue: nil,
+            iconName: "forward.fill",
+            accentColor: "#95E1D3"
+        ),
+        Reward(
+            id: UUID(),
+            type: .digitalGood,
+            category: .virtualGoods,
+            title: "Time Freeze",
+            description: "+15 seconds on timer",
+            pointsCost: 400,
+            brand: nil,
+            dollarValue: nil,
+            iconName: "clock.fill",
+            accentColor: "#F38181"
+        ),
+        Reward(
+            id: UUID(),
+            type: .digitalGood,
+            category: .virtualGoods,
+            title: "Hint Token",
+            description: "Reveal one wrong answer",
+            pointsCost: 250,
+            brand: nil,
+            dollarValue: nil,
+            iconName: "lightbulb.fill",
+            accentColor: "#FFD93D"
+        ),
+
+        // VIRTUAL GOODS (100-500 pts) - Zero cost to developer
+        Reward(
+            id: UUID(),
+            type: .customization,
+            category: .virtualGoods,
+            title: "Dark Mode Theme",
+            description: "Unlock sleek dark interface",
+            pointsCost: 200,  // $0.10 equivalent (zero real cost)
+            brand: nil,
+            dollarValue: nil,
+            iconName: "moon.fill",
+            accentColor: "#2C2C2E"
+        ),
+        Reward(
+            id: UUID(),
+            type: .customization,
+            category: .virtualGoods,
+            title: "Premium Dashboard",
+            description: "Unlock advanced analytics view",
+            pointsCost: 500,  // $0.25 equivalent (zero real cost)
+            brand: nil,
+            dollarValue: nil,
+            iconName: "chart.bar.fill",
+            accentColor: "#52b8df"
+        ),
+        Reward(
+            id: UUID(),
+            type: .customization,
+            category: .virtualGoods,
+            title: "Custom Bill Colors",
+            description: "Personalize bill categories",
+            pointsCost: 300,  // $0.15 equivalent (zero real cost)
+            brand: nil,
+            dollarValue: nil,
+            iconName: "paintpalette.fill",
+            accentColor: "#FF6B35"
+        ),
+
+        // GIVEAWAYS (100 pts per entry) - Amortized cost
+        Reward(
+            id: UUID(),
+            type: .giveawayEntry,
+            category: .giveaway,
+            title: "Weekly Drawing Entry",
+            description: "1 entry for $2.50 prize drawing",
+            pointsCost: 100,  // $0.05 equivalent
+            brand: nil,
+            dollarValue: 0.05,
+            iconName: "ticket.fill",
+            accentColor: "#FFD700"
+        ),
+        Reward(
+            id: UUID(),
+            type: .giveawayEntry,
+            category: .giveaway,
+            title: "5-Entry Bundle",
+            description: "5 entries for weekly drawing",
+            pointsCost: 450,  // 10% discount vs individual
+            brand: nil,
+            dollarValue: 0.25,
+            iconName: "ticket.fill",
+            accentColor: "#FFA500"
+        ),
+
+        // GIFT CARDS ($0.50-$2) - Low-barrier real value
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$0.50 Starbucks Card",
+            description: "Micro reward for early users",
+            pointsCost: 1000,  // $0.50 @ 2,000:1 ratio
+            brand: "Starbucks",
+            dollarValue: 0.5,
+            iconName: "cup.and.saucer.fill",
+            accentColor: "#00704A"
+        ),
+        Reward(
+            id: UUID(),
+            type: .billCredit,
+            category: .giftCard,
+            title: "$1.00 Bill Credit",
+            description: "$1 off your next bill payment",
+            pointsCost: 2000,  // $1 @ 2,000:1 ratio
+            brand: "Billix",
+            dollarValue: 1,
             iconName: "dollarsign.circle.fill",
             accentColor: "#5b8a6b"
         ),
         Reward(
             id: UUID(),
             type: .giftCard,
-            title: "Amazon Gift Card",
-            description: "Redeemable on Amazon.com",
-            pointsCost: 500,
+            category: .giftCard,
+            title: "$2.00 Amazon Card",
+            description: "Redeem on Amazon.com",
+            pointsCost: 4000,  // $2 @ 2,000:1 ratio
             brand: "Amazon",
-            dollarValue: 5,
+            dollarValue: 2,
             iconName: "gift.fill",
             accentColor: "#FF9900"
-        ),
-        Reward(
-            id: UUID(),
-            type: .giftCard,
-            title: "Starbucks Gift Card",
-            description: "Use at any Starbucks location",
-            pointsCost: 500,
-            brand: "Starbucks",
-            dollarValue: 5,
-            iconName: "cup.and.saucer.fill",
-            accentColor: "#00704A"
-        ),
-        Reward(
-            id: UUID(),
-            type: .giftCard,
-            title: "Target Gift Card",
-            description: "Shop at Target stores or online",
-            pointsCost: 1000,
-            brand: "Target",
-            dollarValue: 10,
-            iconName: "target",
-            accentColor: "#CC0000"
-        ),
-        Reward(
-            id: UUID(),
-            type: .digitalGood,
-            title: "Premium Market Data",
-            description: "Unlock 30 days of premium insights",
-            pointsCost: 750,
-            brand: nil,
-            dollarValue: nil,
-            iconName: "chart.line.uptrend.xyaxis",
-            accentColor: "#52b8df"
         )
     ]
 }

@@ -384,6 +384,7 @@ class SeasonDataService {
             let landmarks_attempted: Int
             let prices_correct: Int
             let prices_attempted: Int
+            let final_health: Int  // NEW: Track ending health to distinguish quit vs game over
         }
 
         let insert = SessionProgressInsert(
@@ -400,7 +401,8 @@ class SeasonDataService {
             landmarks_correct: progress.landmarksCorrect,
             landmarks_attempted: session.landmarksAttempted,
             prices_correct: progress.pricesCorrect,
-            prices_attempted: session.pricesAttempted
+            prices_attempted: session.pricesAttempted,
+            final_health: session.health
         )
 
         try await supabase

@@ -22,7 +22,7 @@ struct Phase1LocationView: View {
             // Always-visible content (both collapsed and expanded states)
             VStack(spacing: 12) {
                 // Question
-                Text(viewModel.gameState.isRetryAttempt ? "Try again - where is the landmark located?" : "Where is the landmark located?")
+                Text("Where is the landmark located?")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.primary)
 
@@ -32,7 +32,7 @@ struct Phase1LocationView: View {
                         .font(.system(size: 14))
                         .foregroundColor(.billixMoneyGreen)
 
-                    Text("Tap the green Landmark button to look around")
+                    Text("Explore map • Tap Landmark to recenter")
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
 
@@ -61,6 +61,7 @@ struct Phase1LocationView: View {
                         .transition(.opacity.combined(with: .scale))
                         .padding(.top, 12)
                 } else if !viewModel.gameState.isLocationCorrect && viewModel.gameState.selectedLocation != nil {
+                    // Show wrong answer feedback with continue button
                     wrongAnswerFeedback
                         .transition(.opacity.combined(with: .scale))
                         .padding(.top, 12)
@@ -116,11 +117,11 @@ struct Phase1LocationView: View {
             .foregroundColor(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color.billixMoneyGreen)
+            .background(Color.blue)
             .cornerRadius(20)
             .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
         }
-        .offset(y: -6)  // Further reduced to ensure pill is fully visible
+        .offset(y: 0)  // No offset - align with top edge
     }
 
     private var pillLabel: String {
@@ -135,12 +136,16 @@ struct Phase1LocationView: View {
             GridItem(.flexible(), spacing: 12)
         ]
 
+        // Disable all buttons if they've already submitted an answer
+        let hasSubmitted = viewModel.gameState.selectedLocation != nil
+
         return LazyVGrid(columns: rows, spacing: 12) {
             ForEach(viewModel.locationChoices) { choice in
                 LocationChoiceButton(
                     choice: choice,
                     isSelected: viewModel.selectedChoice == choice.displayLabel,
                     isIncorrect: viewModel.gameState.incorrectChoice == choice.displayLabel,
+                    isDisabled: hasSubmitted,
                     action: {
                         viewModel.selectLocation(choice.displayLabel)
                     }
@@ -169,60 +174,68 @@ struct Phase1LocationView: View {
     // MARK: - Result Feedback
 
     private var resultFeedback: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 28))
-                .foregroundColor(.billixMoneyGreen)
+        VStack(spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(.billixMoneyGreen)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("CORRECT!")
-                    .font(.system(size: 18, weight: .bold))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("CORRECT!")
+                        .font(.system(size: 18, weight: .bold))
 
-                HStack(spacing: 6) {
-                    Text("+\(viewModel.gameState.phase1Points) points")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.billixMoneyGreen)
+                    HStack(spacing: 6) {
+                        Text("+\(viewModel.gameState.phase1Points) points")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.billixMoneyGreen)
 
-                    if viewModel.gameState.isRetryAttempt {
-                        Text("(retry)")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
+                        if viewModel.gameState.isRetryAttempt {
+                            Text("(retry)")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
-            }
 
-            Spacer()
+                Spacer()
+            }
+            .padding(16)
+            .background(Color.billixMoneyGreen.opacity(0.1))
+            .cornerRadius(12)
+
+            // Continue button
+            Button(action: {
+                viewModel.advanceToNextQuestion()
+            }) {
+                HStack {
+                    Text("CONTINUE")
+                    Image(systemName: "arrow.right.circle.fill")
+                }
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(Color.billixMoneyGreen)
+                .cornerRadius(12)
+            }
         }
-        .padding(16)
-        .background(Color.billixMoneyGreen.opacity(0.1))
-        .cornerRadius(12)
     }
 
     private var wrongAnswerFeedback: some View {
         VStack(spacing: 16) {
             HStack(spacing: 12) {
-                Image(systemName: viewModel.gameState.isRetryAttempt ? "xmark.circle.fill" : "arrow.counterclockwise.circle.fill")
+                Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 28))
                     .foregroundColor(.red)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    if viewModel.gameState.isRetryAttempt {
-                        // Second wrong answer - game over
-                        Text("INCORRECT!")
-                            .font(.system(size: 18, weight: .bold))
+                    Text("INCORRECT!")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.red)
 
-                        Text("That was \(viewModel.correctLocationName)")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
-                    } else {
-                        // First wrong answer - retry available
-                        Text("Try again!")
-                            .font(.system(size: 18, weight: .bold))
-
-                        Text("Pick from the remaining options")
-                            .font(.system(size: 14))
-                            .foregroundColor(.secondary)
-                    }
+                    Text("The answer was \(viewModel.correctLocationName)")
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
                 }
 
                 Spacer()
@@ -231,14 +244,14 @@ struct Phase1LocationView: View {
             .background(Color.red.opacity(0.1))
             .cornerRadius(12)
 
-            // Show Play Again button on second wrong answer
-            if viewModel.gameState.isRetryAttempt && !viewModel.gameState.isLocationCorrect {
+            // Show Continue button (if still have health)
+            if viewModel.session.health > 0 {
                 Button(action: {
-                    viewModel.onPlayAgain?()
+                    viewModel.continueAfterWrongAnswer()
                 }) {
                     HStack {
-                        Image(systemName: "arrow.clockwise")
-                        Text("PLAY AGAIN")
+                        Text("CONTINUE")
+                        Image(systemName: "arrow.right.circle.fill")
                     }
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
@@ -259,6 +272,7 @@ struct LocationChoiceButton: View {
     let choice: DecoyLocation
     let isSelected: Bool
     let isIncorrect: Bool
+    let isDisabled: Bool
     let action: () -> Void
 
     var body: some View {
@@ -290,8 +304,8 @@ struct LocationChoiceButton: View {
             .scaleEffect(isSelected ? 1.02 : 1.0)
         }
         .buttonStyle(PlainButtonStyle())
-        .disabled(isIncorrect)
-        .opacity(isIncorrect ? 0.5 : 1.0)
+        .disabled(isIncorrect || isDisabled)
+        .opacity((isIncorrect || isDisabled) ? 0.5 : 1.0)
     }
 }
 
