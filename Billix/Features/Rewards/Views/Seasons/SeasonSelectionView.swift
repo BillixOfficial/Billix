@@ -43,8 +43,8 @@ struct SeasonSelectionView: View {
                         Spacer()
                     } else {
                         VStack(spacing: 12) {
-                            TabView {
-                                ForEach(viewModel.seasons) { season in
+                            TabView(selection: $currentPage) {
+                                ForEach(Array(viewModel.seasons.enumerated()), id: \.element.id) { index, season in
                                     let stats = viewModel.getSeasonCompletionStats(seasonId: season.id)
 
                                     SeasonCardLarge(
@@ -61,6 +61,7 @@ struct SeasonSelectionView: View {
                                     )
                                     .padding(.horizontal, 24)
                                     .padding(.bottom, 20)
+                                    .tag(index)
                                 }
                             }
                             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -71,7 +72,7 @@ struct SeasonSelectionView: View {
                                 HStack(spacing: 8) {
                                     ForEach(0..<viewModel.seasons.count, id: \.self) { index in
                                         Circle()
-                                            .fill(index == 0 ? Color(hex: "#F97316") : Color(hex: "#D1D5DB"))
+                                            .fill(index == currentPage ? Color(hex: "#F97316") : Color(hex: "#D1D5DB"))
                                             .frame(width: 8, height: 8)
                                     }
                                 }
