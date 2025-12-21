@@ -340,10 +340,10 @@ class SeasonViewModel: ObservableObject {
             // Get all progress for this part from allUserProgress
             let partProgress = allUserProgress.values.filter { $0.partId == partId }
             let passed = partProgress.contains { $0.isCompleted }
-            let attemptCount = partProgress.filter { progress in
-                // Count legitimate attempts (health == 0 or all questions answered)
-                (progress.finalHealth == 0) || (progress.totalAttempted >= 30)
-            }.count
+
+            // Count ALL attempts (even incomplete) to show engagement
+            // This aligns with "Expedition Ticket" UX goal of communicating commitment
+            let attemptCount = partProgress.count
 
             return PartCompletionStats(
                 completed: passed ? 1 : 0,

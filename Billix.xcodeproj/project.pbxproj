@@ -78,8 +78,11 @@
 		A602F20A2EF3486300856DEE /* CircularProgressRing.swift in Resources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
 		A602F20B2EF3486300856DEE /* StarDisplay.swift in Resources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
 		A602F20C2EF3486300856DEE /* SeasonCardLarge.swift in Resources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
-		A602F20F2EF7B92E00856DEE /* PartProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F20D2EF7B92E00856DEE /* PartProgressRing.swift */; };
-		A602F2102EF7B92E00856DEE /* ProgressPathConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F20E2EF7B92E00856DEE /* ProgressPathConnector.swift */; };
+		A602F2162EF8593700856DEE /* MetadataPillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2132EF8593700856DEE /* MetadataPillView.swift */; };
+		A602F2172EF8593700856DEE /* ExpeditionActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2112EF8593700856DEE /* ExpeditionActionButton.swift */; };
+		A602F2182EF8593700856DEE /* TimelineConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2142EF8593700856DEE /* TimelineConnector.swift */; };
+		A602F2192EF8593700856DEE /* ExpeditionIconBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2122EF8593700856DEE /* ExpeditionIconBox.swift */; };
+		A602F21A2EF8593700856DEE /* TimelineProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2152EF8593700856DEE /* TimelineProgressBar.swift */; };
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */; };
 		A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */; };
@@ -296,8 +299,11 @@
 		9CE4C5AFDCCDD73CCE56C73C /* BillAnalysisNewComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillAnalysisNewComponents.swift; sourceTree = "<group>"; };
 		9D37190B759C30A9BA3FE82F /* MetricCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MetricCardView.swift; sourceTree = "<group>"; };
 		9E10B4E61116F04FF1C3CF4D /* BillGaugeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillGaugeView.swift; sourceTree = "<group>"; };
-		A602F20D2EF7B92E00856DEE /* PartProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartProgressRing.swift; sourceTree = "<group>"; };
-		A602F20E2EF7B92E00856DEE /* ProgressPathConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPathConnector.swift; sourceTree = "<group>"; };
+		A602F2112EF8593700856DEE /* ExpeditionActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionActionButton.swift; sourceTree = "<group>"; };
+		A602F2122EF8593700856DEE /* ExpeditionIconBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionIconBox.swift; sourceTree = "<group>"; };
+		A602F2132EF8593700856DEE /* MetadataPillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataPillView.swift; sourceTree = "<group>"; };
+		A602F2142EF8593700856DEE /* TimelineConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineConnector.swift; sourceTree = "<group>"; };
+		A602F2152EF8593700856DEE /* TimelineProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineProgressBar.swift; sourceTree = "<group>"; };
 		A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysis.swift; sourceTree = "<group>"; };
 		A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredBill.swift; sourceTree = "<group>"; };
 		A64F7F4E2ECBB46B005576C5 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -1002,8 +1008,11 @@
 		A6FF828A2EECA1C5008330C9 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				A602F20D2EF7B92E00856DEE /* PartProgressRing.swift */,
-				A602F20E2EF7B92E00856DEE /* ProgressPathConnector.swift */,
+				A602F2112EF8593700856DEE /* ExpeditionActionButton.swift */,
+				A602F2122EF8593700856DEE /* ExpeditionIconBox.swift */,
+				A602F2132EF8593700856DEE /* MetadataPillView.swift */,
+				A602F2142EF8593700856DEE /* TimelineConnector.swift */,
+				A602F2152EF8593700856DEE /* TimelineProgressBar.swift */,
 				A6FF82872EECA1C5008330C9 /* LocationRow.swift */,
 				A6FF82882EECA1C5008330C9 /* PartCard.swift */,
 				A6FF82892EECA1C5008330C9 /* SeasonCard.swift */,
@@ -1353,6 +1362,11 @@
 				A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */,
 				F9076D582ED19DC10051E1D8 /* BillHealthSnapshot.swift in Sources */,
 				F9076D672ED19DEE0051E1D8 /* ProfileSectionCard.swift in Sources */,
+				A602F2162EF8593700856DEE /* MetadataPillView.swift in Sources */,
+				A602F2172EF8593700856DEE /* ExpeditionActionButton.swift in Sources */,
+				A602F2182EF8593700856DEE /* TimelineConnector.swift in Sources */,
+				A602F2192EF8593700856DEE /* ExpeditionIconBox.swift in Sources */,
+				A602F21A2EF8593700856DEE /* TimelineProgressBar.swift in Sources */,
 				A6FF814F2ED4BAF4008330C9 /* BillUploadServiceProtocol.swift in Sources */,
 				A6FF81572ED4BB03008330C9 /* QuickAddModels.swift in Sources */,
 				A6FF81582ED4BB03008330C9 /* UploadModels.swift in Sources */,
@@ -1431,8 +1445,6 @@
 				24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */,
 				F9076D4C2ED19DA20051E1D8 /* AuthService.swift in Sources */,
 				F9076DBE2ED50D430051E1D8 /* SupabaseService.swift in Sources */,
-				A602F20F2EF7B92E00856DEE /* PartProgressRing.swift in Sources */,
-				A602F2102EF7B92E00856DEE /* ProgressPathConnector.swift in Sources */,
 				A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */,
 				2D218E38DCD1CFEB8B5F4036 /* ProfileViewModel.swift in Sources */,
 				997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */,

@@ -50,7 +50,7 @@ struct PartCard: View {
                         // Middle Column: Metadata
                         VStack(alignment: .leading, spacing: 8) {
                             // Part title
-                            Text(part.title)
+                            Text(part.title ?? "Part \(part.partNumber)")
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(isUnlocked ? Color(hex: "#1F2937") : .gray)
                                 .lineLimit(2)
@@ -99,7 +99,7 @@ struct PartCard: View {
     @ViewBuilder
     private var pillsView: some View {
         // Use FlexBox-style wrapping HStack with adaptive layout
-        ViewThatFits(alignment: .leading) {
+        ViewThatFits {
             // Try horizontal first
             HStack(spacing: 8) {
                 pillContent
