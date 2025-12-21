@@ -884,6 +884,27 @@ class GeoGameViewModel: ObservableObject {
         cameraPosition = .camera(updatedCamera)
     }
 
+    func adjustCameraForCardState(cardHeight: CGFloat, screenHeight: CGFloat) {
+        guard let landmark = landmarkCoordinate else { return }
+
+        // Calculate visible map height
+        let topHUDHeight: CGFloat = 100  // Top HUD + padding
+        let visibleHeight = screenHeight - cardHeight - topHUDHeight
+
+        // For now, just ensure camera stays at current position
+        // Future enhancement: Pan camera to keep landmark in visible area
+        let camera = MapCamera(
+            centerCoordinate: landmark,
+            distance: zoomLevel,
+            heading: currentHeading,
+            pitch: 60
+        )
+
+        withAnimation(.easeInOut(duration: 0.3)) {
+            cameraPosition = .camera(camera)
+        }
+    }
+
     // MARK: - Combo Unlock Animation
 
     /// Check if we should trigger combo unlock animation when streak increases

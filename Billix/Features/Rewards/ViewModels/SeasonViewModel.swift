@@ -69,7 +69,8 @@ class SeasonViewModel: ObservableObject {
 
     // NEW: Cached season-level progress stats for all seasons
     @Published var seasonCompletionStats: [UUID: SeasonCompletionStats] = [:]
-    @Published var allUserProgress: [UUID: UserSeasonProgress] = [:]
+    @Published var allUserProgress: [UUID: UserSeasonProgress] = [:]  // Keyed by locationId (location-based only)
+    @Published var allSessionProgress: [UserSeasonProgress] = []  // Session-based progress (no locationId)
 
     // UI state
     @Published var isLoading = false
@@ -84,7 +85,7 @@ class SeasonViewModel: ObservableObject {
     // MARK: - Private Properties
 
     private let service = SeasonDataService.shared
-    private var currentUserId: UUID?
+    var currentUserId: UUID?  // Public for TutorialManager access
 
     // MARK: - Initialization
 
@@ -199,13 +200,17 @@ class SeasonViewModel: ObservableObject {
                 }
             }
 
-            // Also cache all progress for quick lookup
+            // Cache progress based on type
+            // Location-based progress (keyed by locationId)
             allUserProgress = Dictionary(uniqueKeysWithValues:
                 allProgress.compactMap { progress in
                     guard let locationId = progress.locationId else { return nil }
                     return (locationId, progress)
                 }
             )
+
+            // Session-based progress (array, no locationId)
+            allSessionProgress = allProgress.filter { $0.locationId == nil }
 
             print("✅ Loaded progress for \(allProgress.count) records across \(seasons.count) seasons")
             // Log detailed stats for each season
@@ -337,17 +342,19 @@ class SeasonViewModel: ObservableObject {
 
         if isSessionBased {
             // For session mode: check if this part has been passed
-            // Get all progress for this part from allUserProgress
-            let partProgress = allUserProgress.values.filter { $0.partId == partId }
+            // Get all progress for this part from allSessionProgress (NOT allUserProgress)
+            let partProgress = allSessionProgress.filter { $0.partId == partId }
             let passed = partProgress.contains { $0.isCompleted }
 
             // Count ALL attempts (even incomplete) to show engagement
             // This aligns with "Expedition Ticket" UX goal of communicating commitment
             let attemptCount = partProgress.count
 
+            print("   🔍 getCompletionStats(partId: \(partId.uuidString.prefix(8))...) - Found \(attemptCount) attempts, passed: \(passed)")
+
             return PartCompletionStats(
                 completed: passed ? 1 : 0,
-                total: 1,
+                total: total,  // Use actual location count, not hardcoded 1
                 isSessionBased: true,
                 attempts: attemptCount,
                 hasPassed: passed
@@ -487,32 +494,6 @@ class SeasonViewModel: ObservableObject {
         isLoading = false
     }
 
-    // MARK: - Tutorial Management
-
-    /// Mark tutorial as seen
-    func markTutorialSeen() async {
-        guard let userId = currentUserId else { return }
-
-        do {
-            try await service.markTutorialSeen(userId: userId)
-            print("✅ Tutorial marked as seen")
-        } catch {
-            print("❌ Error marking tutorial as seen: \(error)")
-        }
-    }
-
-    /// Mark tutorial as skipped
-    func markTutorialSkipped() async {
-        guard let userId = currentUserId else { return }
-
-        do {
-            try await service.markTutorialSkipped(userId: userId)
-            print("✅ Tutorial marked as skipped")
-        } catch {
-            print("❌ Error marking tutorial as skipped: \(error)")
-        }
-    }
-
     // MARK: - Session-Based Gameplay
 
     /// Start a session-based game for a part (10 random locations, 30 questions)
@@ -528,7 +509,8 @@ class SeasonViewModel: ObservableObject {
         do {
             // Check tutorial state
             let settings = try await service.fetchGameSettings(userId: userId)
-            if settings?.hasSeenTutorial == false {
+            // Show tutorial if no settings exist (nil) OR if user hasn't seen it
+            if settings?.hasSeenTutorial != true {
                 // Show tutorial first
                 showTutorial = true
             } else {

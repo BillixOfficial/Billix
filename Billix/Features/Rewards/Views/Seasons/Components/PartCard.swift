@@ -114,10 +114,11 @@ struct PartCard: View {
 
     @ViewBuilder
     private var pillContent: some View {
-        if progress.isSessionBased {
-            // Session-Based Pills
-            MetadataPillView(icon: "shuffle", text: "Randomized")
+        // Always show location count (not "Randomized")
+        MetadataPillView(icon: "target", text: "\(progress.total) Locations")
 
+        // Show session-based status (attempts/passed)
+        if progress.isSessionBased {
             if let attempts = progress.attempts, attempts > 0 {
                 if let passed = progress.hasPassed, passed {
                     // Passed state
@@ -130,10 +131,6 @@ struct PartCard: View {
                 // Not started
                 MetadataPillView(icon: "gamecontroller.fill", text: "0 plays")
             }
-        } else {
-            // Location-Based Pills
-            MetadataPillView(icon: "target", text: "\(progress.total) Stops")
-            MetadataPillView(icon: "arrow.right", text: "Sequential")
         }
     }
 }
