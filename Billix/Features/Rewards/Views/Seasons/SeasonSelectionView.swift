@@ -79,72 +79,71 @@ struct SeasonSelectionView: View {
                             }
                         }
 
-                        // Continue Playing section
-                        if !viewModel.seasons.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Continue Playing")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(Color(hex: "#1F2937"))
-                                    .padding(.horizontal, 24)
+                        // Continue Playing section (only show if there's progress)
+                        if !viewModel.seasons.isEmpty,
+                           let firstSeason = viewModel.seasons.first(where: { !$0.isLocked }) {
+                            let stats = viewModel.getSeasonCompletionStats(seasonId: firstSeason.id)
 
-                                // Quick resume button
-                                if let firstSeason = viewModel.seasons.first(where: { !$0.isLocked }) {
-                                    let stats = viewModel.getSeasonCompletionStats(seasonId: firstSeason.id)
+                            if stats.completed > 0 && stats.completed < stats.total {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("Continue Playing")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(Color(hex: "#1F2937"))
+                                        .padding(.horizontal, 24)
 
-                                    if stats.completed > 0 && stats.completed < stats.total {
-                                        Button(action: {
-                                            Task {
-                                                await viewModel.selectSeason(firstSeason)
-                                            }
-                                        }) {
-                                            HStack(spacing: 14) {
-                                                // Season icon
-                                                ZStack {
-                                                    Circle()
-                                                        .fill(Color.white.opacity(0.3))
-                                                        .frame(width: 48, height: 48)
+                                    // Quick resume button
+                                    Button(action: {
+                                        Task {
+                                            await viewModel.selectSeason(firstSeason)
+                                        }
+                                    }) {
+                                        HStack(spacing: 14) {
+                                            // Season icon
+                                            ZStack {
+                                                Circle()
+                                                    .fill(Color.white.opacity(0.3))
+                                                    .frame(width: 48, height: 48)
 
-                                                    Image(systemName: firstSeason.iconName)
-                                                        .font(.system(size: 22, weight: .bold))
-                                                        .foregroundColor(.white)
-                                                }
-
-                                                // Info
-                                                VStack(alignment: .leading, spacing: 3) {
-                                                    Text(firstSeason.title)
-                                                        .font(.system(size: 16, weight: .bold))
-                                                        .foregroundColor(.white)
-
-                                                    Text("\(stats.completed)/\(stats.total) locations")
-                                                        .font(.system(size: 13, weight: .medium))
-                                                        .foregroundColor(.white.opacity(0.8))
-                                                }
-
-                                                Spacer()
-
-                                                // Arrow icon
-                                                Image(systemName: "arrow.right.circle.fill")
-                                                    .font(.system(size: 28))
+                                                Image(systemName: firstSeason.iconName)
+                                                    .font(.system(size: 22, weight: .bold))
                                                     .foregroundColor(.white)
                                             }
-                                            .padding(.horizontal, 20)
-                                            .padding(.vertical, 16)
-                                            .background(
-                                                LinearGradient(
-                                                    colors: [Color(hex: "#F97316"), Color(hex: "#E11D48")],
-                                                    startPoint: .leading,
-                                                    endPoint: .trailing
-                                                )
-                                            )
-                                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                                            .shadow(color: Color(hex: "#F97316").opacity(0.3), radius: 12, x: 0, y: 6)
-                                            .padding(.horizontal, 24)
+
+                                            // Info
+                                            VStack(alignment: .leading, spacing: 3) {
+                                                Text(firstSeason.title)
+                                                    .font(.system(size: 16, weight: .bold))
+                                                    .foregroundColor(.white)
+
+                                                Text("\(stats.completed)/\(stats.total) locations")
+                                                    .font(.system(size: 13, weight: .medium))
+                                                    .foregroundColor(.white.opacity(0.8))
+                                            }
+
+                                            Spacer()
+
+                                            // Arrow icon
+                                            Image(systemName: "arrow.right.circle.fill")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(.white)
                                         }
-                                        .buttonStyle(.plain)
+                                        .padding(.horizontal, 20)
+                                        .padding(.vertical, 16)
+                                        .background(
+                                            LinearGradient(
+                                                colors: [Color(hex: "#F97316"), Color(hex: "#E11D48")],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        .shadow(color: Color(hex: "#F97316").opacity(0.3), radius: 12, x: 0, y: 6)
+                                        .padding(.horizontal, 24)
                                     }
+                                    .buttonStyle(.plain)
                                 }
+                                .padding(.top, 16)
                             }
-                            .padding(.top, 16)
                         }
 
                         // Error message (dismissible)
