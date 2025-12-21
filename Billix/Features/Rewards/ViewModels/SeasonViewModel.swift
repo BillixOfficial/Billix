@@ -30,6 +30,10 @@ class SeasonViewModel: ObservableObject {
     @Published var userProgress: [UUID: UserSeasonProgress] = [:]
     @Published var partCompletionCounts: [UUID: Int] = [:]
 
+    // NEW: Cached season-level progress stats for all seasons
+    @Published var seasonCompletionStats: [UUID: (completed: Int, total: Int)] = [:]
+    @Published var allUserProgress: [UUID: UserSeasonProgress] = [:]
+
     // UI state
     @Published var isLoading = false
     @Published var errorMessage: String?
@@ -51,6 +55,7 @@ class SeasonViewModel: ObservableObject {
         Task {
             await getCurrentUser()
             await loadSeasons()
+            await loadAllSeasonProgress()  // NEW: Load progress for all seasons
         }
     }
 
@@ -82,6 +87,53 @@ class SeasonViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    /// Load user progress for all seasons (lightweight cache for display)
+    func loadAllSeasonProgress() async {
+        guard let userId = currentUserId else {
+            print("⚠️ No authenticated user - skipping progress load")
+            return
+        }
+
+        // Don't set isLoading = true here, as this is a background operation
+        errorMessage = nil
+
+        do {
+            // Fetch all user progress for this user
+            let allProgress = try await service.fetchAllUserProgress(userId: userId)
+
+            // Group by season and calculate completion stats
+            for season in seasons {
+                let seasonProgress = allProgress.filter { $0.seasonId == season.id }
+                let completedLocations = Set(seasonProgress.compactMap {
+                    $0.isCompleted ? $0.locationId : nil
+                })
+
+                // Calculate total locations for this season
+                let parts = try? await service.fetchSeasonParts(seasonId: season.id)
+                let total = parts?.reduce(0) { $0 + $1.totalLocations } ?? 0
+
+                seasonCompletionStats[season.id] = (
+                    completed: completedLocations.count,
+                    total: total
+                )
+            }
+
+            // Also cache all progress for quick lookup
+            allUserProgress = Dictionary(uniqueKeysWithValues:
+                allProgress.compactMap { progress in
+                    guard let locationId = progress.locationId else { return nil }
+                    return (locationId, progress)
+                }
+            )
+
+            print("✅ Loaded progress for \(allProgress.count) locations across \(seasons.count) seasons")
+        } catch {
+            print("⚠️ Failed to load season progress: \(error)")
+            // Non-blocking: show 0/0 if fails
+            errorMessage = nil  // Don't show error for progress load failures
+        }
     }
 
     /// Select a season and load its parts
@@ -191,8 +243,18 @@ class SeasonViewModel: ObservableObject {
 
     /// Get completion stats for a season
     func getSeasonCompletionStats(seasonId: UUID) -> (completed: Int, total: Int) {
+        // Use cached stats if available (from loadAllSeasonProgress)
+        if let cached = seasonCompletionStats[seasonId] {
+            return cached
+        }
+
+        // Fallback: calculate from loaded parts (if selectSeason was called)
         let parts = seasonParts.filter { part in
             seasonParts.contains(where: { $0.seasonId == seasonId })
+        }
+
+        guard !parts.isEmpty else {
+            return (0, 0)  // No data loaded yet
         }
 
         let totalLocations = parts.reduce(0) { $0 + $1.totalLocations }
