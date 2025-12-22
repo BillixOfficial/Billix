@@ -147,8 +147,8 @@ struct GeoGameDataService {
             decoyLocations: [
                 DecoyLocation(name: "Manhattan, NY", displayLabel: "A"),
                 DecoyLocation(name: "Brooklyn, NY", displayLabel: "B"),
-                DecoyLocation(name: "Jersey City, NJ", displayLabel: "C"),
-                DecoyLocation(name: "Boston, MA", displayLabel: "D")
+                DecoyLocation(name: "Queens, NY", displayLabel: "C"),
+                DecoyLocation(name: "The Bronx, NY", displayLabel: "D")
             ],
             economicContext: "To live here, you need $120,000/year",
             landmarkCoordinate: LocationCoordinate(

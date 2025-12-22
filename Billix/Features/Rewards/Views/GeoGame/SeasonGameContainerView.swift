@@ -15,6 +15,7 @@ struct SeasonGameContainerView: View {
     @StateObject private var viewModel: GeoGameViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showExitWarning = false
+    @State private var showTutorialManually = false
 
     init(location: SeasonLocation, onComplete: @escaping (GameSession) -> Void) {
         self.location = location
@@ -51,11 +52,11 @@ struct SeasonGameContainerView: View {
             // Layer 1: Full-screen 3D satellite map
             GeoGameMapView(viewModel: viewModel)
 
-            // Layer 2: Floating card at bottom (only if not game over)
+            // Layer 2: Minimal bottom deck (only if not game over)
             if !viewModel.session.isGameOver {
                 VStack {
                     Spacer()
-                    GeoGameFloatingCard(viewModel: viewModel)
+                    MinimalBottomDeck(viewModel: viewModel)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
                 .ignoresSafeArea()
@@ -78,86 +79,27 @@ struct SeasonGameContainerView: View {
                 .transition(.opacity)
             }
 
-            // Layer 4: Top bar with health, combo, score
+            // Layer 4: Compact top HUD with health, timer, progress, score, help, close button
             if !viewModel.session.isGameOver {
                 VStack {
-                    HStack {
-                        // Health hearts (with extra left padding to avoid X button)
-                        HStack(spacing: 6) {
-                            ForEach(0..<3) { index in
-                                Image(systemName: index < viewModel.session.health ? "heart.fill" : "heart")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundColor(index < viewModel.session.health ? .red : .gray.opacity(0.3))
+                    CompactTopHUD(
+                        viewModel: viewModel,
+                        onClose: {
+                            // Don't show warning if game is legitimately over
+                            if viewModel.session.isGameOver || viewModel.session.health == 0 {
+                                onComplete(viewModel.session)
+                                dismiss()
+                            } else {
+                                // Show warning if mid-game
+                                showExitWarning = true
                             }
+                        },
+                        onHelp: {
+                            showTutorialManually = true
                         }
-                        .padding(.leading, 70) // Extra padding to avoid X button overlap
-
-                        Spacer()
-
-                        // Combo multiplier (if active)
-                        if viewModel.session.comboStreak > 1 {
-                            HStack(spacing: 4) {
-                                Image(systemName: "flame.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.billixPrizeOrange)
-
-                                Text("\(viewModel.session.comboStreak)x")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(.white)
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color.black.opacity(0.6))
-                            )
-                        }
-
-                        Spacer()
-
-                        // Score
-                        HStack(spacing: 6) {
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(.billixArcadeGold)
-
-                            Text("\(viewModel.session.totalPoints)")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        .padding(.trailing, 20)
-                    }
-                    .padding(.top, 60)
-
+                    )
                     Spacer()
                 }
-            }
-
-            // Layer 5: Close button (top-left)
-            VStack {
-                HStack {
-                    Button(action: {
-                        // Don't show warning if game is legitimately over
-                        if viewModel.session.isGameOver || viewModel.session.health == 0 {
-                            onComplete(viewModel.session)
-                            dismiss()
-                        } else {
-                            // Show warning if mid-game
-                            showExitWarning = true
-                        }
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 32))
-                            .foregroundColor(.white.opacity(0.8))
-                            .shadow(color: .black.opacity(0.3), radius: 4, y: 2)
-                    }
-                    .padding(.leading, 20)
-                    .padding(.top, 60)
-
-                    Spacer()
-                }
-
-                Spacer()
             }
         }
         .background(Color.black)
@@ -188,6 +130,16 @@ struct SeasonGameContainerView: View {
                     dismiss()
                 }
             }
+        }
+        .sheet(isPresented: $showTutorialManually) {
+            GeoGameHowToPlayView(
+                onStart: { showTutorialManually = false },
+                onSkip: { showTutorialManually = false },
+                onSkipAndDontShowAgain: { showTutorialManually = false },
+                onPageChanged: { _ in },
+                isLoading: false,
+                isManualView: true  // Simple X to close for manual viewing
+            )
         }
     }
 }

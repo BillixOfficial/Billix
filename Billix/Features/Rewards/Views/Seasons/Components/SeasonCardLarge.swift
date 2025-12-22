@@ -31,20 +31,17 @@ struct SeasonCardLarge: View {
 
     private var starsEarned: Int {
         if progress.isSessionBased {
-            // Progression-based stars for session-based seasons
-            // ⭐ 0 Stars = Not started (no legitimate attempts)
-            // ⭐ 1 Star = In Progress (at least 1 attempt, but no parts passed)
-            // ⭐⭐ 2 Stars = Halfway (at least 1 part passed, but not all)
-            // ⭐⭐⭐ 3 Stars = Complete (all parts passed)
+            // Progression-based stars for session-based seasons (1 star per passed part)
+            // ⭐ 0 Stars = Not started OR no parts passed
+            // ⭐ 1 Star = 1 part passed
+            // ⭐⭐ 2 Stars = All parts passed (2/2)
 
             if progress.passedParts >= progress.total && progress.total > 0 {
-                return 3  // All parts passed
+                return 2  // All parts passed (2 stars for 2 parts)
             } else if progress.passedParts > 0 {
-                return 2  // At least 1 part passed
-            } else if progress.attempts > 0 {
-                return 1  // At least 1 attempt
+                return progress.passedParts  // 1 star per passed part
             } else {
-                return 0  // Not started
+                return 0  // Not started or no parts passed yet
             }
         } else {
             // Percentage-based stars for location-based seasons
@@ -128,7 +125,7 @@ struct SeasonCardLarge: View {
                 VStack(spacing: 0) {
                     // Star display (pushed up with more space below)
                     if !isLocked {
-                        StarDisplay(starsEarned: starsEarned, maxStars: 3, size: 28)
+                        StarDisplay(starsEarned: starsEarned, maxStars: 2, size: 28)
                             .padding(.top, 16)
                             .padding(.bottom, 12)
                     }

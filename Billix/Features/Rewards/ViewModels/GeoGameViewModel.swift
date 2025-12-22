@@ -28,6 +28,7 @@ class GeoGameViewModel: ObservableObject {
     @Published var locationChoices: [DecoyLocation]
     @Published var selectedChoice: String?
     @Published var sliderValue: Double = 0.5  // 0.0 to 1.0
+    @Published var isDraggingSlider: Bool = false  // Track slider dragging for scale animation
     @Published var cameraPosition: MapCameraPosition
     @Published var isOrbiting: Bool = false
     @Published var currentHeading: Double = 0
@@ -54,6 +55,8 @@ class GeoGameViewModel: ObservableObject {
     // MARK: - Timer System
 
     @Published var timeRemaining: Double = 0
+    @Published var displayTimeRemaining: Int = 0  // Stable integer for display (prevents flickering)
+    @Published var isTimerCritical: Bool = false  // True when <= 5 seconds (for pulse animation)
     @Published var isTimerActive: Bool = false
     private var timer: Timer?
     private var timerEndDate: Date?
@@ -273,6 +276,8 @@ class GeoGameViewModel: ObservableObject {
 
         // Set timer properties using Date-based calculation for accuracy
         timeRemaining = timeLimit
+        displayTimeRemaining = Int(ceil(timeLimit))
+        isTimerCritical = false  // Initialize as not critical
         timerEndDate = Date().addingTimeInterval(timeLimit)
         isTimerActive = true
 
@@ -304,14 +309,29 @@ class GeoGameViewModel: ObservableObject {
             // Time's up!
             stopTimer()
             timeRemaining = 0
+            displayTimeRemaining = 0
+            isTimerCritical = false
             autoSubmitDueToTimeout()
         } else {
             timeRemaining = remaining
 
-            // Play sound effects at 10s and 5s warnings
-            if Int(ceil(remaining)) == 10 || Int(ceil(remaining)) == 5 {
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.warning)
+            // Update display time only when integer value changes (prevents flickering)
+            let newDisplayTime = Int(ceil(remaining))
+            if newDisplayTime != displayTimeRemaining {
+                displayTimeRemaining = newDisplayTime
+
+                // Update critical state when crossing 5-second threshold
+                if newDisplayTime <= 5 && !isTimerCritical {
+                    isTimerCritical = true
+                } else if newDisplayTime > 5 && isTimerCritical {
+                    isTimerCritical = false
+                }
+
+                // Play sound effects at 10s and 5s warnings
+                if displayTimeRemaining == 10 || displayTimeRemaining == 5 {
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.warning)
+                }
             }
         }
     }
@@ -338,8 +358,8 @@ class GeoGameViewModel: ObservableObject {
                 submitLocationGuess()
             }
         } else if questionPhase == .phase2Price {
-            // Always mark as wrong on timeout (don't score slider position)
-            handleTimeoutFailure(phase: .phase2Price)
+            // Submit current slider position (score it normally)
+            submitPriceGuess()
         }
     }
 
@@ -359,6 +379,7 @@ class GeoGameViewModel: ObservableObject {
         if phase == .phase1Location {
             gameState.isLocationCorrect = false
             gameState.phase1Points = 0
+            gameState.phase = .transition  // CRITICAL: Transition to feedback view
             session.landmarksAttempted += 1
 
             // Show feedback
@@ -607,8 +628,7 @@ class GeoGameViewModel: ObservableObject {
                 gameState.phase = .transition
                 questionPhase = .phase1Feedback
             }
-
-            // Don't auto-advance - wait for user to click Continue button
+            // User will manually press Continue button to advance
         } else {
             // Wrong answer - lose health and break combo immediately
             session.health -= 1
@@ -619,13 +639,19 @@ class GeoGameViewModel: ObservableObject {
             // Trigger heart loss animation
             triggerHeartLossAnimation()
 
-            if session.health <= 0 {
-                // Game over - no more health
-                questionPhase = .gameOver
-                endGame()
+            // Set phase for feedback display (use .transition for consistency)
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                gameState.phase = .transition
             }
-            // Don't auto-advance - wait for user to click Continue button
-            // Note: Price questions for this landmark won't increment pricesAttempted
+
+            if session.health <= 0 {
+                // Show feedback briefly before game over
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                    self?.questionPhase = .gameOver
+                    self?.endGame()
+                }
+            }
+            // User will manually press Continue button to advance (if health > 0)
         }
     }
 
@@ -715,12 +741,12 @@ class GeoGameViewModel: ObservableObject {
 
         // Check game over
         if session.health <= 0 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                self.questionPhase = .gameOver
-                self.endGame()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                self?.questionPhase = .gameOver
+                self?.endGame()
             }
         }
-        // Otherwise wait for user to click Continue button - don't auto-advance
+        // User will manually press Continue button to advance (if health > 0)
     }
 
     // MARK: - Game Completion

@@ -21,19 +21,9 @@ struct MinimalBottomDeck: View {
     let minimalHeight: CGFloat = 80
 
     var expandedHeight: CGFloat {
-        // Phase 1 (Location): 220pt (for 2x2 grid + submit)
-        // Phase 2 (Price): 200pt (for slider + submit)
-        // Result: 180pt (for feedback + continue)
-        switch viewModel.questionPhase {
-        case .phase1Location:
-            return 220
-        case .phase2Price:
-            return 200
-        case .result:
-            return 200
-        default:
-            return 180
-        }
+        // Fixed height for all phases - no size changes during transitions
+        // 340pt provides ample space for all content types
+        return 340
     }
 
     var deckHeight: CGFloat {
@@ -47,8 +37,10 @@ struct MinimalBottomDeck: View {
             return "Identify Location"
         case .phase2Price:
             return "Guess Price"
-        case .result:
+        case .phase1Feedback:
             return viewModel.gameState.isLocationCorrect ? "Correct!" : "Try Again"
+        case .phase2Feedback, .questionComplete:
+            return "Result"
         default:
             return "Loading..."
         }
@@ -60,11 +52,38 @@ struct MinimalBottomDeck: View {
             return "Drag up to see answer options"
         case .phase2Price:
             return "Drag up to set price"
-        case .result:
+        case .phase1Feedback, .phase2Feedback, .questionComplete:
             return "Drag up to see details"
         default:
             return ""
         }
+    }
+
+    // Question text for the header
+    var questionText: String {
+        if let question = viewModel.currentQuestion {
+            switch viewModel.questionPhase {
+            case .phase1Location:
+                return "Where is this landmark located?"
+            case .phase2Price:
+                return "\(question.subject) in \(question.location)"
+            default:
+                return ""
+            }
+        }
+        return "Loading question..."
+    }
+
+    // Question header view (grey bar with question only - timer moved to top HUD)
+    var questionHeader: some View {
+        Text(questionText)
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundColor(Color(hex: "#1F2937"))
+            .lineLimit(1)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(hex: "#F9FAFB"))
     }
 
     var body: some View {
@@ -89,20 +108,29 @@ struct MinimalBottomDeck: View {
                 }
                 .padding(.bottom, 12)
             } else {
-                // Expanded state: Phase-specific content
-                Group {
-                    switch viewModel.questionPhase {
-                    case .phase1Location:
-                        Phase1LocationView(viewModel: viewModel)
-                    case .phase2Price:
-                        Phase2PriceView(viewModel: viewModel)
-                    case .result:
-                        GeoGameResultView(viewModel: viewModel)
-                    default:
-                        loadingView
+                // Expanded state: Question header + Phase content
+                VStack(spacing: 0) {
+                    // Question context header (grey bar) - only for Phase 1
+                    // Phase 2 has question built into its view to avoid duplication
+                    if viewModel.questionPhase == .phase1Location || viewModel.questionPhase == .phase1Feedback {
+                        questionHeader
                     }
+
+                    // Phase-specific content
+                    Group {
+                        switch viewModel.questionPhase {
+                        case .phase1Location, .phase1Feedback:
+                            Phase1LocationView(viewModel: viewModel)
+                        case .phase2Price:
+                            Phase2PriceView(viewModel: viewModel)
+                        case .phase2Feedback, .questionComplete:
+                            GeoGameResultView(viewModel: viewModel)
+                        default:
+                            loadingView
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
         .frame(height: deckHeight)
