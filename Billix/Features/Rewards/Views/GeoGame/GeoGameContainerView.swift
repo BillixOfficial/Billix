@@ -18,6 +18,7 @@ struct GeoGameContainerView: View {
     @StateObject private var viewModel: GeoGameViewModel
     @State private var currentGameId: UUID
     @Environment(\.dismiss) private var dismiss
+    @State private var showTutorialManually = false
 
     init(initialGame: DailyGame, onComplete: @escaping (GameResult) -> Void, onPlayAgain: @escaping () -> Void, onDismiss: @escaping () -> Void) {
         self.initialGame = initialGame
@@ -109,6 +110,16 @@ struct GeoGameContainerView: View {
                 self.onDismiss()
             }
         }
+        .sheet(isPresented: $showTutorialManually) {
+            GeoGameHowToPlayView(
+                onStart: { showTutorialManually = false },
+                onSkip: { showTutorialManually = false },
+                onSkipAndDontShowAgain: { showTutorialManually = false },
+                onPageChanged: { _ in },
+                isLoading: false,
+                isManualView: true  // Simple X to close for manual viewing
+            )
+        }
     }
 
     // MARK: - Top Overlay
@@ -134,6 +145,19 @@ struct GeoGameContainerView: View {
                 if viewModel.questionPhase != .gameOver && viewModel.questionPhase != .loading {
                     HealthBarView(currentHealth: viewModel.session.health)
                 }
+
+                // Help icon
+                Button(action: {
+                    showTutorialManually = true
+                }) {
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(Color(hex: "#00D9FF"))
+                        .shadow(color: Color(hex: "#00D9FF").opacity(0.6), radius: 8)
+                        .shadow(color: .black.opacity(0.3), radius: 4, y: 2)
+                }
+                .accessibilityLabel("View tutorial")
+                .accessibilityHint("Shows how to play Price Guessr")
             }
         }
         .padding(.horizontal, 16)

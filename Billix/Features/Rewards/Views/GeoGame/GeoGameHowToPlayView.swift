@@ -14,6 +14,9 @@ struct GeoGameHowToPlayView: View {
     let onStart: () -> Void
     let onSkip: () -> Void
     let onSkipAndDontShowAgain: () -> Void
+    let onPageChanged: (Int) -> Void
+    let isLoading: Bool
+    let isManualView: Bool  // NEW: When true, shows X to close instead of skip options
 
     @State private var currentPage = 0
     @State private var appeared = false
@@ -57,22 +60,46 @@ struct GeoGameHowToPlayView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Skip button
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        showSkipConfirmation = true
-                    }) {
-                        Text("Skip")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.7))
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
+                // Skip button (only show for automatic tutorial, not manual view)
+                if !isManualView {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            showSkipConfirmation = true
+                        }) {
+                            Text("Skip")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
+                        }
+                        .accessibilityLabel("Skip tutorial")
+                        .accessibilityHint("Opens options to skip now or permanently dismiss tutorial")
+                        .disabled(isLoading)
                     }
+                    .padding(.top, 56)
+                    .padding(.trailing, 16)
+                    .opacity(appeared ? 1 : 0)
+                } else {
+                    // Close button for manual view
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            onSkip()  // Just close
+                        }) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.7))
+                                .frame(width: 32, height: 32)
+                                .background(Color.white.opacity(0.15))
+                                .clipShape(Circle())
+                        }
+                        .accessibilityLabel("Close tutorial")
+                    }
+                    .padding(.top, 56)
+                    .padding(.trailing, 16)
+                    .opacity(appeared ? 1 : 0)
                 }
-                .padding(.top, 56)
-                .padding(.trailing, 16)
-                .opacity(appeared ? 1 : 0)
 
                 Spacer()
 
@@ -86,6 +113,11 @@ struct GeoGameHowToPlayView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: 500)
                 .opacity(appeared ? 1 : 0)
+                .onChange(of: currentPage) { newPage in
+                    onPageChanged(newPage)
+                }
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Tutorial page \(currentPage + 1) of \(pages.count)")
 
                 // Page indicators (custom)
                 HStack(spacing: 8) {
@@ -107,8 +139,13 @@ struct GeoGameHowToPlayView: View {
                         onStart()
                     }) {
                         HStack(spacing: 12) {
-                            Text("LET'S PLAY!")
-                            Image(systemName: "arrow.right.circle.fill")
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                            } else {
+                                Text("LET'S PLAY!")
+                                Image(systemName: "arrow.right.circle.fill")
+                            }
                         }
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.black)
@@ -124,6 +161,9 @@ struct GeoGameHowToPlayView: View {
                         .cornerRadius(16)
                         .shadow(color: .billixArcadeGold.opacity(0.5), radius: 20, y: 10)
                     }
+                    .disabled(isLoading)
+                    .accessibilityLabel("Start playing Price Guessr")
+                    .accessibilityHint("Closes tutorial and begins the game")
                     .padding(.horizontal, 32)
                     .padding(.bottom, 40)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -150,6 +190,8 @@ struct GeoGameHowToPlayView: View {
                                 .stroke(Color.white.opacity(0.3), lineWidth: 1)
                         )
                     }
+                    .accessibilityLabel("Next page")
+                    .accessibilityHint("Advances to page \(currentPage + 2) of \(pages.count)")
                     .padding(.horizontal, 32)
                     .padding(.bottom, 40)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -220,8 +262,10 @@ struct TutorialPageView: View {
                 Image(systemName: page.icon)
                     .font(.system(size: 70))
                     .foregroundColor(page.iconColor)
+                    .accessibilityLabel("\(page.title) icon")
             }
             .scaleEffect(iconScale)
+            .accessibilityHidden(true)
 
             // Content
             VStack(spacing: 16) {
@@ -296,6 +340,11 @@ struct TutorialPage {
         },
         onSkipAndDontShowAgain: {
             print("Skip and don't show again")
-        }
+        },
+        onPageChanged: { pageNumber in
+            print("Page changed to: \(pageNumber)")
+        },
+        isLoading: false,
+        isManualView: false
     )
 }

@@ -497,6 +497,25 @@ class SeasonDataService {
         try await updateGameSettings(userId: userId, settings: settings)
     }
 
+    /// Mark tutorial as completed (user clicked "LET'S PLAY!")
+    func markTutorialCompleted(userId: UUID, pagesViewed: Int) async throws {
+        var settings = try await fetchGameSettings(userId: userId) ?? UserGameSettings(userId: userId)
+        settings.hasCompletedTutorial = true
+        settings.hasSeenTutorial = true  // Also mark as seen
+        settings.lastTutorialPageViewed = pagesViewed
+        settings.lastTutorialShownAt = Date()
+        settings.hasPlayedGeogame = true
+        try await updateGameSettings(userId: userId, settings: settings)
+    }
+
+    /// Track tutorial page view (for analytics)
+    func trackTutorialPageView(userId: UUID, pageNumber: Int) async throws {
+        var settings = try await fetchGameSettings(userId: userId) ?? UserGameSettings(userId: userId)
+        settings.lastTutorialPageViewed = max(settings.lastTutorialPageViewed, pageNumber)
+        settings.lastTutorialShownAt = Date()
+        try await updateGameSettings(userId: userId, settings: settings)
+    }
+
     // MARK: - Points & Rewards
 
     /// Award points to user's profile after completing a game

@@ -13,11 +13,11 @@ struct LocationMapView: View {
     let partId: UUID
     let partTitle: String
     @ObservedObject var viewModel: SeasonViewModel
+    @StateObject private var tutorialManager = TutorialManager()
 
     @State private var showTutorial = false
     @State private var selectedLocation: SeasonLocation?
     @State private var pendingLocation: SeasonLocation? // Location waiting for tutorial completion
-    @State private var hasCheckedTutorial = false
 
     var body: some View {
         ZStack {
@@ -88,20 +88,50 @@ struct LocationMapView: View {
         }) {
             GeoGameHowToPlayView(
                 onStart: {
-                    // Don't mark as seen - let it show again next time
                     showTutorial = false
+                    Task {
+                        if let userId = viewModel.currentUserId {
+                            do {
+                                try await tutorialManager.markTutorialCompleted(userId: userId, pagesViewed: 4)
+                            } catch {
+                                print("⚠️ Failed to mark tutorial completed: \(error.localizedDescription)")
+                            }
+                        }
+                    }
                 },
                 onSkip: {
-                    // Don't mark as seen - let it show again next time
                     showTutorial = false
+                    Task {
+                        if let userId = viewModel.currentUserId {
+                            do {
+                                try await tutorialManager.markTutorialSkipped(userId: userId)
+                            } catch {
+                                print("⚠️ Failed to mark tutorial skipped: \(error.localizedDescription)")
+                            }
+                        }
+                    }
                 },
                 onSkipAndDontShowAgain: {
-                    // ONLY this option marks it as permanently seen
-                    Task {
-                        await viewModel.markTutorialSeen()
-                    }
                     showTutorial = false
-                }
+                    Task {
+                        if let userId = viewModel.currentUserId {
+                            do {
+                                try await tutorialManager.markTutorialDismissed(userId: userId)
+                            } catch {
+                                print("⚠️ Failed to mark tutorial dismissed: \(error.localizedDescription)")
+                            }
+                        }
+                    }
+                },
+                onPageChanged: { pageNumber in
+                    Task {
+                        if let userId = viewModel.currentUserId {
+                            await tutorialManager.trackPageView(userId: userId, pageNumber: pageNumber)
+                        }
+                    }
+                },
+                isLoading: tutorialManager.isLoading,
+                isManualView: false  // Full tutorial flow with skip options
             )
         }
         .fullScreenCover(item: $selectedLocation) { location in
@@ -116,9 +146,9 @@ struct LocationMapView: View {
             )
         }
         .task {
-            if !hasCheckedTutorial {
-                await checkTutorialStatus()
-                hasCheckedTutorial = true
+            // Pre-fetch tutorial settings in background
+            if let userId = viewModel.currentUserId {
+                await tutorialManager.preFetchSettings(userId: userId)
             }
         }
     }
@@ -126,35 +156,35 @@ struct LocationMapView: View {
     // MARK: - Private Methods
 
     private func handleLocationTap(_ location: SeasonLocation) {
-        // Check if user has seen tutorial
+        // Use cached settings to avoid network delay
         Task {
-            let userId = try? await SupabaseService.shared.client.auth.session.user.id
-            guard let userId = userId else { return }
+            guard let userId = viewModel.currentUserId else { return }
 
-            let settings = try? await SeasonDataService.shared.fetchGameSettings(userId: userId)
+            do {
+                let settings = try await tutorialManager.fetchTutorialSettings(userId: userId, forceFetch: false)
 
-            // Show tutorial unless user selected "Don't Show Again"
-            if settings?.hasSeenTutorial == true {
-                // User chose "Don't Show Again" - skip tutorial
-                await MainActor.run {
-                    selectedLocation = location
+                // Show tutorial unless user completed it or chose "Don't Show Again"
+                if settings.hasCompletedTutorial || settings.hasSeenTutorial {
+                    // Skip tutorial
+                    await MainActor.run {
+                        selectedLocation = location
+                    }
+                } else {
+                    // Show tutorial
+                    await MainActor.run {
+                        pendingLocation = location
+                        showTutorial = true
+                    }
                 }
-            } else {
-                // Show tutorial (first time or they haven't disabled it)
+            } catch {
+                print("⚠️ Failed to fetch tutorial settings: \(error.localizedDescription)")
+                // Default to showing tutorial (safer)
                 await MainActor.run {
                     pendingLocation = location
                     showTutorial = true
                 }
             }
         }
-    }
-
-    private func checkTutorialStatus() async {
-        let userId = try? await SupabaseService.shared.client.auth.session.user.id
-        guard let userId = userId else { return }
-
-        // Pre-fetch settings to avoid delay on first tap
-        _ = try? await SeasonDataService.shared.fetchGameSettings(userId: userId)
     }
 
 }

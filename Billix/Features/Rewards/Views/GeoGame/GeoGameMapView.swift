@@ -36,44 +36,6 @@ struct GeoGameMapView: View {
                 // Enable exploration mode
                 viewModel.enableExplorationMode()
             }
-
-            // Top-Right: Landmark Button
-            if viewModel.gameState.phase == .phase1Location || viewModel.gameState.phase == .transition {
-                VStack {
-                    HStack {
-                        Spacer()
-
-                        // Return to Landmark Button
-                        returnToLandmarkButton
-                            .padding(.trailing, 20)
-                    }
-                    .padding(.top, 100)  // Below close button and phase indicator
-
-                    Spacer()
-                }
-            }
-        }
-    }
-
-    // MARK: - Return to Landmark Button
-
-    private var returnToLandmarkButton: some View {
-        Button(action: {
-            viewModel.returnToLandmark()
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
-        }) {
-            VStack(spacing: 4) {
-                Image(systemName: "building.2.fill")
-                    .font(.system(size: 18))
-                Text("Landmark")
-                    .font(.system(size: 10, weight: .semibold))
-            }
-            .foregroundColor(.white)
-            .frame(width: 60, height: 54)
-            .background(Color.billixMoneyGreen)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.3), radius: 8, y: 2)
         }
     }
 

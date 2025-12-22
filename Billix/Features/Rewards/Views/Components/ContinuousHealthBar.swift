@@ -12,25 +12,6 @@ import SwiftUI
 struct ContinuousHealthBar: View {
     @ObservedObject var viewModel: GeoGameViewModel
 
-    // Timer properties
-    var timeRemaining: Double {
-        viewModel.timeRemaining
-    }
-
-    var timerColor: Color {
-        if timeRemaining <= 5 {
-            return .red
-        } else if timeRemaining <= 10 {
-            return .orange
-        } else {
-            return .billixMoneyGreen
-        }
-    }
-
-    var shouldPulse: Bool {
-        timeRemaining <= 5
-    }
-
     // Health properties
     var healthPercentage: Double {
         // Convert discrete hearts (0-3) to continuous percentage (0-100)
@@ -56,28 +37,34 @@ struct ContinuousHealthBar: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                // Background track
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(height: 8)
+        HStack(spacing: 8) {
+            // Heart icon
+            Image(systemName: "heart.fill")
+                .font(.system(size: 16))
+                .foregroundColor(healthPercentage > 20 ? .red : .red.opacity(0.5))
 
-                // Health fill (green→orange→red gradient)
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(healthGradient)
-                    .frame(width: calculateBarWidth(totalWidth: geometry.size.width), height: 8)
-                    .animation(.easeInOut(duration: 0.3), value: healthPercentage)
+            // Health bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background track (shows empty health)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.white.opacity(0.2))
+                        .frame(height: 8)
 
-                // Timer badge (center overlay)
-                CompactTimerBadge(
-                    timeRemaining: timeRemaining,
-                    color: timerColor,
-                    shouldPulse: shouldPulse
-                )
-                .position(x: geometry.size.width / 2, y: 4)
+                    // Health fill (green→orange→red gradient)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(healthGradient)
+                        .frame(width: calculateBarWidth(totalWidth: geometry.size.width), height: 8)
+                        .animation(.easeInOut(duration: 0.3), value: healthPercentage)
+                }
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            Capsule()
+                .fill(Color.black.opacity(0.3))
+        )
         .frame(height: 36)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Health: \(Int(healthPercentage)) percent")

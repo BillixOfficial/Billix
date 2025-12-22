@@ -83,6 +83,11 @@
 		A602F2182EF8593700856DEE /* TimelineConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2142EF8593700856DEE /* TimelineConnector.swift */; };
 		A602F2192EF8593700856DEE /* ExpeditionIconBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2122EF8593700856DEE /* ExpeditionIconBox.swift */; };
 		A602F21A2EF8593700856DEE /* TimelineProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2152EF8593700856DEE /* TimelineProgressBar.swift */; };
+		A602F2342EF886CF00856DEE /* TutorialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2332EF886CF00856DEE /* TutorialManager.swift */; };
+		A602F2382EF88B1900856DEE /* GameBoostsModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2372EF88B1900856DEE /* GameBoostsModal.swift */; };
+		A602F2392EF88B1900856DEE /* ContinuousHealthBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2362EF88B1900856DEE /* ContinuousHealthBar.swift */; };
+		A602F23A2EF88B1900856DEE /* CompactTopHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2352EF88B1900856DEE /* CompactTopHUD.swift */; };
+		A602F23C2EF8A33700856DEE /* MinimalBottomDeck.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F23B2EF8A33700856DEE /* MinimalBottomDeck.swift */; };
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */; };
 		A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */; };
@@ -304,6 +309,11 @@
 		A602F2132EF8593700856DEE /* MetadataPillView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataPillView.swift; sourceTree = "<group>"; };
 		A602F2142EF8593700856DEE /* TimelineConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineConnector.swift; sourceTree = "<group>"; };
 		A602F2152EF8593700856DEE /* TimelineProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineProgressBar.swift; sourceTree = "<group>"; };
+		A602F2332EF886CF00856DEE /* TutorialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialManager.swift; sourceTree = "<group>"; };
+		A602F2352EF88B1900856DEE /* CompactTopHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactTopHUD.swift; sourceTree = "<group>"; };
+		A602F2362EF88B1900856DEE /* ContinuousHealthBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuousHealthBar.swift; sourceTree = "<group>"; };
+		A602F2372EF88B1900856DEE /* GameBoostsModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameBoostsModal.swift; sourceTree = "<group>"; };
+		A602F23B2EF8A33700856DEE /* MinimalBottomDeck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MinimalBottomDeck.swift; sourceTree = "<group>"; };
 		A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysis.swift; sourceTree = "<group>"; };
 		A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredBill.swift; sourceTree = "<group>"; };
 		A64F7F4E2ECBB46B005576C5 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -699,6 +709,7 @@
 		A64F7F502ECBB46B005576C5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				A602F2332EF886CF00856DEE /* TutorialManager.swift */,
 				A6FF82812EE641A6008330C9 /* SeasonDataService.swift */,
 				F9076DBD2ED50D430051E1D8 /* SupabaseService.swift */,
 				A6FF814E2ED4BAF4008330C9 /* Upload */,
@@ -919,6 +930,10 @@
 		A6FF822B2EDE3AD4008330C9 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				A602F23B2EF8A33700856DEE /* MinimalBottomDeck.swift */,
+				A602F2352EF88B1900856DEE /* CompactTopHUD.swift */,
+				A602F2362EF88B1900856DEE /* ContinuousHealthBar.swift */,
+				A602F2372EF88B1900856DEE /* GameBoostsModal.swift */,
 				F88BA3773C1EA797D5A5C420 /* GiftCardsCarousel.swift */,
 				A6FF82182EDE3AD4008330C9 /* ArcadeHeroCard.swift */,
 				A6FF82192EDE3AD4008330C9 /* FloatingParticles.swift */,
@@ -1330,6 +1345,7 @@
 				A6FF827C2EE6418A008330C9 /* UserGameSettings.swift in Sources */,
 				A6FF827D2EE6418A008330C9 /* Season.swift in Sources */,
 				A6FF827E2EE6418A008330C9 /* UserSeasonProgress.swift in Sources */,
+				A602F2342EF886CF00856DEE /* TutorialManager.swift in Sources */,
 				A6FF827F2EE6418A008330C9 /* SeasonLocation.swift in Sources */,
 				A6FF82802EE6418A008330C9 /* SeasonPart.swift in Sources */,
 				A6FF817C2ED4BB24008330C9 /* QuickAddFlowView.swift in Sources */,
@@ -1439,6 +1455,9 @@
 				A6FF82672EDE3AD4008330C9 /* RewardsViewModel.swift in Sources */,
 				A6FF82682EDE3AD4008330C9 /* GeoGameDataService.swift in Sources */,
 				F9076D682ED19DEE0051E1D8 /* SettingsRow.swift in Sources */,
+				A602F2382EF88B1900856DEE /* GameBoostsModal.swift in Sources */,
+				A602F2392EF88B1900856DEE /* ContinuousHealthBar.swift in Sources */,
+				A602F23A2EF88B1900856DEE /* CompactTopHUD.swift in Sources */,
 				A6FF812A2ECEB3E5008330C9 /* BillsStatsHeaderView.swift in Sources */,
 				A6FF812B2ECEB3E5008330C9 /* BillMarketplaceCard.swift in Sources */,
 				F9076D4D2ED19DA20051E1D8 /* MockDataService.swift in Sources */,
@@ -1488,6 +1507,7 @@
 				ED5EF5B9E827DE7A7C2F751E /* AnalysisBreakdownTab.swift in Sources */,
 				680BB9D3534B76879FBC45C6 /* GameBoostsCarousel.swift in Sources */,
 				90A4EC43F0790A45FF24632D /* QuestionTimerView.swift in Sources */,
+				A602F23C2EF8A33700856DEE /* MinimalBottomDeck.swift in Sources */,
 				5CD0907F6DACEFDE7B33C4E3 /* UserSessionProgress.swift in Sources */,
 				8B3A2A5EEB7F2AF184E4525B /* SessionGameContainerView.swift in Sources */,
 			);

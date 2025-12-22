@@ -13,52 +13,41 @@ struct Phase2PriceView: View {
     @ObservedObject var viewModel: GeoGameViewModel
 
     var body: some View {
-        VStack(spacing: 24) {
-            // Header with Phase 1 badge
-            HStack {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("💰 PRICE CHECK")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(.billixMoneyGreen)
-
-                    Text("How much does it cost?")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.primary)
-                }
-
-                Spacer()
-
-                // Phase 1 points badge
-                HStack(spacing: 4) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 12))
-                    Text("+\(viewModel.gameState.phase1Points)")
-                        .font(.system(size: 14, weight: .bold))
-                }
-                .foregroundColor(.billixMoneyGreen)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.billixMoneyGreen.opacity(0.15))
-                .cornerRadius(20)
-            }
-
-            // Subject line
+        VStack(spacing: 10) {
+            // Question split into 2 lines (Item + Location)
             if let question = viewModel.currentQuestion {
-                Text("\(question.subject) in \(question.location)")
-                    .font(.system(size: 15))
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+                VStack(spacing: 3) {
+                    // Line 1: The Item (Product)
+                    Text(question.subject)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+
+                    // Line 2: The Location (Context)
+                    Text("in \(question.location)")
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
             }
 
-            // Large price display
+            // Large price display (prominent with monospaced stability)
             Text(viewModel.formattedGuess)
-                .font(.system(size: 48, weight: .bold))
+                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .monospacedDigit()
                 .foregroundColor(.billixMoneyGreen)
                 .contentTransition(.numericText())
+                .scaleEffect(viewModel.isDraggingSlider ? 1.05 : 1.0)
+                .animation(.spring(response: 0.2, dampingFraction: 0.7), value: viewModel.isDraggingSlider)
 
-            // Custom Slider
-            CustomPriceSlider(value: $viewModel.sliderValue)
-                .frame(height: 60)
+            // Custom Slider (Full width with proper padding)
+            CustomPriceSlider(
+                value: $viewModel.sliderValue,
+                isDragging: $viewModel.isDraggingSlider
+            )
+            .frame(height: 32)
+            .padding(.horizontal, 16)
 
             // Min/Max labels
             if let question = viewModel.currentQuestion {
@@ -75,20 +64,26 @@ struct Phase2PriceView: View {
                 }
             }
 
-            // Lock in button
+            // Lock in button (with safe margin above)
             Button(action: {
                 viewModel.submitPriceGuess()
             }) {
                 Text("LOCK IT IN")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 50)
+                    .frame(height: 46)
                     .background(Color.billixMoneyGreen)
                     .cornerRadius(12)
             }
+            .padding(.top, 16)
+
+            // Safe area spacer for home indicator (30px clearance)
+            Spacer()
+                .frame(height: 30)
         }
-        .padding(24)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
     }
 
     private func formatPrice(_ price: Double, category: GameCategory) -> String {
@@ -105,20 +100,20 @@ struct Phase2PriceView: View {
 struct CustomPriceSlider: View {
 
     @Binding var value: Double
-    @State private var isDragging: Bool = false
+    @Binding var isDragging: Bool  // Changed from @State to @Binding to communicate with parent
 
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
-                // Track background
-                RoundedRectangle(cornerRadius: 4)
+                // Track background (thicker for better touch target)
+                RoundedRectangle(cornerRadius: 6)
                     .fill(Color.gray.opacity(0.2))
-                    .frame(height: 8)
+                    .frame(height: 12)
 
                 // Filled track
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 6)
                     .fill(Color.billixMoneyGreen)
-                    .frame(width: geometry.size.width * value, height: 8)
+                    .frame(width: geometry.size.width * value, height: 12)
 
                 // Thumb
                 Circle()

@@ -12,6 +12,7 @@ struct PartSelectionView: View {
     let seasonId: UUID
     let seasonTitle: String
     @ObservedObject var viewModel: SeasonViewModel
+    @StateObject private var tutorialManager = TutorialManager()
 
     var body: some View {
         ZStack {
@@ -108,22 +109,52 @@ struct PartSelectionView: View {
             GeoGameHowToPlayView(
                 onStart: {
                     viewModel.showTutorial = false
-                    viewModel.launchSession()
+                    Task {
+                        if let userId = viewModel.currentUserId {
+                            do {
+                                try await tutorialManager.markTutorialCompleted(userId: userId, pagesViewed: 4)
+                            } catch {
+                                print("⚠️ Failed to mark tutorial completed: \(error.localizedDescription)")
+                            }
+                        }
+                        viewModel.launchSession()
+                    }
                 },
                 onSkip: {
                     viewModel.showTutorial = false
                     Task {
-                        await viewModel.markTutorialSkipped()
+                        if let userId = viewModel.currentUserId {
+                            do {
+                                try await tutorialManager.markTutorialSkipped(userId: userId)
+                            } catch {
+                                print("⚠️ Failed to mark tutorial skipped: \(error.localizedDescription)")
+                            }
+                        }
                         viewModel.launchSession()
                     }
                 },
                 onSkipAndDontShowAgain: {
                     viewModel.showTutorial = false
                     Task {
-                        await viewModel.markTutorialSeen()
+                        if let userId = viewModel.currentUserId {
+                            do {
+                                try await tutorialManager.markTutorialDismissed(userId: userId)
+                            } catch {
+                                print("⚠️ Failed to mark tutorial dismissed: \(error.localizedDescription)")
+                            }
+                        }
                         viewModel.launchSession()
                     }
-                }
+                },
+                onPageChanged: { pageNumber in
+                    Task {
+                        if let userId = viewModel.currentUserId {
+                            await tutorialManager.trackPageView(userId: userId, pageNumber: pageNumber)
+                        }
+                    }
+                },
+                isLoading: tutorialManager.isLoading,
+                isManualView: false  // Full tutorial flow with skip options
             )
         }
         .fullScreenCover(item: $viewModel.currentGameSession) { session in
@@ -136,6 +167,12 @@ struct PartSelectionView: View {
                     }
                 }
             )
+        }
+        .task {
+            // Pre-fetch tutorial settings in background
+            if let userId = viewModel.currentUserId {
+                await tutorialManager.preFetchSettings(userId: userId)
+            }
         }
     }
 }
