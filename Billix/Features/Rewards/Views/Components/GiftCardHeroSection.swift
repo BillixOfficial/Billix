@@ -234,6 +234,7 @@ struct GiftCardHeroSection: View {
                     description: "Redeemable on Amazon.com",
                     pointsCost: 10000,
                     brand: "Amazon",
+                    brandGroup: nil,
                     dollarValue: 5,
                     iconName: "gift.fill",
                     accentColor: "#FF9900"
@@ -263,6 +264,7 @@ struct GiftCardHeroSection: View {
                     description: "Shop at Target",
                     pointsCost: 20000,
                     brand: "Target",
+                    brandGroup: nil,
                     dollarValue: 10,
                     iconName: "giftcard.fill",
                     accentColor: "#CC0000"

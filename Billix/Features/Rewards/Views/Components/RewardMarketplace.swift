@@ -18,6 +18,7 @@ struct RewardMarketplace: View {
     let canAccessShop: Bool
     let currentTier: RewardsTier
     let onRewardTapped: (Reward) -> Void
+    let onStartDonationRequest: () -> Void
     let onViewAllGiftCards: () -> Void
     let onViewAllGameBoosts: () -> Void
     let onViewAllVirtualGoods: () -> Void
@@ -66,7 +67,7 @@ struct RewardMarketplace: View {
                         )
                         .padding(.top, 12)
 
-                        // ZONE 2: Gift Cards Carousel
+                        // Gift Cards Carousel
                         if !giftCardRewards.isEmpty {
                             GiftCardsCarousel(
                                 giftCards: giftCardRewards,
@@ -76,28 +77,32 @@ struct RewardMarketplace: View {
                             )
                         }
 
-                        // ZONE 3: Game Boosts Carousel (horizontal scroll showing 6)
-                        if !gameBoosts.isEmpty {
-                            GameBoostsCarousel(
-                                boosts: gameBoosts,
-                                userPoints: userPoints,
-                                onBoostTapped: onRewardTapped,
-                                onViewAll: onViewAllGameBoosts
-                            )
-                        }
+                        // GIVE BACK SECTION: Custom Charity Donation
+                        VStack(alignment: .leading, spacing: 20) {
+                            // Section header
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("GIVE BACK")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(Color(hex: "#0D9488")) // Teal
+                                    .textCase(.uppercase)
+                                    .tracking(0.5)
 
-                        // ZONE 4: Virtual Goods Carousel
-                        if !virtualGoods.isEmpty {
-                            VirtualGoodsCarousel(
-                                virtualGoods: virtualGoods,
-                                userPoints: userPoints,
-                                onItemTapped: onRewardTapped,
-                                onViewAll: onViewAllVirtualGoods
+                                Text("Turn your points into real-world impact")
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(.billixDarkGreen)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 12)
+
+                            // Single "Golden Ticket" card
+                            CustomDonationCard(
+                                onStartRequest: onStartDonationRequest
                             )
+                            .padding(.horizontal, 20)
                         }
 
                         // Empty state if no rewards at all
-                        if giftCardRewards.isEmpty && gameBoosts.isEmpty {
+                        if giftCardRewards.isEmpty {
                             EmptyMarketplaceState()
                                 .padding(.vertical, 40)
                         }
@@ -257,6 +262,7 @@ struct EmptyMarketplaceState: View {
             canAccessShop: true,
             currentTier: .silver,
             onRewardTapped: { _ in },
+            onStartDonationRequest: {},
             onViewAllGiftCards: {},
             onViewAllGameBoosts: {},
             onViewAllVirtualGoods: {}
@@ -274,6 +280,7 @@ struct EmptyMarketplaceState: View {
             canAccessShop: false,
             currentTier: .bronze,
             onRewardTapped: { _ in },
+            onStartDonationRequest: {},
             onViewAllGiftCards: {},
             onViewAllGameBoosts: {},
             onViewAllVirtualGoods: {}
@@ -291,6 +298,7 @@ struct EmptyMarketplaceState: View {
             canAccessShop: true,
             currentTier: .silver,
             onRewardTapped: { _ in },
+            onStartDonationRequest: {},
             onViewAllGiftCards: {},
             onViewAllGameBoosts: {},
             onViewAllVirtualGoods: {}

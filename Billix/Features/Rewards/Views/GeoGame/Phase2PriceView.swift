@@ -16,38 +16,38 @@ struct Phase2PriceView: View {
         VStack(spacing: 10) {
             // Question split into 2 lines (Item + Location)
             if let question = viewModel.currentQuestion {
-                VStack(spacing: 3) {
-                    // Line 1: The Item (Product)
+                VStack(spacing: 4) {
+                    // Line 1: The Item (Product) - Bold, prominent
                     Text(question.subject)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.primary)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
 
-                    // Line 2: The Location (Context)
+                    // Line 2: The Location (Context) - Lighter, secondary
                     Text("in \(question.location)")
-                        .font(.system(size: 12, weight: .regular))
+                        .font(.system(size: 14, weight: .regular))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
             }
 
-            // Large price display (prominent with monospaced stability)
+            // MASSIVE price display - the hero of this view
             Text(viewModel.formattedGuess)
-                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .font(.system(size: 48, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundColor(.billixMoneyGreen)
                 .contentTransition(.numericText())
-                .scaleEffect(viewModel.isDraggingSlider ? 1.05 : 1.0)
+                .scaleEffect(viewModel.isDraggingSlider ? 1.1 : 1.0)
                 .animation(.spring(response: 0.2, dampingFraction: 0.7), value: viewModel.isDraggingSlider)
 
-            // Custom Slider (Full width with proper padding)
+            // Custom Slider (Edge-to-edge with minimal padding for wider feel)
             CustomPriceSlider(
                 value: $viewModel.sliderValue,
                 isDragging: $viewModel.isDraggingSlider
             )
             .frame(height: 32)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 4)
 
             // Min/Max labels
             if let question = viewModel.currentQuestion {
@@ -78,9 +78,9 @@ struct Phase2PriceView: View {
             }
             .padding(.top, 16)
 
-            // Safe area spacer for home indicator (30px clearance)
+            // Safe area spacer for home indicator (50px clearance: 34px home bar + 16px padding)
             Spacer()
-                .frame(height: 30)
+                .frame(height: 50)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)

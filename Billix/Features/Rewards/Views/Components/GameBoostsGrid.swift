@@ -172,6 +172,7 @@ struct GameBoostCard: View {
                         description: "One more chance if you lose",
                         pointsCost: 500,
                         brand: nil,
+                        brandGroup: nil,
                         dollarValue: nil,
                         iconName: "heart.fill",
                         accentColor: "#FF6B6B"
@@ -184,6 +185,7 @@ struct GameBoostCard: View {
                         description: "Double points earned",
                         pointsCost: 800,
                         brand: nil,
+                        brandGroup: nil,
                         dollarValue: nil,
                         iconName: "arrow.up.circle.fill",
                         accentColor: "#4ECDC4"
@@ -196,6 +198,7 @@ struct GameBoostCard: View {
                         description: "Pass a difficult question",
                         pointsCost: 300,
                         brand: nil,
+                        brandGroup: nil,
                         dollarValue: nil,
                         iconName: "forward.fill",
                         accentColor: "#95E1D3"
@@ -208,6 +211,7 @@ struct GameBoostCard: View {
                         description: "+30 seconds on timer",
                         pointsCost: 400,
                         brand: nil,
+                        brandGroup: nil,
                         dollarValue: nil,
                         iconName: "clock.fill",
                         accentColor: "#F38181"
@@ -220,6 +224,7 @@ struct GameBoostCard: View {
                         description: "Reveal one wrong answer",
                         pointsCost: 250,
                         brand: nil,
+                        brandGroup: nil,
                         dollarValue: nil,
                         iconName: "lightbulb.fill",
                         accentColor: "#FFD93D"
@@ -232,6 +237,7 @@ struct GameBoostCard: View {
                         description: "Bonus points wheel",
                         pointsCost: 600,
                         brand: nil,
+                        brandGroup: nil,
                         dollarValue: nil,
                         iconName: "star.circle.fill",
                         accentColor: "#6BCB77"

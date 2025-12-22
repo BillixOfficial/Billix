@@ -71,15 +71,64 @@ struct RewardsHubView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $viewModel.showAmountSheet) {
+            if let brandGroup = viewModel.selectedBrandGroup {
+                let amounts = viewModel.getRewardsForBrand(brandGroup)
+                let brandName = amounts.first?.brand ?? "Gift Card"
+
+                GiftCardAmountSheet(
+                    brandGroup: brandGroup,
+                    brandName: brandName,
+                    availableAmounts: amounts,
+                    userPoints: viewModel.points.balance,
+                    onSelectAmount: { reward in
+                        viewModel.selectedReward = reward
+                    }
+                )
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
         .sheet(item: $viewModel.selectedReward) { reward in
-            RewardRedeemSheet(
-                reward: reward,
+            if reward.category == .giftCard {
+                // Gift cards require email for delivery
+                GiftCardEmailSheet(
+                    reward: reward,
+                    userPoints: viewModel.points.balance,
+                    onRedeem: { email in
+                        viewModel.redeemGiftCard(reward, email: email)
+                    }
+                )
+            } else {
+                // Other rewards use direct redemption
+                RewardRedeemSheet(
+                    reward: reward,
+                    userPoints: viewModel.points.balance,
+                    onRedeem: {
+                        viewModel.redeemReward(reward)
+                    }
+                )
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
+        .sheet(isPresented: $viewModel.showDonationRequestSheet) {
+            CustomDonationRequestSheet(
                 userPoints: viewModel.points.balance,
-                onRedeem: {
-                    viewModel.redeemReward(reward)
+                userName: "John Doe", // TODO: Get from user profile
+                userEmail: "john@example.com", // TODO: Get from user profile
+                onSubmit: { org, location, amount, inName, donorName, donorEmail in
+                    viewModel.submitDonationRequest(
+                        organizationName: org,
+                        websiteOrLocation: location,
+                        amount: amount,
+                        donateInMyName: inName,
+                        donorName: donorName,
+                        donorEmail: donorEmail
+                    )
                 }
             )
-            .presentationDetents([.medium])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
         .fullScreenCover(isPresented: $viewModel.showGeoGame) {
@@ -246,7 +295,16 @@ struct MarketplaceTabView: View {
             canAccessShop: viewModel.canAccessRewardShop,
             currentTier: viewModel.currentTier,
             onRewardTapped: { reward in
-                viewModel.selectedReward = reward
+                // If gift card with brand group, show amount selection
+                if reward.category == .giftCard, let brandGroup = reward.brandGroup {
+                    viewModel.selectBrandForAmountSheet(brandGroup: brandGroup)
+                } else {
+                    // Direct redemption for other rewards
+                    viewModel.selectedReward = reward
+                }
+            },
+            onStartDonationRequest: {
+                viewModel.startDonationRequest()
             },
             onViewAllGiftCards: {
                 viewModel.showAllRewards = true

@@ -14,48 +14,55 @@ struct GiftCardsCarousel: View {
     let onViewAll: () -> Void
     let onCardTapped: (Reward) -> Void
 
+    // Group rewards by brand and show one card per brand
+    private var displayCards: [Reward] {
+        // Featured brands first: target, kroger, walmart
+        let featuredBrands = ["target", "kroger", "walmart"]
+
+        // Group by brandGroup (or brand if no brandGroup)
+        let groupedByBrand = Dictionary(grouping: giftCards) { card in
+            card.brandGroup ?? card.brand ?? ""
+        }
+
+        var result: [Reward] = []
+
+        // Add featured brands first
+        for brand in featuredBrands {
+            if let rewards = groupedByBrand[brand], let first = rewards.first {
+                result.append(first)
+            }
+        }
+
+        // Add other brands (up to 6 total)
+        for (brand, rewards) in groupedByBrand where !featuredBrands.contains(brand) {
+            if let first = rewards.first, result.count < 6 {
+                result.append(first)
+            }
+        }
+
+        return Array(result.prefix(6))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Section Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("FEATURED REWARDS")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.billixMediumGreen)
-                        .textCase(.uppercase)
-                        .tracking(0.5)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("FEATURED REWARDS")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.billixMediumGreen)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
 
-                    Text("Gift Cards")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.billixDarkGreen)
-                }
-
-                Spacer()
-
-                // View All button
-                Button(action: onViewAll) {
-                    HStack(spacing: 6) {
-                        Text("View All")
-                            .font(.system(size: 15, weight: .semibold))
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .bold))
-                    }
-                    .foregroundColor(.billixMoneyGreen)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(
-                        Capsule()
-                            .fill(Color.billixMoneyGreen.opacity(0.1))
-                    )
-                }
+                Text("Gift Cards")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.billixDarkGreen)
             }
             .padding(.horizontal, 20)
 
             // Horizontal Scroll
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(giftCards.prefix(6)) { card in
+                    ForEach(displayCards) { card in
                         RewardCard(
                             reward: card,
                             userPoints: userPoints,
@@ -81,37 +88,40 @@ struct GiftCardsCarousel: View {
                         id: UUID(),
                         type: .giftCard,
                         category: .giftCard,
-                        title: "$5 Amazon",
-                        description: "Amazon Gift Card",
-                        pointsCost: 500,
-                        brand: "Amazon",
-                        dollarValue: 5.0,
-                        iconName: "gift.fill",
-                        accentColor: "#FF9900"
-                    ),
-                    Reward(
-                        id: UUID(),
-                        type: .giftCard,
-                        category: .giftCard,
-                        title: "$10 Starbucks",
-                        description: "Starbucks Gift Card",
-                        pointsCost: 1000,
-                        brand: "Starbucks",
-                        dollarValue: 10.0,
-                        iconName: "cup.and.saucer.fill",
-                        accentColor: "#00704A"
-                    ),
-                    Reward(
-                        id: UUID(),
-                        type: .giftCard,
-                        category: .giftCard,
-                        title: "$25 Target",
+                        title: "$5 Target",
                         description: "Target Gift Card",
-                        pointsCost: 2500,
+                        pointsCost: 10000,
                         brand: "Target",
-                        dollarValue: 25.0,
+                        brandGroup: "target",
+                        dollarValue: 5.0,
                         iconName: "target",
                         accentColor: "#CC0000"
+                    ),
+                    Reward(
+                        id: UUID(),
+                        type: .giftCard,
+                        category: .giftCard,
+                        title: "$5 Kroger",
+                        description: "Kroger Gift Card",
+                        pointsCost: 10000,
+                        brand: "Kroger",
+                        brandGroup: "kroger",
+                        dollarValue: 5.0,
+                        iconName: "cart.fill",
+                        accentColor: "#0033A0"
+                    ),
+                    Reward(
+                        id: UUID(),
+                        type: .giftCard,
+                        category: .giftCard,
+                        title: "$5 Walmart",
+                        description: "Walmart Gift Card",
+                        pointsCost: 10000,
+                        brand: "Walmart",
+                        brandGroup: "walmart",
+                        dollarValue: 5.0,
+                        iconName: "bag.fill",
+                        accentColor: "#0071CE"
                     )
                 ],
                 userPoints: 750,

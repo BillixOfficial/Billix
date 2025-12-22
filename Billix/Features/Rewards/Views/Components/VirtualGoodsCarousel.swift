@@ -202,7 +202,7 @@ struct VirtualGoodCard: View {
                             description: "Unlock sleek dark interface",
                             pointsCost: 200,
                             brand: nil,
-                            dollarValue: nil,
+                        brandGroup: nil,                            dollarValue: nil,
                             iconName: "moon.fill",
                             accentColor: "#2C2C2E"
                         ),
@@ -214,7 +214,7 @@ struct VirtualGoodCard: View {
                             description: "Advanced analytics view",
                             pointsCost: 500,
                             brand: nil,
-                            dollarValue: nil,
+                        brandGroup: nil,                            dollarValue: nil,
                             iconName: "chart.bar.fill",
                             accentColor: "#52b8df"
                         ),
@@ -226,7 +226,7 @@ struct VirtualGoodCard: View {
                             description: "Personalize categories",
                             pointsCost: 300,
                             brand: nil,
-                            dollarValue: nil,
+                        brandGroup: nil,                            dollarValue: nil,
                             iconName: "paintpalette.fill",
                             accentColor: "#FF6B35"
                         ),
@@ -238,7 +238,7 @@ struct VirtualGoodCard: View {
                             description: "Premium icon collection",
                             pointsCost: 400,
                             brand: nil,
-                            dollarValue: nil,
+                        brandGroup: nil,                            dollarValue: nil,
                             iconName: "star.fill",
                             accentColor: "#FFD700"
                         )

@@ -100,6 +100,7 @@ struct Reward: Identifiable, Codable, Equatable {
     let description: String
     let pointsCost: Int
     let brand: String?
+    let brandGroup: String?  // NEW: For grouping multiple denominations by brand (e.g., "target", "kroger", "walmart")
     let dollarValue: Double?
     let iconName: String
     let accentColor: String // Hex color for brand theming
@@ -405,6 +406,7 @@ extension Reward {
             description: "$1 off your next Billix Bill Pay",
             pointsCost: 2000,  // $1 @ 2,000:1 ratio
             brand: "Billix",
+            brandGroup: nil,
             dollarValue: 1,
             iconName: "dollarsign.circle.fill",
             accentColor: "#5b8a6b"
@@ -418,6 +420,7 @@ extension Reward {
             description: "Use at any Starbucks location",
             pointsCost: 5000,  // $2.50 @ 2,000:1 ratio
             brand: "Starbucks",
+            brandGroup: nil,
             dollarValue: 2.5,
             iconName: "cup.and.saucer.fill",
             accentColor: "#00704A"
@@ -431,6 +434,7 @@ extension Reward {
             description: "Redeemable on Amazon.com",
             pointsCost: 10000,  // $5 @ 2,000:1 ratio
             brand: "Amazon",
+            brandGroup: nil,
             dollarValue: 5,
             iconName: "gift.fill",
             accentColor: "#FF9900"
@@ -444,6 +448,7 @@ extension Reward {
             description: "Shop at Target stores or online",
             pointsCost: 20000,  // $10 @ 2,000:1 ratio ✅
             brand: "Target",
+            brandGroup: "target",
             dollarValue: 10,
             iconName: "target",
             accentColor: "#CC0000"
@@ -457,6 +462,7 @@ extension Reward {
             description: "Unlock 30 days of premium insights",
             pointsCost: 15000,  // $7.50 @ 2,000:1 ratio
             brand: nil,
+            brandGroup: nil,
             dollarValue: 7.5,
             iconName: "chart.line.uptrend.xyaxis",
             accentColor: "#52b8df"
@@ -474,6 +480,7 @@ extension Reward {
             description: "One more chance if you lose",
             pointsCost: 500,
             brand: nil,
+            brandGroup: nil,
             dollarValue: nil,
             iconName: "heart.fill",
             accentColor: "#FF6B6B"
@@ -486,6 +493,7 @@ extension Reward {
             description: "Pass a difficult question",
             pointsCost: 300,
             brand: nil,
+            brandGroup: nil,
             dollarValue: nil,
             iconName: "forward.fill",
             accentColor: "#95E1D3"
@@ -498,6 +506,7 @@ extension Reward {
             description: "+15 seconds on timer",
             pointsCost: 400,
             brand: nil,
+            brandGroup: nil,
             dollarValue: nil,
             iconName: "clock.fill",
             accentColor: "#F38181"
@@ -510,6 +519,7 @@ extension Reward {
             description: "Reveal one wrong answer",
             pointsCost: 250,
             brand: nil,
+            brandGroup: nil,
             dollarValue: nil,
             iconName: "lightbulb.fill",
             accentColor: "#FFD93D"
@@ -524,6 +534,7 @@ extension Reward {
             description: "Unlock sleek dark interface",
             pointsCost: 200,  // $0.10 equivalent (zero real cost)
             brand: nil,
+            brandGroup: nil,
             dollarValue: nil,
             iconName: "moon.fill",
             accentColor: "#2C2C2E"
@@ -536,6 +547,7 @@ extension Reward {
             description: "Unlock advanced analytics view",
             pointsCost: 500,  // $0.25 equivalent (zero real cost)
             brand: nil,
+            brandGroup: nil,
             dollarValue: nil,
             iconName: "chart.bar.fill",
             accentColor: "#52b8df"
@@ -548,6 +560,7 @@ extension Reward {
             description: "Personalize bill categories",
             pointsCost: 300,  // $0.15 equivalent (zero real cost)
             brand: nil,
+            brandGroup: nil,
             dollarValue: nil,
             iconName: "paintpalette.fill",
             accentColor: "#FF6B35"
@@ -562,6 +575,7 @@ extension Reward {
             description: "1 entry for $2.50 prize drawing",
             pointsCost: 100,  // $0.05 equivalent
             brand: nil,
+            brandGroup: nil,
             dollarValue: 0.05,
             iconName: "ticket.fill",
             accentColor: "#FFD700"
@@ -574,6 +588,7 @@ extension Reward {
             description: "5 entries for weekly drawing",
             pointsCost: 450,  // 10% discount vs individual
             brand: nil,
+            brandGroup: nil,
             dollarValue: 0.25,
             iconName: "ticket.fill",
             accentColor: "#FFA500"
@@ -588,6 +603,7 @@ extension Reward {
             description: "Micro reward for early users",
             pointsCost: 1000,  // $0.50 @ 2,000:1 ratio
             brand: "Starbucks",
+            brandGroup: nil,
             dollarValue: 0.5,
             iconName: "cup.and.saucer.fill",
             accentColor: "#00704A"
@@ -600,6 +616,7 @@ extension Reward {
             description: "$1 off your next bill payment",
             pointsCost: 2000,  // $1 @ 2,000:1 ratio
             brand: "Billix",
+            brandGroup: nil,
             dollarValue: 1,
             iconName: "dollarsign.circle.fill",
             accentColor: "#5b8a6b"
@@ -612,9 +629,134 @@ extension Reward {
             description: "Redeem on Amazon.com",
             pointsCost: 4000,  // $2 @ 2,000:1 ratio
             brand: "Amazon",
+            brandGroup: nil,
             dollarValue: 2,
             iconName: "gift.fill",
             accentColor: "#FF9900"
+        ),
+
+        // NEW FEATURED GIFT CARDS - Target, Kroger, Walmart ($5, $10, $15)
+        // TARGET GIFT CARDS
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$5 Target Gift Card",
+            description: "Shop at Target stores or online",
+            pointsCost: 10000,  // $5 @ 2,000:1 ratio
+            brand: "Target",
+            brandGroup: "target",
+            dollarValue: 5,
+            iconName: "target",
+            accentColor: "#CC0000"
+        ),
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$10 Target Gift Card",
+            description: "Shop at Target stores or online",
+            pointsCost: 20000,  // $10 @ 2,000:1 ratio
+            brand: "Target",
+            brandGroup: "target",
+            dollarValue: 10,
+            iconName: "target",
+            accentColor: "#CC0000"
+        ),
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$15 Target Gift Card",
+            description: "Shop at Target stores or online",
+            pointsCost: 30000,  // $15 @ 2,000:1 ratio
+            brand: "Target",
+            brandGroup: "target",
+            dollarValue: 15,
+            iconName: "target",
+            accentColor: "#CC0000"
+        ),
+
+        // KROGER GIFT CARDS
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$5 Kroger Gift Card",
+            description: "Use at Kroger family stores",
+            pointsCost: 10000,  // $5 @ 2,000:1 ratio
+            brand: "Kroger",
+            brandGroup: "kroger",
+            dollarValue: 5,
+            iconName: "cart.fill",
+            accentColor: "#0033A0"
+        ),
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$10 Kroger Gift Card",
+            description: "Use at Kroger family stores",
+            pointsCost: 20000,  // $10 @ 2,000:1 ratio
+            brand: "Kroger",
+            brandGroup: "kroger",
+            dollarValue: 10,
+            iconName: "cart.fill",
+            accentColor: "#0033A0"
+        ),
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$15 Kroger Gift Card",
+            description: "Use at Kroger family stores",
+            pointsCost: 30000,  // $15 @ 2,000:1 ratio
+            brand: "Kroger",
+            brandGroup: "kroger",
+            dollarValue: 15,
+            iconName: "cart.fill",
+            accentColor: "#0033A0"
+        ),
+
+        // WALMART GIFT CARDS
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$5 Walmart Gift Card",
+            description: "Shop at Walmart stores or online",
+            pointsCost: 10000,  // $5 @ 2,000:1 ratio
+            brand: "Walmart",
+            brandGroup: "walmart",
+            dollarValue: 5,
+            iconName: "bag.fill",
+            accentColor: "#0071CE"
+        ),
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$10 Walmart Gift Card",
+            description: "Shop at Walmart stores or online",
+            pointsCost: 20000,  // $10 @ 2,000:1 ratio
+            brand: "Walmart",
+            brandGroup: "walmart",
+            dollarValue: 10,
+            iconName: "bag.fill",
+            accentColor: "#0071CE"
+        ),
+        Reward(
+            id: UUID(),
+            type: .giftCard,
+            category: .giftCard,
+            title: "$15 Walmart Gift Card",
+            description: "Shop at Walmart stores or online",
+            pointsCost: 30000,  // $15 @ 2,000:1 ratio
+            brand: "Walmart",
+            brandGroup: "walmart",
+            dollarValue: 15,
+            iconName: "bag.fill",
+            accentColor: "#0071CE"
         )
     ]
 }
