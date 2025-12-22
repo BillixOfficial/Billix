@@ -18,6 +18,7 @@ struct GeoGameContainerView: View {
     @StateObject private var viewModel: GeoGameViewModel
     @State private var currentGameId: UUID
     @Environment(\.dismiss) private var dismiss
+    @State private var showTutorialManually = false
 
     init(initialGame: DailyGame, onComplete: @escaping (GameResult) -> Void, onPlayAgain: @escaping () -> Void, onDismiss: @escaping () -> Void) {
         self.initialGame = initialGame
@@ -26,9 +27,9 @@ struct GeoGameContainerView: View {
         self.onDismiss = onDismiss
         _currentGameId = State(initialValue: initialGame.id)
 
-        // Initialize view model with completion handler
+        // Initialize view model with 12-question session instead of single game
         _viewModel = StateObject(wrappedValue: GeoGameViewModel(
-            gameData: initialGame,
+            session: GeoGameDataService.generateGameSession(),
             onComplete: onComplete
         ))
     }
@@ -38,84 +39,129 @@ struct GeoGameContainerView: View {
             // Layer 1: Full-screen 3D satellite map (always visible, orbiting)
             GeoGameMapView(viewModel: viewModel)
 
-            // Layer 2: Floating card at bottom
-            VStack {
-                Spacer()
-                GeoGameFloatingCard(viewModel: viewModel)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            // Layer 2: Floating card at bottom (only if not game over)
+            if viewModel.questionPhase != .gameOver {
+                VStack {
+                    Spacer()
+                    GeoGameFloatingCard(viewModel: viewModel)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .frame(maxHeight: .infinity, alignment: .bottom)
             }
-            .frame(maxHeight: .infinity, alignment: .bottom)
 
-            // Layer 3: Top overlay (close button + phase indicator)
+            // Layer 3: Game Over screen
+            if viewModel.questionPhase == .gameOver {
+                GeoGameOverView(
+                    session: viewModel.session,
+                    onPlayAgain: {
+                        viewModel.resetGame()
+                    },
+                    onDismiss: {
+                        onDismiss()
+                    }
+                )
+                .transition(.opacity.combined(with: .scale))
+            }
+
+            // Layer 4: Top overlay (close button + game stats)
             VStack {
                 topOverlay
                 Spacer()
+            }
+
+            // Layer 5: Combo unlock celebration animation (center screen)
+            if viewModel.showComboUnlockAnimation {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+
+                ComboUnlockAnimation(
+                    comboStreak: viewModel.comboUnlockStreak,
+                    onComplete: {
+                        viewModel.dismissComboAnimation()
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
+            }
+
+            // Layer 6: Heart lost animation (center screen)
+            if viewModel.showHeartLostAnimation {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+
+                HeartLostAnimation(
+                    onComplete: {
+                        viewModel.dismissHeartLostAnimation()
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
             }
         }
         .ignoresSafeArea()
         .onAppear {
             // Set callbacks
             viewModel.onPlayAgain = {
-                // Call the external play again handler to get new game
-                self.onPlayAgain()
+                // Reset game with new session
+                viewModel.resetGame()
             }
             viewModel.onDismiss = {
                 // Close the game modal
                 self.onDismiss()
             }
         }
+        .sheet(isPresented: $showTutorialManually) {
+            GeoGameHowToPlayView(
+                onStart: { showTutorialManually = false },
+                onSkip: { showTutorialManually = false },
+                onSkipAndDontShowAgain: { showTutorialManually = false },
+                onPageChanged: { _ in },
+                isLoading: false,
+                isManualView: true  // Simple X to close for manual viewing
+            )
+        }
     }
 
     // MARK: - Top Overlay
 
     private var topOverlay: some View {
-        HStack {
-            // Close button
-            Button(action: {
-                onDismiss()
-            }) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                    .frame(width: 32, height: 32)
-                    .background(Color.black.opacity(0.5))
-                    .clipShape(Circle())
+        VStack(spacing: 8) {
+            HStack(alignment: .top, spacing: 12) {
+                // Close button
+                Button(action: {
+                    onDismiss()
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 32, height: 32)
+                        .background(Color.black.opacity(0.5))
+                        .clipShape(Circle())
+                }
+
+                Spacer()
+
+                // Health bar (combo moved to floating card header)
+                if viewModel.questionPhase != .gameOver && viewModel.questionPhase != .loading {
+                    HealthBarView(currentHealth: viewModel.session.health)
+                }
+
+                // Help icon
+                Button(action: {
+                    showTutorialManually = true
+                }) {
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(Color(hex: "#00D9FF"))
+                        .shadow(color: Color(hex: "#00D9FF").opacity(0.6), radius: 8)
+                        .shadow(color: .black.opacity(0.3), radius: 4, y: 2)
+                }
+                .accessibilityLabel("View tutorial")
+                .accessibilityHint("Shows how to play Price Guessr")
             }
-
-            Spacer()
-
-            // Phase indicator
-            if viewModel.gameState.phase != .loading && viewModel.gameState.phase != .result {
-                phaseIndicator
-            }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 60)  // Account for status bar
-    }
-
-    private var phaseIndicator: some View {
-        HStack(spacing: 6) {
-            Text("Phase")
-                .font(.system(size: 13, weight: .medium))
-            Text("\(currentPhaseNumber) of 2")
-                .font(.system(size: 13, weight: .bold))
-        }
-        .foregroundColor(.white)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.black.opacity(0.5))
-        .cornerRadius(20)
-    }
-
-    private var currentPhaseNumber: Int {
-        switch viewModel.gameState.phase {
-        case .phase1Location, .transition:
-            return 1
-        case .phase2Price:
-            return 2
-        default:
-            return 1
-        }
+        .padding(.horizontal, 16)
+        .padding(.top, 56)
     }
 }
 

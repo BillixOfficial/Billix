@@ -1166,7 +1166,12 @@ struct AnalysisResultsSimpleEmbeddedView: View {
                 percentDiff: 11.3,
                 zipPrefix: "481",
                 position: .above
-            )
+            ),
+            plainEnglishSummary: nil,
+            redFlags: nil,
+            controllableCosts: nil,
+            savingsOpportunities: nil,
+            jargonGlossary: nil
         ),
         onComplete: {}
     )

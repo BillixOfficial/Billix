@@ -223,6 +223,13 @@ class QuickAddViewModel: ObservableObject {
         guard let result = result,
               let context = modelContext else { return }
 
+        // Defensive validation
+        guard result.amount > 0,
+              !result.provider.name.isEmpty else {
+            errorMessage = "Invalid result data"
+            return
+        }
+
         let billId = UUID()
         let storedBill = StoredBill(
             id: billId,

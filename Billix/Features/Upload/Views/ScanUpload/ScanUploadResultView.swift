@@ -21,6 +21,22 @@ struct ScanUploadResultView: View {
 struct ScanUploadErrorView: View {
     let error: UploadError
     let onRetry: () -> Void
+    let onDismiss: () -> Void
+
+    private var isNotABillError: Bool {
+        if case .notABill = error {
+            return true
+        }
+        return false
+    }
+
+    private var buttonText: String {
+        isNotABillError ? "Close" : "Try Again"
+    }
+
+    private var buttonAction: () -> Void {
+        isNotABillError ? onDismiss : onRetry
+    }
 
     var body: some View {
         VStack(spacing: 24) {
@@ -42,8 +58,8 @@ struct ScanUploadErrorView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
 
-            Button(action: onRetry) {
-                Text("Try Again")
+            Button(action: buttonAction) {
+                Text(buttonText)
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
