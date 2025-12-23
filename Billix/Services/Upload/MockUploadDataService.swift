@@ -223,7 +223,13 @@ struct MockUploadDataService {
                 percentDiff: 13.0,
                 zipPrefix: String(zipCode.prefix(3)),
                 position: .above
-            )
+            ),
+            plainEnglishSummary: nil,
+            redFlags: nil,
+            controllableCosts: nil,
+            savingsOpportunities: nil,
+            jargonGlossary: nil,
+            assistancePrograms: nil
         )
     }
 

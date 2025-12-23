@@ -75,7 +75,7 @@ enum UploadStatus: String, Codable {
 
 // MARK: - Recent Upload
 
-struct RecentUpload: Identifiable, Codable {
+struct RecentUpload: Identifiable, Codable, Equatable {
     let id: UUID
     let provider: String
     let amount: Double
@@ -105,6 +105,8 @@ enum UploadError: LocalizedError {
     case serverError(String)
     case invalidURL
     case invalidResponse
+    case notABill(String)
+    case decodingFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -122,6 +124,10 @@ enum UploadError: LocalizedError {
             return "Invalid URL"
         case .invalidResponse:
             return "Invalid server response"
+        case .notABill(let message):
+            return message
+        case .decodingFailed:
+            return "Upload Failed: The data couldn't be read because it isn't in the correct format."
         }
     }
 }

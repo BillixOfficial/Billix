@@ -18,6 +18,32 @@ class RewardsViewModel: ObservableObject {
     @Published var points: RewardsPoints = .preview
     @Published var displayedBalance: Int = 0 // For animated counting
 
+    // Shop unlock logic - Always accessible
+    var canAccessRewardShop: Bool {
+        true  // Shop is always accessible
+    }
+
+    // MARK: - Tier System
+
+    // Current tier based on points balance
+    var currentTier: RewardsTier {
+        RewardsTier.allCases.last { tier in
+            points.balance >= tier.pointsRange.lowerBound
+        } ?? .bronze
+    }
+
+    // Progress to next tier (0.0 to 1.0)
+    var tierProgress: Double {
+        guard let nextTier = currentTier.nextTier else { return 1.0 }
+
+        let currentMin = Double(currentTier.pointsRange.lowerBound)
+        let nextMin = Double(nextTier.pointsRange.lowerBound)
+        let current = Double(points.balance)
+
+        let progress = (current - currentMin) / (nextMin - currentMin)
+        return max(0.0, min(progress, 1.0))
+    }
+
     // MARK: - Daily Game
 
     @Published var dailyGame: DailyGame? = .preview
@@ -25,11 +51,16 @@ class RewardsViewModel: ObservableObject {
     @Published var gamesPlayedToday: Int = 0
     @Published var showGeoGame: Bool = false
     @Published var activeGame: DailyGame?
+    @Published var showSeasonSelection: Bool = false
 
     // MARK: - Marketplace
 
-    @Published var rewards: [Reward] = Reward.previewRewards
+    @Published var rewards: [Reward] = Reward.previewRewardsWithCategories
+    @Published var donationRequests: [DonationRequest] = []
     @Published var selectedReward: Reward?
+    @Published var selectedBrandGroup: String?
+    @Published var showAmountSheet: Bool = false
+    @Published var showDonationRequestSheet: Bool = false
 
     // MARK: - Leaderboard
 
@@ -70,7 +101,17 @@ class RewardsViewModel: ObservableObject {
         // In real implementation, fetch from API
         // For now, using preview/mock data
         points = .preview
-        rewards = Reward.previewRewards
+
+        // Filter rewards to only include Target, Kroger, and Walmart gift cards
+        let allRewards = Reward.previewRewardsWithCategories
+        rewards = allRewards.filter { reward in
+            // Only include gift cards with brandGroup: target, kroger, or walmart
+            if reward.category == .giftCard {
+                return ["target", "kroger", "walmart"].contains(reward.brandGroup ?? "")
+            }
+            return false
+        }
+
         topSavers = LeaderboardEntry.previewEntries
         dailyGame = GeoGameDataService.getTodaysGame()
 
@@ -142,10 +183,38 @@ class RewardsViewModel: ObservableObject {
         showRedeemSheet = false
     }
 
+    func redeemGiftCard(_ reward: Reward, email: String) {
+        guard canAffordReward(reward) else { return }
+
+        let transaction = PointTransaction(
+            id: UUID(),
+            type: .redemption,
+            amount: -reward.pointsCost,
+            description: "Redeemed \(reward.title) - Sent to \(email)",
+            createdAt: Date()
+        )
+
+        points.balance -= reward.pointsCost
+        points.transactions.insert(transaction, at: 0)
+
+        animateBalanceChange(to: points.balance)
+
+        // In a real app, this would call an API to send the gift card to the email
+        print("Gift card \(reward.title) will be sent to \(email)")
+    }
+
+    func selectBrandForAmountSheet(brandGroup: String) {
+        selectedBrandGroup = brandGroup
+        showAmountSheet = true
+    }
+
+    func getRewardsForBrand(_ brandGroup: String) -> [Reward] {
+        rewards.filter { $0.brandGroup == brandGroup }
+    }
+
     func playDailyGame() {
-        // Get a random game each time for variety
-        activeGame = GeoGameDataService.getRandomGame()
-        showGeoGame = true
+        // Show season selection view for structured progression
+        showSeasonSelection = true
     }
 
     func handleGameResult(_ result: GameResult) {
@@ -170,6 +239,58 @@ class RewardsViewModel: ObservableObject {
     func playAgain() {
         // Get a new random game
         activeGame = GeoGameDataService.getRandomGame()
+    }
+
+    // MARK: - Donation Methods
+
+    func startDonationRequest() {
+        showDonationRequestSheet = true
+    }
+
+    func submitDonationRequest(
+        organizationName: String,
+        websiteOrLocation: String,
+        amount: DonationAmount,
+        donateInMyName: Bool,
+        donorName: String?,
+        donorEmail: String?
+    ) {
+        guard points.balance >= amount.pointsCost else { return }
+
+        // Create donation request
+        let request = DonationRequest(
+            id: UUID(),
+            organizationName: organizationName,
+            websiteOrLocation: websiteOrLocation,
+            amount: amount,
+            donateInMyName: donateInMyName,
+            donorName: donorName,
+            donorEmail: donorEmail,
+            pointsUsed: amount.pointsCost,
+            status: .pending,
+            createdAt: Date(),
+            processedAt: nil
+        )
+
+        // Deduct points
+        let transaction = PointTransaction(
+            id: UUID(),
+            type: .redemption,
+            amount: -amount.pointsCost,
+            description: "Donation Request: \(organizationName) (\(amount.displayText))",
+            createdAt: Date()
+        )
+
+        points.balance -= amount.pointsCost
+        points.transactions.insert(transaction, at: 0)
+        donationRequests.insert(request, at: 0)
+
+        animateBalanceChange(to: points.balance)
+
+        // In a real app, this would call an API to submit the request for verification
+        print("Donation request submitted: \(organizationName), Amount: \(amount.displayText), Location: \(websiteOrLocation)")
+
+        showDonationRequestSheet = false
     }
 
     // MARK: - Private Methods

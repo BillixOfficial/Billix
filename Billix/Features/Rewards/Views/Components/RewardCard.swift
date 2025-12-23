@@ -302,6 +302,10 @@ struct GenericRewardIcon: View {
             return "gift.fill"
         case .digitalGood:
             return "sparkles"
+        case .giveawayEntry:
+            return "ticket.fill"
+        case .customization:
+            return "paintpalette.fill"
         }
     }
 }

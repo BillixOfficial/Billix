@@ -48,9 +48,15 @@ struct ScanUploadFlowView: View {
                     })
 
                 case .error(let error):
-                    ScanUploadErrorView(error: error, onRetry: {
-                        viewModel.retry()
-                    })
+                    ScanUploadErrorView(
+                        error: error,
+                        onRetry: {
+                            viewModel.retry()
+                        },
+                        onDismiss: {
+                            dismiss()
+                        }
+                    )
                 }
             }
             .navigationTitle("Full Analysis")

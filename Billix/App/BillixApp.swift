@@ -70,7 +70,9 @@ struct RootView: View {
             case .login:
                 LoginView()
             case .emailVerification:
-                EmailVerificationView()
+                // TODO: Re-enable after adding EmailVerificationView.swift to Xcode target
+                LoginView()  // Temporary fallback
+                // EmailVerificationView()
             case .onboarding:
                 NavigationStack {
                     OnboardingView()

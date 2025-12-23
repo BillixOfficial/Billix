@@ -139,12 +139,13 @@ struct HomeView: View {
     }
 
     var body: some View {
-        if showRoutingDemo {
-            // Accessible Routing Demo for screenshots
-            AccessibleRoutingDemoView()
-        } else {
+        // TODO: Re-enable after adding AccessibleRoutingDemoView.swift to project
+        // if showRoutingDemo {
+        //     // Accessible Routing Demo for screenshots
+        //     AccessibleRoutingDemoView()
+        // } else {
             regularHomeView
-        }
+        // }
     }
 
     private var regularHomeView: some View {
@@ -205,9 +206,10 @@ struct HomeView: View {
                     }
 
                     // Education (Contextual - rotates)
-                    if showLearnToLower {
-                        LearnToLowerZone()
-                    }
+                    // TODO: Re-enable after adding BillCoachModels.swift and BillCoachFlowView.swift to Xcode target
+                    // if showLearnToLower {
+                    //     LearnToLowerZone()
+                    // }
 
                     // Community
                     CommunityPollZone()
@@ -2753,7 +2755,9 @@ private struct BillRowWithInsight: View {
 }
 
 // MARK: - Zone I: Learn to Lower (Interactive Bill Coach)
+// TODO: Re-enable after adding BillCoachModels.swift and BillCoachFlowView.swift to Xcode target
 
+/*
 private struct LearnToLowerZone: View {
     @State private var selectedTopic: CoachingTopic?
 
@@ -2866,6 +2870,7 @@ private struct PlaybookCard: View {
         .buttonStyle(ScaleButtonStyle())
     }
 }
+*/
 
 // MARK: - Zone J: Invite & Earn
 

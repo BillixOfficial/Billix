@@ -314,7 +314,12 @@ struct ComparisonItem: Identifiable {
                 percentDiff: 11.3,
                 zipPrefix: "481",
                 position: .above
-            )
+            ),
+            plainEnglishSummary: nil,
+            redFlags: nil,
+            controllableCosts: nil,
+            savingsOpportunities: nil,
+            jargonGlossary: nil
         )
     )
     .background(Color.billixLightGreen)

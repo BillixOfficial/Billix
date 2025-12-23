@@ -74,6 +74,12 @@ extension Color {
     static let billixLightBeige = billixCreamBeige
     static let billixMutedTeal = billixDarkTeal
     static let billixOliveGreen = billixMoneyGreen
+
+    // Progress State Colors
+    static let progressNotStarted = Color(hex: "#E8E8E8")   // Gray for not started
+    static let progressInProgress = Color(hex: "#FDB44B")   // Orange for in progress
+    static let progressComplete = Color(hex: "#2ECC71")     // Green for complete
+    static let progressPerfect = Color(hex: "#FFD700")      // Gold for perfect score
 }
 
 extension Color {
@@ -100,6 +106,39 @@ extension Color {
             blue:  Double(b) / 255,
             opacity: Double(a) / 255
         )
+    }
+}
+
+// MARK: - Season-Specific Colors
+
+extension Season {
+    /// Primary color for the season
+    var primaryColor: Color {
+        switch seasonNumber {
+        case 1:
+            return Color(hex: "#FF6B6B")  // USA Red
+        case 2:
+            return Color(hex: "#4ECDC4")  // Global Teal
+        default:
+            return .billixGamePurple
+        }
+    }
+
+    /// Accent color for the season
+    var accentColor: Color {
+        switch seasonNumber {
+        case 1:
+            return Color(hex: "#FF8E53")  // USA Orange
+        case 2:
+            return Color(hex: "#44A08D")  // Global Green-Teal
+        default:
+            return .billixArcadeGold
+        }
+    }
+
+    /// Gradient colors for the season
+    var gradientColors: [Color] {
+        [primaryColor, accentColor]
     }
 }
 

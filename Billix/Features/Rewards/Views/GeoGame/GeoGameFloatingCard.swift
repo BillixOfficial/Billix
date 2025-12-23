@@ -14,6 +14,32 @@ struct GeoGameFloatingCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Progress header
+            if viewModel.gameState.phase != .loading {
+                HStack {
+                    Text(viewModel.locationProgressText)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.secondary)
+
+                    Spacer()
+
+                    // Timer badge (for active phases)
+                    if viewModel.isTimerActive {
+                        CompactTimerBadge(
+                            timeRemaining: viewModel.timeRemaining,
+                            color: viewModel.timerColor,
+                            shouldPulse: viewModel.shouldPulseTimer
+                        )
+                    }
+
+                    // Combo multiplier badge (persistent display)
+                    ComboStreakView(comboStreak: viewModel.session.comboStreak)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Color(.systemGroupedBackground))
+            }
+
             // Card content switches based on phase
             Group {
                 switch viewModel.gameState.phase {
@@ -34,12 +60,63 @@ struct GeoGameFloatingCard: View {
                 }
             }
             .frame(maxWidth: .infinity)
+
+            // Life bar display (100 HP max)
+            if viewModel.gameState.phase != .loading {
+                lifeBarView
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                    .padding(.bottom, 20)
+            }
         }
         .background(Color.white)
         .cornerRadius(24)
         .shadow(color: .black.opacity(0.3), radius: 20, y: -5)
         .padding(.horizontal, 16)
         .padding(.bottom, 20)
+    }
+
+    // MARK: - Life Bar View
+
+    private var lifeBarView: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(.red)
+
+                Text("\(viewModel.session.health) HP")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                Text("\(viewModel.session.health)%")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
+
+            // Life bar (100 HP max)
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.2))
+
+                    // HP fill with color gradient
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(LinearGradient(
+                            colors: viewModel.session.health > 50 ? [.green, .green] :
+                                    viewModel.session.health > 20 ? [.orange, .orange] : [.red, .red],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ))
+                        .frame(width: max(0, geometry.size.width * CGFloat(viewModel.session.health) / 100.0))
+                        .animation(.easeInOut(duration: 0.3), value: viewModel.session.health)
+                }
+            }
+            .frame(height: 10)
+        }
     }
 
     // MARK: - Loading View

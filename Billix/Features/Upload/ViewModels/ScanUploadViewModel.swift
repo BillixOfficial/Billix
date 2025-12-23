@@ -136,6 +136,12 @@ class ScanUploadViewModel: ObservableObject {
                 source: source
             )
 
+            // Validate before saving
+            guard analysis.isValidBill() else {
+                uploadState = .error(.notABill("This doesn't appear to be a bill."))
+                return
+            }
+
             progress = 0.9
             statusMessage = "Saving..."
 
@@ -164,6 +170,11 @@ class ScanUploadViewModel: ObservableObject {
     // MARK: - Retry & Reset
 
     func retry() {
+        // Clear preselected content so user can choose a different file
+        preselectedImage = nil
+        preselectedFileData = nil
+        preselectedFileName = nil
+
         uploadState = .idle
         progress = 0.0
         statusMessage = ""
