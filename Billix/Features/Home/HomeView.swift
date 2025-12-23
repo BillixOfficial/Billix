@@ -82,11 +82,42 @@ struct HomeView: View {
     // Set to true to show the Accessible Routing Demo for screenshots
     @State private var showRoutingDemo = false
 
-    @State private var userName = "David"
-    @State private var userZip = "48067"
-    @State private var userCity = "Royal Oak, MI"
-    @State private var billixScore = 742
-    @State private var streakDays = 6
+    // Real user data from AuthService
+    @StateObject private var authService = AuthService.shared
+    @StateObject private var streakService = StreakService.shared
+
+    // First-time setup questions
+    @State private var showSetupQuestions = false
+
+    // Computed properties for user data
+    private var userName: String {
+        // Get first name only from display name
+        let fullName = authService.currentUser?.displayName ?? "Friend"
+        return fullName.split(separator: " ").first.map(String.init) ?? fullName
+    }
+
+    private var userZip: String {
+        authService.currentUser?.zipCode ?? ""
+    }
+
+    private var userCity: String {
+        // Format as "City, ST" from billixProfile
+        if let profile = authService.currentUser?.billixProfile,
+           let city = profile.city,
+           let state = profile.state {
+            return "\(city), \(state)"
+        }
+        return authService.currentUser?.zipCode ?? ""
+    }
+
+    private var billixScore: Int {
+        authService.currentUser?.vault.trustScore ?? 0
+    }
+
+    // Real streak from StreakService
+    private var streakDays: Int {
+        streakService.currentStreak
+    }
     @State private var searchText = ""
     @State private var notificationCount = 3
     @State private var savingsGoal = 500.0
@@ -154,10 +185,7 @@ struct HomeView: View {
                     // Risk Radar - What's coming
                     RiskRadarZone()
 
-                    // Time-Sensitive Opportunity
-                    FlashDropZone()
-
-                    // Market Context
+                    // Market Context - National Averages
                     BillTickerZone(zipCode: userZip)
 
                     // Quick Engagement Tasks
@@ -165,8 +193,8 @@ struct HomeView: View {
 
                     // Insights & Tips
                     VStack(spacing: Theme.cardSpacing) {
-                        WeatherTipZone()
-                        DailyBillBrief()
+                        WeatherTipZone(zipCode: userZip)
+                        DailyBillBrief(zipCode: userZip)
                     }
 
                     // Progress & Achievements
@@ -200,6 +228,28 @@ struct HomeView: View {
                 await MainActor.run {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                 }
+                // Refresh streak on pull-to-refresh
+                try? await streakService.fetchStreak()
+            }
+            .task {
+                // Load streak and record activity when view appears
+                do {
+                    try await streakService.recordActivity()
+                } catch {
+                    print("❌ Error recording streak activity: \(error)")
+                }
+            }
+            .onAppear {
+                // Show setup questions for first-time users
+                if let user = authService.currentUser, user.needsHomeSetup {
+                    // Delay slightly to let the main view settle
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showSetupQuestions = true
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $showSetupQuestions) {
+                HomeSetupQuestionsView()
             }
         }
     }
@@ -795,6 +845,9 @@ private enum QuickActionType: String, Identifiable {
 
 private struct QuickActionsZone: View {
     @State private var showSwapHub = false
+    @State private var showAddBill = false
+    @State private var showScan = false
+    @State private var showBudget = false
 
     private let actions: [QuickActionType] = [.addBill, .scan, .compare, .budget]
 
@@ -841,15 +894,27 @@ private struct QuickActionsZone: View {
         .fullScreenCover(isPresented: $showSwapHub) {
             SwapHubView()
         }
+        .sheet(isPresented: $showAddBill) {
+            AddBillActionSheet()
+        }
+        .sheet(isPresented: $showScan) {
+            ScanBillView()
+        }
+        .sheet(isPresented: $showBudget) {
+            BudgetOverviewView()
+        }
     }
 
     private func handleAction(_ action: QuickActionType) {
         switch action {
         case .compare:
             showSwapHub = true
-        case .addBill, .scan, .budget:
-            // TODO: Implement other actions
-            break
+        case .addBill:
+            showAddBill = true
+        case .scan:
+            showScan = true
+        case .budget:
+            showBudget = true
         }
     }
 }
@@ -1420,10 +1485,50 @@ private struct AchievementDetailCard: View {
     }
 }
 
-// MARK: - Weather-Based Tip (Expandable AI Insight)
+// MARK: - Weather-Based Tip (AI-Powered with Real Weather)
 
 private struct WeatherTipZone: View {
+    let zipCode: String
+
+    @StateObject private var weatherService = WeatherService.shared
+    @StateObject private var openAIService = OpenAIService.shared
     @State private var isExpanded = false
+    @State private var aiTip: String?
+    @State private var isLoadingTip = false
+
+    private var weatherIcon: String {
+        weatherService.getWeatherIcon()
+    }
+
+    private var temperature: Int {
+        weatherService.currentWeather?.temperatureInt ?? 72
+    }
+
+    private var cityName: String {
+        weatherService.currentWeather?.cityName ?? ""
+    }
+
+    private var condition: String {
+        weatherService.currentWeather?.condition ?? "Clear"
+    }
+
+    private var defaultTip: String {
+        weatherService.getWeatherBasedTip() ?? "Check your bills to find savings opportunities"
+    }
+
+    private var displayTip: String {
+        aiTip ?? defaultTip
+    }
+
+    private var gradientColors: [Color] {
+        if temperature >= 85 {
+            return [Color.orange, Color.yellow]
+        } else if temperature <= 40 {
+            return [Color.blue, Color.cyan]
+        } else {
+            return [Theme.accent, Theme.success]
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1439,35 +1544,49 @@ private struct WeatherTipZone: View {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.orange, Color.yellow],
+                                    colors: gradientColors,
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
                             .frame(width: 50, height: 50)
 
-                        Image(systemName: "sun.max.fill")
+                        Image(systemName: weatherIcon)
                             .font(.system(size: 24))
                             .foregroundColor(.white)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 6) {
-                            Text("92°F Today")
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundColor(Theme.primaryText)
-                            Text("· Royal Oak")
-                                .font(.system(size: 13))
-                                .foregroundColor(Theme.secondaryText)
+                            if weatherService.isLoading {
+                                Text("Loading...")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(Theme.secondaryText)
+                            } else {
+                                Text("\(temperature)°F Today")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(Theme.primaryText)
+                                if !cityName.isEmpty {
+                                    Text("· \(cityName)")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Theme.secondaryText)
+                                }
+                            }
                         }
 
-                        HStack(spacing: 4) {
-                            Text("Set AC to 78° to save")
+                        if isLoadingTip {
+                            HStack(spacing: 4) {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Generating tip...")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Theme.secondaryText)
+                            }
+                        } else {
+                            Text(displayTip)
                                 .font(.system(size: 13))
                                 .foregroundColor(Theme.secondaryText)
-                            Text("~$8 this week")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(Theme.success)
+                                .lineLimit(2)
                         }
                     }
 
@@ -1480,7 +1599,7 @@ private struct WeatherTipZone: View {
                 .padding(14)
                 .background(
                     LinearGradient(
-                        colors: [Color.orange.opacity(0.08), Color.yellow.opacity(0.05)],
+                        colors: [gradientColors[0].opacity(0.08), gradientColors[1].opacity(0.05)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -1488,55 +1607,26 @@ private struct WeatherTipZone: View {
             }
             .buttonStyle(ScaleButtonStyle())
 
-            // Expanded AI explanation
+            // Expanded explanation
             if isExpanded {
                 VStack(alignment: .leading, spacing: 12) {
                     Divider()
-                        .background(Color.orange.opacity(0.2))
+                        .background(gradientColors[0].opacity(0.2))
 
-                    // Why section
                     AIExplanationRow(
-                        icon: "questionmark.circle.fill",
-                        title: "Why this tip?",
-                        explanation: "High temps mean your AC works harder. Each degree above 72°F adds ~3% to cooling costs.",
-                        color: Theme.info
-                    )
-
-                    // How calculated
-                    AIExplanationRow(
-                        icon: "function",
-                        title: "How we calculated",
-                        explanation: "Based on your avg electric rate ($0.14/kWh), home size (1,800 sq ft), and 5-day forecast.",
+                        icon: "sparkles",
+                        title: "AI-Powered Tip",
+                        explanation: "This tip is personalized based on your location's weather and typical bill patterns.",
                         color: Theme.purple
                     )
 
-                    // Historical comparison
-                    Button {
-                        haptic()
-                    } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: "chart.xyaxis.line")
-                                .font(.system(size: 14))
-                                .foregroundColor(Theme.accent)
-                                .frame(width: 28, height: 28)
-                                .background(Theme.accentLight)
-                                .cornerRadius(8)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Show me last summer")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(Theme.primaryText)
-                                Text("Compare your usage patterns")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(Theme.secondaryText)
-                            }
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(Theme.accent)
-                        }
+                    if let weather = weatherService.currentWeather {
+                        AIExplanationRow(
+                            icon: "thermometer.medium",
+                            title: "Current Conditions",
+                            explanation: "\(weather.condition) with \(weather.humidity)% humidity. Feels like \(weather.feelsLikeInt)°F.",
+                            color: Theme.info
+                        )
                     }
                 }
                 .padding(14)
@@ -1547,9 +1637,35 @@ private struct WeatherTipZone: View {
         .cornerRadius(Theme.cornerRadius)
         .overlay(
             RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                .stroke(Color.orange.opacity(0.2), lineWidth: 1)
+                .stroke(gradientColors[0].opacity(0.2), lineWidth: 1)
         )
         .padding(.horizontal, Theme.horizontalPadding)
+        .task {
+            // Fetch weather on appear
+            guard !zipCode.isEmpty else { return }
+            do {
+                try await weatherService.fetchWeather(zipCode: zipCode)
+
+                // Generate AI tip if weather is available
+                if let weather = weatherService.currentWeather {
+                    isLoadingTip = true
+                    do {
+                        aiTip = try await openAIService.generateWeatherTip(
+                            temperature: weather.temperature,
+                            condition: weather.condition,
+                            zipCode: zipCode,
+                            city: weather.cityName,
+                            billTypes: ["Electric", "Gas"]
+                        )
+                    } catch {
+                        print("❌ Failed to generate AI tip: \(error)")
+                    }
+                    isLoadingTip = false
+                }
+            } catch {
+                print("❌ Failed to fetch weather: \(error)")
+            }
+        }
     }
 }
 
@@ -1595,22 +1711,134 @@ private struct TickerItem: Identifiable {
 private struct BillTickerZone: View {
     let zipCode: String
 
-    private let items = [
-        TickerItem(icon: "bolt.fill", category: "Electric", value: "$142.30", change: "+2.1%", isUp: true),
-        TickerItem(icon: "wifi", category: "Internet", value: "$71.20", change: "-0.6%", isUp: false),
-        TickerItem(icon: "flame.fill", category: "Gas", value: "$3.45", change: "+1.8%", isUp: true),
-        TickerItem(icon: "iphone", category: "Phone", value: "$85.00", change: "0%", isUp: false),
-    ]
+    @StateObject private var openAIService = OpenAIService.shared
+    @State private var averages: [BillAverage] = []
+    @State private var isLoading = true
+
+    // Fallback data while loading
+    private var displayItems: [TickerItem] {
+        if averages.isEmpty {
+            return [
+                TickerItem(icon: "bolt.fill", category: "Electric", value: "$142", change: "avg", isUp: false),
+                TickerItem(icon: "wifi", category: "Internet", value: "$65", change: "avg", isUp: false),
+                TickerItem(icon: "flame.fill", category: "Gas", value: "$78", change: "avg", isUp: false),
+                TickerItem(icon: "iphone", category: "Phone", value: "$85", change: "avg", isUp: false),
+            ]
+        }
+
+        return averages.map { avg in
+            let icon: String
+            switch avg.billType.lowercased() {
+            case "electric": icon = "bolt.fill"
+            case "internet": icon = "wifi"
+            case "gas": icon = "flame.fill"
+            case "phone": icon = "iphone"
+            default: icon = "dollarsign.circle.fill"
+            }
+
+            return TickerItem(
+                icon: icon,
+                category: avg.billType,
+                value: "$\(Int(avg.average))",
+                change: "avg",
+                isUp: false
+            )
+        }
+    }
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(items) { item in
-                    TickerCard(item: item)
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(Theme.info)
+                    Text("National Averages")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Theme.secondaryText)
+                }
+
+                Spacer()
+
+                if !zipCode.isEmpty {
+                    Text("for \(zipCode)")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Theme.accent)
                 }
             }
             .padding(.horizontal, Theme.horizontalPadding)
+
+            // Cards
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(displayItems) { item in
+                        NationalAverageCard(item: item, isLoading: isLoading && averages.isEmpty)
+                    }
+                }
+                .padding(.horizontal, Theme.horizontalPadding)
+            }
         }
+        .task {
+            guard !zipCode.isEmpty else { return }
+            do {
+                averages = try await openAIService.getNationalAverages(zipCode: zipCode)
+                isLoading = false
+            } catch {
+                print("❌ Failed to load national averages: \(error)")
+                isLoading = false
+            }
+        }
+    }
+}
+
+private struct NationalAverageCard: View {
+    let item: TickerItem
+    let isLoading: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: item.icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(Theme.accent)
+                    .frame(width: 32, height: 32)
+                    .background(Theme.accentLight)
+                    .cornerRadius(8)
+
+                Text(item.category)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Theme.primaryText)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                if isLoading {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Theme.secondaryText.opacity(0.2))
+                        .frame(width: 60, height: 20)
+                } else {
+                    Text(item.value)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.primaryText)
+                }
+
+                Text("/month")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(Theme.secondaryText)
+            }
+
+            // User comparison placeholder
+            HStack(spacing: 4) {
+                Text("You: ---")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(Theme.secondaryText)
+            }
+        }
+        .frame(width: 110)
+        .padding(12)
+        .background(Theme.cardBackground)
+        .cornerRadius(12)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 }
 
@@ -1789,87 +2017,6 @@ private struct MicroTaskCard: View {
     }
 }
 
-// MARK: - Zone D: Flash Drop
-
-private struct FlashDropZone: View {
-    @State private var timeRemaining = 11565
-
-    private var formattedTime: String {
-        let h = timeRemaining / 3600
-        let m = (timeRemaining % 3600) / 60
-        let s = timeRemaining % 60
-        return String(format: "%02d:%02d:%02d", h, m, s)
-    }
-
-    var body: some View {
-        Button { haptic(.medium) } label: {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    HStack(spacing: 6) {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(.yellow)
-                        Text("FLASH DROP")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.white)
-                            .tracking(1)
-                    }
-
-                    Spacer()
-
-                    HStack(spacing: 4) {
-                        Image(systemName: "clock.fill")
-                            .font(.system(size: 11))
-                        Text(formattedTime)
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
-                    }
-                    .foregroundColor(.white.opacity(0.9))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color.white.opacity(0.2))
-                    .cornerRadius(8)
-                }
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("AT&T Fiber")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white)
-                    Text("Switch & Save ~$18/mo + 500 Bonus Points")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white.opacity(0.9))
-                }
-
-                HStack {
-                    Text("Claim Offer")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Theme.accent)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Color.white)
-                        .cornerRadius(10)
-
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.7))
-                }
-            }
-            .padding(18)
-            .background(
-                LinearGradient(
-                    colors: [Theme.accent, Color(hex: "#3D6B4F")],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .cornerRadius(20)
-        }
-        .buttonStyle(ScaleButtonStyle(scale: 0.98))
-        .padding(.horizontal, Theme.horizontalPadding)
-    }
-}
-
 // MARK: - Zone E: Clusters
 
 private struct ClusterItem: Identifiable {
@@ -1946,45 +2093,238 @@ private struct ClusterRow: View {
     }
 }
 
-// MARK: - Zone F: Daily Bill Brief
+// MARK: - Zone F: Daily Bill Brief (AI-Powered)
 
 private struct DailyBillBrief: View {
+    let zipCode: String
+
+    @StateObject private var openAIService = OpenAIService.shared
+    @StateObject private var weatherService = WeatherService.shared
+    @StateObject private var authService = AuthService.shared
+    @State private var aiBrief: String?
+    @State private var isLoading = false
+    @State private var isExpanded = false
+
+    private var defaultBrief: String {
+        "Check your upcoming bills and stay on track with your budget this week."
+    }
+
+    private var displayBrief: String {
+        aiBrief ?? defaultBrief
+    }
+
+    private var briefIcon: String {
+        if let weather = weatherService.currentWeather {
+            if weather.isHot {
+                return "thermometer.sun.fill"
+            } else if weather.isCold {
+                return "thermometer.snowflake"
+            }
+        }
+        return "newspaper.fill"
+    }
+
+    private var briefIconColor: Color {
+        if let weather = weatherService.currentWeather {
+            if weather.isHot {
+                return Theme.danger
+            } else if weather.isCold {
+                return Theme.info
+            }
+        }
+        return Theme.info
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
-                Image(systemName: "newspaper.fill")
-                    .font(.system(size: 16))
-                    .foregroundColor(Theme.info)
-                Text("Daily Bill Brief").sectionHeader()
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 6) {
-                    Image(systemName: "thermometer.sun.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(Theme.danger)
-                    Text("Heatwave Incoming")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Theme.primaryText)
-                }
-
-                Text("Expect electric bills to rise ~$12 this week. Pre-cool your home in the morning to save on peak rates.")
+                Image(systemName: "sparkles")
                     .font(.system(size: 14))
-                    .foregroundColor(Theme.secondaryText)
-                    .lineSpacing(4)
+                    .foregroundColor(Theme.purple)
+                Text("AI Daily Brief").sectionHeader()
 
-                Button { haptic() } label: {
-                    Text("Read Full Tip")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Theme.info)
+                Spacer()
+
+                if aiBrief != nil {
+                    HStack(spacing: 4) {
+                        Image(systemName: "brain.head.profile")
+                            .font(.system(size: 10))
+                        Text("Personalized")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(Theme.purple)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Theme.purple.opacity(0.1))
+                    .cornerRadius(6)
                 }
-                .padding(.top, 4)
             }
-            .padding(Theme.cardPadding)
-            .background(Theme.info.opacity(0.1))
-            .cornerRadius(Theme.cornerRadius)
+
+            Button {
+                haptic()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 6) {
+                            Image(systemName: briefIcon)
+                                .font(.system(size: 14))
+                                .foregroundColor(briefIconColor)
+                            Text("Your Daily Update")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Theme.primaryText)
+
+                            Spacer()
+
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Theme.accent)
+                        }
+
+                        if isLoading {
+                            HStack(spacing: 6) {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Generating personalized brief...")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Theme.secondaryText)
+                            }
+                        } else {
+                            Text(displayBrief)
+                                .font(.system(size: 14))
+                                .foregroundColor(Theme.secondaryText)
+                                .lineSpacing(4)
+                                .lineLimit(isExpanded ? nil : 2)
+                                .multilineTextAlignment(.leading)
+                        }
+                    }
+                    .padding(Theme.cardPadding)
+
+                    // Expanded content
+                    if isExpanded {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Divider()
+
+                            // Context used for brief
+                            HStack(spacing: 10) {
+                                Image(systemName: "location.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Theme.accent)
+                                    .frame(width: 24, height: 24)
+                                    .background(Theme.accentLight)
+                                    .cornerRadius(6)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Location Context")
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .foregroundColor(Theme.secondaryText)
+                                    Text(zipCode.isEmpty ? "Add ZIP code for personalized insights" : "Based on \(zipCode) rates and trends")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(Theme.primaryText)
+                                }
+                            }
+
+                            if let weather = weatherService.currentWeather {
+                                HStack(spacing: 10) {
+                                    Image(systemName: weatherService.getWeatherIcon())
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Theme.info)
+                                        .frame(width: 24, height: 24)
+                                        .background(Theme.info.opacity(0.12))
+                                        .cornerRadius(6)
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Weather Factor")
+                                            .font(.system(size: 11, weight: .semibold))
+                                            .foregroundColor(Theme.secondaryText)
+                                        Text("\(weather.temperatureInt)°F \(weather.condition) in \(weather.cityName)")
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundColor(Theme.primaryText)
+                                    }
+                                }
+                            }
+
+                            // Refresh button
+                            Button {
+                                haptic()
+                                Task {
+                                    await generateBrief()
+                                }
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "arrow.clockwise")
+                                        .font(.system(size: 12, weight: .semibold))
+                                    Text("Refresh Brief")
+                                        .font(.system(size: 13, weight: .semibold))
+                                }
+                                .foregroundColor(Theme.accent)
+                            }
+                            .padding(.top, 4)
+                        }
+                        .padding(.horizontal, Theme.cardPadding)
+                        .padding(.bottom, Theme.cardPadding)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                }
+                .background(
+                    LinearGradient(
+                        colors: [Theme.purple.opacity(0.08), Theme.info.opacity(0.05)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(Theme.cornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                        .stroke(Theme.purple.opacity(0.15), lineWidth: 1)
+                )
+            }
+            .buttonStyle(ScaleButtonStyle())
         }
         .padding(.horizontal, Theme.horizontalPadding)
+        .task {
+            await generateBrief()
+        }
+    }
+
+    private func generateBrief() async {
+        guard !zipCode.isEmpty else { return }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        // Get user profile data
+        let profile = authService.currentUser?.billixProfile
+        let city = profile?.city
+        let state = profile?.state
+
+        // Get weather data
+        let temperature = weatherService.currentWeather?.temperature
+        let weatherCondition = weatherService.currentWeather?.condition
+
+        // Get bill types (would come from user's bills in production)
+        let billTypes = ["Electric", "Internet", "Gas", "Phone"]
+
+        // Get upcoming bill info (mock for now)
+        let upcomingBillName: String? = "Verizon"
+        let upcomingBillDays: Int? = 5
+
+        do {
+            aiBrief = try await openAIService.generateDailyBrief(
+                zipCode: zipCode,
+                city: city,
+                state: state,
+                temperature: temperature,
+                weatherCondition: weatherCondition,
+                billTypes: billTypes,
+                upcomingBillName: upcomingBillName,
+                upcomingBillDays: upcomingBillDays
+            )
+        } catch {
+            print("❌ Failed to generate AI brief: \(error)")
+        }
     }
 }
 

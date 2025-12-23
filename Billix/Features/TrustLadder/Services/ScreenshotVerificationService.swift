@@ -125,7 +125,7 @@ class ScreenshotVerificationService: ObservableObject {
         let status = determineStatus(confidence: confidence, flags: flags)
 
         // 6. Upload screenshot to storage
-        let imageUrl = try await uploadScreenshot(image: image, swapId: swapId)
+        _ = try await uploadScreenshot(image: image, swapId: swapId)
 
         // 7. Create result
         let result = ScreenshotVerificationResult(
@@ -152,7 +152,7 @@ class ScreenshotVerificationService: ObservableObject {
 
         return try await withCheckedThrowingContinuation { continuation in
             let request = VNRecognizeTextRequest { request, error in
-                if let error = error {
+                if error != nil {
                     continuation.resume(throwing: VerificationError.ocrFailed)
                     return
                 }
@@ -413,8 +413,8 @@ class ScreenshotVerificationService: ObservableObject {
             _ = try await supabase.storage
                 .from("swap-screenshots")
                 .upload(
-                    path: fileName,
-                    file: imageData,
+                    fileName,
+                    data: imageData,
                     options: FileOptions(contentType: "image/jpeg")
                 )
 

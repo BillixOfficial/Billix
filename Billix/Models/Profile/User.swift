@@ -117,6 +117,12 @@ struct BillixProfile: Codable, Equatable {
     var createdAt: Date
     var updatedAt: Date
 
+    // Home setup fields
+    var homeSetupCompleted: Bool?
+    var billTypes: [String]?
+    var monthlyBudget: String?
+    var mainGoal: String?
+
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
         case handle
@@ -131,6 +137,10 @@ struct BillixProfile: Codable, Equatable {
         case profileVisibility = "profile_visibility"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case homeSetupCompleted = "home_setup_completed"
+        case billTypes = "bill_types"
+        case monthlyBudget = "monthly_budget"
+        case mainGoal = "main_goal"
     }
 
     var formattedLocation: String {
@@ -187,6 +197,11 @@ struct CombinedUser: Identifiable, Equatable {
 
     var isNewUser: Bool {
         profile.displayName == nil && billixProfile?.displayName == nil
+    }
+
+    var needsHomeSetup: Bool {
+        // Show home setup questions if not completed yet
+        billixProfile?.homeSetupCompleted != true
     }
 
     var initials: String {

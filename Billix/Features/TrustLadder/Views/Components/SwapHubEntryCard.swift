@@ -108,7 +108,7 @@ struct SwapHubEntryCard: View {
         }
         .task {
             // Load trust status when card appears
-            try? await trustService.fetchOrInitializeTrustStatus()
+            _ = try? await trustService.fetchOrInitializeTrustStatus()
         }
     }
 

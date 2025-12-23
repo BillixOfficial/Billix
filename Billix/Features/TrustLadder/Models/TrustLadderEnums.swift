@@ -24,6 +24,10 @@ enum TrustTier: Int, Codable, CaseIterable {
         }
     }
 
+    var displayName: String {
+        name
+    }
+
     var shortName: String {
         switch self {
         case .streamer: return "Streamer"

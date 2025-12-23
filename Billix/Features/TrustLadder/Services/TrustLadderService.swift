@@ -4,10 +4,12 @@
 //
 //  Created by Claude Code on 12/16/24.
 //  Service for managing Trust Ladder user status, tiers, and progression
+//  Updated 12/23/24 to integrate Billix Score system
 //
 
 import Foundation
 import Supabase
+import SwiftUI
 
 // MARK: - Codable Structs for Supabase
 
@@ -190,13 +192,54 @@ class TrustLadderService: ObservableObject {
     @Published var isLoading = false
     @Published var error: TrustLadderError?
 
+    // MARK: - Billix Score Integration
+    @Published var billixScore: Int = 0
+    @Published var badgeLevel: BillixBadgeLevel = .newcomer
+
+    /// Reference to Billix Score Service
+    private var scoreService: BillixScoreService {
+        BillixScoreService.shared
+    }
+
+    /// Reference to Subscription Service
+    private var subscriptionService: SubscriptionService {
+        SubscriptionService.shared
+    }
+
     // MARK: - Private Properties
     private var supabase: SupabaseClient {
         SupabaseService.shared.client
     }
 
     // MARK: - Initialization
-    private init() {}
+    private init() {
+        // Observe Billix Score changes
+        Task {
+            await syncBillixScore()
+        }
+    }
+
+    // MARK: - Billix Score Sync
+
+    /// Syncs Billix Score from BillixScoreService
+    func syncBillixScore() async {
+        await scoreService.loadScore()
+        self.billixScore = scoreService.overallScore
+        self.badgeLevel = scoreService.badgeLevel
+    }
+
+    /// Gets combined trust info (tier + score)
+    var combinedTrustInfo: CombinedTrustInfo? {
+        guard let status = userTrustStatus else { return nil }
+        return CombinedTrustInfo(
+            tier: status.tier,
+            billixScore: billixScore,
+            badgeLevel: badgeLevel,
+            subscriptionTier: subscriptionService.currentTier,
+            trustPoints: status.trustPoints,
+            completedSwaps: status.totalSuccessfulSwaps
+        )
+    }
 
     // MARK: - Fetch Trust Status
 
@@ -353,7 +396,7 @@ class TrustLadderService: ObservableObject {
     // MARK: - Record Successful Swap
 
     /// Records a successful swap completion
-    func recordSuccessfulSwap(trustPointsEarned: Int = 50) async throws {
+    func recordSuccessfulSwap(swapId: UUID, trustPointsEarned: Int = 50, wasOnTime: Bool = true) async throws {
         guard let status = userTrustStatus else {
             throw TrustLadderError.statusNotFound
         }
@@ -371,19 +414,26 @@ class TrustLadderService: ObservableObject {
             .eq("user_id", value: status.userId.uuidString)
             .execute()
 
+        // Update Billix Score
+        await scoreService.recordSwapCompleted(swapId: swapId, wasOnTime: wasOnTime)
+        await syncBillixScore()
+
         // Refresh and check for auto-graduation
         let updatedStatus = try await fetchUserTrustStatus()
 
         // Check if user can graduate
         if updatedStatus.canGraduate {
-            try? await graduateToNextTier()
+            _ = try? await graduateToNextTier()
         }
+
+        // Check for consistency streak
+        await scoreService.checkConsistencyStreak()
     }
 
     // MARK: - Record Failed Swap / Ghost
 
     /// Records a failed swap
-    func recordFailedSwap() async throws {
+    func recordFailedSwap(swapId: UUID, wasGhost: Bool = false) async throws {
         guard let status = userTrustStatus else {
             throw TrustLadderError.statusNotFound
         }
@@ -399,11 +449,15 @@ class TrustLadderService: ObservableObject {
             .eq("user_id", value: status.userId.uuidString)
             .execute()
 
+        // Update Billix Score
+        await scoreService.recordSwapFailed(swapId: swapId, wasGhost: wasGhost)
+        await syncBillixScore()
+
         _ = try await fetchUserTrustStatus()
     }
 
     /// Records a ghost incident
-    func recordGhost() async throws {
+    func recordGhost(swapId: UUID) async throws {
         guard let status = userTrustStatus else {
             throw TrustLadderError.statusNotFound
         }
@@ -439,13 +493,17 @@ class TrustLadderService: ObservableObject {
                 .execute()
         }
 
+        // Update Billix Score with ghost incident
+        await scoreService.recordSwapFailed(swapId: swapId, wasGhost: true)
+        await syncBillixScore()
+
         _ = try await fetchUserTrustStatus()
     }
 
     // MARK: - Update Rating
 
     /// Updates the user's average rating after a swap
-    func updateRating(newRating: Int) async throws {
+    func updateRating(swapId: UUID, newRating: Int) async throws {
         guard let status = userTrustStatus else {
             throw TrustLadderError.statusNotFound
         }
@@ -466,7 +524,19 @@ class TrustLadderService: ObservableObject {
             .eq("user_id", value: status.userId.uuidString)
             .execute()
 
+        // Update Billix Score with rating
+        await scoreService.recordRatingReceived(swapId: swapId, rating: newRating)
+        await syncBillixScore()
+
         _ = try await fetchUserTrustStatus()
+    }
+
+    // MARK: - Screenshot Verification
+
+    /// Records screenshot verification result for Billix Score
+    func recordScreenshotVerification(swapId: UUID, wasVerified: Bool) async {
+        await scoreService.recordScreenshotVerification(swapId: swapId, wasVerified: wasVerified)
+        await syncBillixScore()
     }
 
     // MARK: - Tier Graduation
@@ -593,4 +663,60 @@ class TrustLadderService: ObservableObject {
 
         return tiers
     }
+
+    // MARK: - Feature Access
+
+    /// Checks if user has access to a premium feature
+    func hasFeatureAccess(_ feature: PremiumFeature) -> Bool {
+        subscriptionService.hasAccess(to: feature)
+    }
+
+    /// Gets the user's effective trust level (considering both tier and score)
+    var effectiveTrustLevel: EffectiveTrustLevel {
+        guard let status = userTrustStatus else {
+            return EffectiveTrustLevel(
+                displayName: "New User",
+                color: .gray,
+                canSwap: false,
+                maxAmount: 0
+            )
+        }
+
+        return EffectiveTrustLevel(
+            displayName: "\(status.tier.displayName) • \(badgeLevel.displayName)",
+            color: badgeLevel.color,
+            canSwap: !status.isBanned,
+            maxAmount: status.tier.maxAmount
+        )
+    }
+}
+
+// MARK: - Combined Trust Info
+
+/// Combined trust information from multiple sources
+struct CombinedTrustInfo {
+    let tier: TrustTier
+    let billixScore: Int
+    let badgeLevel: BillixBadgeLevel
+    let subscriptionTier: BillixSubscriptionTier
+    let trustPoints: Int
+    let completedSwaps: Int
+
+    var displaySummary: String {
+        "\(tier.displayName) • \(badgeLevel.displayName) • \(billixScore) pts"
+    }
+
+    var canAccessPremiumFeatures: Bool {
+        subscriptionTier != .free
+    }
+}
+
+// MARK: - Effective Trust Level
+
+/// Effective trust level combining tier and badge
+struct EffectiveTrustLevel {
+    let displayName: String
+    let color: Color
+    let canSwap: Bool
+    let maxAmount: Double
 }

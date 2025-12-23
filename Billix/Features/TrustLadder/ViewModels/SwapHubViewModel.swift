@@ -149,9 +149,10 @@ class SwapHubViewModel: ObservableObject {
 
     func cancelSwap(_ swap: Swap) async {
         isLoading = true
-        defer { isLoading = false }
-
-        // TODO: Implement swap cancellation via SwapService
+        do {
+            // TODO: Implement swap cancellation via SwapService
+        }
+        isLoading = false
     }
 
     func viewSwapDetail(_ swap: Swap) {

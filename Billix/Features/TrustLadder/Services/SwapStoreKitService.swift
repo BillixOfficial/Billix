@@ -199,7 +199,7 @@ class SwapStoreKitService: ObservableObject {
                     transactionId: transactionId,
                     swapId: swapId,
                     amount: product.price,
-                    currency: product.priceFormatStyle.currencyCode ?? "USD"
+                    currency: product.priceFormatStyle.currencyCode
                 )
 
                 // Finish the transaction
