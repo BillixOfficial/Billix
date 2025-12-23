@@ -56,7 +56,6 @@ class TutorialManager: ObservableObject {
         defer { isLoading = false }
 
         // Retry up to 3 times with exponential backoff
-        var lastError: Error?
         for attempt in 1...3 {
             do {
                 let settings = try await service.fetchGameSettings(userId: userId)
@@ -68,7 +67,6 @@ class TutorialManager: ObservableObject {
                 print("   ✅ Fetched tutorial settings (attempt \(attempt))")
                 return settings
             } catch {
-                lastError = error
                 print("   ⚠️ Fetch attempt \(attempt) failed: \(error.localizedDescription)")
 
                 if attempt < 3 {

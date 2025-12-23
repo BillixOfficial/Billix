@@ -242,7 +242,7 @@ class MultiPartySwapService: ObservableObject {
 
     /// Join a swap with a contribution
     func joinSwap(_ swapId: UUID, contribution: Decimal, billId: UUID? = nil) async throws {
-        guard let userId = currentUserId else {
+        guard currentUserId != nil else {
             throw SwapError.notAuthenticated
         }
 
