@@ -639,7 +639,7 @@ struct SwapExecutionView: View {
                 }
 
                 VStack(spacing: 4) {
-                    Text(String(format: "$%.2f", currentSwap.userAAmount ?? 0))
+                    Text(String(format: "$%.2f", currentSwap.userAAmount))
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(primaryText)
                     Text("Saved")
@@ -857,7 +857,7 @@ struct SwapExecutionView: View {
     }
 
     private var partnerAmount: Double {
-        isUserA ? currentSwap.userBAmount ?? 0 : currentSwap.userAAmount ?? 0
+        (isUserA ? currentSwap.userBAmount : currentSwap.userAAmount) ?? 0
     }
 
     private var partnerBillProvider: String {

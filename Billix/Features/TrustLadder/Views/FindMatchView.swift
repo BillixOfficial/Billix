@@ -346,7 +346,7 @@ struct FindMatchView: View {
                     Text("Their Bill")
                         .font(.system(size: 11))
                         .foregroundColor(secondaryText)
-                    Text(match.partnerBillProvider ?? "Unknown")
+                    Text(match.partnerBillProvider)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(primaryText)
                 }
@@ -408,8 +408,8 @@ struct FindMatchView: View {
     // MARK: - Helper Methods
 
     private func loadData() async {
-        try? await portfolioService.loadPortfolio()
-        try? await trustService.fetchOrInitializeTrustStatus()
+        _ = try? await portfolioService.loadPortfolio()
+        _ = try? await trustService.fetchOrInitializeTrustStatus()
     }
 
     private func findMatches() async {

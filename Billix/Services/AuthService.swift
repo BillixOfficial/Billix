@@ -41,6 +41,11 @@ class AuthService: ObservableObject {
 
     // MARK: - Initialization
     private init() {
+        // Clear any cached session to require fresh login every time
+        Task {
+            try? await supabase.auth.signOut()
+        }
+
         setupAuthStateListener()
 
         // Fallback: If no auth event fires within 3 seconds, set isLoading to false
@@ -139,8 +144,8 @@ class AuthService: ObservableObject {
             }
         } catch {
             print("❌ Error handling session: \(error)")
-            self.isAuthenticated = true
-            self.needsOnboarding = true
+            self.isAuthenticated = false
+            self.needsOnboarding = false
         }
 
         self.isLoading = false

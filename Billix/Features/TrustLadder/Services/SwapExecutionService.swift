@@ -298,7 +298,7 @@ class SwapExecutionService: ObservableObject {
             throw SwapExecutionError.notAuthenticated
         }
 
-        var swap = try await fetchSwap(id: swapId)
+        let swap = try await fetchSwap(id: swapId)
 
         // Determine which user paid
         let isUserA = swap.userAId == session.user.id
@@ -455,7 +455,7 @@ class SwapExecutionService: ObservableObject {
 
         // Award trust points if completed
         if updatedSwap.swapStatus == .completed {
-            try? await trustService.recordSuccessfulSwap(trustPointsEarned: 50)
+            try? await trustService.recordSuccessfulSwap(swapId: swapId, trustPointsEarned: 50)
         }
 
         return updatedSwap
@@ -556,7 +556,7 @@ class SwapExecutionService: ObservableObject {
 
     /// Cancels a swap (only available before fees are paid)
     func cancelSwap(swapId: UUID) async throws {
-        guard let session = try? await supabase.auth.session else {
+        guard (try? await supabase.auth.session) != nil else {
             throw SwapExecutionError.notAuthenticated
         }
 
