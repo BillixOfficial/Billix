@@ -131,7 +131,7 @@ struct SessionGameContainerView: View {
         comboStreak: 0
     )
 
-    SessionGameContainerView(
+    return SessionGameContainerView(
         session: mockSession,
         partId: UUID(),
         onComplete: { _ in }

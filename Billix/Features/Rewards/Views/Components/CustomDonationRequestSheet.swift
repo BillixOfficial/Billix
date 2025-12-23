@@ -155,7 +155,7 @@ struct CustomDonationRequestSheet: View {
                         // Amount chips (3 options)
                         HStack(spacing: 12) {
                             ForEach(DonationAmount.allCases, id: \.self) { amount in
-                                AmountChip(
+                                DonationAmountChip(
                                     amount: amount,
                                     isSelected: selectedAmount == amount,
                                     canAfford: userPoints >= amount.pointsCost,
@@ -302,9 +302,9 @@ struct CustomDonationRequestSheet: View {
     }
 }
 
-// MARK: - Amount Chip
+// MARK: - Donation Amount Chip
 
-struct AmountChip: View {
+struct DonationAmountChip: View {
     let amount: DonationAmount
     let isSelected: Bool
     let canAfford: Bool

@@ -429,5 +429,5 @@ struct LegalDisclaimerView: View {
         assistancePrograms: mockPrograms
     )
 
-    AnalysisSaveMoneyTab(analysis: mockAnalysis)
+    return AnalysisSaveMoneyTab(analysis: mockAnalysis)
 }

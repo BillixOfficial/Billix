@@ -561,7 +561,7 @@ struct AnimatedStatRow: View {
         comboStreak: 5
     )
 
-    GeoGameOverView(
+    return GeoGameOverView(
         session: winSession,
         onPlayAgain: {},
         onDismiss: {}
@@ -578,7 +578,7 @@ struct AnimatedStatRow: View {
         comboStreak: 2
     )
 
-    GeoGameOverView(
+    return GeoGameOverView(
         session: lossSession,
         onPlayAgain: {},
         onDismiss: {}
