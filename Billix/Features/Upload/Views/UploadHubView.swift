@@ -3,17 +3,35 @@
 //  Billix
 //
 //  Created by Claude Code on 11/24/25.
-//  Redesigned with Figma-inspired task management layout
+//  Redesigned with clean, modern flat design
 //
 
 import SwiftUI
 import SwiftData
 
-/// Upload Hub with Figma-inspired design
-/// - Header with greeting
-/// - Hero progress card with CTA
-/// - Horizontal "In Progress" section
-/// - Vertical upload methods list with progress circles
+// MARK: - Theme (Consistent with HomeView)
+
+private enum Theme {
+    static let background = Color(hex: "#F7F9F8")
+    static let cardBackground = Color.white
+    static let primaryText = Color(hex: "#2D3B35")
+    static let secondaryText = Color(hex: "#8B9A94")
+    static let tertiaryText = Color(hex: "#A8B5AE")
+    static let accent = Color(hex: "#5B8A6B")
+    static let accentLight = Color(hex: "#5B8A6B").opacity(0.08)
+    static let border = Color(hex: "#E5EAE7")
+    static let divider = Color(hex: "#F0F3F1")
+    static let info = Color(hex: "#5BA4D4")
+    static let warning = Color(hex: "#E8A54B")
+
+    static let horizontalPadding: CGFloat = 20
+    static let cardPadding: CGFloat = 16
+    static let cornerRadius: CGFloat = 16
+    static let shadowColor = Color.black.opacity(0.03)
+    static let shadowRadius: CGFloat = 8
+}
+
+/// Upload Hub with clean, modern design
 struct UploadHubView: View {
 
     @StateObject private var viewModel = UploadViewModel()
@@ -37,7 +55,7 @@ struct UploadHubView: View {
         NavigationStack {
             ZStack {
                 // Background matching Home screen
-                Color.billixLightGreen
+                Theme.background
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
@@ -45,18 +63,18 @@ struct UploadHubView: View {
 
                         // SECTION 1: Header
                         headerSection
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, Theme.horizontalPadding)
 
-                        // SECTION 2: Hero Progress Card (Quick Add)
-                        heroProgressCard
-                            .padding(.horizontal, 20)
+                        // SECTION 2: Quick Add Card (Redesigned)
+                        quickAddCard
+                            .padding(.horizontal, Theme.horizontalPadding)
 
                         // SECTION 3: Recent Uploads - Horizontal scroll
                         inProgressSection
 
                         // SECTION 4: Upload for Full Analysis - Single card
                         fullAnalysisCard
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, Theme.horizontalPadding)
 
                         Spacer(minLength: 100)
                     }
@@ -144,26 +162,20 @@ onSwitchToFullAnalysis: {
 
     private var headerSection: some View {
         HStack(spacing: 14) {
-            // Avatar circle with icon
+            // Clean flat icon badge
             ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.billixMoneyGreen, Color.billixMoneyGreen.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 52, height: 52)
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Theme.accentLight)
+                    .frame(width: 48, height: 48)
 
                 Image(systemName: "doc.text.fill")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(.white)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(Theme.accent)
             }
 
             Text("Upload Your Bills")
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.billixDarkGreen)
+                .foregroundColor(Theme.primaryText)
 
             Spacer()
         }
@@ -172,123 +184,80 @@ onSwitchToFullAnalysis: {
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
     }
 
-    // MARK: - Hero Progress Card (Figma style)
+    // MARK: - Quick Add Card (Clean flat design)
 
-    private var heroProgressCard: some View {
-        ZStack {
-            // Gradient background like Figma
-            RoundedRectangle(cornerRadius: 20)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.billixMoneyGreen,
-                            Color.billixMoneyGreen.opacity(0.85)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+    private var quickAddCard: some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                viewModel.startQuickAdd()
+            }
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+        } label: {
+            HStack(spacing: 16) {
+                // Left side - Icon and info
+                HStack(spacing: 14) {
+                    // Icon badge
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Theme.warning.opacity(0.12))
+                            .frame(width: 44, height: 44)
 
-            // Decorative circles in background (like Figma)
-            Circle()
-                .fill(Color.white.opacity(0.1))
-                .frame(width: 120, height: 120)
-                .offset(x: 80, y: -30)
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(Theme.warning)
+                    }
 
-            Circle()
-                .fill(Color.white.opacity(0.08))
-                .frame(width: 80, height: 80)
-                .offset(x: 100, y: 40)
-
-            HStack {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(spacing: 8) {
-                        Text("Quick Add a Bill")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-
-                        // Info button with pulsing ring animation
-                        ZStack {
-                            // Single pulsing ring
-                            Circle()
-                                .stroke(Color.white.opacity(0.5), lineWidth: 2)
-                                .frame(width: 28, height: 28)
-                                .scaleEffect(quickAddInfoPulse ? 1.3 : 1.0)
-                                .opacity(quickAddInfoPulse ? 0 : 1)
-                                .animation(.easeOut(duration: 2.5).repeatForever(autoreverses: false), value: quickAddInfoPulse)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Text("Quick Add")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Theme.primaryText)
 
                             // Info button
                             Button {
                                 showQuickAddInfo.toggle()
                             } label: {
-                                Image(systemName: "info.circle.fill")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .shadow(color: .white.opacity(0.3), radius: 4)
+                                Image(systemName: "info.circle")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Theme.secondaryText)
                             }
-                            .scaleEffect(quickAddInfoPulse ? 1.08 : 1.0)
-                            .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: quickAddInfoPulse)
                             .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
                                 QuickAddInfoPopover()
                                     .presentationCompactAdaptation(.popover)
                             }
                         }
-                        .onAppear {
-                            quickAddInfoPulse = true
-                        }
+
+                        Text("Answer 3 questions for rate comparison")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.secondaryText)
                     }
-
-                    Text("3 questions for rate comparison")
-                        .font(.system(size: 13, weight: .regular))
-                        .foregroundColor(.white.opacity(0.85))
-
-                    // CTA Button - Only this triggers the flow
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            viewModel.startQuickAdd()
-                        }
-                        let generator = UIImpactFeedbackGenerator(style: .medium)
-                        generator.impactOccurred()
-                    } label: {
-                        HStack(spacing: 6) {
-                            Text("Start Now")
-                                .font(.system(size: 14, weight: .semibold))
-
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundColor(.billixMoneyGreen)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(
-                            Capsule()
-                                .fill(Color.white)
-                        )
-                        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                    }
-                    .buttonStyle(ScaleButtonStyle(scale: 0.95))
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Arrow indicator - Also triggers the flow
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                        viewModel.startQuickAdd()
-                    }
-                    let generator = UIImpactFeedbackGenerator(style: .medium)
-                    generator.impactOccurred()
-                } label: {
-                    Image(systemName: "arrow.right.circle.fill")
-                        .font(.system(size: 44, weight: .regular))
-                        .foregroundColor(.white.opacity(0.9))
+                Spacer()
+
+                // Right side - CTA
+                HStack(spacing: 6) {
+                    Text("Start")
+                        .font(.system(size: 14, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 12, weight: .semibold))
                 }
-                .buttonStyle(ScaleButtonStyle(scale: 0.9))
-                .padding(.trailing, 8)
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(Theme.accent)
+                .cornerRadius(10)
             }
-            .padding(20)
+            .padding(16)
+            .background(Theme.cardBackground)
+            .cornerRadius(Theme.cornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                    .stroke(Theme.border, lineWidth: 1)
+            )
         }
-        .frame(height: 160)
-        .shadow(color: .billixMoneyGreen.opacity(0.3), radius: 20, x: 0, y: 10)
+        .buttonStyle(ScaleButtonStyle(scale: 0.98))
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 20)
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
@@ -300,12 +269,12 @@ onSwitchToFullAnalysis: {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text("Recent Uploads")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(Theme.primaryText)
 
                 // Decorative dot
                 Circle()
-                    .fill(Color.billixSavingsYellow)
+                    .fill(Theme.warning)
                     .frame(width: 8, height: 8)
 
                 Spacer()
@@ -319,11 +288,11 @@ onSwitchToFullAnalysis: {
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 12, weight: .semibold))
                         }
-                        .foregroundColor(.billixChartBlue)
+                        .foregroundColor(Theme.info)
                     }
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Theme.horizontalPadding)
 
             if recentUploads.isEmpty {
                 // Empty state card
@@ -332,7 +301,7 @@ onSwitchToFullAnalysis: {
                         EmptyUploadCard()
                         EmptyUploadCard(isSecondary: true)
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, Theme.horizontalPadding)
                 }
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -346,7 +315,7 @@ onSwitchToFullAnalysis: {
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, Theme.horizontalPadding)
                 }
             }
         }
@@ -359,39 +328,22 @@ onSwitchToFullAnalysis: {
 
     private var fullAnalysisCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack {
+            HStack(spacing: 6) {
                 Text("Full Analysis")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(Theme.primaryText)
 
-                // Info button with pulsing ring animation
-                ZStack {
-                    // Single pulsing ring
-                    Circle()
-                        .stroke(Color.billixChartBlue.opacity(0.5), lineWidth: 2)
-                        .frame(width: 28, height: 28)
-                        .scaleEffect(infoPulse ? 1.3 : 1.0)
-                        .opacity(infoPulse ? 0 : 1)
-                        .animation(.easeOut(duration: 2.5).repeatForever(autoreverses: false), value: infoPulse)
-
-                    // Info button with subtle pulse
-                    Button {
-                        showFullAnalysisInfo.toggle()
-                    } label: {
-                        Image(systemName: "info.circle.fill")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.billixChartBlue)
-                            .shadow(color: .billixChartBlue.opacity(0.3), radius: 4)
-                    }
-                    .scaleEffect(infoPulse ? 1.08 : 1.0)
-                    .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: infoPulse)
-                    .popover(isPresented: $showFullAnalysisInfo, arrowEdge: .top) {
-                        FullAnalysisInfoPopover()
-                            .presentationCompactAdaptation(.popover)
-                    }
+                // Info button
+                Button {
+                    showFullAnalysisInfo.toggle()
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 14))
+                        .foregroundColor(Theme.secondaryText)
                 }
-                .onAppear {
-                    infoPulse = true
+                .popover(isPresented: $showFullAnalysisInfo, arrowEdge: .top) {
+                    FullAnalysisInfoPopover()
+                        .presentationCompactAdaptation(.popover)
                 }
             }
 
@@ -401,30 +353,30 @@ onSwitchToFullAnalysis: {
                     HStack(spacing: 14) {
                         // Icon with colored background
                         ZStack {
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color.billixChartBlue.opacity(0.15))
-                                .frame(width: 48, height: 48)
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Theme.info.opacity(0.12))
+                                .frame(width: 44, height: 44)
 
                             Image(systemName: "doc.text.viewfinder")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.billixChartBlue)
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(Theme.info)
                         }
 
-                        // Simplified text content (checkpoints moved to next screen)
+                        // Simplified text content
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Upload for Full Analysis")
                                 .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(.billixDarkGreen)
+                                .foregroundColor(Theme.primaryText)
 
                             Text("Get a complete breakdown of your bill")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.billixMediumGreen)
+                                .font(.system(size: 13))
+                                .foregroundColor(Theme.secondaryText)
                         }
 
                         Spacer()
                     }
 
-                    // Explicit CTA Button - makes the action crystal clear
+                    // CTA Button
                     HStack(spacing: 8) {
                         Text("Start Analysis")
                             .font(.system(size: 15, weight: .semibold))
@@ -435,25 +387,18 @@ onSwitchToFullAnalysis: {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(
-                        LinearGradient(
-                            colors: [.billixChartBlue, .billixChartBlue.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .background(Theme.info)
                     .cornerRadius(12)
-                    .shadow(color: .billixChartBlue.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(Color.white)
-                        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
-                        .shadow(color: .billixChartBlue.opacity(0.08), radius: 16, x: 0, y: 8)
+                .background(Theme.cardBackground)
+                .cornerRadius(Theme.cornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                        .stroke(Theme.border, lineWidth: 1)
                 )
             }
-            .buttonStyle(ScaleButtonStyle(scale: 0.97))
+            .buttonStyle(ScaleButtonStyle(scale: 0.98))
             .simultaneousGesture(TapGesture().onEnded {
                 fullAnalysisTapped.toggle()
             })
@@ -465,7 +410,7 @@ onSwitchToFullAnalysis: {
     }
 }
 
-// MARK: - Upload Method Row (Figma Task Group style)
+// MARK: - Upload Method Row
 
 struct UploadMethodRow: View {
     let icon: String
@@ -474,17 +419,21 @@ struct UploadMethodRow: View {
     let subtitle: String
     let action: () -> Void
 
+    private let primaryText = Color(hex: "#2D3B35")
+    private let secondaryText = Color(hex: "#8B9A94")
+    private let borderColor = Color(hex: "#E5EAE7")
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 14) {
                 // Icon with colored background
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(iconColor.opacity(0.15))
-                        .frame(width: 48, height: 48)
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(iconColor.opacity(0.12))
+                        .frame(width: 44, height: 44)
 
                     Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 18, weight: .medium))
                         .foregroundColor(iconColor)
                 }
 
@@ -492,25 +441,28 @@ struct UploadMethodRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.billixDarkGreen)
+                        .foregroundColor(primaryText)
 
                     Text(subtitle)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.billixMediumGreen)
+                        .foregroundColor(secondaryText)
                 }
 
                 Spacer()
 
-                // Chevron arrow indicating tappable action
+                // Chevron arrow
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.billixMediumGreen)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(secondaryText)
             }
             .padding(14)
             .background(
-                RoundedRectangle(cornerRadius: 18)
+                RoundedRectangle(cornerRadius: 16)
                     .fill(Color.white)
-                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(borderColor, lineWidth: 1)
             )
         }
         .buttonStyle(ScaleButtonStyle(scale: 0.98))
@@ -522,18 +474,24 @@ struct UploadMethodRow: View {
 struct RecentUploadCard: View {
     let upload: RecentUpload
 
+    private let accentColor = Color(hex: "#5B8A6B")
+    private let primaryText = Color(hex: "#2D3B35")
+    private let secondaryText = Color(hex: "#8B9A94")
+    private let warningColor = Color(hex: "#E8A54B")
+    private let borderColor = Color(hex: "#E5EAE7")
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // Category/source label with Quick Add badge
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 if upload.source == .quickAdd {
                     Image(systemName: "bolt.fill")
                         .font(.system(size: 9))
-                        .foregroundColor(.billixMoneyGreen)
+                        .foregroundColor(warningColor)
                 }
                 Text(upload.source.displayName)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(.billixMediumGreen)
+                    .foregroundColor(secondaryText)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
@@ -545,7 +503,7 @@ struct RecentUploadCard: View {
             // Provider name
             Text(upload.provider)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.billixDarkGreen)
+                .foregroundColor(primaryText)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
 
@@ -555,7 +513,7 @@ struct RecentUploadCard: View {
             HStack {
                 Text(upload.formattedAmount)
                     .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(primaryText)
 
                 Spacer()
 
@@ -569,21 +527,24 @@ struct RecentUploadCard: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white)
-                .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(borderColor, lineWidth: 1)
         )
     }
 
     private var sourceBackgroundColor: Color {
         upload.source == .quickAdd
-            ? Color.billixMoneyGreen.opacity(0.15)
-            : Color.billixMoneyGreen.opacity(0.1)
+            ? warningColor.opacity(0.12)
+            : accentColor.opacity(0.08)
     }
 
     private func statusColor(for status: UploadStatus) -> Color {
         switch status {
         case .processing: return .orange
-        case .analyzed: return .billixMoneyGreen
-        case .needsConfirmation: return .billixSavingsYellow
+        case .analyzed: return accentColor
+        case .needsConfirmation: return warningColor
         case .failed: return .red
         }
     }
@@ -594,6 +555,12 @@ struct RecentUploadCard: View {
 struct EmptyUploadCard: View {
     var isSecondary: Bool = false
 
+    private let primaryText = Color(hex: "#2D3B35")
+    private let secondaryText = Color(hex: "#8B9A94")
+    private let tertiaryText = Color(hex: "#A8B5AE")
+    private let infoColor = Color(hex: "#5BA4D4")
+    private let borderColor = Color(hex: "#E5EAE7")
+
     var body: some View {
         if isSecondary {
             // Second card - guide to options above
@@ -602,18 +569,18 @@ struct EmptyUploadCard: View {
 
                 // Icon representing options
                 Image(systemName: "hand.tap.fill")
-                    .font(.system(size: 36))
-                    .foregroundColor(.billixChartBlue.opacity(0.5))
+                    .font(.system(size: 32))
+                    .foregroundColor(infoColor.opacity(0.6))
 
                 // Guide user to CTAs above
                 Text("Ready to Start?")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(primaryText)
                     .multilineTextAlignment(.center)
 
                 Text("Choose an option above")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(.billixMediumGreen)
+                    .foregroundColor(secondaryText)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
 
@@ -628,11 +595,10 @@ struct EmptyUploadCard: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .strokeBorder(
-                                Color.billixChartBlue.opacity(0.25),
+                                infoColor.opacity(0.3),
                                 style: StrokeStyle(lineWidth: 1.5, dash: [6, 3])
                             )
                     )
-                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
             )
         } else {
             // First card - explain what will appear here
@@ -641,18 +607,18 @@ struct EmptyUploadCard: View {
 
                 // Icon representing empty/waiting
                 Image(systemName: "tray")
-                    .font(.system(size: 36))
-                    .foregroundColor(.billixMediumGreen.opacity(0.6))
+                    .font(.system(size: 32))
+                    .foregroundColor(tertiaryText)
 
                 // Informational message
                 Text("No Bills Yet")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
+                    .foregroundColor(primaryText)
                     .multilineTextAlignment(.center)
 
                 Text("Your uploads will show here")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(.billixMediumGreen)
+                    .foregroundColor(secondaryText)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
 
@@ -667,11 +633,10 @@ struct EmptyUploadCard: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .strokeBorder(
-                                Color.billixMediumGreen.opacity(0.25),
+                                borderColor,
                                 style: StrokeStyle(lineWidth: 1.5, dash: [6, 3])
                             )
                     )
-                    .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
             )
         }
     }
@@ -682,15 +647,18 @@ struct EmptyUploadCard: View {
 struct FeatureCheckpoint: View {
     let text: String
 
+    private let accentColor = Color(hex: "#5B8A6B")
+    private let secondaryText = Color(hex: "#8B9A94")
+
     var body: some View {
         HStack(spacing: 5) {
             Image(systemName: "checkmark")
                 .font(.system(size: 9, weight: .bold))
-                .foregroundColor(.billixMoneyGreen)
+                .foregroundColor(accentColor)
 
             Text(text)
                 .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.billixMediumGreen)
+                .foregroundColor(secondaryText)
         }
     }
 }
@@ -698,12 +666,14 @@ struct FeatureCheckpoint: View {
 // MARK: - Full Analysis Info Popover
 
 struct FullAnalysisInfoPopover: View {
+    private let primaryText = Color(hex: "#2D3B35")
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // Header
             Text("What You'll Get")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(.billixDarkGreen)
+                .foregroundColor(primaryText)
 
             // Compact features list
             VStack(alignment: .leading, spacing: 6) {
@@ -720,12 +690,15 @@ struct FullAnalysisInfoPopover: View {
 }
 
 struct QuickAddInfoPopover: View {
+    private let primaryText = Color(hex: "#2D3B35")
+    private let secondaryText = Color(hex: "#8B9A94")
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // Header
             Text("About Quick Add")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(.billixDarkGreen)
+                .foregroundColor(primaryText)
 
             // Structured features list
             VStack(alignment: .leading, spacing: 6) {
@@ -738,7 +711,7 @@ struct QuickAddInfoPopover: View {
             // Clarification note
             Text("Note: For full analysis, use Full Analysis option")
                 .font(.system(size: 10, weight: .medium))
-                .foregroundColor(.billixMediumGreen)
+                .foregroundColor(secondaryText)
                 .padding(.top, 4)
         }
         .padding(12)
@@ -751,16 +724,19 @@ struct InfoFeatureRow: View {
     let icon: String
     let text: String
 
+    private let infoColor = Color(hex: "#5BA4D4")
+    private let primaryText = Color(hex: "#2D3B35")
+
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(.billixChartBlue)
+                .foregroundColor(infoColor)
                 .frame(width: 16)
 
             Text(text)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.billixDarkGreen)
+                .foregroundColor(primaryText)
         }
     }
 }
