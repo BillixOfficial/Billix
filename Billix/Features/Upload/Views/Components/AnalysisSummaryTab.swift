@@ -77,9 +77,11 @@ struct AnalysisSummaryTab: View {
                     insightsSection(insights)
                 }
 
-                Spacer(minLength: 80)
+                // Extra padding for done button
+                Spacer(minLength: 100)
             }
             .padding(.horizontal, 16)
+            .padding(.bottom, 20)
         }
     }
 
