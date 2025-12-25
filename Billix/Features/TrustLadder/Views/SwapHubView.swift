@@ -11,12 +11,16 @@ import SwiftUI
 // MARK: - Theme
 
 private enum Theme {
-    static let background = Color(hex: "#F7F9F8")
+    static let background = Color(hex: "#FAFBFA")
     static let cardBackground = Color.white
-    static let primaryText = Color(hex: "#2D3B35")
-    static let secondaryText = Color(hex: "#8B9A94")
-    static let accent = Color(hex: "#5B8A6B")
-    static let accentLight = Color(hex: "#5B8A6B").opacity(0.1)
+    static let primaryText = Color(hex: "#1A2B23")
+    static let secondaryText = Color(hex: "#6B7C74")
+    static let tertiaryText = Color(hex: "#9AA89F")
+    static let accent = Color(hex: "#3D7A5A")
+    static let accentLight = Color(hex: "#E8F2EC")
+    static let accentMedium = Color(hex: "#D1E6DA")
+    static let border = Color(hex: "#E5EAE7")
+    static let divider = Color(hex: "#F0F3F1")
     static let cornerRadius: CGFloat = 16
     static let padding: CGFloat = 20
 }
@@ -111,31 +115,26 @@ struct SwapHubView: View {
     // MARK: - Tier Progress Card
 
     private var tierProgressCard: some View {
-        VStack(spacing: 16) {
-            // Tier badge and name
-            HStack(spacing: 12) {
+        VStack(spacing: 0) {
+            // Top section - Tier info
+            HStack(spacing: 14) {
+                // Tier badge - clean flat design
                 ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: viewModel.tier.gradientColors,
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 56, height: 56)
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(viewModel.tier.color.opacity(0.12))
+                        .frame(width: 52, height: 52)
 
                     Image(systemName: viewModel.tier.icon)
-                        .font(.system(size: 24))
-                        .foregroundColor(.white)
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundColor(viewModel.tier.color)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(viewModel.tier.name)
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(Theme.primaryText)
 
-                    Text("Max swap: \(String(format: "$%.0f", viewModel.tier.maxAmount))")
+                    Text("Up to \(String(format: "$%.0f", viewModel.tier.maxAmount)) per swap")
                         .font(.system(size: 13))
                         .foregroundColor(Theme.secondaryText)
                 }
@@ -145,100 +144,116 @@ struct SwapHubView: View {
                 if let swapsNeeded = viewModel.swapsToNextTier {
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("\(swapsNeeded)")
-                            .font(.system(size: 22, weight: .bold))
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
                             .foregroundColor(Theme.accent)
-                        Text("swaps to next tier")
-                            .font(.system(size: 11))
-                            .foregroundColor(Theme.secondaryText)
+                        Text("to level up")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(Theme.tertiaryText)
                     }
                 }
             }
+            .padding(Theme.padding)
 
-            // Progress bar
+            // Progress bar section
             if viewModel.tier.nextTier != nil {
-                VStack(spacing: 6) {
+                VStack(spacing: 8) {
+                    // Progress bar - clean minimal style
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            Capsule()
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 8)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Theme.divider)
+                                .frame(height: 6)
 
-                            Capsule()
-                                .fill(
-                                    LinearGradient(
-                                        colors: viewModel.tier.gradientColors,
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .frame(width: geo.size.width * viewModel.tierProgress, height: 8)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Theme.accent)
+                                .frame(width: max(geo.size.width * viewModel.tierProgress, 6), height: 6)
                         }
                     }
-                    .frame(height: 8)
+                    .frame(height: 6)
 
                     HStack {
                         Text(viewModel.tier.shortName)
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(viewModel.tier.color)
+                            .foregroundColor(Theme.secondaryText)
 
                         Spacer()
 
                         if let next = viewModel.tier.nextTier {
                             Text(next.shortName)
                                 .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(next.color)
+                                .foregroundColor(Theme.tertiaryText)
                         }
                     }
                 }
+                .padding(.horizontal, Theme.padding)
+                .padding(.bottom, 16)
             }
 
-            // Trust stats
-            HStack(spacing: 20) {
+            // Divider
+            Rectangle()
+                .fill(Theme.divider)
+                .frame(height: 1)
+
+            // Stats section - horizontal layout
+            HStack(spacing: 0) {
                 StatPill(
                     icon: "star.fill",
                     value: viewModel.trustStatus?.formattedRating ?? "5.0",
                     label: "Rating",
-                    color: .yellow
+                    iconColor: Color(hex: "#F5A623")
                 )
 
+                // Vertical divider
+                Rectangle()
+                    .fill(Theme.divider)
+                    .frame(width: 1, height: 36)
+
                 StatPill(
-                    icon: "checkmark.seal.fill",
+                    icon: "arrow.left.arrow.right",
                     value: "\(viewModel.trustStatus?.totalSuccessfulSwaps ?? 0)",
                     label: "Swaps",
-                    color: Theme.accent
+                    iconColor: Theme.accent
                 )
 
+                // Vertical divider
+                Rectangle()
+                    .fill(Theme.divider)
+                    .frame(width: 1, height: 36)
+
                 StatPill(
-                    icon: "shield.fill",
+                    icon: "diamond.fill",
                     value: "\(viewModel.trustStatus?.trustPoints ?? 0)",
                     label: "Points",
-                    color: .blue
+                    iconColor: Color(hex: "#5B9BD5")
                 )
             }
+            .padding(.vertical, 14)
         }
-        .padding(Theme.padding)
         .background(Theme.cardBackground)
         .cornerRadius(Theme.cornerRadius)
-        .shadow(color: .black.opacity(0.05), radius: 8)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                .stroke(Theme.border, lineWidth: 1)
+        )
         .padding(.horizontal, Theme.padding)
     }
 
     // MARK: - Tab Selector
 
     private var tabSelector: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 8) {
             ForEach(SwapHubViewModel.SwapHubTab.allCases, id: \.self) { tab in
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         viewModel.selectedTab = tab
                     }
                     haptic()
                 } label: {
-                    VStack(spacing: 6) {
+                    HStack(spacing: 6) {
                         Image(systemName: tab.icon)
-                            .font(.system(size: 18))
+                            .font(.system(size: 14, weight: .medium))
                         Text(tab.rawValue)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.system(size: 13, weight: .medium))
                     }
                     .foregroundColor(viewModel.selectedTab == tab ? Theme.accent : Theme.secondaryText)
                     .frame(maxWidth: .infinity)
@@ -247,13 +262,20 @@ struct SwapHubView: View {
                         viewModel.selectedTab == tab ? Theme.accentLight : Color.clear
                     )
                     .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(viewModel.selectedTab == tab ? Theme.accent.opacity(0.3) : Color.clear, lineWidth: 1)
+                    )
                 }
             }
         }
-        .padding(4)
+        .padding(6)
         .background(Theme.cardBackground)
         .cornerRadius(14)
-        .shadow(color: .black.opacity(0.03), radius: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Theme.border, lineWidth: 1)
+        )
         .padding(.horizontal, Theme.padding)
     }
 
@@ -289,41 +311,53 @@ struct SwapHubView: View {
     }
 
     private var emptySwapsCard: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "arrow.left.arrow.right.circle")
-                .font(.system(size: 48))
-                .foregroundColor(Theme.secondaryText.opacity(0.5))
+        VStack(spacing: 20) {
+            ZStack {
+                Circle()
+                    .fill(Theme.accentLight)
+                    .frame(width: 72, height: 72)
 
-            Text("No active swaps")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(Theme.primaryText)
+                Image(systemName: "arrow.left.arrow.right")
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundColor(Theme.accent)
+            }
 
-            Text("Start your first swap by finding a match partner")
-                .font(.system(size: 14))
-                .foregroundColor(Theme.secondaryText)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 6) {
+                Text("No active swaps")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(Theme.primaryText)
+
+                Text("Start your first swap by finding a match partner")
+                    .font(.system(size: 14))
+                    .foregroundColor(Theme.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
 
             Button {
                 showFindMatch = true
                 haptic()
             } label: {
-                HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "person.2.fill")
                     Text("Find a Match")
                 }
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
                 .background(Theme.accent)
-                .cornerRadius(10)
+                .cornerRadius(12)
             }
+            .padding(.top, 4)
         }
-        .padding(32)
+        .padding(24)
         .frame(maxWidth: .infinity)
         .background(Theme.cardBackground)
         .cornerRadius(Theme.cornerRadius)
-        .shadow(color: .black.opacity(0.03), radius: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                .stroke(Theme.border, lineWidth: 1)
+        )
     }
 
     // MARK: - Find Match Tab
@@ -355,18 +389,20 @@ struct SwapHubView: View {
                     showFindMatch = true
                     haptic()
                 } label: {
-                    HStack {
+                    HStack(spacing: 8) {
                         Image(systemName: "magnifyingglass")
+                            .font(.system(size: 15, weight: .medium))
                         Text("Search for Mirror Partners")
                     }
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 52)
+                    .frame(height: 50)
                     .background(Theme.accent)
                     .cornerRadius(12)
                 }
                 .padding(.horizontal, Theme.padding)
+                .padding(.top, 4)
 
                 // Pending matches
                 if !viewModel.pendingMatches.isEmpty {
@@ -393,34 +429,59 @@ struct SwapHubView: View {
 
     private var noMatchesCard: some View {
         VStack(spacing: 16) {
-            Image(systemName: "person.2.slash")
-                .font(.system(size: 40))
-                .foregroundColor(Theme.secondaryText.opacity(0.5))
+            ZStack {
+                Circle()
+                    .fill(Theme.divider)
+                    .frame(width: 56, height: 56)
 
-            Text("No matches found yet")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(Theme.primaryText)
+                Image(systemName: "person.2")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(Theme.tertiaryText)
+            }
 
-            Text("We're searching for partners with matching schedules. Check back soon!")
-                .font(.system(size: 13))
-                .foregroundColor(Theme.secondaryText)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 4) {
+                Text("No matches found yet")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Theme.primaryText)
+
+                Text("We're searching for partners with matching schedules. Check back soon!")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
         }
-        .padding(24)
+        .padding(28)
         .frame(maxWidth: .infinity)
         .background(Theme.cardBackground)
         .cornerRadius(Theme.cornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                .stroke(Theme.border, lineWidth: 1)
+        )
     }
 
     private var noBillsCard: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "doc.badge.plus")
-                .font(.system(size: 40))
-                .foregroundColor(Theme.secondaryText.opacity(0.5))
+        VStack(spacing: 18) {
+            ZStack {
+                Circle()
+                    .fill(Theme.accentLight)
+                    .frame(width: 56, height: 56)
 
-            Text("Add bills to start swapping")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(Theme.primaryText)
+                Image(systemName: "doc.badge.plus")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(Theme.accent)
+            }
+
+            VStack(spacing: 4) {
+                Text("Add bills to start swapping")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Theme.primaryText)
+
+                Text("Once you add your bills, you can find swap partners")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
 
             Button {
                 viewModel.openPortfolioSetup()
@@ -428,16 +489,20 @@ struct SwapHubView: View {
                 Text("Add Bills")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 12)
                     .background(Theme.accent)
-                    .cornerRadius(8)
+                    .cornerRadius(10)
             }
         }
-        .padding(24)
+        .padding(28)
         .frame(maxWidth: .infinity)
         .background(Theme.cardBackground)
         .cornerRadius(Theme.cornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                .stroke(Theme.border, lineWidth: 1)
+        )
     }
 
     // MARK: - History Tab
@@ -446,22 +511,34 @@ struct SwapHubView: View {
         VStack(spacing: 16) {
             if viewModel.completedSwaps.isEmpty {
                 VStack(spacing: 16) {
-                    Image(systemName: "clock.badge.checkmark")
-                        .font(.system(size: 40))
-                        .foregroundColor(Theme.secondaryText.opacity(0.5))
+                    ZStack {
+                        Circle()
+                            .fill(Theme.divider)
+                            .frame(width: 64, height: 64)
 
-                    Text("No swap history yet")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(Theme.primaryText)
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 26, weight: .medium))
+                            .foregroundColor(Theme.tertiaryText)
+                    }
 
-                    Text("Completed swaps will appear here")
-                        .font(.system(size: 13))
-                        .foregroundColor(Theme.secondaryText)
+                    VStack(spacing: 4) {
+                        Text("No swap history yet")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Theme.primaryText)
+
+                        Text("Completed swaps will appear here")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.secondaryText)
+                    }
                 }
-                .padding(32)
+                .padding(.vertical, 40)
                 .frame(maxWidth: .infinity)
                 .background(Theme.cardBackground)
                 .cornerRadius(Theme.cornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                        .stroke(Theme.border, lineWidth: 1)
+                )
             } else {
                 ForEach(viewModel.completedSwaps) { swap in
                     CompletedSwapCard(swap: swap)
@@ -482,21 +559,21 @@ private struct StatPill: View {
     let icon: String
     let value: String
     let label: String
-    let color: Color
+    let iconColor: Color
 
     var body: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 4) {
+        VStack(spacing: 3) {
+            HStack(spacing: 5) {
                 Image(systemName: icon)
-                    .font(.system(size: 12))
-                    .foregroundColor(color)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(iconColor)
                 Text(value)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                     .foregroundColor(Theme.primaryText)
             }
             Text(label)
                 .font(.system(size: 11))
-                .foregroundColor(Theme.secondaryText)
+                .foregroundColor(Theme.tertiaryText)
         }
         .frame(maxWidth: .infinity)
     }
@@ -509,9 +586,15 @@ private struct BillSwapChip: View {
     var body: some View {
         Button(action: onSelect) {
             VStack(spacing: 8) {
-                Image(systemName: bill.category?.icon ?? "doc")
-                    .font(.system(size: 24))
-                    .foregroundColor(bill.category?.color ?? Theme.accent)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill((bill.category?.color ?? Theme.accent).opacity(0.1))
+                        .frame(width: 40, height: 40)
+
+                    Image(systemName: bill.category?.icon ?? "doc")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(bill.category?.color ?? Theme.accent)
+                }
 
                 Text(bill.providerName)
                     .font(.system(size: 12, weight: .medium))
@@ -519,14 +602,17 @@ private struct BillSwapChip: View {
                     .lineLimit(1)
 
                 Text(bill.formattedAmount)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
                     .foregroundColor(Theme.accent)
             }
             .frame(width: 100)
-            .padding(.vertical, 16)
+            .padding(.vertical, 14)
             .background(Theme.cardBackground)
             .cornerRadius(12)
-            .shadow(color: .black.opacity(0.05), radius: 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Theme.border, lineWidth: 1)
+            )
         }
     }
 }
@@ -537,13 +623,19 @@ private struct ActiveSwapCard: View {
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 12) {
-                // Status indicator
-                Circle()
-                    .fill(swap.swapStatus.color)
-                    .frame(width: 10, height: 10)
+            HStack(spacing: 14) {
+                // Status indicator with background
+                ZStack {
+                    Circle()
+                        .fill(swap.swapStatus.color.opacity(0.15))
+                        .frame(width: 40, height: 40)
 
-                VStack(alignment: .leading, spacing: 4) {
+                    Circle()
+                        .fill(swap.swapStatus.color)
+                        .frame(width: 10, height: 10)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
                     Text(swap.swapStatus.displayName)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(Theme.primaryText)
@@ -558,16 +650,20 @@ private struct ActiveSwapCard: View {
                 Spacer()
 
                 Text(swap.formattedTotalValue)
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundColor(Theme.accent)
 
                 Image(systemName: "chevron.right")
-                    .foregroundColor(Theme.secondaryText)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Theme.tertiaryText)
             }
-            .padding()
+            .padding(16)
             .background(Theme.cardBackground)
             .cornerRadius(Theme.cornerRadius)
-            .shadow(color: .black.opacity(0.03), radius: 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                    .stroke(Theme.border, lineWidth: 1)
+            )
         }
     }
 }
@@ -583,27 +679,31 @@ private struct SwapPartnerMatchCard: View {
                 ZStack {
                     Circle()
                         .fill(Theme.accentLight)
-                        .frame(width: 48, height: 48)
+                        .frame(width: 44, height: 44)
 
                     Text(match.partnerInitials)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(Theme.accent)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
                         Text("@\(match.partnerHandle)")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(Theme.primaryText)
 
                         HStack(spacing: 2) {
                             Image(systemName: "star.fill")
-                                .font(.system(size: 10))
-                                .foregroundColor(.yellow)
+                                .font(.system(size: 9))
+                                .foregroundColor(Color(hex: "#F5A623"))
                             Text(match.formattedRating)
-                                .font(.system(size: 12))
+                                .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(Theme.secondaryText)
                         }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color(hex: "#F5A623").opacity(0.1))
+                        .cornerRadius(4)
                     }
 
                     Text("\(match.partnerSuccessfulSwaps) successful swaps")
@@ -613,20 +713,27 @@ private struct SwapPartnerMatchCard: View {
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 4) {
+                VStack(alignment: .trailing, spacing: 3) {
                     Text(match.formattedAmount)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.primaryText)
 
                     Text("\(match.formattedMatchScore) match")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(Theme.accent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Theme.accentLight)
+                        .cornerRadius(4)
                 }
             }
-            .padding()
+            .padding(14)
             .background(Theme.cardBackground)
             .cornerRadius(Theme.cornerRadius)
-            .shadow(color: .black.opacity(0.03), radius: 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                    .stroke(Theme.border, lineWidth: 1)
+            )
         }
     }
 }
@@ -635,12 +742,18 @@ private struct CompletedSwapCard: View {
     let swap: Swap
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 24))
-                .foregroundColor(.green)
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color(hex: "#E8F5E9"))
+                    .frame(width: 40, height: 40)
 
-            VStack(alignment: .leading, spacing: 4) {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color(hex: "#4CAF50"))
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
                 Text("Completed")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(Theme.primaryText)
@@ -654,22 +767,29 @@ private struct CompletedSwapCard: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: 3) {
                 Text(swap.formattedTotalValue)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
                     .foregroundColor(Theme.primaryText)
 
                 if let points = swap.trustPointsAwarded {
                     Text("+\(points) pts")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(Theme.accent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Theme.accentLight)
+                        .cornerRadius(4)
                 }
             }
         }
-        .padding()
+        .padding(16)
         .background(Theme.cardBackground)
         .cornerRadius(Theme.cornerRadius)
-        .shadow(color: .black.opacity(0.03), radius: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                .stroke(Theme.border, lineWidth: 1)
+        )
     }
 }
 
