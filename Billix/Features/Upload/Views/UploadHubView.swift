@@ -3,7 +3,7 @@
 //  Billix
 //
 //  Created by Claude Code on 11/24/25.
-//  Redesigned with clean, modern flat design
+//  Redesigned with engaging, modern design
 //
 
 import SwiftUI
@@ -23,12 +23,16 @@ private enum Theme {
     static let divider = Color(hex: "#F0F3F1")
     static let info = Color(hex: "#5BA4D4")
     static let warning = Color(hex: "#E8A54B")
+    static let warmGradientStart = Color(hex: "#FEF3E2")
+    static let warmGradientEnd = Color(hex: "#FDE9D0")
+    static let coolGradientStart = Color(hex: "#E8F4FD")
+    static let coolGradientEnd = Color(hex: "#D6ECFA")
 
     static let horizontalPadding: CGFloat = 20
     static let cardPadding: CGFloat = 16
-    static let cornerRadius: CGFloat = 16
-    static let shadowColor = Color.black.opacity(0.03)
-    static let shadowRadius: CGFloat = 8
+    static let cornerRadius: CGFloat = 20
+    static let shadowColor = Color.black.opacity(0.06)
+    static let shadowRadius: CGFloat = 12
 }
 
 /// Upload Hub with clean, modern design
@@ -161,30 +165,44 @@ onSwitchToFullAnalysis: {
     // MARK: - Header Section
 
     private var headerSection: some View {
-        HStack(spacing: 14) {
-            // Clean flat icon badge
-            ZStack {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(Theme.accentLight)
-                    .frame(width: 48, height: 48)
+        VStack(spacing: 0) {
+            HStack(spacing: 14) {
+                // Animated icon badge with gradient
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Theme.accent.opacity(0.15), Theme.accent.opacity(0.08)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 52, height: 52)
 
-                Image(systemName: "doc.text.fill")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(Theme.accent)
+                    Image(systemName: "doc.text.fill")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(Theme.accent)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Upload Your Bills")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(Theme.primaryText)
+
+                    Text("Track expenses & find savings")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Theme.secondaryText)
+                }
+
+                Spacer()
             }
-
-            Text("Upload Your Bills")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(Theme.primaryText)
-
-            Spacer()
         }
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : -10)
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
     }
 
-    // MARK: - Quick Add Card (Clean flat design)
+    // MARK: - Quick Add Card (Engaging gradient design)
 
     private var quickAddCard: some View {
         Button {
@@ -194,68 +212,100 @@ onSwitchToFullAnalysis: {
             let generator = UIImpactFeedbackGenerator(style: .medium)
             generator.impactOccurred()
         } label: {
-            HStack(spacing: 16) {
-                // Left side - Icon and info
-                HStack(spacing: 14) {
-                    // Icon badge
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Theme.warning.opacity(0.12))
-                            .frame(width: 44, height: 44)
+            ZStack {
+                // Warm gradient background
+                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                    .fill(
+                        LinearGradient(
+                            colors: [Theme.warmGradientStart, Theme.warmGradientEnd],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
 
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(Theme.warning)
-                    }
+                // Decorative circles
+                GeometryReader { geo in
+                    Circle()
+                        .fill(Theme.warning.opacity(0.08))
+                        .frame(width: 100, height: 100)
+                        .offset(x: geo.size.width - 60, y: -30)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 6) {
-                            Text("Quick Add")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(Theme.primaryText)
+                    Circle()
+                        .fill(Theme.warning.opacity(0.05))
+                        .frame(width: 60, height: 60)
+                        .offset(x: geo.size.width - 100, y: geo.size.height - 40)
+                }
+                .clipped()
 
-                            // Info button
-                            Button {
-                                showQuickAddInfo.toggle()
-                            } label: {
-                                Image(systemName: "info.circle")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(Theme.secondaryText)
-                            }
-                            .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
-                                QuickAddInfoPopover()
-                                    .presentationCompactAdaptation(.popover)
-                            }
+                // Content
+                HStack(spacing: 16) {
+                    // Left side - Icon and info
+                    HStack(spacing: 14) {
+                        // Icon badge with shadow
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 50, height: 50)
+                                .shadow(color: Theme.warning.opacity(0.2), radius: 8, x: 0, y: 4)
+
+                            Image(systemName: "bolt.fill")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(Theme.warning)
                         }
 
-                        Text("Answer 3 questions for rate comparison")
-                            .font(.system(size: 13))
-                            .foregroundColor(Theme.secondaryText)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 6) {
+                                Text("Quick Add")
+                                    .font(.system(size: 17, weight: .bold))
+                                    .foregroundColor(Theme.primaryText)
+
+                                // Info button
+                                Button {
+                                    showQuickAddInfo.toggle()
+                                } label: {
+                                    Image(systemName: "info.circle")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Theme.secondaryText.opacity(0.8))
+                                }
+                                .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
+                                    QuickAddInfoPopover()
+                                        .presentationCompactAdaptation(.popover)
+                                }
+                            }
+
+                            Text("Answer 3 questions for rate comparison")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Theme.secondaryText)
+                        }
                     }
-                }
 
-                Spacer()
+                    Spacer()
 
-                // Right side - CTA
-                HStack(spacing: 6) {
-                    Text("Start")
-                        .font(.system(size: 14, weight: .semibold))
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 12, weight: .semibold))
+                    // Right side - CTA with gradient
+                    HStack(spacing: 6) {
+                        Text("Start")
+                            .font(.system(size: 14, weight: .bold))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 12, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 12)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "#E8A54B"), Color(hex: "#D4943E")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .cornerRadius(12)
+                    .shadow(color: Theme.warning.opacity(0.3), radius: 6, x: 0, y: 3)
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(Theme.accent)
-                .cornerRadius(10)
+                .padding(18)
             }
-            .padding(16)
-            .background(Theme.cardBackground)
-            .cornerRadius(Theme.cornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                    .stroke(Theme.border, lineWidth: 1)
-            )
+            .frame(height: 90)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
+            .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 4)
         }
         .buttonStyle(ScaleButtonStyle(scale: 0.98))
         .opacity(appeared ? 1 : 0)
@@ -295,14 +345,12 @@ onSwitchToFullAnalysis: {
             .padding(.horizontal, Theme.horizontalPadding)
 
             if recentUploads.isEmpty {
-                // Empty state card
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
-                        EmptyUploadCard()
-                        EmptyUploadCard(isSecondary: true)
-                    }
-                    .padding(.horizontal, Theme.horizontalPadding)
+                // Single empty state card
+                HStack {
+                    EmptyUploadCard()
+                    Spacer()
                 }
+                .padding(.horizontal, Theme.horizontalPadding)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
@@ -330,7 +378,7 @@ onSwitchToFullAnalysis: {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 6) {
                 Text("Full Analysis")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 17, weight: .bold))
                     .foregroundColor(Theme.primaryText)
 
                 // Info button
@@ -348,55 +396,110 @@ onSwitchToFullAnalysis: {
             }
 
             NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
-                VStack(spacing: 16) {
-                    // Top row: Icon + Text
-                    HStack(spacing: 14) {
-                        // Icon with colored background
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Theme.info.opacity(0.12))
-                                .frame(width: 44, height: 44)
-
-                            Image(systemName: "doc.text.viewfinder")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(Theme.info)
-                        }
-
-                        // Simplified text content
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Upload for Full Analysis")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(Theme.primaryText)
-
-                            Text("Get a complete breakdown of your bill")
-                                .font(.system(size: 13))
-                                .foregroundColor(Theme.secondaryText)
-                        }
-
-                        Spacer()
-                    }
-
-                    // CTA Button
-                    HStack(spacing: 8) {
-                        Text("Start Analysis")
-                            .font(.system(size: 15, weight: .semibold))
-
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Theme.info)
-                    .cornerRadius(12)
-                }
-                .padding(16)
-                .background(Theme.cardBackground)
-                .cornerRadius(Theme.cornerRadius)
-                .overlay(
+                ZStack {
+                    // Cool gradient background
                     RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                        .stroke(Theme.border, lineWidth: 1)
-                )
+                        .fill(
+                            LinearGradient(
+                                colors: [Theme.coolGradientStart, Theme.coolGradientEnd],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+
+                    // Decorative elements
+                    GeometryReader { geo in
+                        Circle()
+                            .fill(Theme.info.opacity(0.08))
+                            .frame(width: 120, height: 120)
+                            .offset(x: geo.size.width - 70, y: -40)
+
+                        Circle()
+                            .fill(Theme.info.opacity(0.05))
+                            .frame(width: 80, height: 80)
+                            .offset(x: -20, y: geo.size.height - 50)
+                    }
+                    .clipped()
+
+                    VStack(spacing: 16) {
+                        // Top row: Icon + Text + Ready badge
+                        HStack(spacing: 14) {
+                            // Icon with white background and shadow
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 50, height: 50)
+                                    .shadow(color: Theme.info.opacity(0.2), radius: 8, x: 0, y: 4)
+
+                                Image(systemName: "doc.text.viewfinder")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundColor(Theme.info)
+                            }
+
+                            // Text content
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Upload for Full Analysis")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(Theme.primaryText)
+
+                                Text("Get a complete breakdown of your bill")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(Theme.secondaryText)
+                            }
+
+                            Spacer()
+
+                            // Ready to Start badge
+                            VStack(spacing: 4) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.white)
+                                        .frame(width: 36, height: 36)
+                                        .shadow(color: Theme.info.opacity(0.15), radius: 4, x: 0, y: 2)
+
+                                    Image(systemName: "hand.tap.fill")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(Theme.info)
+                                }
+
+                                Text("Ready?")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(Theme.info)
+                            }
+                        }
+
+                        // Feature pills
+                        HStack(spacing: 8) {
+                            FeaturePill(icon: "chart.bar.fill", text: "Line items")
+                            FeaturePill(icon: "map.fill", text: "Rate compare")
+                            FeaturePill(icon: "lightbulb.fill", text: "Savings")
+                        }
+
+                        // CTA Button with gradient
+                        HStack(spacing: 8) {
+                            Text("Start Analysis")
+                                .font(.system(size: 15, weight: .bold))
+
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 13, weight: .bold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(hex: "#5BA4D4"), Color(hex: "#4A93C3")],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .cornerRadius(12)
+                        .shadow(color: Theme.info.opacity(0.3), radius: 6, x: 0, y: 3)
+                    }
+                    .padding(18)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
+                .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 4)
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
             .simultaneousGesture(TapGesture().onEnded {
@@ -407,6 +510,32 @@ onSwitchToFullAnalysis: {
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 20)
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4), value: appeared)
+    }
+}
+
+// MARK: - Feature Pill
+
+struct FeaturePill: View {
+    let icon: String
+    let text: String
+
+    private let infoColor = Color(hex: "#5BA4D4")
+    private let primaryText = Color(hex: "#2D3B35")
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(infoColor)
+
+            Text(text)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(primaryText)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.7))
+        .cornerRadius(20)
     }
 }
 
@@ -481,63 +610,85 @@ struct RecentUploadCard: View {
     private let borderColor = Color(hex: "#E5EAE7")
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Category/source label with Quick Add badge
-            HStack(spacing: 5) {
-                if upload.source == .quickAdd {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 9))
-                        .foregroundColor(warningColor)
-                }
-                Text(upload.source.displayName)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(secondaryText)
+        ZStack {
+            // White card background
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.white)
+
+            // Subtle top accent bar
+            VStack {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(
+                        LinearGradient(
+                            colors: [sourceAccentColor.opacity(0.15), sourceAccentColor.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: 50)
+
+                Spacer()
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(
-                Capsule()
-                    .fill(sourceBackgroundColor)
-            )
+            .clipShape(RoundedRectangle(cornerRadius: 18))
 
-            // Provider name
-            Text(upload.provider)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(primaryText)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
+            VStack(alignment: .leading, spacing: 8) {
+                // Category/source label with Quick Add badge
+                HStack(spacing: 5) {
+                    if upload.source == .quickAdd {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(warningColor)
+                    }
+                    Text(upload.source.displayName)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(sourceAccentColor)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(
+                    Capsule()
+                        .fill(Color.white)
+                        .shadow(color: sourceAccentColor.opacity(0.15), radius: 4, x: 0, y: 2)
+                )
 
-            Spacer()
-
-            // Amount and status
-            HStack {
-                Text(upload.formattedAmount)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                // Provider name
+                Text(upload.provider)
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(primaryText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
                 Spacer()
 
-                Image(systemName: upload.status.icon)
-                    .font(.system(size: 12))
-                    .foregroundColor(statusColor(for: upload.status))
+                // Amount and status
+                HStack {
+                    Text(upload.formattedAmount)
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(primaryText)
+
+                    Spacer()
+
+                    // Status indicator with background
+                    ZStack {
+                        Circle()
+                            .fill(statusColor(for: upload.status).opacity(0.12))
+                            .frame(width: 26, height: 26)
+
+                        Image(systemName: upload.status.icon)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(statusColor(for: upload.status))
+                    }
+                }
             }
+            .padding(14)
         }
-        .padding(14)
-        .frame(width: 150, height: 120)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(borderColor, lineWidth: 1)
-        )
+        .frame(width: 155, height: 130)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
     }
 
-    private var sourceBackgroundColor: Color {
-        upload.source == .quickAdd
-            ? warningColor.opacity(0.12)
-            : accentColor.opacity(0.08)
+    private var sourceAccentColor: Color {
+        upload.source == .quickAdd ? warningColor : accentColor
     }
 
     private func statusColor(for status: UploadStatus) -> Color {
@@ -553,92 +704,67 @@ struct RecentUploadCard: View {
 // MARK: - Empty Upload Card
 
 struct EmptyUploadCard: View {
-    var isSecondary: Bool = false
-
     private let primaryText = Color(hex: "#2D3B35")
     private let secondaryText = Color(hex: "#8B9A94")
     private let tertiaryText = Color(hex: "#A8B5AE")
-    private let infoColor = Color(hex: "#5BA4D4")
-    private let borderColor = Color(hex: "#E5EAE7")
+    private let accentColor = Color(hex: "#5B8A6B")
 
     var body: some View {
-        if isSecondary {
-            // Second card - guide to options above
-            VStack(spacing: 10) {
-                Spacer()
+        ZStack {
+            // Subtle gradient background
+            RoundedRectangle(cornerRadius: 18)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "#F7F9F8"), Color(hex: "#F0F3F1")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
 
-                // Icon representing options
-                Image(systemName: "hand.tap.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(infoColor.opacity(0.6))
+            // Decorative circles
+            Circle()
+                .fill(accentColor.opacity(0.04))
+                .frame(width: 80, height: 80)
+                .offset(x: 60, y: -30)
 
-                // Guide user to CTAs above
-                Text("Ready to Start?")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(primaryText)
-                    .multilineTextAlignment(.center)
+            Circle()
+                .fill(accentColor.opacity(0.03))
+                .frame(width: 50, height: 50)
+                .offset(x: -50, y: 40)
 
-                Text("Choose an option above")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(secondaryText)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
+            HStack(spacing: 14) {
+                // Icon with background
+                ZStack {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 48, height: 48)
+                        .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 2)
+
+                    Image(systemName: "doc.text.fill")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(tertiaryText)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("No Bills Yet")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(primaryText)
+
+                    Text("Upload a bill to get started")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(secondaryText)
+                }
 
                 Spacer()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(14)
-            .frame(width: 150, height: 120)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .strokeBorder(
-                                infoColor.opacity(0.3),
-                                style: StrokeStyle(lineWidth: 1.5, dash: [6, 3])
-                            )
-                    )
-            )
-        } else {
-            // First card - explain what will appear here
-            VStack(spacing: 10) {
-                Spacer()
-
-                // Icon representing empty/waiting
-                Image(systemName: "tray")
-                    .font(.system(size: 32))
-                    .foregroundColor(tertiaryText)
-
-                // Informational message
-                Text("No Bills Yet")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(primaryText)
-                    .multilineTextAlignment(.center)
-
-                Text("Your uploads will show here")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(secondaryText)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(14)
-            .frame(width: 150, height: 120)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .strokeBorder(
-                                borderColor,
-                                style: StrokeStyle(lineWidth: 1.5, dash: [6, 3])
-                            )
-                    )
-            )
+            .padding(16)
         }
+        .frame(height: 90)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color(hex: "#E5EAE7").opacity(0.6), lineWidth: 1)
+        )
     }
 }
 
