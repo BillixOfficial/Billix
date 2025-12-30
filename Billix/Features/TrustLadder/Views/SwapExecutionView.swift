@@ -827,6 +827,7 @@ struct SwapExecutionView: View {
             }
         }
         .presentationDetents([.medium])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 
     // MARK: - Computed Properties

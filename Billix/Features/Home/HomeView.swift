@@ -118,7 +118,6 @@ struct HomeView: View {
     private var streakDays: Int {
         streakService.currentStreak
     }
-    @State private var searchText = ""
     @State private var notificationCount = 3
     @State private var savingsGoal = 500.0
     @State private var currentSavings = 127.0
@@ -139,13 +138,7 @@ struct HomeView: View {
     }
 
     var body: some View {
-        // TODO: Re-enable after adding AccessibleRoutingDemoView.swift to project
-        // if showRoutingDemo {
-        //     // Accessible Routing Demo for screenshots
-        //     AccessibleRoutingDemoView()
-        // } else {
-            regularHomeView
-        // }
+        regularHomeView
     }
 
     private var regularHomeView: some View {
@@ -164,7 +157,6 @@ struct HomeView: View {
                             streak: streakDays,
                             notificationCount: notificationCount
                         )
-                        SearchBarZone(searchText: $searchText)
                     }
 
                     // Financial Health Narrative - Story Arc
@@ -767,43 +759,6 @@ private struct NotificationRow: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .background(notification.isUnread ? Color(hex: "#5B8A6B").opacity(0.03) : Color.clear)
-    }
-}
-
-// MARK: - Search Bar
-
-private struct SearchBarZone: View {
-    @Binding var searchText: String
-
-    var body: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 16))
-                    .foregroundColor(Theme.secondaryText)
-
-                TextField("Search bills, providers, tips...", text: $searchText)
-                    .font(.system(size: 15))
-                    .foregroundColor(Theme.primaryText)
-
-                if !searchText.isEmpty {
-                    Button {
-                        searchText = ""
-                        haptic()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(Theme.secondaryText)
-                    }
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(Theme.cardBackground)
-            .cornerRadius(12)
-            .shadow(color: Theme.shadowColor, radius: 4, x: 0, y: 2)
-        }
-        .padding(.horizontal, Theme.horizontalPadding)
     }
 }
 

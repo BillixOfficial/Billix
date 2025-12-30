@@ -105,6 +105,7 @@ struct BillsFilterBarView: View {
                 }
             )
             .presentationDetents([.medium])
+            .presentationBackground(Color(hex: "#F5F7F6"))
         }
         .sheet(isPresented: $showZipInput) {
             ZipInputSheet(
@@ -119,6 +120,7 @@ struct BillsFilterBarView: View {
                 }
             )
             .presentationDetents([.height(250)])
+            .presentationBackground(Color(hex: "#F5F7F6"))
         }
         .sheet(isPresented: $showSortPicker) {
             SortPickerSheet(
@@ -129,6 +131,7 @@ struct BillsFilterBarView: View {
                 }
             )
             .presentationDetents([.height(300)])
+            .presentationBackground(Color(hex: "#F5F7F6"))
         }
     }
 }
@@ -329,7 +332,7 @@ struct SortPickerSheet: View {
 
 // MARK: - Preview
 
-#Preview {
+struct BillsFilterBarView_Previews: PreviewProvider {
     struct PreviewWrapper: View {
         @State var category: String? = nil
         @State var zip: String? = nil
@@ -348,5 +351,7 @@ struct SortPickerSheet: View {
         }
     }
 
-    return PreviewWrapper()
+    static var previews: some View {
+        PreviewWrapper()
+    }
 }

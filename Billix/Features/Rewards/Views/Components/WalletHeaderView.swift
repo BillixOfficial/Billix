@@ -168,6 +168,7 @@ struct WalletHeaderView: View {
         .sheet(isPresented: $showHowItWorks) {
             RewardsHowItWorksSheet()
                 .presentationDetents([.large])
+                .presentationBackground(Color(hex: "#F5F7F6"))
                 .presentationDragIndicator(.visible)
         }
     }

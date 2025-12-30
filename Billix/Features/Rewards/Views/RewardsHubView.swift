@@ -69,6 +69,7 @@ struct RewardsHubView: View {
         .sheet(isPresented: $viewModel.showHistory) {
             PointsHistoryView(transactions: viewModel.points.transactions)
                 .presentationDetents([.medium, .large])
+                .presentationBackground(Color(hex: "#F5F7F6"))
                 .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $viewModel.showAmountSheet) {
@@ -88,6 +89,7 @@ struct RewardsHubView: View {
             }
         }
         .presentationDetents([.medium])
+        .presentationBackground(Color(hex: "#F5F7F6"))
         .presentationDragIndicator(.visible)
         .sheet(item: $viewModel.selectedReward) { reward in
             if reward.category == .giftCard {
@@ -111,6 +113,7 @@ struct RewardsHubView: View {
             }
         }
         .presentationDetents([.medium])
+        .presentationBackground(Color(hex: "#F5F7F6"))
         .presentationDragIndicator(.visible)
         .sheet(isPresented: $viewModel.showDonationRequestSheet) {
             CustomDonationRequestSheet(
@@ -129,6 +132,7 @@ struct RewardsHubView: View {
                 }
             )
             .presentationDetents([.large])
+            .presentationBackground(Color(hex: "#F5F7F6"))
             .presentationDragIndicator(.visible)
         }
         .fullScreenCover(isPresented: $viewModel.showGeoGame) {
