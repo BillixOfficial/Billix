@@ -138,13 +138,7 @@ struct HomeView: View {
     }
 
     var body: some View {
-        // TODO: Re-enable after adding AccessibleRoutingDemoView.swift to project
-        // if showRoutingDemo {
-        //     // Accessible Routing Demo for screenshots
-        //     AccessibleRoutingDemoView()
-        // } else {
-            regularHomeView
-        // }
+        regularHomeView
     }
 
     private var regularHomeView: some View {
