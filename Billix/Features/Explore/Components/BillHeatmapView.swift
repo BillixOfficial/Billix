@@ -42,6 +42,7 @@ struct BillHeatmapView: View {
         .sheet(isPresented: $showDealsSheet) {
             nearbyDealsSheet
                 .presentationDetents([.medium, .large])
+                .presentationBackground(Color(hex: "#F5F7F6"))
         }
     }
 
@@ -400,6 +401,8 @@ struct Hexagon: Shape {
     }
 }
 
-#Preview {
-    BillHeatmapView(viewModel: ExploreViewModel())
+struct BillHeatmapView_Previews: PreviewProvider {
+    static var previews: some View {
+        BillHeatmapView(viewModel: ExploreViewModel())
+    }
 }

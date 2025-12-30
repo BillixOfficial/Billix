@@ -320,6 +320,7 @@ struct AccessibleRoutingDemoView: View {
         .sheet(isPresented: $showConfirmDialog) {
             ConfirmCurbRampSheet()
                 .presentationDetents([.medium])
+                .presentationBackground(Color(hex: "#F5F7F6"))
         }
     }
 }

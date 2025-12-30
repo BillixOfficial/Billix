@@ -39,6 +39,7 @@ struct GougeIndexView: View {
         .sheet(isPresented: $showShareSheet) {
             ShareSheet(content: shareContent)
                 .presentationDetents([.medium])
+                .presentationBackground(Color(hex: "#F5F7F6"))
         }
     }
 
@@ -464,10 +465,12 @@ struct ShareSheet: View {
     }
 }
 
-#Preview {
-    ScrollView {
-        GougeIndexView(viewModel: ExploreViewModel())
-            .padding()
+struct GougeIndexView_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
+            GougeIndexView(viewModel: ExploreViewModel())
+                .padding()
+        }
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

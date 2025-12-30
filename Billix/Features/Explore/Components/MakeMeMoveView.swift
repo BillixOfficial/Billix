@@ -41,6 +41,7 @@ struct MakeMeMoveView: View {
         .sheet(isPresented: $showCreateSheet) {
             CreateStrikePriceSheet(viewModel: viewModel)
                 .presentationDetents([.medium, .large])
+                .presentationBackground(Color(hex: "#F5F7F6"))
         }
     }
 
@@ -702,10 +703,12 @@ struct CreateStrikePriceSheet: View {
     }
 }
 
-#Preview {
-    ScrollView {
-        MakeMeMoveView(viewModel: ExploreViewModel())
-            .padding()
+struct MakeMeMoveView_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
+            MakeMeMoveView(viewModel: ExploreViewModel())
+                .padding()
+        }
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }
