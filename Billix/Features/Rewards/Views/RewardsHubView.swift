@@ -11,7 +11,7 @@ import SwiftUI
 
 struct RewardsHubView: View {
 
-    @StateObject private var viewModel = RewardsViewModel()
+    @StateObject private var viewModel = RewardsViewModel(authService: AuthService.shared)
     @State private var selectedTab: RewardsTab = .earn
     @State private var appeared = false
 

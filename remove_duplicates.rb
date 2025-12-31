@@ -1,64 +1,39 @@
 #!/usr/bin/env ruby
-# Script to remove duplicate file references from Xcode project
+# Remove duplicate file references from Xcode build phase
 
 require 'xcodeproj'
 
 project_path = 'Billix.xcodeproj'
 project = Xcodeproj::Project.open(project_path)
-
-# Get the main target
 target = project.targets.find { |t| t.name == 'Billix' }
 
-# Remove duplicates from source build phase
-seen_files = {}
-files_to_remove = []
+puts "=== REMOVING DUPLICATE FILES FROM BUILD PHASE ==="
 
-target.source_build_phase.files.each do |build_file|
-  file_ref = build_file.file_ref
-  next unless file_ref
+# Get all build files in the source build phase
+build_files = target.source_build_phase.files
+file_refs_seen = {}
+duplicates_removed = 0
 
-  name = file_ref.name || file_ref.path
-  if seen_files[name]
-    puts "Found duplicate: #{name}"
-    files_to_remove << build_file
+# Iterate through build files and track duplicates
+build_files.each do |build_file|
+  next unless build_file.file_ref
+
+  file_name = build_file.file_ref.display_name
+
+  if file_refs_seen[file_name]
+    # This is a duplicate - remove it
+    build_file.remove_from_project
+    puts "✓ Removed duplicate: #{file_name}"
+    duplicates_removed += 1
   else
-    seen_files[name] = true
+    # First occurrence - track it
+    file_refs_seen[file_name] = true
   end
 end
-
-files_to_remove.each do |build_file|
-  target.source_build_phase.files.delete(build_file)
-  puts "Removed duplicate build file"
-end
-
-# Also remove duplicate file references in groups
-def remove_duplicate_refs(group, target)
-  seen = {}
-  to_remove = []
-
-  group.files.each do |file|
-    name = file.name || file.path
-    if seen[name]
-      puts "Found duplicate file ref: #{name}"
-      to_remove << file
-    else
-      seen[name] = true
-    end
-  end
-
-  to_remove.each do |file|
-    # Remove from build phases
-    target.source_build_phase.files.delete_if { |bf| bf.file_ref == file }
-    target.resources_build_phase.files.delete_if { |bf| bf.file_ref == file }
-    file.remove_from_project
-    puts "Removed file ref"
-  end
-
-  # Recurse into subgroups
-  group.groups.each { |g| remove_duplicate_refs(g, target) }
-end
-
-remove_duplicate_refs(project.main_group, target)
 
 project.save
-puts "\nDuplicates removed and project saved."
+
+puts "\n" + "="*60
+puts "✅ COMPLETE: Removed #{duplicates_removed} duplicate file references"
+puts "="*60
+puts "\nNow build in Xcode (Cmd+B)"

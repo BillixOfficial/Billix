@@ -97,7 +97,7 @@ class RewardsViewModel: ObservableObject {
 
     init(
         rewardsService: RewardsService = RewardsService(),
-        authService: AuthService = AuthService.shared
+        authService: AuthService
     ) {
         self.rewardsService = rewardsService
         self.authService = authService

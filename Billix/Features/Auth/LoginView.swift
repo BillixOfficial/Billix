@@ -263,6 +263,26 @@ struct LoginView: View {
                     .buttonStyle(ScaleButtonStyle())
                     .padding(.top, 8)
                     .disabled(isLoading)
+
+                    // Guest Sign In Button (temporary for testing)
+                    if !isSignUpMode {
+                        Button(action: handleGuestLogin) {
+                            Text("Continue as Guest")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.billixLoginTeal)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .background(Color.white.opacity(0.9))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.billixLoginTeal.opacity(0.5), lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .padding(.top, 8)
+                        .disabled(isLoading)
+                    }
                 }
                 .padding(.horizontal, 32)
 
@@ -426,6 +446,25 @@ struct LoginView: View {
                 showErrorMessage("Password reset email sent. Check your inbox.")
             } catch {
                 showErrorMessage(error.localizedDescription)
+            }
+            isLoading = false
+        }
+    }
+
+    private func handleGuestLogin() {
+        hideKeyboard()
+        focusedField = nil
+        isLoading = true
+
+        Task {
+            do {
+                try await authService.signInAsGuest()
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+            } catch {
+                showErrorMessage(error.localizedDescription)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
             }
             isLoading = false
         }
