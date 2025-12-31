@@ -119,8 +119,6 @@ struct HomeView: View {
         streakService.currentStreak
     }
     @State private var notificationCount = 3
-    @State private var savingsGoal = 500.0
-    @State private var currentSavings = 127.0
 
     // Section rotation - show different sections on different days
     private var dayOfWeek: Int {
@@ -165,28 +163,26 @@ struct HomeView: View {
                     // Primary Actions
                     QuickActionsZone()
 
-                    // Today's Best Move - Primary Action Zone
-                    TodaysBestMoveZone()
+                    // Your Bills (with empty state if no bills)
+                    BillsListZone()
 
-                    // Critical Info First - Bills & Savings
-                    VStack(spacing: Theme.cardSpacing) {
-                        BillSnapshotZone()
-                        SavingsGoalZone(current: currentSavings, goal: savingsGoal)
-                    }
-
-                    // Risk Radar - What's coming
-                    RiskRadarZone()
+                    // Upcoming - AI-generated regional estimates
+                    UpcomingEstimatesZone(zipCode: userZip)
 
                     // Market Context - National Averages
                     BillTickerZone(zipCode: userZip)
 
-                    // Quick Engagement Tasks
-                    MicroTasksZone()
+                    // 30-Second Utility Checkup (Regional Signals)
+                    UtilityCheckupZone()
 
-                    // Insights & Tips
-                    VStack(spacing: Theme.cardSpacing) {
-                        WeatherTipZone(zipCode: userZip)
-                        DailyBillBrief(zipCode: userZip)
+                    // Utility Intelligence (Dual Card)
+                    UtilityInsightZone(zipCode: userZip) {
+                        // Navigate to Upload tab
+                        NotificationCenter.default.post(
+                            name: .navigateToTab,
+                            object: nil,
+                            userInfo: ["tabIndex": 2]
+                        )
                     }
 
                     // Progress & Achievements
@@ -203,11 +199,11 @@ struct HomeView: View {
                     //     LearnToLowerZone()
                     // }
 
-                    // Community
-                    CommunityPollZone()
+                    // Community Poll (Daily Question)
+                    CommunityPollZoneNew()
 
-                    // Growth
-                    InviteEarnBanner()
+                    // Invite & Earn (Referral System)
+                    InviteEarnBannerNew()
 
                     // Emotional Closure - Permission to relax
                     AllClearBanner()
@@ -874,100 +870,24 @@ private struct QuickActionsZone: View {
     }
 }
 
-// MARK: - Today's Best Move (Primary Action Zone)
+// MARK: - Upcoming Estimates (AI-Generated Regional Predictions)
 
-private struct TodaysBestMoveZone: View {
-    var body: some View {
-        Button {
-            haptic(.medium)
-        } label: {
-            HStack(spacing: 16) {
-                // Icon with pulse effect
-                ZStack {
-                    Circle()
-                        .fill(Theme.success.opacity(0.15))
-                        .frame(width: 56, height: 56)
+private struct UpcomingEstimatesZone: View {
+    let zipCode: String
 
-                    Circle()
-                        .fill(Theme.success)
-                        .frame(width: 44, height: 44)
+    @State private var estimates: [UpcomingEstimate] = []
+    @State private var isLoading = true
 
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.white)
-                }
+    @StateObject private var weatherService = WeatherService.shared
+    private let openAIService = OpenAIService.shared
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Text("Today's Best Move")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(Theme.success)
-                            .textCase(.uppercase)
-                            .tracking(0.5)
-
-                        Text("High Impact")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Theme.success)
-                            .cornerRadius(4)
-                    }
-
-                    Text("Save $18 this week")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Theme.primaryText)
-
-                    HStack(spacing: 12) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock")
-                                .font(.system(size: 10))
-                            Text("0 min")
-                                .font(.system(size: 11, weight: .medium))
-                        }
-                        .foregroundColor(Theme.secondaryText)
-
-                        Text("Switch to off-peak AC usage")
-                            .font(.system(size: 12))
-                            .foregroundColor(Theme.secondaryText)
-                            .lineLimit(1)
-                    }
-                }
-
-                Spacer()
-
-                Image(systemName: "chevron.right.circle.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(Theme.success)
-            }
-            .padding(16)
-            .background(
-                LinearGradient(
-                    colors: [Theme.success.opacity(0.08), Theme.success.opacity(0.03)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(Theme.cornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                    .stroke(Theme.success.opacity(0.25), lineWidth: 1.5)
-            )
-        }
-        .buttonStyle(ScaleButtonStyle(scale: 0.98))
-        .padding(.horizontal, Theme.horizontalPadding)
-    }
-}
-
-// MARK: - Risk Radar (Forecast Section)
-
-private struct RiskRadarZone: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // Header
             HStack(spacing: 8) {
-                Image(systemName: "exclamationmark.shield.fill")
+                Image(systemName: "calendar.badge.clock")
                     .font(.system(size: 16))
-                    .foregroundColor(Theme.warning)
+                    .foregroundColor(Theme.info)
                 Text("Upcoming").sectionHeader()
 
                 Spacer()
@@ -977,168 +897,113 @@ private struct RiskRadarZone: View {
                     .foregroundColor(Theme.secondaryText)
             }
 
-            VStack(spacing: 10) {
-                // Risk item 1
-                RiskRadarRow(
-                    icon: "bolt.fill",
-                    iconColor: Theme.warning,
-                    title: "Electric bill likely +$22",
-                    subtitle: "Based on 5-day heat forecast",
-                    isRisk: true
-                )
-
-                // Risk item 2
-                RiskRadarRow(
-                    icon: "wifi",
-                    iconColor: Theme.danger,
-                    title: "Internet promo expires",
-                    subtitle: "In 19 days · $15/mo increase",
-                    isRisk: true
-                )
-
-                Divider()
-
-                // Projected savings (positive)
-                HStack(spacing: 12) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.system(size: 16))
-                        .foregroundColor(Theme.success)
-                        .frame(width: 36, height: 36)
-                        .background(Theme.success.opacity(0.12))
-                        .cornerRadius(10)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Projected Savings")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(Theme.primaryText)
-                        Text("On track to save $312 by March")
-                            .font(.system(size: 12))
-                            .foregroundColor(Theme.success)
+            // Estimates list
+            VStack(spacing: 0) {
+                if isLoading {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                            .padding(.vertical, 30)
+                        Spacer()
                     }
+                } else if estimates.isEmpty {
+                    // Empty state
+                    VStack(spacing: 8) {
+                        Image(systemName: "chart.bar.xaxis")
+                            .font(.system(size: 24))
+                            .foregroundColor(Theme.secondaryText.opacity(0.5))
+                        Text("Predictions loading...")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.secondaryText)
+                    }
+                    .padding(.vertical, 20)
+                    .frame(maxWidth: .infinity)
+                } else {
+                    ForEach(Array(estimates.enumerated()), id: \.offset) { index, estimate in
+                        UpcomingEstimateRow(estimate: estimate)
 
-                    Spacer()
-
-                    Text("+$312")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundColor(Theme.success)
+                        if index < estimates.count - 1 {
+                            Divider()
+                                .padding(.leading, 52)
+                        }
+                    }
                 }
             }
             .padding(14)
             .background(Theme.cardBackground)
             .cornerRadius(Theme.cornerRadius)
             .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
+
+            // Footer
+            HStack(spacing: 4) {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 10))
+                Text("Based on regional patterns for \(zipCode)")
+                    .font(.system(size: 11))
+            }
+            .foregroundColor(Theme.secondaryText.opacity(0.7))
         }
         .padding(.horizontal, Theme.horizontalPadding)
+        .task {
+            await loadEstimates()
+        }
+    }
+
+    @MainActor
+    private func loadEstimates() async {
+        isLoading = true
+
+        // Get weather data
+        let weather = weatherService.currentWeather
+
+        do {
+            estimates = try await openAIService.generateUpcomingEstimates(
+                zipCode: zipCode,
+                city: weather?.cityName,
+                state: nil, // Could be extracted from ZIP
+                temperature: weather?.temperature,
+                weatherCondition: weather?.condition,
+                weatherForecast: nil, // Could add 5-day forecast
+                billCategories: ["Electric", "Gas", "Internet", "Water"]
+            )
+        } catch {
+            print("❌ Failed to load upcoming estimates: \(error)")
+            // Fallback estimates are returned by the service
+        }
+
+        isLoading = false
     }
 }
 
-private struct RiskRadarRow: View {
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let subtitle: String
-    let isRisk: Bool
+private struct UpcomingEstimateRow: View {
+    let estimate: UpcomingEstimate
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: icon)
+            Image(systemName: estimate.icon)
                 .font(.system(size: 14))
-                .foregroundColor(iconColor)
+                .foregroundColor(Theme.info)
                 .frame(width: 36, height: 36)
-                .background(iconColor.opacity(0.12))
+                .background(Theme.info.opacity(0.12))
                 .cornerRadius(10)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
+                Text(estimate.title)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(Theme.primaryText)
-                Text(subtitle)
+                    .lineLimit(2)
+                Text(estimate.subtitle)
                     .font(.system(size: 11))
                     .foregroundColor(Theme.secondaryText)
+                    .lineLimit(2)
             }
 
             Spacer()
-
-            if isRisk {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(iconColor)
-            }
         }
+        .padding(.vertical, 8)
     }
 }
 
-// MARK: - Savings Goal Progress
-
-private struct SavingsGoalZone: View {
-    let current: Double
-    let goal: Double
-
-    private var progress: Double {
-        min(current / goal, 1.0)
-    }
-
-    private var percentComplete: Int {
-        Int(progress * 100)
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "target")
-                        .font(.system(size: 16))
-                        .foregroundColor(Theme.success)
-                    Text("Monthly Savings Goal").sectionHeader()
-                }
-                Spacer()
-                Text("\(percentComplete)%")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(Theme.success)
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("$\(Int(current))")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundColor(Theme.primaryText)
-                    Text("of $\(Int(goal))")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(Theme.secondaryText)
-                    Spacer()
-                }
-
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Theme.success.opacity(0.15))
-                            .frame(height: 12)
-
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Theme.success, Theme.accent],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: geo.size.width * progress, height: 12)
-                    }
-                }
-                .frame(height: 12)
-
-                Text("$\(Int(goal - current)) more to reach your goal!")
-                    .font(.system(size: 13))
-                    .foregroundColor(Theme.secondaryText)
-            }
-            .padding(Theme.cardPadding)
-            .background(Theme.cardBackground)
-            .cornerRadius(Theme.cornerRadius)
-            .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
-        }
-        .padding(.horizontal, Theme.horizontalPadding)
-    }
-}
 
 // MARK: - Achievement Badges (Tied to Real Capabilities)
 
@@ -2470,172 +2335,234 @@ private struct PollVoteButton: View {
     }
 }
 
-// MARK: - Zone H: Bill Snapshot (With Contextual Insights)
+// MARK: - Zone H: Your Bills (With Empty State & ZIP Comparison)
 
-private struct BillItem: Identifiable {
-    let id = UUID()
-    let name: String
-    let amount: Double
-    let dueIn: Int? // days until due, nil if not urgent
-    let icon: String
-    let iconColor: Color
-    let insight: BillInsight?
-}
-
-private struct BillInsight {
-    let text: String
-    let type: InsightType
-
-    enum InsightType {
-        case warning   // Orange - needs attention
-        case savings   // Green - opportunity
-        case info      // Blue - informational
-        case danger    // Red - urgent
-    }
-
-    var color: Color {
-        switch type {
-        case .warning: return Theme.warning
-        case .savings: return Theme.success
-        case .info: return Theme.info
-        case .danger: return Theme.danger
-        }
-    }
-
-    var icon: String {
-        switch type {
-        case .warning: return "exclamationmark.triangle.fill"
-        case .savings: return "arrow.down.circle.fill"
-        case .info: return "info.circle.fill"
-        case .danger: return "flame.fill"
-        }
+// Helper functions for bill display
+private func billIcon(for category: String) -> String {
+    switch category.lowercased() {
+    case "electric", "electricity": return "bolt.fill"
+    case "gas", "natural gas": return "flame.fill"
+    case "water": return "drop.fill"
+    case "internet", "wifi": return "wifi"
+    case "phone", "mobile", "cell": return "phone.fill"
+    case "cable", "tv", "streaming": return "tv.fill"
+    case "insurance": return "shield.fill"
+    case "rent", "mortgage": return "house.fill"
+    default: return "doc.text.fill"
     }
 }
 
-private struct BillSnapshotZone: View {
-    private let bills = [
-        BillItem(
-            name: "Verizon",
-            amount: 82.10,
-            dueIn: 5,
-            icon: "iphone",
-            iconColor: Theme.danger,
-            insight: BillInsight(text: "↑ $6 vs ZIP avg", type: .warning)
-        ),
-        BillItem(
-            name: "Xfinity",
-            amount: 89.99,
-            dueIn: 12,
-            icon: "wifi",
-            iconColor: Theme.info,
-            insight: BillInsight(text: "Promo ends in 19 days", type: .danger)
-        ),
-        BillItem(
-            name: "DTE Energy",
-            amount: 142.30,
-            dueIn: nil,
-            icon: "bolt.fill",
-            iconColor: Theme.warning,
-            insight: BillInsight(text: "Cheaper plans available", type: .savings)
-        ),
-        BillItem(
-            name: "State Farm",
-            amount: 110.00,
-            dueIn: nil,
-            icon: "car.fill",
-            iconColor: Theme.purple,
-            insight: BillInsight(text: "You're on a legacy plan", type: .info)
-        )
-    ]
+private func billIconColor(for category: String) -> Color {
+    switch category.lowercased() {
+    case "electric", "electricity": return .yellow
+    case "gas", "natural gas": return .orange
+    case "water": return .blue
+    case "internet", "wifi": return .purple
+    case "phone", "mobile", "cell": return .green
+    case "cable", "tv", "streaming": return .red
+    case "insurance": return .indigo
+    case "rent", "mortgage": return .brown
+    default: return Theme.accent
+    }
+}
+
+private func daysUntilDue(dueDay: Int) -> Int {
+    let calendar = Calendar.current
+    let today = Date()
+    let currentDay = calendar.component(.day, from: today)
+
+    if dueDay >= currentDay {
+        return dueDay - currentDay
+    } else {
+        // Due date is next month
+        guard let nextMonth = calendar.date(byAdding: .month, value: 1, to: today),
+              let daysInMonth = calendar.range(of: .day, in: .month, for: today)?.count else {
+            return dueDay
+        }
+        return (daysInMonth - currentDay) + dueDay
+    }
+}
+
+private struct BillsListZone: View {
+    @State private var bills: [UserBill] = []
+    @State private var zipAverages: [BillAverage] = []
+    @State private var isLoading = true
+    @State private var hasNoBills = false
+
+    private let openAIService = OpenAIService.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // Header
             HStack(spacing: 8) {
                 Image(systemName: "doc.text.fill")
                     .font(.system(size: 16))
                     .foregroundColor(Theme.accent)
                 Text("Your Bills").sectionHeader()
+
                 Spacer()
-                Button { haptic() } label: {
-                    HStack(spacing: 4) {
-                        Text("View All")
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .semibold))
-                    }
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Theme.accent)
-                }
-            }
 
-            VStack(spacing: 0) {
-                // Bill cards with insights
-                ForEach(Array(bills.prefix(3).enumerated()), id: \.element.id) { index, bill in
-                    BillRowWithInsight(bill: bill, isFirst: index == 0)
-
-                    if index < 2 {
-                        Divider()
-                            .padding(.leading, 60)
-                    }
-                }
-
-                // Summary Row
-                HStack(spacing: 0) {
-                    VStack(spacing: 2) {
-                        Text("\(bills.count)")
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
-                            .foregroundColor(Theme.primaryText)
-                        Text("Active Bills")
-                            .font(.system(size: 11))
-                            .foregroundColor(Theme.secondaryText)
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    Rectangle()
-                        .fill(Theme.secondaryText.opacity(0.2))
-                        .frame(width: 1, height: 32)
-
-                    VStack(spacing: 2) {
-                        Text("$\(Int(bills.reduce(0) { $0 + $1.amount }))")
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
-                            .foregroundColor(Theme.primaryText)
-                        Text("This Month")
-                            .font(.system(size: 11))
-                            .foregroundColor(Theme.secondaryText)
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    Rectangle()
-                        .fill(Theme.secondaryText.opacity(0.2))
-                        .frame(width: 1, height: 32)
-
-                    VStack(spacing: 2) {
-                        HStack(spacing: 2) {
-                            Image(systemName: "arrow.down")
+                if !hasNoBills && !bills.isEmpty {
+                    Button {
+                        haptic()
+                        // Navigate to upload to add bill
+                        NotificationCenter.default.post(
+                            name: .navigateToTab,
+                            object: nil,
+                            userInfo: ["tabIndex": 2]
+                        )
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus")
                                 .font(.system(size: 10, weight: .bold))
-                            Text("$43")
-                                .font(.system(size: 18, weight: .bold, design: .rounded))
+                            Text("Add Bill")
                         }
-                        .foregroundColor(Theme.success)
-                        Text("vs Last Month")
-                            .font(.system(size: 11))
-                            .foregroundColor(Theme.secondaryText)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Theme.accent)
                     }
-                    .frame(maxWidth: .infinity)
                 }
-                .padding(.vertical, 14)
-                .background(Theme.accentLight)
             }
+
+            if isLoading {
+                // Loading state
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .padding(.vertical, 40)
+                    Spacer()
+                }
+                .background(Theme.cardBackground)
+                .cornerRadius(Theme.cornerRadius)
+                .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
+            } else if hasNoBills || bills.isEmpty {
+                // Empty state - prompt to upload
+                BillsEmptyState()
+            } else {
+                // Bills list with insights
+                VStack(spacing: 0) {
+                    ForEach(Array(bills.enumerated()), id: \.element.id) { index, bill in
+                        BillListRow(
+                            bill: bill,
+                            zipAverage: getZipAverage(for: bill.billCategory)
+                        )
+
+                        if index < bills.count - 1 {
+                            Divider()
+                                .padding(.leading, 60)
+                        }
+                    }
+                }
+                .background(Theme.cardBackground)
+                .cornerRadius(Theme.cornerRadius)
+                .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
+            }
+        }
+        .padding(.horizontal, Theme.horizontalPadding)
+        .task {
+            await loadBills()
+        }
+    }
+
+    private func getZipAverage(for category: String) -> BillAverage? {
+        zipAverages.first { $0.billType.lowercased() == category.lowercased() }
+    }
+
+    @MainActor
+    private func loadBills() async {
+        isLoading = true
+
+        // TODO: Fetch real bills from Supabase
+        // For now, simulate checking if user has bills
+        // In real implementation:
+        // let response = try await supabase.from("bills").select()...
+
+        // Simulate empty state for demo
+        // When real data is connected, this will fetch from bills table
+        bills = []
+        hasNoBills = true
+
+        // Fetch ZIP averages for comparison
+        do {
+            // Use a default ZIP for now - in real app, get from user profile
+            zipAverages = try await openAIService.getNationalAverages(zipCode: "07060")
+        } catch {
+            print("❌ Failed to load ZIP averages: \(error)")
+        }
+
+        isLoading = false
+    }
+}
+
+private struct BillsEmptyState: View {
+    var body: some View {
+        Button {
+            haptic()
+            // Navigate to Upload tab
+            NotificationCenter.default.post(
+                name: .navigateToTab,
+                object: nil,
+                userInfo: ["tabIndex": 2]
+            )
+        } label: {
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(Theme.accent.opacity(0.12))
+                        .frame(width: 64, height: 64)
+
+                    Image(systemName: "doc.badge.plus")
+                        .font(.system(size: 28))
+                        .foregroundColor(Theme.accent)
+                }
+
+                VStack(spacing: 6) {
+                    Text("Upload your first bill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(Theme.primaryText)
+
+                    Text("Get insights, find savings,\nand track your spending")
+                        .font(.system(size: 13))
+                        .foregroundColor(Theme.secondaryText)
+                        .multilineTextAlignment(.center)
+                }
+
+                HStack(spacing: 6) {
+                    Text("Upload Bill")
+                        .font(.system(size: 14, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 12, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Theme.accent)
+                .cornerRadius(12)
+            }
+            .padding(.vertical, 30)
+            .frame(maxWidth: .infinity)
             .background(Theme.cardBackground)
             .cornerRadius(Theme.cornerRadius)
             .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
         }
-        .padding(.horizontal, Theme.horizontalPadding)
+        .buttonStyle(ScaleButtonStyle(scale: 0.98))
     }
 }
 
-private struct BillRowWithInsight: View {
-    let bill: BillItem
-    let isFirst: Bool
+private struct BillListRow: View {
+    let bill: UserBill
+    let zipAverage: BillAverage?
+
+    private var iconName: String {
+        billIcon(for: bill.billCategory)
+    }
+
+    private var iconColor: Color {
+        billIconColor(for: bill.billCategory)
+    }
+
+    private var daysToDue: Int {
+        daysUntilDue(dueDay: bill.dueDay)
+    }
 
     var body: some View {
         Button {
@@ -2645,23 +2572,24 @@ private struct BillRowWithInsight: View {
                 // Icon
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(bill.iconColor.opacity(0.12))
+                        .fill(iconColor.opacity(0.12))
                         .frame(width: 42, height: 42)
 
-                    Image(systemName: bill.icon)
+                    Image(systemName: iconName)
                         .font(.system(size: 18))
-                        .foregroundColor(bill.iconColor)
+                        .foregroundColor(iconColor)
                 }
 
                 // Bill info
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
-                        Text(bill.name)
+                        Text(bill.providerName)
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(Theme.primaryText)
 
-                        if let dueIn = bill.dueIn, dueIn <= 7 {
-                            Text("Due in \(dueIn)d")
+                        // Due date badge
+                        if daysToDue <= 7 {
+                            Text("Due in \(daysToDue)d")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 6)
@@ -2671,31 +2599,42 @@ private struct BillRowWithInsight: View {
                         }
                     }
 
-                    // Contextual insight
-                    if let insight = bill.insight {
-                        HStack(spacing: 4) {
-                            Image(systemName: insight.icon)
-                                .font(.system(size: 9))
-                            Text(insight.text)
-                                .font(.system(size: 11, weight: .medium))
+                    // ZIP comparison insight
+                    HStack(spacing: 4) {
+                        if let avg = zipAverage {
+                            let diff = bill.typicalAmount - avg.average
+                            if abs(diff) < 5 {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 9))
+                                Text("On par with ZIP average")
+                                    .font(.system(size: 11, weight: .medium))
+                            } else if diff > 0 {
+                                Image(systemName: "arrow.up.circle.fill")
+                                    .font(.system(size: 9))
+                                Text("$\(Int(diff)) above ZIP avg")
+                                    .font(.system(size: 11, weight: .medium))
+                            } else {
+                                Image(systemName: "arrow.down.circle.fill")
+                                    .font(.system(size: 9))
+                                Text("$\(Int(abs(diff))) below ZIP avg")
+                                    .font(.system(size: 11, weight: .medium))
+                            }
                         }
-                        .foregroundColor(insight.color)
                     }
+                    .foregroundColor(zipComparisonColor)
                 }
 
                 Spacer()
 
-                // Amount and action
+                // Amount
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("$\(String(format: "%.2f", bill.amount))")
+                    Text("$\(String(format: "%.2f", bill.typicalAmount))")
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.primaryText)
 
-                    if isFirst && bill.dueIn != nil && bill.dueIn! <= 7 {
-                        Text("Pay Now")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(Theme.accent)
-                    }
+                    Text("/mo")
+                        .font(.system(size: 11))
+                        .foregroundColor(Theme.secondaryText)
                 }
 
                 Image(systemName: "chevron.right")
@@ -2706,6 +2645,18 @@ private struct BillRowWithInsight: View {
             .padding(.vertical, 12)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+
+    private var zipComparisonColor: Color {
+        guard let avg = zipAverage else { return Theme.secondaryText }
+        let diff = bill.typicalAmount - avg.average
+        if abs(diff) < 5 {
+            return Theme.success
+        } else if diff > 0 {
+            return Theme.warning
+        } else {
+            return Theme.success
+        }
     }
 }
 
