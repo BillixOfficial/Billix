@@ -145,6 +145,8 @@ struct LoginView: View {
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
                         .font(.system(size: 16))
+                        .foregroundStyle(Color.black)
+                        .tint(Color.black)
                         .padding(16)
                         .background(Color.white)
                         .cornerRadius(16)
@@ -156,20 +158,23 @@ struct LoginView: View {
 
                     // Password
                     HStack {
-                        Group {
-                            if isSecured {
-                                SecureField("Password", text: $password)
-                                    .focused($focusedField, equals: .password)
-                                    .textContentType(isSignUpMode ? .newPassword : .password)
-                            } else {
-                                TextField("Password", text: $password)
-                                    .focused($focusedField, equals: .password)
-                                    .textContentType(isSignUpMode ? .newPassword : .password)
-                                    .autocapitalization(.none)
-                                    .disableAutocorrection(true)
-                            }
+                        if isSecured {
+                            SecureField("Password", text: $password)
+                                .focused($focusedField, equals: .password)
+                                .textContentType(isSignUpMode ? .newPassword : .password)
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color.black)
+                                .tint(Color.black)
+                        } else {
+                            TextField("Password", text: $password)
+                                .focused($focusedField, equals: .password)
+                                .textContentType(isSignUpMode ? .newPassword : .password)
+                                .autocapitalization(.none)
+                                .disableAutocorrection(true)
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color.black)
+                                .tint(Color.black)
                         }
-                        .font(.system(size: 16))
 
                         Button(action: {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
@@ -177,7 +182,7 @@ struct LoginView: View {
                             }
                         }) {
                             Image(systemName: isSecured ? "eye.slash" : "eye")
-                                .foregroundColor(.gray)
+                                .foregroundStyle(Color.gray)
                         }
                     }
                     .padding(16)
@@ -192,20 +197,23 @@ struct LoginView: View {
                     // Confirm Password (only in sign-up mode)
                     if isSignUpMode {
                         HStack {
-                            Group {
-                                if isSecured {
-                                    SecureField("Confirm Password", text: $confirmPassword)
-                                        .focused($focusedField, equals: .confirmPassword)
-                                        .textContentType(.newPassword)
-                                } else {
-                                    TextField("Confirm Password", text: $confirmPassword)
-                                        .focused($focusedField, equals: .confirmPassword)
-                                        .textContentType(.newPassword)
-                                        .autocapitalization(.none)
-                                        .disableAutocorrection(true)
-                                }
+                            if isSecured {
+                                SecureField("Confirm Password", text: $confirmPassword)
+                                    .focused($focusedField, equals: .confirmPassword)
+                                    .textContentType(.newPassword)
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(Color.black)
+                                    .tint(Color.black)
+                            } else {
+                                TextField("Confirm Password", text: $confirmPassword)
+                                    .focused($focusedField, equals: .confirmPassword)
+                                    .textContentType(.newPassword)
+                                    .autocapitalization(.none)
+                                    .disableAutocorrection(true)
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(Color.black)
+                                    .tint(Color.black)
                             }
-                            .font(.system(size: 16))
                         }
                         .padding(16)
                         .background(Color.white)

@@ -396,3 +396,282 @@ struct MarketplaceUser: Codable, Identifiable {
         self.zipCode = zipCode
     }
 }
+
+// MARK: - Marketplace Aggregate
+
+/// Aggregated deal/rate data for a provider
+struct MarketplaceAggregate: Identifiable, Codable {
+    let id: UUID
+    let providerName: String
+    let providerLogo: String
+    let category: String
+    let averageRate: Double
+    let lowestRate: Double
+    let highestRate: Double
+    let dealCount: Int
+    let zipCodes: [String]
+
+    init(
+        id: UUID = UUID(),
+        providerName: String,
+        providerLogo: String = "building.2",
+        category: String,
+        averageRate: Double,
+        lowestRate: Double,
+        highestRate: Double,
+        dealCount: Int = 0,
+        zipCodes: [String] = []
+    ) {
+        self.id = id
+        self.providerName = providerName
+        self.providerLogo = providerLogo
+        self.category = category
+        self.averageRate = averageRate
+        self.lowestRate = lowestRate
+        self.highestRate = highestRate
+        self.dealCount = dealCount
+        self.zipCodes = zipCodes
+    }
+}
+
+// MARK: - Featured Deal
+
+/// A featured/promoted deal
+struct FeaturedDeal: Identifiable, Codable {
+    let id: UUID
+    let providerName: String
+    let providerLogo: String
+    let category: String
+    let dealDescription: String
+    let originalPrice: Double
+    let dealPrice: Double
+    let savingsPercent: Double
+    let expiresAt: Date?
+    let isFeatured: Bool
+    let pointsCost: Int
+
+    init(
+        id: UUID = UUID(),
+        providerName: String,
+        providerLogo: String = "building.2",
+        category: String,
+        dealDescription: String,
+        originalPrice: Double,
+        dealPrice: Double,
+        savingsPercent: Double? = nil,
+        expiresAt: Date? = nil,
+        isFeatured: Bool = true,
+        pointsCost: Int = 0
+    ) {
+        self.id = id
+        self.providerName = providerName
+        self.providerLogo = providerLogo
+        self.category = category
+        self.dealDescription = dealDescription
+        self.originalPrice = originalPrice
+        self.dealPrice = dealPrice
+        self.savingsPercent = savingsPercent ?? ((originalPrice - dealPrice) / originalPrice * 100)
+        self.expiresAt = expiresAt
+        self.isFeatured = isFeatured
+        self.pointsCost = pointsCost
+    }
+
+    var formattedSavings: String {
+        String(format: "%.0f%% off", savingsPercent)
+    }
+
+    var expiresDisplay: String? {
+        guard let expires = expiresAt else { return nil }
+        let interval = expires.timeIntervalSince(Date())
+        if interval <= 0 { return "Expired" }
+        let days = Int(interval / 86400)
+        if days > 0 { return "\(days)d left" }
+        let hours = Int(interval / 3600)
+        return "\(hours)h left"
+    }
+}
+
+// MARK: - Marketplace Cluster
+
+/// Status for marketplace clusters
+enum MarketplaceClusterStatus: String, Codable {
+    case forming = "Forming"
+    case active = "Active"
+    case negotiating = "Negotiating"
+    case goalReached = "Goal Reached"
+    case completed = "Completed"
+    case expired = "Expired"
+
+    var displayName: String { rawValue }
+}
+
+/// A marketplace cluster/group buy
+struct MarketplaceCluster: Identifiable, Codable {
+    let id: UUID
+    let title: String
+    let category: String
+    let categoryIcon: String
+    let providerName: String?
+    let goalDescription: String
+    var status: MarketplaceClusterStatus
+    var memberCount: Int
+    let maxMembers: Int
+    let expiresAt: Date?
+    let createdAt: Date
+
+    init(
+        id: UUID = UUID(),
+        title: String,
+        category: String,
+        categoryIcon: String = "person.3.fill",
+        providerName: String? = nil,
+        goalDescription: String,
+        status: MarketplaceClusterStatus = .forming,
+        memberCount: Int = 0,
+        maxMembers: Int = 100,
+        expiresAt: Date? = nil,
+        createdAt: Date = Date()
+    ) {
+        self.id = id
+        self.title = title
+        self.category = category
+        self.categoryIcon = categoryIcon
+        self.providerName = providerName
+        self.goalDescription = goalDescription
+        self.status = status
+        self.memberCount = memberCount
+        self.maxMembers = maxMembers
+        self.expiresAt = expiresAt
+        self.createdAt = createdAt
+    }
+
+    var memberProgress: Double {
+        guard maxMembers > 0 else { return 0 }
+        return Double(memberCount) / Double(maxMembers)
+    }
+
+    var isUrgent: Bool {
+        guard let expires = expiresAt else { return false }
+        let hoursRemaining = expires.timeIntervalSince(Date()) / 3600
+        return hoursRemaining < 24 && hoursRemaining > 0
+    }
+
+    var canJoin: Bool {
+        memberCount < maxMembers && status != .completed && status != .expired
+    }
+
+    var timeRemainingDisplay: String? {
+        guard let expires = expiresAt else { return nil }
+        let interval = expires.timeIntervalSince(Date())
+        if interval <= 0 { return "Expired" }
+        let days = Int(interval / 86400)
+        if days > 0 { return "\(days)d left" }
+        let hours = Int(interval / 3600)
+        return "\(hours)h left"
+    }
+}
+
+// MARK: - Marketplace Signal
+
+/// Activity level for signals
+enum SignalActivityLevel: String, Codable {
+    case hot = "Hot"
+    case active = "Active"
+    case cooling = "Cooling"
+    case settled = "Settled"
+
+    var icon: String {
+        switch self {
+        case .hot: return "flame.fill"
+        case .active: return "chart.line.uptrend.xyaxis"
+        case .cooling: return "thermometer.snowflake"
+        case .settled: return "checkmark.circle"
+        }
+    }
+}
+
+/// A marketplace signal/prediction
+struct MarketplaceSignal: Identifiable, Codable {
+    let id: UUID
+    let question: String
+    let category: String
+    let providerName: String?
+    var yesPercentage: Double
+    var noPercentage: Double
+    let totalVotes: Int
+    let expiresAt: Date
+    var activityLevel: SignalActivityLevel
+    let createdAt: Date
+
+    init(
+        id: UUID = UUID(),
+        question: String,
+        category: String,
+        providerName: String? = nil,
+        yesPercentage: Double = 50,
+        noPercentage: Double = 50,
+        totalVotes: Int = 0,
+        expiresAt: Date,
+        activityLevel: SignalActivityLevel = .active,
+        createdAt: Date = Date()
+    ) {
+        self.id = id
+        self.question = question
+        self.category = category
+        self.providerName = providerName
+        self.yesPercentage = yesPercentage
+        self.noPercentage = noPercentage
+        self.totalVotes = totalVotes
+        self.expiresAt = expiresAt
+        self.activityLevel = activityLevel
+        self.createdAt = createdAt
+    }
+
+    var expiresDisplay: String {
+        let interval = expiresAt.timeIntervalSince(Date())
+        if interval <= 0 { return "Ended" }
+        let days = Int(interval / 86400)
+        if days > 0 { return "\(days)d" }
+        let hours = Int(interval / 3600)
+        return "\(hours)h"
+    }
+}
+
+// MARK: - Category Sentiment
+
+/// Market sentiment for a category
+struct CategorySentiment: Identifiable, Codable {
+    let id: UUID
+    let category: String
+    let sentiment: Double // -1.0 to 1.0
+    let trendDirection: TrendDirection
+    let signalCount: Int
+
+    enum TrendDirection: String, Codable {
+        case up = "Up"
+        case down = "Down"
+        case flat = "Flat"
+
+        var icon: String {
+            switch self {
+            case .up: return "arrow.up.right"
+            case .down: return "arrow.down.right"
+            case .flat: return "arrow.right"
+            }
+        }
+    }
+
+    init(
+        id: UUID = UUID(),
+        category: String,
+        sentiment: Double = 0,
+        trendDirection: TrendDirection = .flat,
+        signalCount: Int = 0
+    ) {
+        self.id = id
+        self.category = category
+        self.sentiment = sentiment
+        self.trendDirection = trendDirection
+        self.signalCount = signalCount
+    }
+}

@@ -42,24 +42,36 @@ struct BillHeatmapView: View {
         .sheet(isPresented: $showDealsSheet) {
             nearbyDealsSheet
                 .presentationDetents([.medium, .large])
+                .presentationBackground(Color(hex: "#F5F7F6"))
         }
     }
 
     // MARK: - Map View
 
+    @State private var cameraPosition: MapCameraPosition = .automatic
+
+    private func updateCameraPosition() {
+        cameraPosition = .region(viewModel.mapRegion)
+    }
+
     private var mapView: some View {
-        Map(coordinateRegion: $viewModel.mapRegion, annotationItems: viewModel.heatmapZones) { zone in
-            MapAnnotation(coordinate: CLLocationCoordinate2D(latitude: zone.latitude, longitude: zone.longitude)) {
-                ZoneHexagon(zone: zone, isSelected: viewModel.selectedZone?.id == zone.id)
-                    .onTapGesture {
-                        withAnimation(MarketplaceTheme.Animation.quick) {
-                            viewModel.selectZone(zone)
+        Map(position: $cameraPosition) {
+            ForEach(viewModel.heatmapZones) { zone in
+                Annotation("", coordinate: CLLocationCoordinate2D(latitude: zone.latitude, longitude: zone.longitude)) {
+                    ZoneHexagon(zone: zone, isSelected: viewModel.selectedZone?.id == zone.id)
+                        .onTapGesture {
+                            withAnimation(MarketplaceTheme.Animation.quick) {
+                                viewModel.selectZone(zone)
+                            }
                         }
-                    }
+                }
             }
         }
         .mapStyle(.standard(pointsOfInterest: .excludingAll))
         .ignoresSafeArea(edges: .top)
+        .onAppear {
+            updateCameraPosition()
+        }
     }
 
     // MARK: - Filter Bar
@@ -389,6 +401,8 @@ struct Hexagon: Shape {
     }
 }
 
-#Preview {
-    BillHeatmapView(viewModel: ExploreViewModel())
+struct BillHeatmapView_Previews: PreviewProvider {
+    static var previews: some View {
+        BillHeatmapView(viewModel: ExploreViewModel())
+    }
 }

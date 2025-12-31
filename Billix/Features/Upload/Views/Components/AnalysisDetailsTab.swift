@@ -38,10 +38,12 @@ struct AnalysisDetailsTab: View {
                     JargonDecoderSection(glossary: glossary)
                 }
 
-                Spacer(minLength: 80)
+                // Extra padding for done button
+                Spacer(minLength: 100)
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
+            .padding(.bottom, 20)
         }
     }
 

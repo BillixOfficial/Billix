@@ -66,6 +66,14 @@ struct UserTrustStatus: Codable, Equatable, Identifiable {
     let createdAt: Date
     var updatedAt: Date
 
+    // Assist-related fields
+    var totalAssistsGiven: Int?
+    var totalAssistsReceived: Int?
+    var assistRatingAsHelper: Double?
+    var assistRatingAsRequester: Double?
+    var successfulRepayments: Int?
+    var failedRepayments: Int?
+
     var id: UUID { userId }
 
     enum CodingKeys: String, CodingKey {
@@ -85,6 +93,13 @@ struct UserTrustStatus: Codable, Equatable, Identifiable {
         case totalRatingsReceived = "total_ratings_received"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        // Assist fields
+        case totalAssistsGiven = "total_assists_given"
+        case totalAssistsReceived = "total_assists_received"
+        case assistRatingAsHelper = "assist_rating_as_helper"
+        case assistRatingAsRequester = "assist_rating_as_requester"
+        case successfulRepayments = "successful_repayments"
+        case failedRepayments = "failed_repayments"
     }
 
     var tier: TrustTier {
@@ -198,6 +213,57 @@ struct PaydaySchedule: Identifiable, Codable, Equatable {
         case nextPayday = "next_payday"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+    }
+
+    // Custom decoder to handle type mismatches between Supabase and Swift
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try container.decode(UUID.self, forKey: .id)
+        userId = try container.decode(UUID.self, forKey: .userId)
+        paydayType = try container.decode(String.self, forKey: .paydayType)
+
+        // Handle payday_days - default to empty array if null
+        paydayDays = try container.decodeIfPresent([Int].self, forKey: .paydayDays) ?? []
+
+        // Handle next_payday (PostgreSQL date type returns "YYYY-MM-DD" string)
+        if let dateString = try container.decodeIfPresent(String.self, forKey: .nextPayday) {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            nextPayday = dateFormatter.date(from: dateString)
+        } else {
+            nextPayday = nil
+        }
+
+        // Handle timestamps - they can be nullable in DB, provide fallback
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        if let createdAtString = try container.decodeIfPresent(String.self, forKey: .createdAt),
+           let date = isoFormatter.date(from: createdAtString) {
+            createdAt = date
+        } else {
+            createdAt = Date()
+        }
+
+        if let updatedAtString = try container.decodeIfPresent(String.self, forKey: .updatedAt),
+           let date = isoFormatter.date(from: updatedAtString) {
+            updatedAt = date
+        } else {
+            updatedAt = Date()
+        }
+    }
+
+    // Manual initializer for creating instances in code
+    init(id: UUID, userId: UUID, paydayType: String, paydayDays: [Int],
+         nextPayday: Date?, createdAt: Date, updatedAt: Date) {
+        self.id = id
+        self.userId = userId
+        self.paydayType = paydayType
+        self.paydayDays = paydayDays
+        self.nextPayday = nextPayday
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 
     var type: PaydayType? {

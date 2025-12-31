@@ -2,31 +2,36 @@
 //  OutageBotView.swift
 //  Billix
 //
-//  Created by Claude Code on 11/27/25.
+//  Outage Bot - Automatic Credit Recovery for Service Outages
+//  Redesigned with Credits Dashboard and Guided Claims Flow
 //
 
 import SwiftUI
 
-/// Outage Bot - Automatic Credit Claiming for Service Outages
+// MARK: - Outage Bot View
+
 struct OutageBotView: View {
-    @ObservedObject var viewModel: ExploreViewModel
-    @State private var showSetupSheet: Bool = false
-    @State private var showClaimHistory: Bool = false
+    @StateObject private var viewModel = OutageBotViewModel()
 
     var body: some View {
         VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.md) {
-            // Header with total claimed
-            header
+            // Credits Dashboard Header
+            creditsDashboard
 
-            // Connected providers
-            if viewModel.outageConnections.isEmpty {
-                emptyState
-            } else {
-                connectedProvidersList
+            // Active Outage Alerts (if any)
+            if viewModel.hasActiveOutages {
+                outageAlertsBanner
             }
 
-            // Recent claims
-            if !viewModel.recentClaims.isEmpty {
+            // Connected Providers
+            if viewModel.hasConnections {
+                connectedProvidersList
+            } else {
+                emptyState
+            }
+
+            // Recent Claims
+            if !viewModel.claims.isEmpty {
                 recentClaimsSection
             }
         }
@@ -39,54 +44,221 @@ struct OutageBotView: View {
             x: 0,
             y: MarketplaceTheme.Shadows.medium.y
         )
-        .sheet(isPresented: $showSetupSheet) {
-            AddProviderSheet(viewModel: viewModel)
-                .presentationDetents([.medium])
+        .task {
+            await viewModel.loadData()
         }
-        .sheet(isPresented: $showClaimHistory) {
-            ClaimHistorySheet(claims: viewModel.recentClaims)
+        .refreshable {
+            await viewModel.refresh()
+        }
+        // Sheets
+        .sheet(isPresented: $viewModel.showAddProvider) {
+            AddProviderSheet(viewModel: viewModel)
                 .presentationDetents([.medium, .large])
+                .presentationBackground(Color(hex: "#F5F7F6"))
+        }
+        .sheet(isPresented: $viewModel.showReportOutage) {
+            ReportOutageSheet(viewModel: viewModel)
+                .presentationDetents([.medium])
+                .presentationBackground(Color(hex: "#F5F7F6"))
+        }
+        .sheet(isPresented: $viewModel.showOutageConfirmation) {
+            if let detected = viewModel.currentDetectedOutage {
+                OutageConfirmationSheet(
+                    viewModel: viewModel,
+                    detectedOutage: detected
+                )
+                .presentationDetents([.medium])
+                .presentationBackground(Color(hex: "#F5F7F6"))
+            }
+        }
+        // TODO: Add EligibilityResultView when available
+        // .sheet(isPresented: $viewModel.showEligibilityResult) {
+        //     EligibilityResultView(viewModel: viewModel)
+        //         .presentationDetents([.medium, .large])
+        //         .presentationBackground(Color(hex: "#F5F7F6"))
+        // }
+        // TODO: Add GuidedClaimView when available
+        // .sheet(isPresented: $viewModel.showGuidedClaim) {
+        //     GuidedClaimView(viewModel: viewModel)
+        //         .presentationDetents([.large])
+        //         .presentationBackground(Color(hex: "#F5F7F6"))
+        // }
+        .sheet(isPresented: $viewModel.showClaimHistory) {
+            ClaimHistorySheet(viewModel: viewModel)
+                .presentationDetents([.medium, .large])
+                .presentationBackground(Color(hex: "#F5F7F6"))
         }
     }
 
-    // MARK: - Header
+    // MARK: - Credits Dashboard
 
-    private var header: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.xxxs) {
-                HStack(spacing: MarketplaceTheme.Spacing.xs) {
-                    Image(systemName: "bolt.shield.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color(hex: "#8B5CF6"))
+    private var creditsDashboard: some View {
+        VStack(spacing: MarketplaceTheme.Spacing.sm) {
+            // Header row
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.xxxs) {
+                    HStack(spacing: MarketplaceTheme.Spacing.xs) {
+                        Image(systemName: "bolt.shield.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color(hex: "#8B5CF6"))
 
-                    Text("Outage Bot")
-                        .font(.system(size: MarketplaceTheme.Typography.headline, weight: .bold))
-                        .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+                        Text("Outage Bot")
+                            .font(.system(size: MarketplaceTheme.Typography.headline, weight: .bold))
+                            .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+                    }
+
+                    Text("Recover credits when services go down")
+                        .font(.system(size: MarketplaceTheme.Typography.caption))
+                        .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
                 }
 
-                Text("Auto-claim credits when your services go down.")
-                    .font(.system(size: MarketplaceTheme.Typography.caption))
-                    .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
+                Spacer()
+
+                // Check for outages button
+                if viewModel.hasConnections {
+                    Button {
+                        Task {
+                            await viewModel.checkForOutages()
+                        }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(Color(hex: "#8B5CF6"))
+                            .frame(width: 32, height: 32)
+                            .background(
+                                Circle()
+                                    .fill(Color(hex: "#8B5CF6").opacity(0.1))
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
 
-            Spacer()
+            // Stats Cards
+            HStack(spacing: MarketplaceTheme.Spacing.sm) {
+                // Total Recovered
+                VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.xxs) {
+                    HStack(spacing: MarketplaceTheme.Spacing.xxs) {
+                        Image(systemName: "dollarsign.circle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color(hex: "#22C55E"))
 
-            // Total claimed badge
-            if viewModel.totalClaimedAmount > 0 {
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("Total Claimed")
+                        Text("Recovered")
+                            .font(.system(size: MarketplaceTheme.Typography.micro))
+                            .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+                    }
+
+                    Text(viewModel.formattedTotalRecovered)
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(Color(hex: "#22C55E"))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(MarketplaceTheme.Spacing.sm)
+                .background(
+                    RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.md)
+                        .fill(Color(hex: "#22C55E").opacity(0.1))
+                )
+
+                // Claims Stats
+                VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.xxs) {
+                    HStack(spacing: MarketplaceTheme.Spacing.xxs) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color(hex: "#8B5CF6"))
+
+                        Text("Claims")
+                            .font(.system(size: MarketplaceTheme.Typography.micro))
+                            .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+                    }
+
+                    Text("\(viewModel.approvedClaimsCount)")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+                    +
+                    Text(" approved")
                         .font(.system(size: MarketplaceTheme.Typography.micro))
                         .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(MarketplaceTheme.Spacing.sm)
+                .background(
+                    RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.md)
+                        .fill(MarketplaceTheme.Colors.backgroundSecondary)
+                )
+            }
 
-                    Text("$\(String(format: "%.2f", viewModel.totalClaimedAmount))")
-                        .font(.system(size: MarketplaceTheme.Typography.headline, weight: .bold))
-                        .foregroundStyle(MarketplaceTheme.Colors.success)
+            // Pending amount (if any)
+            if viewModel.pendingClaimsCount > 0 {
+                HStack(spacing: MarketplaceTheme.Spacing.xs) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(hex: "#F59E0B"))
+
+                    Text("\(viewModel.pendingClaimsCount) pending")
+                        .font(.system(size: MarketplaceTheme.Typography.caption, weight: .medium))
+                        .foregroundStyle(Color(hex: "#F59E0B"))
+
+                    Text("(\(viewModel.formattedPendingAmount))")
+                        .font(.system(size: MarketplaceTheme.Typography.caption))
+                        .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
+
+                    Spacer()
+
+                    Button {
+                        viewModel.showClaimHistory = true
+                    } label: {
+                        Text("View All")
+                            .font(.system(size: MarketplaceTheme.Typography.caption, weight: .medium))
+                            .foregroundStyle(Color(hex: "#8B5CF6"))
+                    }
                 }
                 .padding(MarketplaceTheme.Spacing.sm)
                 .background(
                     RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.md)
-                        .fill(MarketplaceTheme.Colors.success.opacity(0.1))
+                        .fill(Color(hex: "#F59E0B").opacity(0.1))
                 )
+            }
+        }
+    }
+
+    // MARK: - Outage Alerts Banner
+
+    private var outageAlertsBanner: some View {
+        VStack(spacing: MarketplaceTheme.Spacing.xs) {
+            ForEach(viewModel.detectedOutages) { detected in
+                Button {
+                    viewModel.currentDetectedOutage = detected
+                    viewModel.showOutageConfirmation = true
+                } label: {
+                    HStack(spacing: MarketplaceTheme.Spacing.sm) {
+                        Image(systemName: "bolt.trianglebadge.exclamationmark.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color(hex: "#EF4444"))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Outage detected")
+                                .font(.system(size: MarketplaceTheme.Typography.callout, weight: .semibold))
+                                .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+
+                            Text("\(detected.connection.providerName) - \(detected.crowdMessage)")
+                                .font(.system(size: MarketplaceTheme.Typography.micro))
+                                .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+                    }
+                    .padding(MarketplaceTheme.Spacing.sm)
+                    .background(
+                        RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.md)
+                            .fill(Color(hex: "#EF4444").opacity(0.1))
+                            .stroke(Color(hex: "#EF4444").opacity(0.3), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -103,13 +275,13 @@ struct OutageBotView: View {
                 .font(.system(size: MarketplaceTheme.Typography.body, weight: .medium))
                 .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
 
-            Text("Connect your utility providers to automatically detect outages and claim credits.")
+            Text("Connect your providers to detect outages and recover credits automatically.")
                 .font(.system(size: MarketplaceTheme.Typography.caption))
                 .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
                 .multilineTextAlignment(.center)
 
             Button {
-                showSetupSheet = true
+                viewModel.showAddProvider = true
             } label: {
                 HStack(spacing: MarketplaceTheme.Spacing.xs) {
                     Image(systemName: "plus.circle.fill")
@@ -145,7 +317,7 @@ struct OutageBotView: View {
                 Spacer()
 
                 Button {
-                    showSetupSheet = true
+                    viewModel.showAddProvider = true
                 } label: {
                     Image(systemName: "plus.circle")
                         .font(.system(size: 18))
@@ -153,10 +325,17 @@ struct OutageBotView: View {
                 }
             }
 
-            ForEach(viewModel.outageConnections) { connection in
-                ProviderConnectionCard(
+            ForEach(viewModel.connections) { connection in
+                OutageProviderCard(
                     connection: connection,
-                    onToggle: { viewModel.toggleOutageMonitoring(for: connection) }
+                    onReportOutage: {
+                        viewModel.startReportOutage(for: connection)
+                    },
+                    onToggle: {
+                        Task {
+                            await viewModel.toggleMonitoring(for: connection)
+                        }
+                    }
                 )
             }
         }
@@ -174,7 +353,7 @@ struct OutageBotView: View {
                 Spacer()
 
                 Button {
-                    showClaimHistory = true
+                    viewModel.showClaimHistory = true
                 } label: {
                     Text("See All")
                         .font(.system(size: MarketplaceTheme.Typography.caption, weight: .medium))
@@ -182,17 +361,20 @@ struct OutageBotView: View {
                 }
             }
 
-            ForEach(viewModel.recentClaims.prefix(2)) { claim in
-                ClaimRow(claim: claim)
+            ForEach(viewModel.recentClaims) { claim in
+                OutageClaimRow(claim: claim) {
+                    viewModel.selectClaim(claim)
+                }
             }
         }
     }
 }
 
-// MARK: - Provider Connection Card
+// MARK: - Provider Card
 
-struct ProviderConnectionCard: View {
+struct OutageProviderCard: View {
     let connection: OutageConnection
+    let onReportOutage: () -> Void
     let onToggle: () -> Void
 
     var body: some View {
@@ -202,12 +384,12 @@ struct ProviderConnectionCard: View {
                 // Provider icon
                 ZStack {
                     Circle()
-                        .fill(categoryColor.opacity(0.15))
+                        .fill(connection.category.color.opacity(0.15))
                         .frame(width: 40, height: 40)
 
-                    Image(systemName: connection.providerLogo)
+                    Image(systemName: connection.category.icon)
                         .font(.system(size: 18))
-                        .foregroundStyle(categoryColor)
+                        .foregroundStyle(connection.category.color)
                 }
 
                 // Provider info
@@ -217,7 +399,7 @@ struct ProviderConnectionCard: View {
                         .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
 
                     HStack(spacing: MarketplaceTheme.Spacing.xs) {
-                        Text(connection.category)
+                        Text(connection.category.rawValue)
                             .font(.system(size: MarketplaceTheme.Typography.micro))
                             .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
 
@@ -250,20 +432,33 @@ struct ProviderConnectionCard: View {
                 )
 
                 statItem(
-                    label: "Total Claimed",
-                    value: "$\(String(format: "%.2f", connection.totalClaimed))",
+                    label: "Recovered",
+                    value: connection.formattedTotalClaimed,
                     icon: "dollarsign.circle"
                 )
 
-                if let lastOutage = connection.lastOutageDate {
-                    statItem(
-                        label: "Last Outage",
-                        value: timeAgo(lastOutage),
-                        icon: "clock"
+                Spacer()
+
+                // Report outage button
+                Button {
+                    onReportOutage()
+                } label: {
+                    HStack(spacing: MarketplaceTheme.Spacing.xxs) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 12))
+
+                        Text("Report")
+                            .font(.system(size: MarketplaceTheme.Typography.micro, weight: .medium))
+                    }
+                    .foregroundStyle(Color(hex: "#8B5CF6"))
+                    .padding(.horizontal, MarketplaceTheme.Spacing.sm)
+                    .padding(.vertical, MarketplaceTheme.Spacing.xs)
+                    .background(
+                        RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.sm)
+                            .fill(Color(hex: "#8B5CF6").opacity(0.1))
                     )
                 }
-
-                Spacer()
+                .buttonStyle(.plain)
             }
             .padding(MarketplaceTheme.Spacing.sm)
             .background(
@@ -275,16 +470,12 @@ struct ProviderConnectionCard: View {
             if connection.isMonitoring {
                 HStack(spacing: MarketplaceTheme.Spacing.xs) {
                     Circle()
-                        .fill(MarketplaceTheme.Colors.success)
+                        .fill(Color(hex: "#22C55E"))
                         .frame(width: 6, height: 6)
 
                     Text("Monitoring active")
                         .font(.system(size: MarketplaceTheme.Typography.micro))
-                        .foregroundStyle(MarketplaceTheme.Colors.success)
-
-                    Text("• Will auto-claim on outage")
-                        .font(.system(size: MarketplaceTheme.Typography.micro))
-                        .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+                        .foregroundStyle(Color(hex: "#22C55E"))
                 }
             }
         }
@@ -317,113 +508,78 @@ struct ProviderConnectionCard: View {
             }
         }
     }
-
-    private var categoryColor: Color {
-        switch connection.category.lowercased() {
-        case "internet": return Color(hex: "#3B82F6")
-        case "energy": return Color(hex: "#F59E0B")
-        case "mobile": return Color(hex: "#10B981")
-        default: return Color(hex: "#8B5CF6")
-        }
-    }
-
-    private func timeAgo(_ date: Date) -> String {
-        let days = Int(Date().timeIntervalSince(date) / 86400)
-        if days == 0 { return "Today" }
-        if days == 1 { return "Yesterday" }
-        return "\(days)d ago"
-    }
 }
 
 // MARK: - Claim Row
 
-struct ClaimRow: View {
+struct OutageClaimRow: View {
     let claim: OutageClaim
+    let onTap: () -> Void
 
     var body: some View {
-        HStack(spacing: MarketplaceTheme.Spacing.sm) {
-            // Status indicator
-            ZStack {
-                Circle()
-                    .fill(claim.status.color.opacity(0.15))
-                    .frame(width: 36, height: 36)
+        Button {
+            onTap()
+        } label: {
+            HStack(spacing: MarketplaceTheme.Spacing.sm) {
+                // Status indicator
+                ZStack {
+                    Circle()
+                        .fill(claim.status.color.opacity(0.15))
+                        .frame(width: 36, height: 36)
 
-                Image(systemName: statusIcon)
-                    .font(.system(size: 14))
-                    .foregroundStyle(claim.status.color)
-            }
+                    Image(systemName: claim.status.icon)
+                        .font(.system(size: 14))
+                        .foregroundStyle(claim.status.color)
+                }
 
-            // Claim info
-            VStack(alignment: .leading, spacing: 2) {
-                Text("\(claim.providerName) Outage")
-                    .font(.system(size: MarketplaceTheme.Typography.callout, weight: .medium))
-                    .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+                // Claim info
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(claim.providerName)")
+                        .font(.system(size: MarketplaceTheme.Typography.callout, weight: .medium))
+                        .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
 
-                HStack(spacing: MarketplaceTheme.Spacing.xs) {
-                    Text(formatDate(claim.outageDate))
-                        .font(.system(size: MarketplaceTheme.Typography.micro))
-                        .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+                    HStack(spacing: MarketplaceTheme.Spacing.xs) {
+                        Text(claim.formattedOutageDate)
+                            .font(.system(size: MarketplaceTheme.Typography.micro))
+                            .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
 
-                    Text("•")
-                        .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+                        Text("•")
+                            .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
 
-                    Text("\(String(format: "%.1f", claim.durationHours))h")
-                        .font(.system(size: MarketplaceTheme.Typography.micro))
-                        .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+                        Text(claim.formattedDuration)
+                            .font(.system(size: MarketplaceTheme.Typography.micro))
+                            .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+                    }
+                }
+
+                Spacer()
+
+                // Amount and status
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(claim.displayCredit)
+                        .font(.system(size: MarketplaceTheme.Typography.headline, weight: .bold))
+                        .foregroundStyle(claim.status == .approved ? Color(hex: "#22C55E") : MarketplaceTheme.Colors.textPrimary)
+
+                    Text(claim.status.displayName)
+                        .font(.system(size: MarketplaceTheme.Typography.micro, weight: .medium))
+                        .foregroundStyle(claim.status.color)
                 }
             }
-
-            Spacer()
-
-            // Amount and status
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("$\(String(format: "%.2f", claim.claimAmount))")
-                    .font(.system(size: MarketplaceTheme.Typography.headline, weight: .bold))
-                    .foregroundStyle(claim.status == .approved ? MarketplaceTheme.Colors.success : MarketplaceTheme.Colors.textPrimary)
-
-                Text(claim.status.rawValue)
-                    .font(.system(size: MarketplaceTheme.Typography.micro, weight: .medium))
-                    .foregroundStyle(claim.status.color)
-            }
+            .padding(MarketplaceTheme.Spacing.sm)
+            .background(
+                RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.md)
+                    .fill(MarketplaceTheme.Colors.backgroundSecondary)
+            )
         }
-        .padding(MarketplaceTheme.Spacing.sm)
-        .background(
-            RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.md)
-                .fill(MarketplaceTheme.Colors.backgroundSecondary)
-        )
-    }
-
-    private var statusIcon: String {
-        switch claim.status {
-        case .pending: return "clock"
-        case .submitted: return "paperplane"
-        case .approved: return "checkmark.circle.fill"
-        case .denied: return "xmark.circle"
-        }
-    }
-
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d"
-        return formatter.string(from: date)
+        .buttonStyle(.plain)
     }
 }
 
 // MARK: - Add Provider Sheet
 
 struct AddProviderSheet: View {
-    @ObservedObject var viewModel: ExploreViewModel
+    @ObservedObject var viewModel: OutageBotViewModel
     @Environment(\.dismiss) private var dismiss
-
-    @State private var selectedProvider: String = ""
-    @State private var selectedCategory: String = "Internet"
-    @State private var zipCode: String = ""
-
-    private let providers = [
-        ("Internet", ["Comcast", "Verizon Fios", "Optimum", "Spectrum", "AT&T"]),
-        ("Energy", ["PSEG", "ConEd", "National Grid", "Duke Energy"]),
-        ("Mobile", ["Verizon", "AT&T", "T-Mobile", "Sprint"])
-    ]
 
     var body: some View {
         NavigationStack {
@@ -431,29 +587,32 @@ struct AddProviderSheet: View {
                 VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.lg) {
                     // Category selection
                     VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.sm) {
-                        Text("Category")
+                        Text("Service Type")
                             .font(.system(size: MarketplaceTheme.Typography.body, weight: .semibold))
                             .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
 
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: MarketplaceTheme.Spacing.xs) {
-                                ForEach(["Internet", "Energy", "Mobile"], id: \.self) { category in
-                                    Button {
-                                        selectedCategory = category
-                                        selectedProvider = ""
-                                    } label: {
-                                        Text(category)
-                                            .font(.system(size: MarketplaceTheme.Typography.caption, weight: .medium))
-                                            .foregroundStyle(selectedCategory == category ? .white : MarketplaceTheme.Colors.textSecondary)
-                                            .padding(.horizontal, MarketplaceTheme.Spacing.sm)
-                                            .padding(.vertical, MarketplaceTheme.Spacing.xs)
-                                            .background(
-                                                Capsule()
-                                                    .fill(selectedCategory == category ? Color(hex: "#8B5CF6") : MarketplaceTheme.Colors.backgroundSecondary)
-                                            )
+                        HStack(spacing: MarketplaceTheme.Spacing.xs) {
+                            ForEach(OutageBillType.allCases, id: \.self) { category in
+                                Button {
+                                    viewModel.selectedCategory = category
+                                    viewModel.selectedProvider = nil
+                                } label: {
+                                    VStack(spacing: MarketplaceTheme.Spacing.xs) {
+                                        Image(systemName: category.icon)
+                                            .font(.system(size: 20))
+
+                                        Text(category.rawValue)
+                                            .font(.system(size: MarketplaceTheme.Typography.micro, weight: .medium))
                                     }
-                                    .buttonStyle(.plain)
+                                    .foregroundStyle(viewModel.selectedCategory == category ? .white : MarketplaceTheme.Colors.textSecondary)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, MarketplaceTheme.Spacing.md)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.md)
+                                            .fill(viewModel.selectedCategory == category ? category.color : MarketplaceTheme.Colors.backgroundSecondary)
+                                    )
                                 }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -464,20 +623,25 @@ struct AddProviderSheet: View {
                             .font(.system(size: MarketplaceTheme.Typography.body, weight: .semibold))
                             .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
 
-                        let categoryProviders = providers.first { $0.0 == selectedCategory }?.1 ?? []
+                        let providers = ProviderOption.providers(for: viewModel.selectedCategory)
 
-                        ForEach(categoryProviders, id: \.self) { provider in
+                        ForEach(providers) { provider in
                             Button {
-                                selectedProvider = provider
+                                viewModel.selectedProvider = provider
                             } label: {
                                 HStack {
-                                    Text(provider)
+                                    Image(systemName: provider.logo)
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(viewModel.selectedCategory.color)
+                                        .frame(width: 24)
+
+                                    Text(provider.name)
                                         .font(.system(size: MarketplaceTheme.Typography.callout))
                                         .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
 
                                     Spacer()
 
-                                    if selectedProvider == provider {
+                                    if viewModel.selectedProvider?.id == provider.id {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundStyle(Color(hex: "#8B5CF6"))
                                     }
@@ -485,7 +649,7 @@ struct AddProviderSheet: View {
                                 .padding(MarketplaceTheme.Spacing.sm)
                                 .background(
                                     RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.md)
-                                        .fill(selectedProvider == provider ? Color(hex: "#8B5CF6").opacity(0.1) : MarketplaceTheme.Colors.backgroundSecondary)
+                                        .fill(viewModel.selectedProvider?.id == provider.id ? Color(hex: "#8B5CF6").opacity(0.1) : MarketplaceTheme.Colors.backgroundSecondary)
                                 )
                             }
                             .buttonStyle(.plain)
@@ -498,7 +662,7 @@ struct AddProviderSheet: View {
                             .font(.system(size: MarketplaceTheme.Typography.body, weight: .semibold))
                             .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
 
-                        TextField("Enter ZIP code", text: $zipCode)
+                        TextField("Enter ZIP code", text: $viewModel.enteredZipCode)
                             .font(.system(size: MarketplaceTheme.Typography.body))
                             .padding(MarketplaceTheme.Spacing.sm)
                             .background(
@@ -520,7 +684,7 @@ struct AddProviderSheet: View {
                                 .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
                         }
 
-                        Text("We monitor public outage reports for your provider and ZIP code. When an outage is detected, we automatically submit a credit claim on your behalf.")
+                        Text("We'll detect outages in your area and help you claim credits with pre-filled scripts and provider contact info.")
                             .font(.system(size: MarketplaceTheme.Typography.caption))
                             .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
                     }
@@ -543,75 +707,317 @@ struct AddProviderSheet: View {
 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Add") {
-                        addProvider()
-                        dismiss()
+                        Task {
+                            await viewModel.addConnection()
+                        }
                     }
                     .fontWeight(.semibold)
-                    .disabled(selectedProvider.isEmpty || zipCode.count < 5)
+                    .disabled(viewModel.selectedProvider == nil || viewModel.enteredZipCode.count < 5)
                 }
             }
         }
     }
-
-    private func addProvider() {
-        let iconMap: [String: String] = [
-            "Internet": "wifi",
-            "Energy": "bolt.fill",
-            "Mobile": "antenna.radiowaves.left.and.right"
-        ]
-
-        let connection = OutageConnection(
-            providerName: selectedProvider,
-            providerLogo: iconMap[selectedCategory] ?? "questionmark.circle",
-            category: selectedCategory,
-            zipCode: zipCode
-        )
-
-        viewModel.addOutageConnection(connection)
-    }
 }
 
-// MARK: - Claim History Sheet
+// MARK: - Report Outage Sheet
 
-struct ClaimHistorySheet: View {
-    let claims: [OutageClaim]
+struct ReportOutageSheet: View {
+    @ObservedObject var viewModel: OutageBotViewModel
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: MarketplaceTheme.Spacing.sm) {
-                    // Summary
-                    HStack(spacing: MarketplaceTheme.Spacing.lg) {
-                        summaryItem(
-                            label: "Total Claims",
-                            value: "\(claims.count)"
-                        )
+            VStack(spacing: MarketplaceTheme.Spacing.lg) {
+                if let connection = viewModel.selectedConnection {
+                    // Provider info
+                    HStack(spacing: MarketplaceTheme.Spacing.sm) {
+                        Image(systemName: connection.category.icon)
+                            .font(.system(size: 24))
+                            .foregroundStyle(connection.category.color)
 
-                        summaryItem(
-                            label: "Total Credited",
-                            value: "$\(String(format: "%.2f", totalCredited))"
-                        )
+                        VStack(alignment: .leading) {
+                            Text(connection.providerName)
+                                .font(.system(size: MarketplaceTheme.Typography.headline, weight: .semibold))
+                                .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
 
-                        summaryItem(
-                            label: "Pending",
-                            value: "$\(String(format: "%.2f", totalPending))"
-                        )
+                            Text(connection.category.rawValue)
+                                .font(.system(size: MarketplaceTheme.Typography.caption))
+                                .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
+                        }
+
+                        Spacer()
                     }
                     .padding(MarketplaceTheme.Spacing.md)
                     .background(
                         RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.lg)
                             .fill(MarketplaceTheme.Colors.backgroundSecondary)
                     )
-                    .padding(.horizontal, MarketplaceTheme.Spacing.md)
 
-                    // Claims list
-                    ForEach(claims) { claim in
-                        ClaimRow(claim: claim)
-                            .padding(.horizontal, MarketplaceTheme.Spacing.md)
+                    // Time pickers
+                    VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.md) {
+                        Text("When did the outage occur?")
+                            .font(.system(size: MarketplaceTheme.Typography.body, weight: .semibold))
+                            .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+
+                        DatePicker(
+                            "Started",
+                            selection: $viewModel.reportStartTime,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                        .datePickerStyle(.compact)
+
+                        Toggle("Outage is still ongoing", isOn: $viewModel.isOutageOngoing)
+                            .tint(Color(hex: "#8B5CF6"))
+
+                        if !viewModel.isOutageOngoing {
+                            DatePicker(
+                                "Ended",
+                                selection: $viewModel.reportEndTime,
+                                in: viewModel.reportStartTime...,
+                                displayedComponents: [.date, .hourAndMinute]
+                            )
+                            .datePickerStyle(.compact)
+                        }
                     }
                 }
-                .padding(.vertical, MarketplaceTheme.Spacing.md)
+
+                Spacer()
+
+                // Submit button
+                Button {
+                    Task {
+                        await viewModel.submitOutageReport()
+                    }
+                } label: {
+                    HStack {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Text("Check Eligibility")
+                                .font(.system(size: MarketplaceTheme.Typography.body, weight: .semibold))
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, MarketplaceTheme.Spacing.md)
+                    .background(
+                        RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.lg)
+                            .fill(Color(hex: "#8B5CF6"))
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isLoading)
+            }
+            .padding(MarketplaceTheme.Spacing.md)
+            .navigationTitle("Report Outage")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Outage Confirmation Sheet
+
+struct OutageConfirmationSheet: View {
+    @ObservedObject var viewModel: OutageBotViewModel
+    let detectedOutage: DetectedOutage
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: MarketplaceTheme.Spacing.lg) {
+            // Alert header
+            VStack(spacing: MarketplaceTheme.Spacing.sm) {
+                Image(systemName: "bolt.trianglebadge.exclamationmark.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(Color(hex: "#EF4444"))
+
+                Text("Outage Detected")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+            }
+
+            // Details
+            VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.sm) {
+                detailRow(label: "Provider", value: detectedOutage.connection.providerName)
+                detailRow(label: "Service", value: detectedOutage.connection.category.rawValue)
+                detailRow(label: "Started", value: detectedOutage.event.formattedStartTime)
+                detailRow(label: "Duration", value: detectedOutage.event.formattedDuration)
+
+                // Crowd signal
+                HStack(spacing: MarketplaceTheme.Spacing.xs) {
+                    Image(systemName: "person.3.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color(hex: "#8B5CF6"))
+
+                    Text(detectedOutage.crowdMessage)
+                        .font(.system(size: MarketplaceTheme.Typography.caption, weight: .medium))
+                        .foregroundStyle(Color(hex: "#8B5CF6"))
+                }
+                .padding(MarketplaceTheme.Spacing.sm)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.md)
+                        .fill(Color(hex: "#8B5CF6").opacity(0.1))
+                )
+            }
+            .padding(MarketplaceTheme.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.lg)
+                    .fill(MarketplaceTheme.Colors.backgroundSecondary)
+            )
+
+            Text("Did this outage affect you?")
+                .font(.system(size: MarketplaceTheme.Typography.body, weight: .medium))
+                .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+
+            // Action buttons
+            HStack(spacing: MarketplaceTheme.Spacing.md) {
+                Button {
+                    viewModel.dismissOutage(detectedOutage)
+                    dismiss()
+                } label: {
+                    Text("No")
+                        .font(.system(size: MarketplaceTheme.Typography.body, weight: .semibold))
+                        .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, MarketplaceTheme.Spacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.lg)
+                                .fill(MarketplaceTheme.Colors.backgroundSecondary)
+                        )
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    Task {
+                        await viewModel.confirmOutage(detectedOutage)
+                    }
+                    dismiss()
+                } label: {
+                    Text("Yes, check eligibility")
+                        .font(.system(size: MarketplaceTheme.Typography.body, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, MarketplaceTheme.Spacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: MarketplaceTheme.Radius.lg)
+                                .fill(Color(hex: "#8B5CF6"))
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(MarketplaceTheme.Spacing.lg)
+    }
+
+    private func detailRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: MarketplaceTheme.Typography.caption))
+                .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+
+            Spacer()
+
+            Text(value)
+                .font(.system(size: MarketplaceTheme.Typography.callout, weight: .medium))
+                .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+        }
+    }
+}
+
+// MARK: - Claim History Sheet
+
+struct ClaimHistorySheet: View {
+    @ObservedObject var viewModel: OutageBotViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedFilter: ClaimFilter = .all
+
+    enum ClaimFilter: String, CaseIterable {
+        case all = "All"
+        case pending = "Pending"
+        case approved = "Approved"
+        case denied = "Denied"
+    }
+
+    var filteredClaims: [OutageClaim] {
+        switch selectedFilter {
+        case .all:
+            return viewModel.claims
+        case .pending:
+            return viewModel.claims.filter { $0.status == .submitted || $0.status.isActionable }
+        case .approved:
+            return viewModel.claims.filter { $0.status == .approved }
+        case .denied:
+            return viewModel.claims.filter { $0.status == .denied }
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Summary header
+                HStack(spacing: MarketplaceTheme.Spacing.lg) {
+                    summaryItem(
+                        label: "Total Claims",
+                        value: "\(viewModel.totalClaimsCount)"
+                    )
+
+                    summaryItem(
+                        label: "Recovered",
+                        value: viewModel.formattedTotalRecovered
+                    )
+
+                    summaryItem(
+                        label: "Pending",
+                        value: viewModel.formattedPendingAmount
+                    )
+                }
+                .padding(MarketplaceTheme.Spacing.md)
+                .background(MarketplaceTheme.Colors.backgroundSecondary)
+
+                // Filter tabs
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: MarketplaceTheme.Spacing.xs) {
+                        ForEach(ClaimFilter.allCases, id: \.self) { filter in
+                            Button {
+                                selectedFilter = filter
+                            } label: {
+                                Text(filter.rawValue)
+                                    .font(.system(size: MarketplaceTheme.Typography.caption, weight: .medium))
+                                    .foregroundStyle(selectedFilter == filter ? .white : MarketplaceTheme.Colors.textSecondary)
+                                    .padding(.horizontal, MarketplaceTheme.Spacing.sm)
+                                    .padding(.vertical, MarketplaceTheme.Spacing.xs)
+                                    .background(
+                                        Capsule()
+                                            .fill(selectedFilter == filter ? Color(hex: "#8B5CF6") : Color.clear)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, MarketplaceTheme.Spacing.md)
+                    .padding(.vertical, MarketplaceTheme.Spacing.sm)
+                }
+
+                // Claims list
+                ScrollView {
+                    LazyVStack(spacing: MarketplaceTheme.Spacing.sm) {
+                        ForEach(filteredClaims) { claim in
+                            OutageClaimRow(claim: claim) {
+                                viewModel.selectClaim(claim)
+                                dismiss()
+                            }
+                        }
+                    }
+                    .padding(MarketplaceTheme.Spacing.md)
+                }
             }
             .navigationTitle("Claim History")
             .navigationBarTitleDisplayMode(.inline)
@@ -636,20 +1042,16 @@ struct ClaimHistorySheet: View {
                 .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
         }
     }
-
-    private var totalCredited: Double {
-        claims.filter { $0.status == .approved }.reduce(0) { $0 + $1.claimAmount }
-    }
-
-    private var totalPending: Double {
-        claims.filter { $0.status == .pending || $0.status == .submitted }.reduce(0) { $0 + $1.claimAmount }
-    }
 }
 
-#Preview {
-    ScrollView {
-        OutageBotView(viewModel: ExploreViewModel())
-            .padding()
+// MARK: - Preview
+
+struct OutageBotView_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
+            OutageBotView()
+                .padding()
+        }
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

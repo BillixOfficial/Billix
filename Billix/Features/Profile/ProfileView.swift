@@ -298,6 +298,7 @@ struct ProfileView: View {
             }
         }
         .presentationDetents([.medium])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 
     private func saveBio() {
@@ -380,6 +381,7 @@ struct ProfileView: View {
             }
         }
         .presentationDetents([.medium])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 
     private func generateRandomUsernameIfNeeded() {
@@ -1840,6 +1842,7 @@ struct ReportErrorSheet: View {
             }
         }
         .presentationDetents([.large])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 }
 
@@ -1929,6 +1932,7 @@ struct HelpCenterSheet: View {
             }
         }
         .presentationDetents([.large])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 }
 
@@ -2103,6 +2107,7 @@ struct SuggestFeatureSheet: View {
             }
         }
         .presentationDetents([.large])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 }
 
@@ -2350,6 +2355,7 @@ struct EditNameSheet: View {
             }
         }
         .presentationDetents([.medium])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 }
 
@@ -2456,6 +2462,7 @@ struct EditEmailSheet: View {
             }
         }
         .presentationDetents([.medium])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 }
 
@@ -2594,6 +2601,7 @@ struct ChangePasswordSheet: View {
             }
         }
         .presentationDetents([.medium])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 }
 
@@ -2663,6 +2671,7 @@ struct HouseholdSheet: View {
             }
         }
         .presentationDetents([.large])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 
     private var householdDetailsView: some View {
@@ -2966,6 +2975,7 @@ struct SubscriptionSheet: View {
             }
         }
         .presentationDetents([.large])
+        .presentationBackground(Color(hex: "#F5F7F6"))
     }
 
     private func purchasePrime() {

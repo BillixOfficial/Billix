@@ -37,10 +37,13 @@ enum ClusterType: String, Codable, CaseIterable {
 enum ClusterStatus: String, Codable {
     case forming = "Forming"
     case active = "Active"
+    case negotiating = "Negotiating"
     case goalReached = "Goal Reached"
     case flashDrop = "Flash Drop"
     case completed = "Completed"
     case expired = "Expired"
+
+    var displayName: String { rawValue }
 }
 
 /// A bid placed by a user to join a cluster

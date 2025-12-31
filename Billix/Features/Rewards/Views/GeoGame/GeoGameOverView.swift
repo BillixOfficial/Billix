@@ -576,7 +576,7 @@ struct AnimatedStatRow: View {
         questionsCorrect: 11
     )
 
-    GeoGameOverView(
+    return GeoGameOverView(
         session: winSession,
         onPlayAgain: {},
         onDismiss: {}
@@ -592,7 +592,7 @@ struct AnimatedStatRow: View {
         questionsCorrect: 4
     )
 
-    GeoGameOverView(
+    return GeoGameOverView(
         session: lossSession,
         onPlayAgain: {},
         onDismiss: {}

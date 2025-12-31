@@ -19,7 +19,7 @@ struct SeasonThemeBackground: View {
                 .ignoresSafeArea()
 
             // Subtle themed gradient overlay
-            if let season = season {
+            if season != nil {
                 LinearGradient(
                     colors: gradientForSeason.map { $0.opacity(0.08) },
                     startPoint: .topLeading,

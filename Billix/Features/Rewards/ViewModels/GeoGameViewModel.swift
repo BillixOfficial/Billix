@@ -272,7 +272,8 @@ class GeoGameViewModel: ObservableObject {
 
         // Create timer that fires every 0.1 seconds for smooth animation
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
                 self?.updateTimer()
             }
         }
@@ -889,7 +890,7 @@ class GeoGameViewModel: ObservableObject {
 
         // Calculate visible map height
         let topHUDHeight: CGFloat = 100  // Top HUD + padding
-        let visibleHeight = screenHeight - cardHeight - topHUDHeight
+        _ = screenHeight - cardHeight - topHUDHeight  // visibleHeight for future use
 
         // For now, just ensure camera stays at current position
         // Future enhancement: Pan camera to keep landmark in visible area

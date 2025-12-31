@@ -130,7 +130,7 @@ struct SessionGameContainerView: View {
         questionsCorrect: 0
     )
 
-    SessionGameContainerView(
+    return SessionGameContainerView(
         session: mockSession,
         partId: UUID(),
         onComplete: { _ in }

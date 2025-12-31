@@ -265,7 +265,7 @@ struct PortfolioSetupView: View {
                             .font(.system(size: 13))
                             .foregroundColor(Theme.secondaryText)
 
-                        TextField("e.g., Netflix", text: $viewModel.billProviderName)
+                        TextField("", text: $viewModel.billProviderName, prompt: Text("e.g., Netflix").foregroundColor(Color(hex: "#9CA8A2")))
                             .textFieldStyle(RoundedTextFieldStyle())
                     }
 
@@ -281,7 +281,7 @@ struct PortfolioSetupView: View {
                                 .foregroundColor(Theme.accent)
                         }
 
-                        TextField("$0.00", text: $viewModel.billAmount)
+                        TextField("", text: $viewModel.billAmount, prompt: Text("$0.00").foregroundColor(Color(hex: "#9CA8A2")))
                             .textFieldStyle(RoundedTextFieldStyle())
                             .keyboardType(.decimalPad)
                     }
@@ -590,8 +590,13 @@ private struct RoundedTextFieldStyle: TextFieldStyle {
         configuration
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
+            .foregroundColor(Theme.primaryText)
             .background(Theme.cardBackground)
             .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color(hex: "#D0D9D4"), lineWidth: 1)
+            )
             .shadow(color: .black.opacity(0.03), radius: 4)
     }
 }

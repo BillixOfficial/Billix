@@ -31,9 +31,13 @@ struct AnalysisSaveMoneyTab: View {
 
                 // Legal disclaimer at bottom
                 LegalDisclaimerView()
+
+                // Extra padding for done button
+                Spacer(minLength: 100)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
+            .padding(.bottom, 20)
         }
     }
 }
@@ -429,5 +433,5 @@ struct LegalDisclaimerView: View {
         assistancePrograms: mockPrograms
     )
 
-    AnalysisSaveMoneyTab(analysis: mockAnalysis)
+    return AnalysisSaveMoneyTab(analysis: mockAnalysis)
 }
