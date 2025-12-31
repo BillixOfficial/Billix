@@ -39,29 +39,32 @@ struct GameState {
 // MARK: - Scoring
 
 struct GeoGameScoring {
-    // MARK: Legacy scoring (for backward compatibility)
+    // MARK: Simplified scoring - flat points (no combo or difficulty multipliers)
 
-    // Phase 1: Location identification (legacy)
-    static func calculatePhase1Points(correct: Bool, isRetry: Bool = false) -> Int {
-        if !correct {
-            return 0
-        }
-        // Reduced points if they needed a retry
-        return isRetry ? 250 : 500
+    /// Phase 1 scoring - flat 15 points for correct location guess
+    static func calculatePhase1Points(
+        correct: Bool,
+        isRetry: Bool
+    ) -> Int {
+        guard correct else { return 0 }
+        return 15  // Flat 15 pts, no multipliers
     }
 
-    // Phase 2: Price accuracy (legacy)
-    static func calculatePhase2Points(guess: Double, actual: Double) -> Int {
+    /// Phase 2 scoring - flat points based on price accuracy only
+    static func calculatePhase2Points(
+        guess: Double,
+        actual: Double
+    ) -> Int {
         let percentOff = abs(guess - actual) / actual
 
         if percentOff <= 0.05 {
-            return 1000  // Bullseye (within 5%)
+            return 30  // Bullseye (within 5%)
         } else if percentOff <= 0.15 {
-            return 500   // Close (within 15%)
+            return 15  // Close (within 15%)
         } else if percentOff <= 0.25 {
-            return 100   // Safe (within 25%)
+            return 5   // Safe (within 25%)
         } else {
-            return 0     // Way off
+            return 0   // Way off
         }
     }
 
@@ -77,77 +80,6 @@ struct GeoGameScoring {
         } else {
             return "Way Off"
         }
-    }
-
-    // MARK: Enhanced scoring with difficulty and combo
-
-    /// Calculate combo multiplier based on streak
-    static func calculateComboMultiplier(_ streak: Int) -> Double {
-        switch streak {
-        case 0...1: return 1.0
-        case 2...3: return 1.25  // 25% bonus
-        case 4...5: return 1.5   // 50% bonus
-        default: return 2.0      // 100% bonus (6+)
-        }
-    }
-
-    /// Calculate final multiplier with 2.0x CAP to prevent exponential growth
-    /// CRITICAL for $8/month economy - prevents 4.0x stacking
-    static func calculateFinalMultiplier(combo: Int, difficulty: QuestionDifficulty) -> Double {
-        let comboMult = calculateComboMultiplier(combo)
-        let diffMult: Double
-        switch difficulty {
-        case .easy: diffMult = 1.0
-        case .moderate: diffMult = 1.5
-        case .hard: diffMult = 2.0
-        }
-
-        // CAP AT 2.0x - critical for economy
-        let combined = comboMult * diffMult
-        return min(combined, 2.0)
-    }
-
-    /// Phase 1 scoring with difficulty and combo multipliers (CAPPED AT 2.0x)
-    static func calculatePhase1Points(
-        correct: Bool,
-        isRetry: Bool,
-        difficulty: QuestionDifficulty,
-        comboStreak: Int
-    ) -> Int {
-        guard correct else { return 0 }
-
-        // SIMPLIFIED: All correct answers = 25 pts (no difficulty tiers for base)
-        let basePoints: Int = 25
-
-        let retryPenalty = isRetry ? 0.5 : 1.0
-        let finalMultiplier = calculateFinalMultiplier(combo: comboStreak, difficulty: difficulty)
-
-        return Int(Double(basePoints) * retryPenalty * finalMultiplier)
-    }
-
-    /// Phase 2 scoring with difficulty and combo multipliers (CAPPED AT 2.0x)
-    static func calculatePhase2Points(
-        guess: Double,
-        actual: Double,
-        difficulty: QuestionDifficulty,
-        comboStreak: Int
-    ) -> Int {
-        let percentOff = abs(guess - actual) / actual
-
-        let basePoints: Int
-        if percentOff <= 0.05 {
-            basePoints = 50  // Bullseye (reduced from 500)
-        } else if percentOff <= 0.15 {
-            basePoints = 25  // Close (reduced from 300)
-        } else if percentOff <= 0.25 {
-            basePoints = 10  // Safe (reduced from 150)
-        } else {
-            basePoints = 0   // Way off
-        }
-
-        let finalMultiplier = calculateFinalMultiplier(combo: comboStreak, difficulty: difficulty)
-
-        return Int(Double(basePoints) * finalMultiplier)
     }
 
     /// Determine if health should be lost
@@ -259,7 +191,6 @@ struct GameSession: Identifiable {
     var health: Int = 3              // Hearts/lives
     var totalPoints: Int = 0
     var questionsCorrect: Int = 0    // Total correct (deprecated, use landmarksCorrect + pricesCorrect)
-    var comboStreak: Int = 0         // Consecutive correct answers
     let startedAt: Date
 
     // New: Separate tracking for landmarks vs prices
@@ -306,7 +237,6 @@ struct GameSession: Identifiable {
          health: Int = 3,
          totalPoints: Int = 0,
          questionsCorrect: Int = 0,
-         comboStreak: Int = 0,
          startedAt: Date = Date(),
          landmarksCorrect: Int = 0,
          landmarksAttempted: Int = 0,
@@ -319,7 +249,6 @@ struct GameSession: Identifiable {
         self.health = health
         self.totalPoints = totalPoints
         self.questionsCorrect = questionsCorrect
-        self.comboStreak = comboStreak
         self.startedAt = startedAt
         self.landmarksCorrect = landmarksCorrect
         self.landmarksAttempted = landmarksAttempted

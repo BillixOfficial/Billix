@@ -13,9 +13,14 @@ import Combine
 @MainActor
 class RewardsViewModel: ObservableObject {
 
+    // MARK: - Services
+
+    private let rewardsService: RewardsService
+    private let authService: AuthService
+
     // MARK: - Points & Wallet
 
-    @Published var points: RewardsPoints = .preview
+    @Published var points: RewardsPoints
     @Published var displayedBalance: Int = 0 // For animated counting
 
     // Shop unlock logic - Always accessible
@@ -53,6 +58,14 @@ class RewardsViewModel: ObservableObject {
     @Published var activeGame: DailyGame?
     @Published var showSeasonSelection: Bool = false
 
+    // MARK: - Daily Game Cap Tracking
+
+    @Published var dailyGameCap: DailyGameCap = DailyGameCap(
+        date: Date(),
+        pointsEarnedToday: 0,
+        sessionsPlayedToday: 0
+    )
+
     // MARK: - Marketplace
 
     @Published var rewards: [Reward] = Reward.previewRewardsWithCategories
@@ -82,7 +95,16 @@ class RewardsViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init() {
+    init(
+        rewardsService: RewardsService = RewardsService(),
+        authService: AuthService = AuthService.shared
+    ) {
+        self.rewardsService = rewardsService
+        self.authService = authService
+
+        // Initialize with empty points data (will load from backend)
+        self.points = RewardsPoints(balance: 0, lifetimeEarned: 0, transactions: [])
+
         setupCountdownTimer()
     }
 
@@ -95,28 +117,56 @@ class RewardsViewModel: ObservableObject {
     func loadRewardsData() async {
         isLoading = true
 
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 500_000_000)
-
-        // In real implementation, fetch from API
-        // For now, using preview/mock data
-        points = .preview
-
-        // Filter rewards to only include Target, Kroger, and Walmart gift cards
-        let allRewards = Reward.previewRewardsWithCategories
-        rewards = allRewards.filter { reward in
-            // Only include gift cards with brandGroup: target, kroger, or walmart
-            if reward.category == .giftCard {
-                return ["target", "kroger", "walmart"].contains(reward.brandGroup ?? "")
+        do {
+            // Get current user ID
+            guard let userId = authService.currentUser?.id else {
+                print("⚠️ No authenticated user - using empty points data")
+                isLoading = false
+                return
             }
-            return false
+
+            // Fetch user points from Supabase
+            let userPointsDTO = try await rewardsService.getUserPoints(userId: userId)
+
+            // Fetch recent transactions
+            let transactionsDTO = try await rewardsService.getTransactions(userId: userId, limit: 50)
+
+            // Convert DTOs to domain models
+            points = RewardsPoints(
+                balance: userPointsDTO.balance,
+                lifetimeEarned: userPointsDTO.lifetimeEarned,
+                transactions: transactionsDTO.map { dto in
+                    PointTransaction(
+                        id: dto.id,
+                        type: PointTransactionType(rawValue: dto.type) ?? .achievement,
+                        amount: dto.amount,
+                        description: dto.description,
+                        createdAt: dto.createdAt
+                    )
+                }
+            )
+
+            // Filter rewards to only include Target, Kroger, and Walmart gift cards
+            let allRewards = Reward.previewRewardsWithCategories
+            rewards = allRewards.filter { reward in
+                // Only include gift cards with brandGroup: target, kroger, or walmart
+                if reward.category == .giftCard {
+                    return ["target", "kroger", "walmart"].contains(reward.brandGroup ?? "")
+                }
+                return false
+            }
+
+            topSavers = LeaderboardEntry.previewEntries
+            dailyGame = GeoGameDataService.getTodaysGame()
+
+            // Animate balance on load
+            animateBalanceChange(to: points.balance)
+
+        } catch {
+            print("❌ Failed to load rewards data: \(error)")
+            // Initialize with empty data on error
+            points = RewardsPoints(balance: 0, lifetimeEarned: 0, transactions: [])
         }
-
-        topSavers = LeaderboardEntry.previewEntries
-        dailyGame = GeoGameDataService.getTodaysGame()
-
-        // Animate balance on load
-        animateBalanceChange(to: points.balance)
 
         isLoading = false
     }
@@ -136,21 +186,48 @@ class RewardsViewModel: ObservableObject {
         }
     }
 
-    func addPoints(_ amount: Int, description: String, type: PointTransactionType = .gameWin) {
-        let transaction = PointTransaction(
-            id: UUID(),
-            type: type,
-            amount: amount,
-            description: description,
-            createdAt: Date()
-        )
+    func addPoints(_ amount: Int, description: String, type: PointTransactionType = .gameWin, source: String = "game") {
+        Task {
+            do {
+                guard let userId = authService.currentUser?.id else {
+                    print("⚠️ No authenticated user - cannot add points")
+                    return
+                }
 
-        points.balance += amount
-        points.lifetimeEarned += amount
-        points.transactions.insert(transaction, at: 0)
+                // Add points via Supabase service (atomic transaction)
+                let transactionDTO = try await rewardsService.addPoints(
+                    userId: userId,
+                    amount: amount,
+                    type: type.rawValue,
+                    description: description,
+                    source: source
+                )
 
-        // Animate the balance change
-        animateBalanceChange(to: points.balance)
+                // Update local state with server response
+                let transaction = PointTransaction(
+                    id: transactionDTO.id,
+                    type: type,
+                    amount: transactionDTO.amount,
+                    description: transactionDTO.description,
+                    createdAt: transactionDTO.createdAt
+                )
+
+                // Fetch updated balance from server
+                let userPointsDTO = try await rewardsService.getUserPoints(userId: userId)
+
+                await MainActor.run {
+                    points.balance = userPointsDTO.balance
+                    points.lifetimeEarned = userPointsDTO.lifetimeEarned
+                    points.transactions.insert(transaction, at: 0)
+
+                    // Animate the balance change
+                    animateBalanceChange(to: points.balance)
+                }
+
+            } catch {
+                print("❌ Failed to add points: \(error)")
+            }
+        }
     }
 
     func canAffordReward(_ reward: Reward) -> Bool {
@@ -168,19 +245,46 @@ class RewardsViewModel: ObservableObject {
     func redeemReward(_ reward: Reward) {
         guard canAffordReward(reward) else { return }
 
-        let transaction = PointTransaction(
-            id: UUID(),
-            type: .redemption,
-            amount: -reward.pointsCost,
-            description: "Redeemed \(reward.title)",
-            createdAt: Date()
-        )
+        Task {
+            do {
+                guard let userId = authService.currentUser?.id else {
+                    print("⚠️ No authenticated user - cannot redeem reward")
+                    return
+                }
 
-        points.balance -= reward.pointsCost
-        points.transactions.insert(transaction, at: 0)
+                // Deduct points via Supabase service (negative amount)
+                let transactionDTO = try await rewardsService.addPoints(
+                    userId: userId,
+                    amount: -reward.pointsCost,
+                    type: PointTransactionType.redemption.rawValue,
+                    description: "Redeemed \(reward.title)",
+                    source: "redemption"
+                )
 
-        animateBalanceChange(to: points.balance)
-        showRedeemSheet = false
+                // Update local state with server response
+                let transaction = PointTransaction(
+                    id: transactionDTO.id,
+                    type: .redemption,
+                    amount: transactionDTO.amount,
+                    description: transactionDTO.description,
+                    createdAt: transactionDTO.createdAt
+                )
+
+                // Fetch updated balance from server
+                let userPointsDTO = try await rewardsService.getUserPoints(userId: userId)
+
+                await MainActor.run {
+                    points.balance = userPointsDTO.balance
+                    points.transactions.insert(transaction, at: 0)
+
+                    animateBalanceChange(to: points.balance)
+                    showRedeemSheet = false
+                }
+
+            } catch {
+                print("❌ Failed to redeem reward: \(error)")
+            }
+        }
     }
 
     func redeemGiftCard(_ reward: Reward, email: String) {
@@ -221,13 +325,29 @@ class RewardsViewModel: ObservableObject {
         todaysResult = result
         gamesPlayedToday += 1
 
-        // Add points if earned
-        if result.pointsEarned > 0 {
-            addPoints(
-                result.pointsEarned,
-                description: "Geo Game #\(gamesPlayedToday)",
-                type: .gameWin
+        // Reset cap if new day
+        if !Calendar.current.isDate(dailyGameCap.date, inSameDayAs: Date()) {
+            dailyGameCap = DailyGameCap(
+                date: Date(),
+                pointsEarnedToday: 0,
+                sessionsPlayedToday: 0
             )
+        }
+
+        // Add points if earned, with daily cap enforcement
+        if result.pointsEarned > 0 {
+            let cappedPoints = min(result.pointsEarned, dailyGameCap.remainingPoints)
+
+            if cappedPoints > 0 {
+                dailyGameCap.pointsEarnedToday += cappedPoints
+                dailyGameCap.sessionsPlayedToday += 1
+
+                addPoints(
+                    cappedPoints,
+                    description: "Price Guessr Session #\(dailyGameCap.sessionsPlayedToday)",
+                    type: .gameWin
+                )
+            }
         }
     }
 

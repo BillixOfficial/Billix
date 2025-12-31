@@ -151,17 +151,8 @@ struct HomeView: View {
                         SavingsGoalZone(current: currentSavings, goal: savingsGoal)
                     }
 
-                    // Risk Radar - What's coming
-                    RiskRadarZone()
-
-                    // Time-Sensitive Opportunity
-                    FlashDropZone()
-
                     // Market Context
                     BillTickerZone(zipCode: userZip)
-
-                    // Quick Engagement Tasks
-                    MicroTasksZone()
 
                     // Insights & Tips
                     VStack(spacing: Theme.cardSpacing) {
@@ -182,9 +173,6 @@ struct HomeView: View {
                     // if showLearnToLower {
                     //     LearnToLowerZone()
                     // }
-
-                    // Community
-                    CommunityPollZone()
 
                     // Growth
                     InviteEarnBanner()
@@ -1703,7 +1691,7 @@ private struct MicroTasksZone: View {
             }
             .padding(.horizontal, Theme.horizontalPadding)
 
-            // Two task cards side by side
+            // Task cards
             HStack(spacing: 12) {
                 ForEach(Array(tasks.enumerated()), id: \.element.id) { index, task in
                     MicroTaskCard(task: task) {

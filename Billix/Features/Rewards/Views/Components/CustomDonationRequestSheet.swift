@@ -155,7 +155,7 @@ struct CustomDonationRequestSheet: View {
                         // Amount chips (3 options)
                         HStack(spacing: 12) {
                             ForEach(DonationAmount.allCases, id: \.self) { amount in
-                                AmountChip(
+                                DonationAmountChip(
                                     amount: amount,
                                     isSelected: selectedAmount == amount,
                                     canAfford: userPoints >= amount.pointsCost,
@@ -175,9 +175,14 @@ struct CustomDonationRequestSheet: View {
                                     .font(.system(size: 14))
                                     .foregroundColor(.orange)
 
-                                Text("Need \(selectedAmount.pointsCost - userPoints) more points")
+                                (Text("Need ")
                                     .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.billixMediumGreen)
+                                + Text("\(selectedAmount.pointsCost - userPoints)")
+                                    .font(.system(size: 13, weight: .bold))
+                                + Text(" more points")
+                                    .font(.system(size: 13, weight: .medium))
+                                )
+                                .foregroundColor(.billixMediumGreen)
                             }
                             .padding(12)
                             .background(
@@ -221,12 +226,12 @@ struct CustomDonationRequestSheet: View {
                         )
                     }
 
-                    // FOOTER: Disclaimer
+                    // FOOTER: Disclaimer (Info/Neutral - not success)
                     VStack(spacing: 16) {
                         HStack(spacing: 10) {
-                            Image(systemName: "checkmark.shield.fill")
+                            Image(systemName: "info.circle.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(Color(hex: "#0D9488"))
+                                .foregroundColor(Color(hex: "#3B82F6")) // Blue for info
 
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Must be a registered 501(c)(3) organization")
@@ -243,7 +248,7 @@ struct CustomDonationRequestSheet: View {
                         .padding(14)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(hex: "#0D9488").opacity(0.08))
+                                .fill(Color(hex: "#3B82F6").opacity(0.08)) // Blue background
                         )
                     }
 
@@ -302,9 +307,9 @@ struct CustomDonationRequestSheet: View {
     }
 }
 
-// MARK: - Amount Chip
+// MARK: - Donation Amount Chip
 
-struct AmountChip: View {
+struct DonationAmountChip: View {
     let amount: DonationAmount
     let isSelected: Bool
     let canAfford: Bool

@@ -349,25 +349,66 @@ struct LeaderboardEntry: Identifiable, Codable, Equatable {
     }
 }
 
+// MARK: - Daily Game Cap
+
+/// Tracks daily point earnings from Price Guessr game
+struct DailyGameCap {
+    let date: Date
+    var pointsEarnedToday: Int
+    var sessionsPlayedToday: Int
+    let maxDailyPoints: Int = TaskConfiguration.maxDailyGamePoints
+
+    var canEarnMore: Bool {
+        pointsEarnedToday < maxDailyPoints
+    }
+
+    var remainingPoints: Int {
+        max(0, maxDailyPoints - pointsEarnedToday)
+    }
+}
+
+// MARK: - Task Configuration
+
+/// Centralized point values for all earning activities
+struct TaskConfiguration {
+    // Daily Tasks
+    static let dailyCheckIn = 50
+    static let uploadBill = 200
+
+    // Quick Earnings (scaled by effort)
+    static let pollVote = 5
+    static let followSocial = 5
+    static let readTip = 10
+    static let completeQuiz = 15
+
+    // Weekly Tasks
+    static let referFriend = 2000
+    static let upload5Bills = 1000
+    static let playGames7x = 500
+
+    // Price Guessr Game
+    static let maxDailyGamePoints = 300
+}
+
 // MARK: - Preview Data
 
 extension RewardsPoints {
     static let preview = RewardsPoints(
-        balance: 12000,  // Changed to 12,000 (Silver tier) to show unlocked shop
-        lifetimeEarned: 15000,
+        balance: 3500,  // Realistic starting point (35% to first $5 reward)
+        lifetimeEarned: 5000,
         transactions: [
             PointTransaction(
                 id: UUID(),
                 type: .gameWin,
-                amount: 100,
-                description: "Daily Price Guessr - Perfect!",
+                amount: 145,
+                description: "Price Guessr Session",
                 createdAt: Date()
             ),
             PointTransaction(
                 id: UUID(),
                 type: .dailyBonus,
-                amount: 25,
-                description: "Daily login bonus",
+                amount: TaskConfiguration.dailyCheckIn,
+                description: "Daily Check-in",
                 createdAt: Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
             ),
             PointTransaction(
@@ -387,8 +428,8 @@ extension RewardsPoints {
             PointTransaction(
                 id: UUID(),
                 type: .referral,
-                amount: 200,
-                description: "Friend joined and played",
+                amount: TaskConfiguration.referFriend,
+                description: "Friend Referral Bonus",
                 createdAt: Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date()) ?? Date()
             )
         ]
@@ -469,103 +510,8 @@ extension Reward {
         )
     ]
 
-    // NEW: Complete preview data with all 4 categories (Gift Cards, Game Boosts, Virtual Goods, Giveaways)
+    // Complete preview data with Gift Cards and Giveaways
     static let previewRewardsWithCategories: [Reward] = [
-        // GAME BOOSTS (250-500 pts) - Power-ups for Price Guessr
-        Reward(
-            id: UUID(),
-            type: .digitalGood,
-            category: .virtualGoods,
-            title: "Extra Life",
-            description: "One more chance if you lose",
-            pointsCost: 500,
-            brand: nil,
-            brandGroup: nil,
-            dollarValue: nil,
-            iconName: "heart.fill",
-            accentColor: "#FF6B6B"
-        ),
-        Reward(
-            id: UUID(),
-            type: .digitalGood,
-            category: .virtualGoods,
-            title: "Skip Question",
-            description: "Pass a difficult question",
-            pointsCost: 300,
-            brand: nil,
-            brandGroup: nil,
-            dollarValue: nil,
-            iconName: "forward.fill",
-            accentColor: "#95E1D3"
-        ),
-        Reward(
-            id: UUID(),
-            type: .digitalGood,
-            category: .virtualGoods,
-            title: "Time Freeze",
-            description: "+15 seconds on timer",
-            pointsCost: 400,
-            brand: nil,
-            brandGroup: nil,
-            dollarValue: nil,
-            iconName: "clock.fill",
-            accentColor: "#F38181"
-        ),
-        Reward(
-            id: UUID(),
-            type: .digitalGood,
-            category: .virtualGoods,
-            title: "Hint Token",
-            description: "Reveal one wrong answer",
-            pointsCost: 250,
-            brand: nil,
-            brandGroup: nil,
-            dollarValue: nil,
-            iconName: "lightbulb.fill",
-            accentColor: "#FFD93D"
-        ),
-
-        // VIRTUAL GOODS (100-500 pts) - Zero cost to developer
-        Reward(
-            id: UUID(),
-            type: .customization,
-            category: .virtualGoods,
-            title: "Dark Mode Theme",
-            description: "Unlock sleek dark interface",
-            pointsCost: 200,  // $0.10 equivalent (zero real cost)
-            brand: nil,
-            brandGroup: nil,
-            dollarValue: nil,
-            iconName: "moon.fill",
-            accentColor: "#2C2C2E"
-        ),
-        Reward(
-            id: UUID(),
-            type: .customization,
-            category: .virtualGoods,
-            title: "Premium Dashboard",
-            description: "Unlock advanced analytics view",
-            pointsCost: 500,  // $0.25 equivalent (zero real cost)
-            brand: nil,
-            brandGroup: nil,
-            dollarValue: nil,
-            iconName: "chart.bar.fill",
-            accentColor: "#52b8df"
-        ),
-        Reward(
-            id: UUID(),
-            type: .customization,
-            category: .virtualGoods,
-            title: "Custom Bill Colors",
-            description: "Personalize bill categories",
-            pointsCost: 300,  // $0.15 equivalent (zero real cost)
-            brand: nil,
-            brandGroup: nil,
-            dollarValue: nil,
-            iconName: "paintpalette.fill",
-            accentColor: "#FF6B35"
-        ),
-
         // GIVEAWAYS (100 pts per entry) - Amortized cost
         Reward(
             id: UUID(),
@@ -594,33 +540,7 @@ extension Reward {
             accentColor: "#FFA500"
         ),
 
-        // GIFT CARDS ($0.50-$2) - Low-barrier real value
-        Reward(
-            id: UUID(),
-            type: .giftCard,
-            category: .giftCard,
-            title: "$0.50 Starbucks Card",
-            description: "Micro reward for early users",
-            pointsCost: 1000,  // $0.50 @ 2,000:1 ratio
-            brand: "Starbucks",
-            brandGroup: nil,
-            dollarValue: 0.5,
-            iconName: "cup.and.saucer.fill",
-            accentColor: "#00704A"
-        ),
-        Reward(
-            id: UUID(),
-            type: .billCredit,
-            category: .giftCard,
-            title: "$1.00 Bill Credit",
-            description: "$1 off your next bill payment",
-            pointsCost: 2000,  // $1 @ 2,000:1 ratio
-            brand: "Billix",
-            brandGroup: nil,
-            dollarValue: 1,
-            iconName: "dollarsign.circle.fill",
-            accentColor: "#5b8a6b"
-        ),
+        // AMAZON GIFT CARDS
         Reward(
             id: UUID(),
             type: .giftCard,
@@ -635,8 +555,7 @@ extension Reward {
             accentColor: "#FF9900"
         ),
 
-        // NEW FEATURED GIFT CARDS - Target, Kroger, Walmart ($5, $10, $15)
-        // TARGET GIFT CARDS
+        // TARGET GIFT CARDS ($5, $10, $15)
         Reward(
             id: UUID(),
             type: .giftCard,

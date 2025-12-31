@@ -105,8 +105,168 @@ struct GeoGameOverView: View {
         }
     }
 
-    var body: some View {
+    @ViewBuilder
+    private var trophySection: some View {
         ZStack {
+            // Glow effect
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [tierColor.opacity(0.4), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 60
+                    )
+                )
+                .frame(width: 120, height: 120)
+                .blur(radius: 20)
+                .scaleEffect(showContent ? 1.2 : 0.8)
+                .opacity(showContent ? 1 : 0)
+
+            Image(systemName: didWin ? "trophy.fill" : "arrow.clockwise.circle.fill")
+                .font(.system(size: 70))
+                .foregroundStyle(trophyGradient)
+                .scaleEffect(showContent ? 1.0 : 0.5)
+                .rotationEffect(.degrees(showContent ? 0 : -180))
+                .shadow(color: tierColor.opacity(0.5), radius: 20)
+        }
+        .padding(.bottom, 8)
+    }
+
+    @ViewBuilder
+    private var titleSection: some View {
+        VStack(spacing: 8) {
+            Text(didWin ? "VICTORY!" : "GAME OVER")
+                .font(.system(size: 36, weight: .black))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.3), radius: 4)
+                .scaleEffect(showContent ? 1.0 : 0.8)
+                .opacity(showContent ? 1 : 0)
+
+            if didWin {
+                // Performance tier badge
+                Text(performanceTier)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(tierColor)
+                            .shadow(color: tierColor.opacity(0.5), radius: 8)
+                    )
+                    .scaleEffect(showContent ? 1.0 : 0.8)
+                    .opacity(showContent ? 1 : 0)
+            } else {
+                Text("Keep trying - you'll get it!")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+                    .opacity(showContent ? 1 : 0)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var passFailBanner: some View {
+        if isFullSession {
+            VStack(spacing: 8) {
+                if hasPassed {
+                    passedBanner
+                } else {
+                    failedBanner
+                }
+            }
+            .scaleEffect(showContent ? 1.0 : 0.8)
+            .opacity(showContent ? 1 : 0)
+            .padding(.top, 8)
+        }
+    }
+
+    @ViewBuilder
+    private var passedBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 24))
+                .foregroundColor(.green)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("PASSED!")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("Deep Cuts Unlocked")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+            }
+
+            Spacer()
+
+            Text("\(totalCorrect)/30")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.green.opacity(0.3), Color.green.opacity(0.15)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.green.opacity(0.5), lineWidth: 2)
+                )
+        )
+    }
+
+    @ViewBuilder
+    private var failedBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "xmark.seal.fill")
+                .font(.system(size: 24))
+                .foregroundColor(.orange)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Need 24/30 to Pass")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("Try again to unlock Deep Cuts")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+            }
+
+            Spacer()
+
+            Text("\(totalCorrect)/30")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.orange.opacity(0.3), Color.orange.opacity(0.15)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.orange.opacity(0.5), lineWidth: 2)
+                )
+        )
+    }
+
+    var body: some View {
+        let _ = print("") // Force compiler to re-evaluate
+        return ZStack {
             // Dynamic gradient background
             backgroundGradient
                 .ignoresSafeArea()
@@ -122,147 +282,13 @@ struct GeoGameOverView: View {
                 // Main content card
                 VStack(spacing: 24) {
                     // Trophy/Icon with glow
-                    ZStack {
-                        // Glow effect
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [tierColor.opacity(0.4), .clear],
-                                    center: .center,
-                                    startRadius: 0,
-                                    endRadius: 60
-                                )
-                            )
-                            .frame(width: 120, height: 120)
-                            .blur(radius: 20)
-                            .scaleEffect(showContent ? 1.2 : 0.8)
-                            .opacity(showContent ? 1 : 0)
-
-                        Image(systemName: didWin ? "trophy.fill" : "arrow.clockwise.circle.fill")
-                            .font(.system(size: 70))
-                            .foregroundStyle(trophyGradient)
-                            .scaleEffect(showContent ? 1.0 : 0.5)
-                            .rotationEffect(.degrees(showContent ? 0 : -180))
-                            .shadow(color: tierColor.opacity(0.5), radius: 20)
-                    }
-                    .padding(.bottom, 8)
+                    trophySection
 
                     // Title and subtitle
-                    VStack(spacing: 8) {
-                        Text(didWin ? "VICTORY!" : "GAME OVER")
-                            .font(.system(size: 36, weight: .black))
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.3), radius: 4)
-                            .scaleEffect(showContent ? 1.0 : 0.8)
-                            .opacity(showContent ? 1 : 0)
-
-                        if didWin {
-                            // Performance tier badge
-                            Text(performanceTier)
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 6)
-                                .background(
-                                    Capsule()
-                                        .fill(tierColor)
-                                        .shadow(color: tierColor.opacity(0.5), radius: 8)
-                                )
-                                .scaleEffect(showContent ? 1.0 : 0.8)
-                                .opacity(showContent ? 1 : 0)
-                        } else {
-                            Text("Keep trying - you'll get it!")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white.opacity(0.9))
-                                .opacity(showContent ? 1 : 0)
-                        }
-                    }
+                    titleSection
 
                     // Pass/Fail Banner (for 30-question sessions)
-                    if isFullSession {
-                        VStack(spacing: 8) {
-                            if hasPassed {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "checkmark.seal.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.green)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("PASSED!")
-                                            .font(.system(size: 16, weight: .bold))
-                                            .foregroundColor(.white)
-
-                                        Text("Deep Cuts Unlocked")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(.white.opacity(0.9))
-                                    }
-
-                                    Spacer()
-
-                                    Text("\(totalCorrect)/30")
-                                        .font(.system(size: 20, weight: .bold))
-                                        .foregroundColor(.white)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [Color.green.opacity(0.3), Color.green.opacity(0.15)],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.green.opacity(0.5), lineWidth: 2)
-                                        )
-                                )
-                            } else {
-                                HStack(spacing: 12) {
-                                    Image(systemName: "xmark.seal.fill")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(.orange)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("Need 24/30 to Pass")
-                                            .font(.system(size: 16, weight: .bold))
-                                            .foregroundColor(.white)
-
-                                        Text("Try again to unlock Deep Cuts")
-                                            .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(.white.opacity(0.9))
-                                    }
-
-                                    Spacer()
-
-                                    Text("\(totalCorrect)/30")
-                                        .font(.system(size: 20, weight: .bold))
-                                        .foregroundColor(.white)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 16)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [Color.orange.opacity(0.3), Color.orange.opacity(0.15)],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.orange.opacity(0.5), lineWidth: 2)
-                                        )
-                                )
-                            }
-                        }
-                        .scaleEffect(showContent ? 1.0 : 0.8)
-                        .opacity(showContent ? 1 : 0)
-                        .padding(.top, 8)
-                    }
+                    passFailBanner
 
                     // Star rating (only for wins)
                     if didWin {
@@ -333,16 +359,6 @@ struct GeoGameOverView: View {
                                     label: "Prices Guessed Correctly",
                                     value: "\(session.pricesCorrect)/\(session.pricesAttempted)",
                                     color: .billixArcadeGold,
-                                    isVisible: showStats
-                                )
-                            }
-
-                            if session.comboStreak > 1 {
-                                AnimatedStatRow(
-                                    icon: "flame.fill",
-                                    label: "Best Combo",
-                                    value: "\(session.comboStreak)x",
-                                    color: .orange,
                                     isVisible: showStats
                                 )
                             }
@@ -557,8 +573,7 @@ struct AnimatedStatRow: View {
         currentQuestionIndex: 12,
         health: 2,
         totalPoints: 2850,
-        questionsCorrect: 11,
-        comboStreak: 5
+        questionsCorrect: 11
     )
 
     GeoGameOverView(
@@ -574,8 +589,7 @@ struct AnimatedStatRow: View {
         currentQuestionIndex: 6,
         health: 0,
         totalPoints: 1200,
-        questionsCorrect: 4,
-        comboStreak: 2
+        questionsCorrect: 4
     )
 
     GeoGameOverView(

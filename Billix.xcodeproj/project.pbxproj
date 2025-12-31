@@ -111,8 +111,9 @@
 		A602F26C2EF9AB2900856DEE /* TrustLadderEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F24A2EF9AB2900856DEE /* TrustLadderEnums.swift */; };
 		A602F26D2EF9AB2900856DEE /* ScreenshotVerificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F24E2EF9AB2900856DEE /* ScreenshotVerificationService.swift */; };
 		A602F26F2EF9CDBB00856DEE /* DonationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F26E2EF9CDBB00856DEE /* DonationModels.swift */; };
-		A602F2722EF9CDD700856DEE /* DonationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2712EF9CDD700856DEE /* DonationSheet.swift */; };
-		A602F2732EF9CDD700856DEE /* DonationImpactCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2702EF9CDD700856DEE /* DonationImpactCard.swift */; };
+		A602F2762EFA002E00856DEE /* CustomDonationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2742EFA002E00856DEE /* CustomDonationCard.swift */; };
+		A602F2772EFA002E00856DEE /* CustomDonationRequestSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2752EFA002E00856DEE /* CustomDonationRequestSheet.swift */; };
+		A602F2792F05A18A00856DEE /* RewardsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A602F2782F05A18A00856DEE /* RewardsService.swift */; };
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */; };
 		A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */; };
@@ -229,6 +230,7 @@
 		EBC33E84E1E375DAEA261508 /* AnalysisDetailsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEB282CAB55E54C5BDDE1C0 /* AnalysisDetailsTab.swift */; };
 		ED2452AAD36A456AE11AB438 /* AnalysisSummaryTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB6CFB137E0296F8ADCDF63 /* AnalysisSummaryTab.swift */; };
 		ED5EF5B9E827DE7A7C2F751E /* AnalysisBreakdownTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C811776FB90B05B8190935B /* AnalysisBreakdownTab.swift */; };
+		ED98892F9EB3A08B53E73645 /* QuickTasksScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60EE1E515E9AFC84F9650093 /* QuickTasksScreen.swift */; };
 		F34AB25163A7004F64C6550E /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF1E5E15C4654C0F526462A /* HomeView.swift */; };
 		F481B0C94242552459CC9E64 /* MetricCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D37190B759C30A9BA3FE82F /* MetricCardView.swift */; };
 		F75BF70911B545927A3DCB27 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89EC00ED13981D09603CF99 /* ExploreView.swift */; };
@@ -309,6 +311,7 @@
 		5298D1A99907B333E9F76950 /* UserSessionProgress.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UserSessionProgress.swift; path = ../../../Billix/Models/Seasons/UserSessionProgress.swift; sourceTree = "<group>"; };
 		5C58A5E4A878AC7816EB3122 /* HealthView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
 		5E87907DACB0ECD801EA1425 /* GiftCardAmountSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiftCardAmountSheet.swift; sourceTree = "<group>"; };
+		60EE1E515E9AFC84F9650093 /* QuickTasksScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuickTasksScreen.swift; sourceTree = "<group>"; };
 		630B722B233F024704CEE07C /* GiftCardEmailSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GiftCardEmailSheet.swift; sourceTree = "<group>"; };
 		642259DC8C0DF251B973C750 /* DynamicSpecsZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DynamicSpecsZone.swift; sourceTree = "<group>"; };
 		6B9F33A8CBF65EB77DFCACC5 /* AnalysisResultsTabbedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisResultsTabbedView.swift; sourceTree = "<group>"; };
@@ -362,8 +365,9 @@
 		A602F25B2EF9AB2900856DEE /* SwapExecutionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwapExecutionView.swift; sourceTree = "<group>"; };
 		A602F25C2EF9AB2900856DEE /* SwapHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwapHubView.swift; sourceTree = "<group>"; };
 		A602F26E2EF9CDBB00856DEE /* DonationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationModels.swift; sourceTree = "<group>"; };
-		A602F2702EF9CDD700856DEE /* DonationImpactCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationImpactCard.swift; sourceTree = "<group>"; };
-		A602F2712EF9CDD700856DEE /* DonationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationSheet.swift; sourceTree = "<group>"; };
+		A602F2742EFA002E00856DEE /* CustomDonationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDonationCard.swift; sourceTree = "<group>"; };
+		A602F2752EFA002E00856DEE /* CustomDonationRequestSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDonationRequestSheet.swift; sourceTree = "<group>"; };
+		A602F2782F05A18A00856DEE /* RewardsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsService.swift; sourceTree = "<group>"; };
 		A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysis.swift; sourceTree = "<group>"; };
 		A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredBill.swift; sourceTree = "<group>"; };
 		A64F7F4E2ECBB46B005576C5 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -683,6 +687,7 @@
 			isa = PBXGroup;
 			children = (
 				EDF1E5E15C4654C0F526462A /* HomeView.swift */,
+				60EE1E515E9AFC84F9650093 /* QuickTasksScreen.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -1055,6 +1060,7 @@
 		A6FF82142EDE3AD4008330C9 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				A602F2782F05A18A00856DEE /* RewardsService.swift */,
 				A6FF82132EDE3AD4008330C9 /* GeoGameDataService.swift */,
 			);
 			path = Services;
@@ -1073,8 +1079,8 @@
 		A6FF822B2EDE3AD4008330C9 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				A602F2702EF9CDD700856DEE /* DonationImpactCard.swift */,
-				A602F2712EF9CDD700856DEE /* DonationSheet.swift */,
+				A602F2742EFA002E00856DEE /* CustomDonationCard.swift */,
+				A602F2752EFA002E00856DEE /* CustomDonationRequestSheet.swift */,
 				A602F23B2EF8A33700856DEE /* MinimalBottomDeck.swift */,
 				A602F2352EF88B1900856DEE /* CompactTopHUD.swift */,
 				A602F2362EF88B1900856DEE /* ContinuousHealthBar.swift */,
@@ -1507,6 +1513,7 @@
 				A6FF81392ECEB4C1008330C9 /* DiskCache.swift in Sources */,
 				A6FF813A2ECEB4C1008330C9 /* MemoryCache.swift in Sources */,
 				F34AB25163A7004F64C6550E /* HomeView.swift in Sources */,
+				ED98892F9EB3A08B53E73645 /* QuickTasksScreen.swift in Sources */,
 				A6FF81242ECEB3D3008330C9 /* BillsExploreViewModel.swift in Sources */,
 				A64F7F522ECBB46B005576C5 /* Config.swift in Sources */,
 				F9076D592ED19DC10051E1D8 /* BillixCredits.swift in Sources */,
@@ -1566,6 +1573,7 @@
 				A6FF82472EDE3AD4008330C9 /* RewardsHowItWorksSheet.swift in Sources */,
 				A6FF82482EDE3AD4008330C9 /* GiveawayEntryCard.swift in Sources */,
 				A6FF82492EDE3AD4008330C9 /* HeartLostAnimation.swift in Sources */,
+				A602F2792F05A18A00856DEE /* RewardsService.swift in Sources */,
 				A6FF824A2EDE3AD4008330C9 /* WelcomeRewardsSheet.swift in Sources */,
 				A6FF824B2EDE3AD4008330C9 /* GameBoostsGrid.swift in Sources */,
 				A602F23E2EF9AA3E00856DEE /* EmailVerificationView.swift in Sources */,
@@ -1663,6 +1671,8 @@
 				C93D6D9B9A4E2E8A36D2063C /* AskOwnerSheet.swift in Sources */,
 				D8E729C509255F5015837DD4 /* PlaceBidSheet.swift in Sources */,
 				12B8AABBC0EC521CAA0EE907 /* AllUploadsView.swift in Sources */,
+				A602F2762EFA002E00856DEE /* CustomDonationCard.swift in Sources */,
+				A602F2772EFA002E00856DEE /* CustomDonationRequestSheet.swift in Sources */,
 				78CC9A4B4CE73C72FDFDAFBF /* UploadDetailView.swift in Sources */,
 				94CA342EC160B25D39828956 /* AnalysisResultsTabbedView.swift in Sources */,
 				ED2452AAD36A456AE11AB438 /* AnalysisSummaryTab.swift in Sources */,
@@ -1673,8 +1683,6 @@
 				B42853C238F012FDE7F5C47F /* AnalysisComponents.swift in Sources */,
 				503E0740478BEF02D2B31C15 /* AnalysisSaveMoneyTab.swift in Sources */,
 				ED5EF5B9E827DE7A7C2F751E /* AnalysisBreakdownTab.swift in Sources */,
-				A602F2722EF9CDD700856DEE /* DonationSheet.swift in Sources */,
-				A602F2732EF9CDD700856DEE /* DonationImpactCard.swift in Sources */,
 				680BB9D3534B76879FBC45C6 /* GameBoostsCarousel.swift in Sources */,
 				90A4EC43F0790A45FF24632D /* QuestionTimerView.swift in Sources */,
 				A602F23C2EF8A33700856DEE /* MinimalBottomDeck.swift in Sources */,

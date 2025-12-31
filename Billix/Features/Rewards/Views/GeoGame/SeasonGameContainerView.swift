@@ -32,7 +32,6 @@ struct SeasonGameContainerView: View {
             health: 3,
             totalPoints: 0,
             questionsCorrect: 0,
-            comboStreak: 0,
             startedAt: Date(),
             landmarksCorrect: 0,
             landmarksAttempted: 0,

@@ -577,11 +577,12 @@ struct FABButtonStyle: ButtonStyle {
 // MARK: - Daily Tasks Section
 
 struct DailyTasksSection: View {
+    @State private var showQuickTasks = false
     @State private var tasks: [RewardTask] = [
         RewardTask(
             id: UUID(),
             title: "Check in today",
-            points: 200,  // $0.01 (20,000:1 ratio)
+            points: TaskConfiguration.dailyCheckIn,
             icon: "calendar.badge.checkmark",
             isCompleted: true,
             type: .daily
@@ -589,18 +590,19 @@ struct DailyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Upload a bill",
-            points: 1500,  // $0.075
+            points: TaskConfiguration.uploadBill,
             icon: "doc.badge.plus",
             isCompleted: false,
             type: .daily
         ),
         RewardTask(
             id: UUID(),
-            title: "Compare 3 providers",
-            points: 800,  // $0.04
-            icon: "chart.bar.fill",
+            title: "Quick Earnings",
+            points: 0,  // Portal tasks don't award points
+            icon: "bolt.fill",
             isCompleted: false,
-            type: .daily
+            type: .daily,
+            isPortal: true  // Makes this a portal task
         )
     ]
 
@@ -623,13 +625,21 @@ struct DailyTasksSection: View {
             VStack(spacing: 12) {
                 ForEach(tasks) { task in
                     TaskCard(task: task) {
-                        // Claim action
-                        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-                            tasks[index].isCompleted = true
+                        // Portal tasks open sheets, regular tasks claim points
+                        if task.isPortal {
+                            showQuickTasks = true
+                        } else {
+                            // Claim action
+                            if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+                                tasks[index].isCompleted = true
+                            }
                         }
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showQuickTasks) {
+            QuickTasksScreen()
         }
     }
 }
@@ -641,7 +651,7 @@ struct WeeklyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Refer a friend",
-            points: 4000,  // $0.20
+            points: TaskConfiguration.referFriend,
             icon: "person.2.fill",
             isCompleted: false,
             type: .weekly
@@ -649,7 +659,7 @@ struct WeeklyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Upload 5 bills",
-            points: 3000,  // $0.15
+            points: TaskConfiguration.upload5Bills,
             icon: "doc.on.doc.fill",
             isCompleted: false,
             type: .weekly,
@@ -659,7 +669,7 @@ struct WeeklyTasksSection: View {
         RewardTask(
             id: UUID(),
             title: "Play Price Guessr 7 times",
-            points: 2000,  // $0.10
+            points: TaskConfiguration.playGames7x,
             icon: "gamecontroller.fill",
             isCompleted: false,
             type: .weekly,
@@ -706,15 +716,15 @@ struct TaskCard: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Icon
+            // Icon (gold for portal tasks, green for regular tasks)
             ZStack {
                 Circle()
-                    .fill(Color.billixMoneyGreen.opacity(0.15))
+                    .fill((task.isPortal ? Color.billixArcadeGold : Color.billixMoneyGreen).opacity(0.15))
                     .frame(width: 48, height: 48)
 
                 Image(systemName: task.icon)
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.billixMoneyGreen)
+                    .foregroundColor(task.isPortal ? .billixArcadeGold : .billixMoneyGreen)
             }
 
             // Info
@@ -723,14 +733,22 @@ struct TaskCard: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.billixDarkGreen)
 
-                HStack(spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(.billixArcadeGold)
-
-                    Text("+\(task.points) pts")
+                if task.isPortal {
+                    // Portal tasks show subtitle instead of points
+                    Text("Complete mini-tasks for bonus points")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.billixMediumGreen)
+                } else {
+                    // Regular tasks show points
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(.billixArcadeGold)
+
+                        Text("+\(task.points) pts")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.billixMediumGreen)
+                    }
                 }
 
                 // Progress bar (if applicable)
@@ -762,7 +780,7 @@ struct TaskCard: View {
 
             Spacer()
 
-            // Claim Button
+            // Action Button
             if task.isCompleted {
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark.circle.fill")
@@ -779,7 +797,22 @@ struct TaskCard: View {
                     Capsule()
                         .fill(Color.billixMoneyGreen.opacity(0.15))
                 )
+            } else if task.isPortal {
+                // Portal tasks show "View All" outline button
+                Button(action: onClaim) {
+                    Text("View All")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.billixMoneyGreen)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(
+                            Capsule()
+                                .stroke(Color.billixMoneyGreen, lineWidth: 2)
+                        )
+                }
+                .buttonStyle(ScaleButtonStyle(scale: 0.95))
             } else {
+                // Regular tasks show "Claim" gradient button
                 Button(action: onClaim) {
                     Text("Claim")
                         .font(.system(size: 14, weight: .bold))
@@ -1096,6 +1129,7 @@ struct RewardTask: Identifiable {
     let type: TaskType
     var progress: Int?
     var progressTotal: Int?
+    var isPortal: Bool = false  // Special task that opens a new screen
 
     enum TaskType {
         case daily

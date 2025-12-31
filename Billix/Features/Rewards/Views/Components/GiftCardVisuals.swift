@@ -68,7 +68,7 @@ struct SimpleGiftCardVisual: View {
 
                     if let value = value {
                         Text(value)
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                     }
                 }
