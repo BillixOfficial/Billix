@@ -145,6 +145,66 @@ private struct DeviceIdUpdate: Codable {
     }
 }
 
+private struct AssistsGivenUpdate: Codable {
+    let totalAssistsGiven: Int
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case totalAssistsGiven = "total_assists_given"
+        case updatedAt = "updated_at"
+    }
+}
+
+private struct AssistsReceivedUpdate: Codable {
+    let totalAssistsReceived: Int
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case totalAssistsReceived = "total_assists_received"
+        case updatedAt = "updated_at"
+    }
+}
+
+private struct SuccessfulRepaymentUpdate: Codable {
+    let successfulRepayments: Int
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case successfulRepayments = "successful_repayments"
+        case updatedAt = "updated_at"
+    }
+}
+
+private struct FailedRepaymentUpdate: Codable {
+    let failedRepayments: Int
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case failedRepayments = "failed_repayments"
+        case updatedAt = "updated_at"
+    }
+}
+
+private struct AssistRatingHelperUpdate: Codable {
+    let assistRatingAsHelper: Double
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case assistRatingAsHelper = "assist_rating_as_helper"
+        case updatedAt = "updated_at"
+    }
+}
+
+private struct AssistRatingRequesterUpdate: Codable {
+    let assistRatingAsRequester: Double
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case assistRatingAsRequester = "assist_rating_as_requester"
+        case updatedAt = "updated_at"
+    }
+}
+
 // MARK: - Errors
 
 enum TrustLadderError: LocalizedError {
@@ -738,12 +798,13 @@ class TrustLadderService: ObservableObject {
         let currentAssists = status.totalAssistsGiven ?? 0
         let timestamp = ISO8601DateFormatter().string(from: Date())
 
+        let update = AssistsGivenUpdate(
+            totalAssistsGiven: currentAssists + 1,
+            updatedAt: timestamp
+        )
         try await supabase
             .from("user_trust_status")
-            .update([
-                "total_assists_given": currentAssists + 1,
-                "updated_at": timestamp
-            ] as [String: Any])
+            .update(update)
             .eq("user_id", value: status.userId.uuidString)
             .execute()
 
@@ -762,12 +823,13 @@ class TrustLadderService: ObservableObject {
         let currentAssists = status.totalAssistsReceived ?? 0
         let timestamp = ISO8601DateFormatter().string(from: Date())
 
+        let update = AssistsReceivedUpdate(
+            totalAssistsReceived: currentAssists + 1,
+            updatedAt: timestamp
+        )
         try await supabase
             .from("user_trust_status")
-            .update([
-                "total_assists_received": currentAssists + 1,
-                "updated_at": timestamp
-            ] as [String: Any])
+            .update(update)
             .eq("user_id", value: status.userId.uuidString)
             .execute()
 
@@ -786,12 +848,13 @@ class TrustLadderService: ObservableObject {
         } else {
             // Just record as failed
             let timestamp = ISO8601DateFormatter().string(from: Date())
+            let failedUpdate = FailedSwapUpdate(
+                totalFailedSwaps: status.totalFailedSwaps + 1,
+                updatedAt: timestamp
+            )
             try await supabase
                 .from("user_trust_status")
-                .update([
-                    "total_failed_swaps": status.totalFailedSwaps + 1,
-                    "updated_at": timestamp
-                ] as [String: Any])
+                .update(failedUpdate)
                 .eq("user_id", value: status.userId.uuidString)
                 .execute()
 
@@ -808,12 +871,13 @@ class TrustLadderService: ObservableObject {
         let currentRepayments = status.successfulRepayments ?? 0
         let timestamp = ISO8601DateFormatter().string(from: Date())
 
+        let update = SuccessfulRepaymentUpdate(
+            successfulRepayments: currentRepayments + 1,
+            updatedAt: timestamp
+        )
         try await supabase
             .from("user_trust_status")
-            .update([
-                "successful_repayments": currentRepayments + 1,
-                "updated_at": timestamp
-            ] as [String: Any])
+            .update(update)
             .eq("user_id", value: status.userId.uuidString)
             .execute()
 
@@ -832,23 +896,25 @@ class TrustLadderService: ObservableObject {
         let currentFailed = status.failedRepayments ?? 0
         let timestamp = ISO8601DateFormatter().string(from: Date())
 
+        let failedUpdate = FailedRepaymentUpdate(
+            failedRepayments: currentFailed + 1,
+            updatedAt: timestamp
+        )
         try await supabase
             .from("user_trust_status")
-            .update([
-                "failed_repayments": currentFailed + 1,
-                "updated_at": timestamp
-            ] as [String: Any])
+            .update(failedUpdate)
             .eq("user_id", value: status.userId.uuidString)
             .execute()
 
         // Deduct trust points for missed repayment
         let newPoints = max(0, status.trustPoints - 50)
+        let pointsUpdate = TrustPointsUpdate(
+            trustPoints: newPoints,
+            updatedAt: timestamp
+        )
         try await supabase
             .from("user_trust_status")
-            .update([
-                "trust_points": newPoints,
-                "updated_at": timestamp
-            ] as [String: Any])
+            .update(pointsUpdate)
             .eq("user_id", value: status.userId.uuidString)
             .execute()
 
@@ -879,14 +945,21 @@ class TrustLadderService: ObservableObject {
             newAverage = Double(newRating)
         }
 
-        try await supabase
-            .from("user_trust_status")
-            .update([
-                field: newAverage,
-                "updated_at": timestamp
-            ] as [String: Any])
-            .eq("user_id", value: userId.uuidString)
-            .execute()
+        if asHelper {
+            let update = AssistRatingHelperUpdate(assistRatingAsHelper: newAverage, updatedAt: timestamp)
+            try await supabase
+                .from("user_trust_status")
+                .update(update)
+                .eq("user_id", value: userId.uuidString)
+                .execute()
+        } else {
+            let update = AssistRatingRequesterUpdate(assistRatingAsRequester: newAverage, updatedAt: timestamp)
+            try await supabase
+                .from("user_trust_status")
+                .update(update)
+                .eq("user_id", value: userId.uuidString)
+                .execute()
+        }
 
         _ = try await fetchUserTrustStatus()
     }

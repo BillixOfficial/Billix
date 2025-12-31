@@ -375,7 +375,7 @@ class ExploreViewModel: ObservableObject {
             OutageConnection(
                 providerName: "Comcast",
                 providerLogo: "wifi",
-                category: "Internet",
+                category: .internet,
                 zipCode: "07030",
                 isMonitoring: true,
                 lastOutageDate: Date().addingTimeInterval(-86400 * 5),
@@ -386,7 +386,7 @@ class ExploreViewModel: ObservableObject {
             OutageConnection(
                 providerName: "PSEG",
                 providerLogo: "bolt.fill",
-                category: "Energy",
+                category: .power,
                 zipCode: "07030",
                 isMonitoring: true,
                 lastOutageDate: nil,

@@ -71,16 +71,18 @@ struct OutageBotView: View {
                 .presentationBackground(Color(hex: "#F5F7F6"))
             }
         }
-        .sheet(isPresented: $viewModel.showEligibilityResult) {
-            EligibilityResultView(viewModel: viewModel)
-                .presentationDetents([.medium, .large])
-                .presentationBackground(Color(hex: "#F5F7F6"))
-        }
-        .sheet(isPresented: $viewModel.showGuidedClaim) {
-            GuidedClaimView(viewModel: viewModel)
-                .presentationDetents([.large])
-                .presentationBackground(Color(hex: "#F5F7F6"))
-        }
+        // TODO: Add EligibilityResultView when available
+        // .sheet(isPresented: $viewModel.showEligibilityResult) {
+        //     EligibilityResultView(viewModel: viewModel)
+        //         .presentationDetents([.medium, .large])
+        //         .presentationBackground(Color(hex: "#F5F7F6"))
+        // }
+        // TODO: Add GuidedClaimView when available
+        // .sheet(isPresented: $viewModel.showGuidedClaim) {
+        //     GuidedClaimView(viewModel: viewModel)
+        //         .presentationDetents([.large])
+        //         .presentationBackground(Color(hex: "#F5F7F6"))
+        // }
         .sheet(isPresented: $viewModel.showClaimHistory) {
             ClaimHistorySheet(viewModel: viewModel)
                 .presentationDetents([.medium, .large])
@@ -147,7 +149,7 @@ struct OutageBotView: View {
                     }
 
                     Text(viewModel.formattedTotalRecovered)
-                        .font(.system(size: MarketplaceTheme.Typography.title2, weight: .bold))
+                        .font(.system(size: 22, weight: .bold))
                         .foregroundStyle(Color(hex: "#22C55E"))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -170,7 +172,7 @@ struct OutageBotView: View {
                     }
 
                     Text("\(viewModel.approvedClaimsCount)")
-                        .font(.system(size: MarketplaceTheme.Typography.title2, weight: .bold))
+                        .font(.system(size: 22, weight: .bold))
                         .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
                     +
                     Text(" approved")
@@ -837,7 +839,7 @@ struct OutageConfirmationSheet: View {
                     .foregroundStyle(Color(hex: "#EF4444"))
 
                 Text("Outage Detected")
-                    .font(.system(size: MarketplaceTheme.Typography.title2, weight: .bold))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
             }
 

@@ -382,12 +382,43 @@ struct GougeHighlight: Identifiable {
 
 // MARK: - Outage Bot Models
 
+/// Service types for outage monitoring
+enum OutageBillType: String, Codable, CaseIterable, Identifiable {
+    case internet = "Internet"
+    case power = "Power"
+    case gas = "Gas"
+    case water = "Water"
+    case mobile = "Mobile"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .internet: return "wifi"
+        case .power: return "bolt.fill"
+        case .gas: return "flame.fill"
+        case .water: return "drop.fill"
+        case .mobile: return "antenna.radiowaves.left.and.right"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .internet: return Color(hex: "#3B82F6")
+        case .power: return Color(hex: "#F59E0B")
+        case .gas: return Color(hex: "#EF4444")
+        case .water: return Color(hex: "#06B6D4")
+        case .mobile: return Color(hex: "#8B5CF6")
+        }
+    }
+}
+
 /// A provider connection for outage monitoring
 struct OutageConnection: Identifiable, Codable {
     let id: UUID
     let providerName: String
     let providerLogo: String
-    let category: String
+    let category: OutageBillType
     let zipCode: String
     var isMonitoring: Bool
     var lastOutageDate: Date?
@@ -399,7 +430,7 @@ struct OutageConnection: Identifiable, Codable {
         id: UUID = UUID(),
         providerName: String,
         providerLogo: String,
-        category: String,
+        category: OutageBillType,
         zipCode: String,
         isMonitoring: Bool = true,
         lastOutageDate: Date? = nil,
