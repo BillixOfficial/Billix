@@ -156,6 +156,8 @@ enum TrustLadderError: LocalizedError {
     case insufficientRating
     case userBanned
     case updateFailed
+    case assistNotEligible
+    case tooManyActiveRequests
 
     var errorDescription: String? {
         switch self {
@@ -175,6 +177,10 @@ enum TrustLadderError: LocalizedError {
             return "Your account has been suspended"
         case .updateFailed:
             return "Failed to update trust status"
+        case .assistNotEligible:
+            return "Complete at least 2 successful swaps to use Assist"
+        case .tooManyActiveRequests:
+            return "You can only have 2 active assist requests at a time"
         }
     }
 }
@@ -688,6 +694,246 @@ class TrustLadderService: ObservableObject {
             canSwap: !status.isBanned,
             maxAmount: status.tier.maxAmount
         )
+    }
+
+    // MARK: - Bill Assist Eligibility
+
+    /// Checks if user can request bill payment assistance (requires 2+ successful swaps)
+    func canUserRequestAssist() -> Bool {
+        guard let status = userTrustStatus else { return false }
+        guard !status.isBanned else { return false }
+        guard status.verificationStatus.email && status.verificationStatus.phone else { return false }
+        return status.totalSuccessfulSwaps >= 2
+    }
+
+    /// Checks if user can offer to help others (requires 2+ swaps and 300+ trust points)
+    func canUserOfferHelp() -> Bool {
+        guard let status = userTrustStatus else { return false }
+        guard !status.isBanned else { return false }
+        guard status.verificationStatus.email && status.verificationStatus.phone else { return false }
+        return status.totalSuccessfulSwaps >= 2 && status.trustPoints >= 300
+    }
+
+    /// Gets the reason why user cannot use Assist
+    func getAssistIneligibilityReason() -> String? {
+        guard let status = userTrustStatus else { return "Please sign in to continue" }
+        if status.isBanned { return "Your account has been suspended" }
+        if !status.verificationStatus.email { return "Please verify your email first" }
+        if !status.verificationStatus.phone { return "Please verify your phone number first" }
+        if status.totalSuccessfulSwaps < 2 {
+            let remaining = 2 - status.totalSuccessfulSwaps
+            return "Complete \(remaining) more swap\(remaining == 1 ? "" : "s") to unlock Assist"
+        }
+        return nil
+    }
+
+    // MARK: - Bill Assist Tracking
+
+    /// Records a successful assist given (as helper)
+    func recordSuccessfulAssistGiven(assistId: UUID) async throws {
+        guard let status = userTrustStatus else {
+            throw TrustLadderError.statusNotFound
+        }
+
+        let currentAssists = status.totalAssistsGiven ?? 0
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+
+        try await supabase
+            .from("user_trust_status")
+            .update([
+                "total_assists_given": currentAssists + 1,
+                "updated_at": timestamp
+            ] as [String: Any])
+            .eq("user_id", value: status.userId.uuidString)
+            .execute()
+
+        // Award bonus trust points for helping
+        try await awardTrustPoints(75, reason: "Completed assist as helper")
+
+        _ = try await fetchUserTrustStatus()
+    }
+
+    /// Records a successful assist received (as requester)
+    func recordSuccessfulAssistReceived(assistId: UUID) async throws {
+        guard let status = userTrustStatus else {
+            throw TrustLadderError.statusNotFound
+        }
+
+        let currentAssists = status.totalAssistsReceived ?? 0
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+
+        try await supabase
+            .from("user_trust_status")
+            .update([
+                "total_assists_received": currentAssists + 1,
+                "updated_at": timestamp
+            ] as [String: Any])
+            .eq("user_id", value: status.userId.uuidString)
+            .execute()
+
+        _ = try await fetchUserTrustStatus()
+    }
+
+    /// Records a failed assist (ghost or dispute)
+    func recordFailedAssist(assistId: UUID, wasGhost: Bool) async throws {
+        guard let status = userTrustStatus else {
+            throw TrustLadderError.statusNotFound
+        }
+
+        if wasGhost {
+            // Use existing ghost tracking
+            try await recordGhost(swapId: assistId)
+        } else {
+            // Just record as failed
+            let timestamp = ISO8601DateFormatter().string(from: Date())
+            try await supabase
+                .from("user_trust_status")
+                .update([
+                    "total_failed_swaps": status.totalFailedSwaps + 1,
+                    "updated_at": timestamp
+                ] as [String: Any])
+                .eq("user_id", value: status.userId.uuidString)
+                .execute()
+
+            _ = try await fetchUserTrustStatus()
+        }
+    }
+
+    /// Records a successful loan repayment
+    func recordSuccessfulRepayment(assistId: UUID) async throws {
+        guard let status = userTrustStatus else {
+            throw TrustLadderError.statusNotFound
+        }
+
+        let currentRepayments = status.successfulRepayments ?? 0
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+
+        try await supabase
+            .from("user_trust_status")
+            .update([
+                "successful_repayments": currentRepayments + 1,
+                "updated_at": timestamp
+            ] as [String: Any])
+            .eq("user_id", value: status.userId.uuidString)
+            .execute()
+
+        // Award trust points for repayment
+        try await awardTrustPoints(25, reason: "Successful loan repayment")
+
+        _ = try await fetchUserTrustStatus()
+    }
+
+    /// Records a failed loan repayment
+    func recordFailedRepayment(assistId: UUID) async throws {
+        guard let status = userTrustStatus else {
+            throw TrustLadderError.statusNotFound
+        }
+
+        let currentFailed = status.failedRepayments ?? 0
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+
+        try await supabase
+            .from("user_trust_status")
+            .update([
+                "failed_repayments": currentFailed + 1,
+                "updated_at": timestamp
+            ] as [String: Any])
+            .eq("user_id", value: status.userId.uuidString)
+            .execute()
+
+        // Deduct trust points for missed repayment
+        let newPoints = max(0, status.trustPoints - 50)
+        try await supabase
+            .from("user_trust_status")
+            .update([
+                "trust_points": newPoints,
+                "updated_at": timestamp
+            ] as [String: Any])
+            .eq("user_id", value: status.userId.uuidString)
+            .execute()
+
+        _ = try await fetchUserTrustStatus()
+    }
+
+    /// Updates assist rating for a user
+    func updateAssistRating(userId: UUID, asHelper: Bool, newRating: Int) async throws {
+        let field = asHelper ? "assist_rating_as_helper" : "assist_rating_as_requester"
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+
+        // Fetch current rating
+        let status: UserTrustStatus = try await supabase
+            .from("user_trust_status")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        let currentRating = asHelper ? status.assistRatingAsHelper : status.assistRatingAsRequester
+        let newAverage: Double
+
+        if let current = currentRating {
+            // Simple moving average (approximation)
+            newAverage = (current + Double(newRating)) / 2.0
+        } else {
+            newAverage = Double(newRating)
+        }
+
+        try await supabase
+            .from("user_trust_status")
+            .update([
+                field: newAverage,
+                "updated_at": timestamp
+            ] as [String: Any])
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+
+        _ = try await fetchUserTrustStatus()
+    }
+
+    /// Gets assist statistics for display
+    func getAssistStats() -> AssistStats? {
+        guard let status = userTrustStatus else { return nil }
+
+        return AssistStats(
+            assistsGiven: status.totalAssistsGiven ?? 0,
+            assistsReceived: status.totalAssistsReceived ?? 0,
+            helperRating: status.assistRatingAsHelper,
+            requesterRating: status.assistRatingAsRequester,
+            successfulRepayments: status.successfulRepayments ?? 0,
+            failedRepayments: status.failedRepayments ?? 0
+        )
+    }
+}
+
+// MARK: - Assist Stats
+
+struct AssistStats {
+    let assistsGiven: Int
+    let assistsReceived: Int
+    let helperRating: Double?
+    let requesterRating: Double?
+    let successfulRepayments: Int
+    let failedRepayments: Int
+
+    var totalAssists: Int {
+        assistsGiven + assistsReceived
+    }
+
+    var repaymentRate: Double? {
+        let total = successfulRepayments + failedRepayments
+        guard total > 0 else { return nil }
+        return Double(successfulRepayments) / Double(total)
+    }
+
+    var formattedHelperRating: String {
+        guard let rating = helperRating else { return "N/A" }
+        return String(format: "%.1f", rating)
+    }
+
+    var formattedRequesterRating: String {
+        guard let rating = requesterRating else { return "N/A" }
+        return String(format: "%.1f", rating)
     }
 }
 

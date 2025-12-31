@@ -66,6 +66,14 @@ struct UserTrustStatus: Codable, Equatable, Identifiable {
     let createdAt: Date
     var updatedAt: Date
 
+    // Assist-related fields
+    var totalAssistsGiven: Int?
+    var totalAssistsReceived: Int?
+    var assistRatingAsHelper: Double?
+    var assistRatingAsRequester: Double?
+    var successfulRepayments: Int?
+    var failedRepayments: Int?
+
     var id: UUID { userId }
 
     enum CodingKeys: String, CodingKey {
@@ -85,6 +93,13 @@ struct UserTrustStatus: Codable, Equatable, Identifiable {
         case totalRatingsReceived = "total_ratings_received"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        // Assist fields
+        case totalAssistsGiven = "total_assists_given"
+        case totalAssistsReceived = "total_assists_received"
+        case assistRatingAsHelper = "assist_rating_as_helper"
+        case assistRatingAsRequester = "assist_rating_as_requester"
+        case successfulRepayments = "successful_repayments"
+        case failedRepayments = "failed_repayments"
     }
 
     var tier: TrustTier {
