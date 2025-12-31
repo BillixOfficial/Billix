@@ -12,7 +12,7 @@ import Supabase
 // MARK: - Request/Response Models
 
 struct AIContentRequest: Codable {
-    let type: String // "weather_tip", "daily_brief", "national_averages"
+    let type: String // "weather_tip", "daily_brief", "national_averages", "upcoming_estimates"
     let context: AIContext
 
     struct AIContext: Codable {
@@ -25,6 +25,22 @@ struct AIContentRequest: Codable {
         var billType: String?
         var upcomingBillName: String?
         var upcomingBillDays: Int?
+        var currentMonth: String?
+        var region: String?
+        var weatherForecast: String?
+    }
+}
+
+// MARK: - Upcoming Estimate Model
+
+struct UpcomingEstimate: Codable, Identifiable {
+    var id: UUID { UUID() }
+    let icon: String
+    let title: String
+    let subtitle: String
+
+    enum CodingKeys: String, CodingKey {
+        case icon, title, subtitle
     }
 }
 
@@ -33,6 +49,7 @@ struct AIContentResponse: Codable {
     let content: String?
     let data: AIData?
     let error: String?
+    let estimates: [UpcomingEstimate]?
 
     struct AIData: Codable {
         var averages: [BillAverage]?
@@ -69,6 +86,7 @@ class OpenAIService: ObservableObject {
     private var weatherTipCache: (tip: String, timestamp: Date)?
     private var dailyBriefCache: (brief: String, timestamp: Date)?
     private var nationalAveragesCache: [String: (averages: [BillAverage], timestamp: Date)] = [:]
+    private var upcomingEstimatesCache: [String: (estimates: [UpcomingEstimate], timestamp: Date)] = [:]
 
     private let cacheTimeout: TimeInterval = 3600 // 1 hour
 
@@ -185,6 +203,123 @@ class OpenAIService: ObservableObject {
         return getFallbackAverages()
     }
 
+    // MARK: - Upcoming Estimates
+
+    /// Generate location-based utility predictions for the next 30 days
+    /// Focuses on regional patterns and weather impact (no prices or promos)
+    func generateUpcomingEstimates(
+        zipCode: String,
+        city: String?,
+        state: String?,
+        temperature: Double?,
+        weatherCondition: String?,
+        weatherForecast: String?,
+        billCategories: [String]
+    ) async throws -> [UpcomingEstimate] {
+        // Check cache
+        if let cached = upcomingEstimatesCache[zipCode],
+           Date().timeIntervalSince(cached.timestamp) < cacheTimeout {
+            return cached.estimates
+        }
+
+        // Determine region from state
+        let region = getRegion(from: state)
+
+        // Get current month
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM"
+        let currentMonth = dateFormatter.string(from: Date())
+
+        let request = AIContentRequest(
+            type: "upcoming_estimates",
+            context: .init(
+                zipCode: zipCode,
+                city: city,
+                state: state,
+                temperature: temperature,
+                weatherCondition: weatherCondition,
+                billTypes: billCategories,
+                currentMonth: currentMonth,
+                region: region,
+                weatherForecast: weatherForecast
+            )
+        )
+
+        let response = try await callEdgeFunction(request: request)
+
+        if let estimates = response.estimates, !estimates.isEmpty {
+            upcomingEstimatesCache[zipCode] = (estimates, Date())
+            return estimates
+        }
+
+        // Return fallback estimates if API fails
+        return getFallbackEstimates(region: region, month: currentMonth)
+    }
+
+    /// Determine US region from state abbreviation
+    private func getRegion(from state: String?) -> String {
+        guard let state = state?.uppercased() else { return "United States" }
+
+        let northeast = ["CT", "ME", "MA", "NH", "NJ", "NY", "PA", "RI", "VT"]
+        let southeast = ["AL", "AR", "FL", "GA", "KY", "LA", "MS", "NC", "SC", "TN", "VA", "WV"]
+        let midwest = ["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"]
+        let southwest = ["AZ", "NM", "OK", "TX"]
+        let west = ["AK", "CA", "CO", "HI", "ID", "MT", "NV", "OR", "UT", "WA", "WY"]
+
+        if northeast.contains(state) { return "Northeast" }
+        if southeast.contains(state) { return "Southeast" }
+        if midwest.contains(state) { return "Midwest" }
+        if southwest.contains(state) { return "Southwest" }
+        if west.contains(state) { return "West" }
+
+        return "United States"
+    }
+
+    /// Fallback estimates when API is unavailable
+    private func getFallbackEstimates(region: String, month: String) -> [UpcomingEstimate] {
+        // Generate contextual fallback based on region and time of year
+        let winterMonths = ["December", "January", "February"]
+        let summerMonths = ["June", "July", "August"]
+        let isWinter = winterMonths.contains(month)
+        let isSummer = summerMonths.contains(month)
+
+        var estimates: [UpcomingEstimate] = []
+
+        if isWinter {
+            estimates.append(UpcomingEstimate(
+                icon: "thermometer.snowflake",
+                title: "Winter heating patterns typical for \(region)",
+                subtitle: "Energy usage may increase during cold snaps"
+            ))
+        } else if isSummer {
+            estimates.append(UpcomingEstimate(
+                icon: "sun.max.fill",
+                title: "Summer cooling demand expected",
+                subtitle: "AC usage tends to rise during heat waves"
+            ))
+        } else {
+            estimates.append(UpcomingEstimate(
+                icon: "leaf.fill",
+                title: "Seasonal transition period",
+                subtitle: "Energy usage typically stabilizes this time of year"
+            ))
+        }
+
+        estimates.append(UpcomingEstimate(
+            icon: "wifi",
+            title: "Fixed-cost bills remain stable",
+            subtitle: "Internet and phone costs unaffected by weather"
+        ))
+
+        estimates.append(UpcomingEstimate(
+            icon: "drop.fill",
+            title: "Water usage tends to stay consistent",
+            subtitle: "Minimal seasonal variation expected"
+        ))
+
+        return estimates
+    }
+
     // MARK: - Private Methods
 
     private func callEdgeFunction(request: AIContentRequest) async throws -> AIContentResponse {
@@ -231,6 +366,7 @@ class OpenAIService: ObservableObject {
         weatherTipCache = nil
         dailyBriefCache = nil
         nationalAveragesCache.removeAll()
+        upcomingEstimatesCache.removeAll()
     }
 }
 
