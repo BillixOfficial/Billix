@@ -73,23 +73,24 @@ struct MarketplaceView: View {
                     .presentationBackground(Color(hex: "#F5F7F6"))
             }
         }
-        .sheet(isPresented: $viewModel.showCreateClusterSheet) {
-            CreateClusterSheet(viewModel: viewModel)
-                .presentationDetents([.large])
-                .presentationBackground(Color(hex: "#F5F7F6"))
-        }
-        .sheet(isPresented: $viewModel.showJoinClusterSheet) {
-            if let cluster = viewModel.selectedMarketplaceCluster {
-                JoinClusterSheet(cluster: cluster, viewModel: viewModel)
-                    .presentationDetents([.medium])
-                    .presentationBackground(Color(hex: "#F5F7F6"))
-            }
-        }
-        .sheet(isPresented: $viewModel.showShareDealSheet) {
-            ShareDealSheet(viewModel: viewModel)
-                .presentationDetents([.large])
-                .presentationBackground(Color(hex: "#F5F7F6"))
-        }
+        // TODO: Add cluster sheets when files are added to Xcode
+        // .sheet(isPresented: $viewModel.showCreateClusterSheet) {
+        //     CreateClusterSheet(viewModel: viewModel)
+        //         .presentationDetents([.large])
+        //         .presentationBackground(Color(hex: "#F5F7F6"))
+        // }
+        // .sheet(isPresented: $viewModel.showJoinClusterSheet) {
+        //     if let cluster = viewModel.selectedMarketplaceCluster {
+        //         JoinClusterSheet(cluster: cluster, viewModel: viewModel)
+        //             .presentationDetents([.medium])
+        //             .presentationBackground(Color(hex: "#F5F7F6"))
+        //     }
+        // }
+        // .sheet(isPresented: $viewModel.showShareDealSheet) {
+        //     ShareDealSheet(viewModel: viewModel)
+        //         .presentationDetents([.large])
+        //         .presentationBackground(Color(hex: "#F5F7F6"))
+        // }
     }
 
     // MARK: - Tab Bar
@@ -175,70 +176,71 @@ struct DealsTabView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: MarketplaceTheme.Spacing.lg) {
-                // Share Deal CTA
-                ShareDealCTACard(onTap: { viewModel.shareDeal() })
-                    .padding(.horizontal, MarketplaceTheme.Spacing.md)
+                // TODO: Share Deal CTA - Add when files are in Xcode
+                // ShareDealCTACard(onTap: { viewModel.shareDeal() })
+                //     .padding(.horizontal, MarketplaceTheme.Spacing.md)
 
-                // Provider Aggregates
-                if !viewModel.filteredAggregates.isEmpty {
-                    VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.sm) {
-                        HStack {
-                            Text("Average Bills in Your Area")
-                                .marketplaceSectionHeader()
+                // TODO: Provider Aggregates - Add when files are in Xcode
+                // if !viewModel.filteredAggregates.isEmpty {
+                //     VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.sm) {
+                //         HStack {
+                //             Text("Average Bills in Your Area")
+                //                 .marketplaceSectionHeader()
+                //
+                //             Spacer()
+                //
+                //             Text(viewModel.userZipCode.prefix(3) + "XX")
+                //                 .font(.system(size: MarketplaceTheme.Typography.micro, weight: .medium))
+                //                 .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
+                //                 .padding(.horizontal, 8)
+                //                 .padding(.vertical, 4)
+                //                 .background(Capsule().fill(MarketplaceTheme.Colors.backgroundSecondary))
+                //         }
+                //         .padding(.horizontal, MarketplaceTheme.Spacing.md)
+                //
+                //         ForEach(viewModel.filteredAggregates) { aggregate in
+                //             ProviderAggregateCard(
+                //                 aggregate: aggregate,
+                //                 onCompare: { viewModel.compareBill(to: aggregate) },
+                //                 onDetails: nil
+                //             )
+                //             .padding(.horizontal, MarketplaceTheme.Spacing.md)
+                //         }
+                //     }
+                // }
 
-                            Spacer()
+                // TODO: Featured Deals - Add when files are in Xcode
+                // if !viewModel.filteredFeaturedDeals.isEmpty {
+                //     VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.sm) {
+                //         HStack {
+                //             Text("Featured Deals")
+                //                 .marketplaceSectionHeader()
+                //
+                //             Spacer()
+                //
+                //             Image(systemName: "star.fill")
+                //                 .font(.system(size: 12))
+                //                 .foregroundStyle(MarketplaceTheme.Colors.accent)
+                //         }
+                //         .padding(.horizontal, MarketplaceTheme.Spacing.md)
+                //
+                //         ForEach(viewModel.filteredFeaturedDeals) { deal in
+                //             FeaturedDealCard(
+                //                 deal: deal,
+                //                 onUnlock: {
+                //                     Task {
+                //                         try? await viewModel.unlockFeaturedDeal(deal)
+                //                     }
+                //                 }
+                //             )
+                //             .padding(.horizontal, MarketplaceTheme.Spacing.md)
+                //         }
+                //     }
+                // }
 
-                            Text(viewModel.userZipCode.prefix(3) + "XX")
-                                .font(.system(size: MarketplaceTheme.Typography.micro, weight: .medium))
-                                .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Capsule().fill(MarketplaceTheme.Colors.backgroundSecondary))
-                        }
-                        .padding(.horizontal, MarketplaceTheme.Spacing.md)
-
-                        ForEach(viewModel.filteredAggregates) { aggregate in
-                            ProviderAggregateCard(
-                                aggregate: aggregate,
-                                onCompare: { viewModel.compareBill(to: aggregate) },
-                                onDetails: nil
-                            )
-                            .padding(.horizontal, MarketplaceTheme.Spacing.md)
-                        }
-                    }
-                }
-
-                // Featured Deals
-                if !viewModel.filteredFeaturedDeals.isEmpty {
-                    VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.sm) {
-                        HStack {
-                            Text("Featured Deals")
-                                .marketplaceSectionHeader()
-
-                            Spacer()
-
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 12))
-                                .foregroundStyle(MarketplaceTheme.Colors.accent)
-                        }
-                        .padding(.horizontal, MarketplaceTheme.Spacing.md)
-
-                        ForEach(viewModel.filteredFeaturedDeals) { deal in
-                            FeaturedDealCard(
-                                deal: deal,
-                                onUnlock: {
-                                    Task {
-                                        try? await viewModel.unlockFeaturedDeal(deal)
-                                    }
-                                }
-                            )
-                            .padding(.horizontal, MarketplaceTheme.Spacing.md)
-                        }
-                    }
-                }
-
-                // Empty state
-                if viewModel.filteredAggregates.isEmpty && viewModel.filteredFeaturedDeals.isEmpty {
+                // Empty state - show placeholder for now
+                // if viewModel.filteredAggregates.isEmpty && viewModel.filteredFeaturedDeals.isEmpty {
+                if true {
                     emptyState(
                         icon: "chart.bar.doc.horizontal",
                         title: "No deals in your area yet",
@@ -388,7 +390,7 @@ struct MarketplaceClusterCard: View {
                         .font(.system(size: MarketplaceTheme.Typography.callout, weight: .bold))
                         .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
 
-                    Text("\(cluster.providerName) • \(cluster.category.capitalized)")
+                    Text("\(cluster.providerName ?? "Provider") • \(cluster.category.capitalized)")
                         .font(.system(size: MarketplaceTheme.Typography.caption))
                         .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
                 }
@@ -400,12 +402,10 @@ struct MarketplaceClusterCard: View {
             }
 
             // Goal
-            if let goal = cluster.goalDescription {
-                Text(goal)
-                    .font(.system(size: MarketplaceTheme.Typography.caption))
-                    .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
-                    .lineLimit(2)
-            }
+            Text(cluster.goalDescription)
+                .font(.system(size: MarketplaceTheme.Typography.caption))
+                .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
+                .lineLimit(2)
 
             // Stats row
             HStack(spacing: MarketplaceTheme.Spacing.md) {
@@ -422,7 +422,7 @@ struct MarketplaceClusterCard: View {
                 HStack(spacing: 4) {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 12))
-                    Text(cluster.timeRemainingDisplay)
+                    Text(cluster.timeRemainingDisplay ?? "")
                         .font(.system(size: MarketplaceTheme.Typography.caption, weight: .medium))
                 }
                 .foregroundStyle(cluster.isUrgent ? MarketplaceTheme.Colors.warning : MarketplaceTheme.Colors.textSecondary)
@@ -476,7 +476,7 @@ struct MarketplaceClusterCard: View {
 // MARK: - Cluster Status Badge
 
 struct ClusterStatusBadge: View {
-    let status: ClusterStatus
+    let status: MarketplaceClusterStatus
 
     var body: some View {
         Text(status.displayName)
@@ -496,7 +496,6 @@ struct ClusterStatusBadge: View {
         case .active: return MarketplaceTheme.Colors.success
         case .negotiating: return MarketplaceTheme.Colors.warning
         case .goalReached: return MarketplaceTheme.Colors.success
-        case .flashDrop: return MarketplaceTheme.Colors.accent
         case .completed: return MarketplaceTheme.Colors.textSecondary
         case .expired: return MarketplaceTheme.Colors.danger
         }
@@ -549,7 +548,7 @@ struct ExpertsTabView: View {
                         emptyBountiesState
                     } else {
                         ForEach(viewModel.bounties) { bounty in
-                            BountyCard(bounty: bounty, onClaim: {
+                            BountyCard(bounty: bounty, onSubmit: {
                                 viewModel.claimBounty(bounty)
                             })
                             .padding(.horizontal, MarketplaceTheme.Spacing.md)
@@ -562,12 +561,13 @@ struct ExpertsTabView: View {
         .refreshable {
             await viewModel.refreshTab(.experts)
         }
-        .sheet(isPresented: $showOfferServiceSheet) {
-            OfferServiceSheet(viewModel: viewModel)
-        }
-        .sheet(isPresented: $showPostBountySheet) {
-            PostBountySheet(viewModel: viewModel)
-        }
+        // TODO: Add service sheets when files are in Xcode
+        // .sheet(isPresented: $showOfferServiceSheet) {
+        //     OfferServiceSheet(viewModel: viewModel)
+        // }
+        // .sheet(isPresented: $showPostBountySheet) {
+        //     PostBountySheet(viewModel: viewModel)
+        // }
     }
 
     // MARK: - Quick Actions (Stacked Full-Width)
@@ -729,18 +729,18 @@ struct SignalsTabView: View {
                         .padding(.horizontal, MarketplaceTheme.Spacing.md)
                 }
 
-                // Market Pulse Card
-                if !viewModel.marketPulse.isEmpty {
-                    MarketPulseCard(sentiments: viewModel.marketPulse)
-                        .padding(.horizontal, MarketplaceTheme.Spacing.md)
-                }
+                // TODO: Market Pulse Card - Add when files are in Xcode
+                // if !viewModel.marketPulse.isEmpty {
+                //     MarketPulseCard(sentiments: viewModel.marketPulse)
+                //         .padding(.horizontal, MarketplaceTheme.Spacing.md)
+                // }
 
-                // Your Votes Section
-                if hasUserVotes {
-                    yourVotesSection
-                }
+                // TODO: Your Votes Section - Add when files are in Xcode
+                // if hasUserVotes {
+                //     yourVotesSection
+                // }
 
-                // Active Signals
+                // Active Signals - placeholder for now
                 VStack(alignment: .leading, spacing: MarketplaceTheme.Spacing.sm) {
                     HStack {
                         Text("Active Predictions")
@@ -758,36 +758,20 @@ struct SignalsTabView: View {
                     }
                     .padding(.horizontal, MarketplaceTheme.Spacing.md)
 
-                    if filteredByCategory.isEmpty {
-                        emptyState(
-                            icon: "waveform.path.ecg",
-                            title: "No predictions yet",
-                            message: "AI-generated predictions coming soon!"
-                        )
-                    } else {
-                        ForEach(filteredByCategory) { signal in
-                            SignalCard(
-                                signal: signal,
-                                userVote: viewModel.userVotes[signal.id],
-                                onVoteYes: {
-                                    voteOnSignal(signal, vote: "yes")
-                                },
-                                onVoteNo: {
-                                    voteOnSignal(signal, vote: "no")
-                                }
-                            )
-                            .padding(.horizontal, MarketplaceTheme.Spacing.md)
-                            .overlay(
-                                // Vote success animation
-                                Group {
-                                    if showVoteSuccess && lastVotedSignalId == signal.id {
-                                        VoteSuccessOverlay()
-                                            .transition(.scale.combined(with: .opacity))
-                                    }
-                                }
-                            )
-                        }
-                    }
+                    // Show empty state for now
+                    emptyState(
+                        icon: "waveform.path.ecg",
+                        title: "No predictions yet",
+                        message: "AI-generated predictions coming soon!"
+                    )
+                    // TODO: Add SignalCard when files are in Xcode
+                    // if filteredByCategory.isEmpty {
+                    //     emptyState(...)
+                    // } else {
+                    //     ForEach(filteredByCategory) { signal in
+                    //         SignalCard(...)
+                    //     }
+                    // }
                 }
 
                 // How It Works
@@ -911,11 +895,9 @@ struct SignalsTabView: View {
             HStack {
                 PulseDotsView(activityLevel: signal.activityLevel)
                 Spacer()
-                if let expires = signal.expiresDisplay {
-                    Text(expires)
-                        .font(.system(size: MarketplaceTheme.Typography.micro))
-                        .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
-                }
+                Text(signal.expiresDisplay)
+                    .font(.system(size: MarketplaceTheme.Typography.micro))
+                    .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
             }
         }
         .padding(MarketplaceTheme.Spacing.md)
@@ -1140,6 +1122,95 @@ struct VoteSuccessOverlay: View {
                 scale = 0.8
             }
         }
+    }
+}
+
+// MARK: - Inline Signal Components (until files added to Xcode)
+
+struct VotingPercentageBar: View {
+    let yesPercentage: Double
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(MarketplaceTheme.Colors.danger.opacity(0.3))
+
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(MarketplaceTheme.Colors.success)
+                    .frame(width: geo.size.width * (yesPercentage / 100))
+            }
+        }
+        .frame(height: 8)
+    }
+}
+
+struct PulseDotsView: View {
+    let activityLevel: SignalActivityLevel
+
+    var body: some View {
+        HStack(spacing: 3) {
+            ForEach(0..<3, id: \.self) { index in
+                Circle()
+                    .fill(dotColor(for: index))
+                    .frame(width: 6, height: 6)
+            }
+        }
+    }
+
+    private func dotColor(for index: Int) -> Color {
+        switch activityLevel {
+        case .hot:
+            return MarketplaceTheme.Colors.success
+        case .active:
+            return index < 2 ? MarketplaceTheme.Colors.warning : MarketplaceTheme.Colors.textTertiary.opacity(0.3)
+        case .cooling:
+            return index < 1 ? MarketplaceTheme.Colors.textTertiary : MarketplaceTheme.Colors.textTertiary.opacity(0.3)
+        case .settled:
+            return MarketplaceTheme.Colors.textTertiary.opacity(0.3)
+        }
+    }
+}
+
+struct SignalCardCompact: View {
+    let signal: MarketplaceSignal
+    let userVote: String
+
+    var body: some View {
+        HStack(spacing: MarketplaceTheme.Spacing.sm) {
+            ZStack {
+                Circle()
+                    .fill((userVote == "yes" ? MarketplaceTheme.Colors.success : MarketplaceTheme.Colors.danger).opacity(0.15))
+                    .frame(width: 36, height: 36)
+
+                Image(systemName: userVote == "yes" ? "hand.thumbsup.fill" : "hand.thumbsdown.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(userVote == "yes" ? MarketplaceTheme.Colors.success : MarketplaceTheme.Colors.danger)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(signal.question)
+                    .font(.system(size: MarketplaceTheme.Typography.caption, weight: .medium))
+                    .foregroundStyle(MarketplaceTheme.Colors.textPrimary)
+                    .lineLimit(2)
+
+                HStack(spacing: 8) {
+                    Text("You voted \(userVote.capitalized)")
+                        .font(.system(size: MarketplaceTheme.Typography.micro))
+                        .foregroundStyle(userVote == "yes" ? MarketplaceTheme.Colors.success : MarketplaceTheme.Colors.danger)
+
+                    Text("•")
+                        .foregroundStyle(MarketplaceTheme.Colors.textTertiary)
+
+                    Text("\(userVote == "yes" ? signal.yesPercentage : 100 - signal.yesPercentage, specifier: "%.0f")% agree")
+                        .font(.system(size: MarketplaceTheme.Typography.micro))
+                        .foregroundStyle(MarketplaceTheme.Colors.textSecondary)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(.vertical, MarketplaceTheme.Spacing.xs)
     }
 }
 

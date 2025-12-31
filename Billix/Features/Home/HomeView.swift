@@ -8,6 +8,12 @@
 
 import SwiftUI
 
+// MARK: - Notification Name Extension
+
+extension NSNotification.Name {
+    static let navigateToTab = NSNotification.Name("navigateToTab")
+}
+
 // MARK: - Theme
 
 private enum Theme {
@@ -194,10 +200,9 @@ struct HomeView: View {
                     }
 
                     // Education (Contextual - rotates)
-                    // TODO: Re-enable after adding BillCoachModels.swift and BillCoachFlowView.swift to Xcode target
-                    // if showLearnToLower {
-                    //     LearnToLowerZone()
-                    // }
+                    if showLearnToLower {
+                        LearnToLowerZone()
+                    }
 
                     // Community Poll (Daily Question)
                     CommunityPollZoneNew()

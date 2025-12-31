@@ -61,6 +61,24 @@ class MarketplaceViewModel: ObservableObject {
     @Published var showUnlockSheet: Bool = false
     @Published var showAskOwnerSheet: Bool = false
     @Published var showPlaceBidSheet: Bool = false
+    @Published var showCreateClusterSheet: Bool = false
+    @Published var showJoinClusterSheet: Bool = false
+    @Published var showShareDealSheet: Bool = false
+
+    // Selected marketplace cluster
+    @Published var selectedMarketplaceCluster: MarketplaceCluster?
+
+    // Deals tab data
+    @Published var aggregates: [MarketplaceAggregate] = []
+    @Published var featuredDeals: [FeaturedDeal] = []
+
+    // Marketplace clusters
+    @Published var marketplaceClusters: [MarketplaceCluster] = []
+
+    // Signals
+    @Published var signals: [MarketplaceSignal] = []
+    @Published var userVotes: [UUID: String] = [:] // Signal ID to vote value
+    @Published var marketPulse: [CategorySentiment] = []
 
     // Filters
     @Published var selectedCategories: Set<MarketplaceBillType> = []
@@ -75,6 +93,9 @@ class MarketplaceViewModel: ObservableObject {
         "Mobile": 85.00,
         "Energy": 0.15
     ]
+
+    // User's ZIP code for deals
+    var userZipCode: String = "07030"
 
     // MARK: - Initialization
 
@@ -154,6 +175,41 @@ class MarketplaceViewModel: ObservableObject {
         }
     }
 
+    var filteredAggregates: [MarketplaceAggregate] {
+        aggregates.filter { aggregate in
+            let matchesSearch = searchText.isEmpty ||
+                aggregate.providerName.localizedCaseInsensitiveContains(searchText) ||
+                aggregate.category.localizedCaseInsensitiveContains(searchText)
+            return matchesSearch
+        }
+    }
+
+    var filteredFeaturedDeals: [FeaturedDeal] {
+        featuredDeals.filter { deal in
+            let matchesSearch = searchText.isEmpty ||
+                deal.providerName.localizedCaseInsensitiveContains(searchText) ||
+                deal.category.localizedCaseInsensitiveContains(searchText)
+            return matchesSearch
+        }
+    }
+
+    var filteredMarketplaceClusters: [MarketplaceCluster] {
+        marketplaceClusters.filter { cluster in
+            let matchesSearch = searchText.isEmpty ||
+                cluster.title.localizedCaseInsensitiveContains(searchText)
+            return matchesSearch
+        }
+    }
+
+    var filteredSignals: [MarketplaceSignal] {
+        signals.filter { signal in
+            let matchesSearch = searchText.isEmpty ||
+                signal.question.localizedCaseInsensitiveContains(searchText) ||
+                signal.category.localizedCaseInsensitiveContains(searchText)
+            return matchesSearch
+        }
+    }
+
     func resetFilters() {
         selectedCategories = []
         priceRange = 0...200
@@ -193,5 +249,62 @@ class MarketplaceViewModel: ObservableObject {
     func reportListing(_ listing: BillListing) {
         // TODO: Implement reporting
         print("Reported \(listing.providerName)")
+    }
+
+    // MARK: - Deals Tab Actions
+
+    func shareDeal() {
+        showShareDealSheet = true
+    }
+
+    func compareBill(to aggregate: MarketplaceAggregate) {
+        // TODO: Show comparison sheet
+        print("Compare bill to \(aggregate.providerName)")
+    }
+
+    func unlockFeaturedDeal(_ deal: FeaturedDeal) async throws {
+        // TODO: Implement deal unlock with points
+        print("Unlocking deal: \(deal.providerName)")
+    }
+
+    // MARK: - Clusters Tab Actions
+
+    func createCluster() {
+        showCreateClusterSheet = true
+    }
+
+    func joinCluster(_ cluster: MarketplaceCluster) {
+        selectedMarketplaceCluster = cluster
+        showJoinClusterSheet = true
+    }
+
+    // MARK: - Experts Tab Actions
+
+    func requestService(_ service: ServiceListing) {
+        // TODO: Show service request sheet
+        print("Requesting service: \(service.title)")
+    }
+
+    func claimBounty(_ bounty: Bounty) {
+        // TODO: Show bounty claim sheet
+        print("Claiming bounty: \(bounty.title)")
+    }
+
+    // MARK: - Tab Refresh
+
+    func refreshTab(_ tab: MarketplaceTab) async {
+        isLoading = true
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        // In real app, fetch specific tab data
+        loadMockData()
+    }
+
+    // MARK: - Signals Tab Actions
+
+    func voteOnSignal(_ signal: MarketplaceSignal, vote: String) async throws {
+        // Store vote locally
+        userVotes[signal.id] = vote
+        // TODO: Call MarketplaceSignalsService to record vote
+        print("Voted \(vote) on signal: \(signal.question)")
     }
 }

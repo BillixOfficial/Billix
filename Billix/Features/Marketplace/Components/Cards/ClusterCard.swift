@@ -104,6 +104,7 @@ struct ClusterCard: View {
         switch cluster.status {
         case .forming: return MarketplaceTheme.Colors.info
         case .active: return MarketplaceTheme.Colors.success
+        case .negotiating: return MarketplaceTheme.Colors.warning
         case .goalReached, .flashDrop: return MarketplaceTheme.Colors.accent
         case .completed: return MarketplaceTheme.Colors.textTertiary
         case .expired: return MarketplaceTheme.Colors.danger
