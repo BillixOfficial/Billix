@@ -40,10 +40,6 @@ class GeoGameViewModel: ObservableObject {
     // Question tracking for current question
     @Published var questionPhase: QuestionPhase = .loading
 
-    // Combo unlock animation
-    @Published var showComboUnlockAnimation: Bool = false
-    @Published var comboUnlockStreak: Int = 0
-
     // Heart loss animation
     @Published var showHeartLostAnimation: Bool = false
 
@@ -142,12 +138,6 @@ class GeoGameViewModel: ObservableObject {
 
     var healthText: String {
         String(repeating: "❤️", count: session.health) + String(repeating: "🖤", count: max(0, 3 - session.health))
-    }
-
-    var comboText: String? {
-        guard session.comboStreak >= 2 else { return nil }
-        let multiplier = GeoGameScoring.calculateComboMultiplier(session.comboStreak)
-        return "🔥 \(session.comboStreak)x COMBO (\(String(format: "%.0f", multiplier * 100))%)"
     }
 
     // MARK: - Timer Computed Properties
@@ -258,8 +248,7 @@ class GeoGameViewModel: ObservableObject {
             questions: [question],
             health: 3,
             totalPoints: 0,
-            questionsCorrect: 0,
-            comboStreak: 0
+            questionsCorrect: 0
         )
 
         self.init(session: session, onComplete: onComplete)
@@ -371,7 +360,6 @@ class GeoGameViewModel: ObservableObject {
 
         // Update session state
         session.health -= 1
-        session.comboStreak = 0
 
         // Trigger heart loss animation
         triggerHeartLossAnimation()
@@ -609,9 +597,7 @@ class GeoGameViewModel: ObservableObject {
             // Award points with difficulty and combo multipliers
             let points = GeoGameScoring.calculatePhase1Points(
                 correct: true,
-                isRetry: gameState.isRetryAttempt,
-                difficulty: question.difficulty,
-                comboStreak: session.comboStreak
+                isRetry: gameState.isRetryAttempt
             )
             gameState.phase1Points = points
 
@@ -619,10 +605,6 @@ class GeoGameViewModel: ObservableObject {
             session.totalPoints += points
             session.questionsCorrect += 1  // Keep for backwards compatibility
             session.landmarksCorrect += 1  // New: Track landmarks separately
-            session.comboStreak += 1
-
-            // Check for combo unlock animation
-            checkComboUnlock(newStreak: session.comboStreak)
 
             // Show success feedback
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
@@ -631,9 +613,8 @@ class GeoGameViewModel: ObservableObject {
             }
             // User will manually press Continue button to advance
         } else {
-            // Wrong answer - lose health and break combo immediately
+            // Wrong answer - lose health
             session.health -= 1
-            session.comboStreak = 0
             gameState.phase1Points = 0
             gameState.incorrectChoice = selected
 
@@ -701,12 +682,10 @@ class GeoGameViewModel: ObservableObject {
         // Calculate accuracy (unused but kept for potential future use)
         let _ = 1.0 - (abs(guess - question.actualPrice) / question.actualPrice)
 
-        // Calculate points with difficulty and combo multipliers
+        // Calculate points based on price accuracy
         let points = GeoGameScoring.calculatePhase2Points(
             guess: guess,
-            actual: question.actualPrice,
-            difficulty: question.difficulty,
-            comboStreak: session.comboStreak
+            actual: question.actualPrice
         )
         gameState.phase2Points = points
 
@@ -720,14 +699,9 @@ class GeoGameViewModel: ObservableObject {
             // Within 25% tolerance - counts as safe/correct
             session.questionsCorrect += 1  // Keep for backwards compatibility
             session.pricesCorrect += 1     // New: Track prices separately
-            session.comboStreak += 1
-
-            // Check for combo unlock animation
-            checkComboUnlock(newStreak: session.comboStreak)
         } else {
-            // Way off (>25%) - lose health and break combo
+            // Way off (>25%) - lose health
             session.health -= 1
-            session.comboStreak = 0
 
             // Trigger heart loss animation
             triggerHeartLossAnimation()
@@ -930,24 +904,6 @@ class GeoGameViewModel: ObservableObject {
         withAnimation(.easeInOut(duration: 0.3)) {
             cameraPosition = .camera(camera)
         }
-    }
-
-    // MARK: - Combo Unlock Animation
-
-    /// Check if we should trigger combo unlock animation when streak increases
-    /// Shows animation when crossing multiplier thresholds: 2, 4, 6
-    private func checkComboUnlock(newStreak: Int) {
-        // Multiplier thresholds: 2 (1.25x), 4 (1.5x), 6 (2.0x)
-        let comboThresholds = [2, 4, 6]
-
-        if comboThresholds.contains(newStreak) {
-            comboUnlockStreak = newStreak
-            showComboUnlockAnimation = true
-        }
-    }
-
-    func dismissComboAnimation() {
-        showComboUnlockAnimation = false
     }
 
     // MARK: - Heart Loss Animation

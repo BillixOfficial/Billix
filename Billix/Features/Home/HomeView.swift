@@ -2380,8 +2380,7 @@ private func daysUntilDue(dueDay: Int) -> Int {
         return dueDay - currentDay
     } else {
         // Due date is next month
-        guard let nextMonth = calendar.date(byAdding: .month, value: 1, to: today),
-              let daysInMonth = calendar.range(of: .day, in: .month, for: today)?.count else {
+        guard let daysInMonth = calendar.range(of: .day, in: .month, for: today)?.count else {
             return dueDay
         }
         return (daysInMonth - currentDay) + dueDay

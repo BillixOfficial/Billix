@@ -127,8 +127,7 @@ struct SessionGameContainerView: View {
         currentQuestionIndex: 0,
         health: 3,
         totalPoints: 0,
-        questionsCorrect: 0,
-        comboStreak: 0
+        questionsCorrect: 0
     )
 
     return SessionGameContainerView(

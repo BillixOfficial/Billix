@@ -37,59 +37,64 @@ struct CustomDonationCard: View {
                     }
                 }
 
-                HStack(spacing: 20) {
-                    // LEFT: Large Heart Icon
+                HStack(spacing: 12) {
+                    // LEFT: Large Heart Icon (Fixed width)
                     ZStack {
                         Circle()
                             .fill(Color.white.opacity(0.2))
-                            .frame(width: 80, height: 80)
+                            .frame(width: 60, height: 60)
 
                         Image(systemName: "heart.fill")
-                            .font(.system(size: 40, weight: .semibold))
+                            .font(.system(size: 32, weight: .semibold))
                             .foregroundColor(.white.opacity(0.9))
                     }
+                    .frame(width: 60, height: 60)
 
-                    // CENTER: Title & Subtitle
+                    // CENTER: Title & Subtitle (Flexible - can shrink)
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Donate to Any Charity")
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
 
-                        Text("You pick the cause, we send the funds")
-                            .font(.system(size: 14, weight: .medium))
+                        Text("You pick the cause, we donate")
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.white.opacity(0.85))
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .layoutPriority(1)
 
-                    Spacer()
+                    // RIGHT: Arrow Circle Button (Fixed width)
+                    VStack(spacing: 4) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 40, height: 40)
 
-                    // RIGHT: Start Request Button
-                    VStack(spacing: 6) {
-                        Text("Start Request")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(Color(hex: "#0D9488"))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white)
-                            )
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(Color(hex: "#0D9488"))
+                        }
 
-                        HStack(spacing: 4) {
+                        HStack(spacing: 3) {
                             Image(systemName: "star.fill")
-                                .font(.system(size: 10))
+                                .font(.system(size: 9))
                                 .foregroundColor(.white.opacity(0.9))
 
-                            Text("From 10k pts")
-                                .font(.system(size: 11, weight: .semibold))
+                            Text("10k pts")
+                                .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(.white.opacity(0.9))
                         }
                     }
+                    .frame(width: 50)
                 }
-                .padding(24)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 20)
             }
-            .frame(height: 160)
+            .frame(maxWidth: .infinity, maxHeight: 160)
             .cornerRadius(20)
             .shadow(color: Color(hex: "#0D9488").opacity(0.3), radius: 15, x: 0, y: 8)
         }

@@ -19,7 +19,7 @@ struct GiveawayEntryCard: View {
     @State private var timer: Timer?
 
     var isEligible: Bool {
-        currentTier.rawValue != "Bronze"
+        true  // Draw available to everyone
     }
 
     var odds: Double {

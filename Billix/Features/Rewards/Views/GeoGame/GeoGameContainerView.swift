@@ -69,22 +69,7 @@ struct GeoGameContainerView: View {
                 Spacer()
             }
 
-            // Layer 5: Combo unlock celebration animation (center screen)
-            if viewModel.showComboUnlockAnimation {
-                Color.black.opacity(0.3)
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-
-                ComboUnlockAnimation(
-                    comboStreak: viewModel.comboUnlockStreak,
-                    onComplete: {
-                        viewModel.dismissComboAnimation()
-                    }
-                )
-                .transition(.scale.combined(with: .opacity))
-            }
-
-            // Layer 6: Heart lost animation (center screen)
+            // Layer 5: Heart lost animation (center screen)
             if viewModel.showHeartLostAnimation {
                 Color.black.opacity(0.3)
                     .ignoresSafeArea()

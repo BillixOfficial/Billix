@@ -19,6 +19,11 @@ struct RewardCard: View {
     var style: RewardCardStyle = .carousel
     let onTap: () -> Void
 
+    // Variable amount detection
+    private var isVariableAmountCard: Bool {
+        reward.brandGroup != nil && reward.category == .giftCard
+    }
+
     private var progress: Double {
         min(Double(userPoints) / Double(reward.pointsCost), 1.0)
     }
@@ -33,6 +38,31 @@ struct RewardCard: View {
 
     private var accentColor: Color {
         Color(hex: reward.accentColor)
+    }
+
+    // Variable amount range (for brand categories)
+    private var pointsRange: String {
+        if isVariableAmountCard {
+            return "10k - 100k" // Min $5 to Max $50 at 2k pts/$1
+        }
+        return "\(reward.pointsCost)"
+    }
+
+    // Display value with "+" for variable amounts
+    private var displayValue: String? {
+        guard let value = reward.formattedValue else { return nil }
+        return isVariableAmountCard ? "\(value)+" : value
+    }
+
+    // Status text for affordability
+    private var statusText: String {
+        if canAfford {
+            if isVariableAmountCard, let dollarValue = reward.dollarValue {
+                return "$\(Int(dollarValue)) Unlocked"
+            }
+            return "Ready"
+        }
+        return "\(pointsToGo) pts to go"
     }
 
     var body: some View {
@@ -72,7 +102,7 @@ struct RewardCard: View {
                                 .foregroundColor(.billixMoneyGreen)
                         }
 
-                        Text(canAfford ? "Ready" : "\(pointsToGo) pts to go")
+                        Text(statusText)
                             .font(.system(size: 10, weight: .medium))
                             .foregroundColor(canAfford ? .billixMoneyGreen : .billixMediumGreen)
 
@@ -83,7 +113,7 @@ struct RewardCard: View {
                                 .font(.system(size: 8))
                                 .foregroundColor(.billixArcadeGold)
 
-                            Text("\(reward.pointsCost)")
+                            Text(pointsRange)
                                 .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(.billixDarkGreen)
                         }
@@ -112,7 +142,7 @@ struct RewardCard: View {
     @ViewBuilder
     private var giftCardVisual: some View {
         SimpleGiftCardVisual(
-            value: reward.formattedValue,
+            value: displayValue,
             brandName: reward.brand ?? reward.type.rawValue,
             color: accentColor,
             type: reward.type

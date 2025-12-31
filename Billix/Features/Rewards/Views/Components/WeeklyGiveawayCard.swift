@@ -21,7 +21,7 @@ struct WeeklyGiveawayCard: View {
     @State private var shimmerOffset: CGFloat = -300
 
     var isEligible: Bool {
-        currentTier.rawValue != "Bronze"
+        true  // Draw available to everyone
     }
 
     var body: some View {

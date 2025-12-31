@@ -13,7 +13,8 @@ struct ComboStreakView: View {
     let comboStreak: Int
 
     var multiplier: Double {
-        GeoGameScoring.calculateComboMultiplier(comboStreak)
+        // Combo system removed - return 1.0 (this view is no longer used)
+        return 1.0
     }
 
     var isVisible: Bool {

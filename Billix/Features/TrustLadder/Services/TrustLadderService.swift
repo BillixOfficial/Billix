@@ -923,7 +923,6 @@ class TrustLadderService: ObservableObject {
 
     /// Updates assist rating for a user
     func updateAssistRating(userId: UUID, asHelper: Bool, newRating: Int) async throws {
-        let field = asHelper ? "assist_rating_as_helper" : "assist_rating_as_requester"
         let timestamp = ISO8601DateFormatter().string(from: Date())
 
         // Fetch current rating

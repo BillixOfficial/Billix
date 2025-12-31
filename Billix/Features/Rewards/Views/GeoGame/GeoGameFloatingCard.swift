@@ -31,9 +31,6 @@ struct GeoGameFloatingCard: View {
                             shouldPulse: viewModel.shouldPulseTimer
                         )
                     }
-
-                    // Combo multiplier badge (persistent display)
-                    ComboStreakView(comboStreak: viewModel.session.comboStreak)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)

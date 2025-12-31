@@ -457,7 +457,6 @@ struct GeoGameDataService {
             health: 3,
             totalPoints: 0,
             questionsCorrect: 0,
-            comboStreak: 0,
             startedAt: Date()
         )
     }

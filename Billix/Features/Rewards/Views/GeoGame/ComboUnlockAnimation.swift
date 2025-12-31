@@ -18,7 +18,8 @@ struct ComboUnlockAnimation: View {
     @State private var glowOpacity: Double = 0
 
     var multiplier: Double {
-        GeoGameScoring.calculateComboMultiplier(comboStreak)
+        // Combo system removed - return 1.0 (this view is no longer used)
+        return 1.0
     }
 
     var multiplierText: String {

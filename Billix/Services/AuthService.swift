@@ -25,6 +25,7 @@ class AuthService: ObservableObject {
     @Published var isLoading = true
     @Published var awaitingEmailVerification = false
     @Published var pendingVerificationEmail: String?
+    @Published var isGuestMode = false
 
     // Temporary password storage for email verification polling (cleared after verification)
     private var pendingVerificationPassword: String?
@@ -237,10 +238,15 @@ class AuthService: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        try await supabase.auth.signOut()
+        // Only attempt Supabase signout if not in guest mode
+        if !isGuestMode {
+            try await supabase.auth.signOut()
+        }
+
         currentUser = nil
         isAuthenticated = false
         needsOnboarding = false
+        isGuestMode = false
         appleProvidedName = nil
         print("✅ User signed out")
     }
@@ -348,6 +354,23 @@ class AuthService: ObservableObject {
         } catch {
             throw AuthError.signUpFailed(error.localizedDescription)
         }
+    }
+
+    /// Sign in as guest - allows app exploration without authentication
+    func signInAsGuest() async throws {
+        isLoading = true
+
+        // Set guest mode flags to bypass authentication and onboarding
+        self.isGuestMode = true
+        self.isAuthenticated = true
+        self.needsOnboarding = false
+        self.currentUser = nil
+
+        // Small delay for smooth transition
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        self.isLoading = false
+        print("✅ Guest mode activated - user can explore app without account")
     }
 
     // MARK: - Email Verification

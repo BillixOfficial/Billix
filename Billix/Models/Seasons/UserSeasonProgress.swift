@@ -84,7 +84,7 @@ extension UserSeasonProgress {
         self.isCompleted = session.hasWon
         self.starsEarned = Self.calculateStars(session: session)
         self.pointsEarned = session.totalPoints
-        self.bestCombo = session.comboStreak
+        self.bestCombo = 0  // Combo system removed
         self.finalHealth = session.health
         self.accuracyPercent = Self.calculateAccuracy(session: session)
 

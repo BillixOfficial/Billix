@@ -113,7 +113,7 @@ struct GeoGameHowToPlayView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: 500)
                 .opacity(appeared ? 1 : 0)
-                .onChange(of: currentPage) { newPage in
+                .onChange(of: currentPage) { oldPage, newPage in
                     onPageChanged(newPage)
                 }
                 .accessibilityElement(children: .contain)

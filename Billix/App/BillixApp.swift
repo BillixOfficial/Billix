@@ -47,6 +47,9 @@ struct RootView: View {
             return .emailVerification
         } else if !authService.isAuthenticated {
             return .login
+        } else if authService.isGuestMode {
+            // Guest users skip onboarding and go straight to main app
+            return .main
         } else if authService.needsOnboarding {
             return .onboarding
         } else {
