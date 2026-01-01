@@ -264,6 +264,7 @@ struct LoginView: View {
 
                     // Sign In / Sign Up Button
                     Button(action: {
+                        print("🔘 Button pressed - isSignUpMode: \(isSignUpMode)")
                         if isSignUpMode {
                             handleSignUp()
                         } else {
@@ -308,6 +309,8 @@ struct LoginView: View {
                         .disabled(isLoading)
                     }
                 }
+                .id(isSignUpMode) // Force SwiftUI to re-render when mode changes
+                .animation(.easeInOut(duration: 0.2), value: isSignUpMode)
                 .padding(.horizontal, 32)
 
                 Spacer()
@@ -320,12 +323,11 @@ struct LoginView: View {
                         .shadow(color: Color.white.opacity(0.5), radius: 1, x: 0, y: 0)
 
                     Button(isSignUpMode ? "Sign in" : "Sign up") {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            isSignUpMode.toggle()
-                            // Clear fields when switching modes
-                            password = ""
-                            confirmPassword = ""
-                        }
+                        // Toggle without withAnimation to ensure SwiftUI properly re-renders
+                        isSignUpMode.toggle()
+                        // Clear fields when switching modes
+                        password = ""
+                        confirmPassword = ""
                     }
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.billixLoginTeal)
@@ -405,6 +407,7 @@ struct LoginView: View {
     }
 
     private func handleSignUp() {
+        print("🔐 handleSignUp() called")
         // Dismiss keyboard
         hideKeyboard()
         focusedField = nil
@@ -438,16 +441,20 @@ struct LoginView: View {
         }
 
         isLoading = true
+        print("🔐 Starting signup with email: \(email)")
 
         Task {
             do {
                 // AuthService handles the flow:
                 // - If email verification needed: shows EmailVerificationView
                 // - If no verification needed: proceeds to onboarding
-                try await authService.signUp(email: email, password: password)
+                let needsVerification = try await authService.signUp(email: email, password: password)
+                print("🔐 Signup completed - needsVerification: \(needsVerification)")
+                print("🔐 AuthService state - isAuthenticated: \(authService.isAuthenticated), needsOnboarding: \(authService.needsOnboarding), awaitingEmailVerification: \(authService.awaitingEmailVerification)")
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
             } catch {
+                print("🔐 Signup ERROR: \(error.localizedDescription)")
                 showErrorMessage(error.localizedDescription)
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.error)
