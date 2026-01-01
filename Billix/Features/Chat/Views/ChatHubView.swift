@@ -10,12 +10,15 @@ import SwiftUI
 // MARK: - Theme
 
 private enum ChatTheme {
-    static let background = Color(hex: "#F7F9F8")
+    static let background = Color(hex: "#F5F7F6")
     static let cardBackground = Color.white
-    static let primaryText = Color(hex: "#2D3B35")
-    static let secondaryText = Color(hex: "#8B9A94")
-    static let accent = Color(hex: "#5B8A6B")
-    static let info = Color(hex: "#5BA4D4")
+    static let primaryText = Color(hex: "#1A2420")
+    static let secondaryText = Color(hex: "#5C6B64")
+    static let placeholderText = Color(hex: "#9BA8A1")
+    static let accent = Color(hex: "#2D6B4D")
+    static let info = Color(hex: "#3B8BC4")
+    static let searchBackground = Color(hex: "#EAEEEC")
+    static let divider = Color(hex: "#D8DDD9")
 }
 
 struct ChatHubView: View {
@@ -31,8 +34,16 @@ struct ChatHubView: View {
                 ChatTheme.background.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    // Custom header
+                    headerView
+
                     // Search bar
                     searchBar
+
+                    // Divider
+                    Rectangle()
+                        .fill(ChatTheme.divider)
+                        .frame(height: 1)
 
                     // Content
                     if viewModel.isLoading && viewModel.conversations.isEmpty {
@@ -46,26 +57,7 @@ struct ChatHubView: View {
                     }
                 }
             }
-            .navigationTitle("Messages")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") {
-                        dismiss()
-                    }
-                    .foregroundColor(ChatTheme.accent)
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showNewChat = true
-                    } label: {
-                        Image(systemName: "square.and.pencil")
-                            .font(.system(size: 18, weight: .medium))
-                    }
-                    .foregroundColor(ChatTheme.accent)
-                }
-            }
+            .navigationBarHidden(true)
             .task {
                 await viewModel.loadConversations()
             }
@@ -95,40 +87,73 @@ struct ChatHubView: View {
         }
     }
 
-    // MARK: - Search Bar
+    // MARK: - Header View
 
-    private var searchBar: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 16))
-                    .foregroundColor(ChatTheme.secondaryText)
-
-                TextField("Search users or conversations...", text: $viewModel.searchQuery)
-                    .font(.system(size: 16))
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
-                    .onChange(of: viewModel.searchQuery) { _, _ in
-                        viewModel.searchUsers()
-                    }
-
-                if !viewModel.searchQuery.isEmpty {
-                    Button {
-                        viewModel.clearSearch()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(ChatTheme.secondaryText)
-                    }
-                }
+    private var headerView: some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Text("Close")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(ChatTheme.accent)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(ChatTheme.cardBackground)
-            .cornerRadius(10)
+
+            Spacer()
+
+            Text("Messages")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(ChatTheme.primaryText)
+
+            Spacer()
+
+            Button {
+                showNewChat = true
+            } label: {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(ChatTheme.accent)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+        .background(ChatTheme.cardBackground)
+    }
+
+    // MARK: - Search Bar
+
+    private var searchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundColor(ChatTheme.secondaryText)
+
+            TextField("Search users or conversations...", text: $viewModel.searchQuery)
+                .font(.system(size: 16))
+                .foregroundColor(ChatTheme.primaryText)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
+                .onChange(of: viewModel.searchQuery) { _, _ in
+                    viewModel.searchUsers()
+                }
+
+            if !viewModel.searchQuery.isEmpty {
+                Button {
+                    viewModel.clearSearch()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(ChatTheme.placeholderText)
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(ChatTheme.searchBackground)
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(ChatTheme.cardBackground)
     }
 
     // MARK: - Conversations List
@@ -233,35 +258,53 @@ struct ChatHubView: View {
     // MARK: - Empty State
 
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Spacer()
 
-            Image(systemName: "message.circle")
-                .font(.system(size: 70))
-                .foregroundColor(ChatTheme.info.opacity(0.5))
+            // Icon with circle background
+            ZStack {
+                Circle()
+                    .fill(ChatTheme.info.opacity(0.12))
+                    .frame(width: 120, height: 120)
 
-            Text("No Messages Yet")
-                .font(.system(size: 22, weight: .bold))
-                .foregroundColor(ChatTheme.primaryText)
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+                    .font(.system(size: 50))
+                    .foregroundColor(ChatTheme.info)
+            }
 
-            Text("Start a conversation by searching\nfor someone's @handle")
-                .font(.system(size: 15))
-                .foregroundColor(ChatTheme.secondaryText)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 10) {
+                Text("No Messages Yet")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(ChatTheme.primaryText)
+
+                Text("Start a conversation by searching\nfor someone's @handle")
+                    .font(.system(size: 16))
+                    .foregroundColor(ChatTheme.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
 
             Button {
                 showNewChat = true
             } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: 10) {
                     Image(systemName: "plus.message.fill")
+                        .font(.system(size: 18))
                     Text("Start a Chat")
+                        .font(.system(size: 17, weight: .semibold))
                 }
-                .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 14)
-                .background(ChatTheme.info)
-                .cornerRadius(12)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: [ChatTheme.info, ChatTheme.info.opacity(0.85)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .cornerRadius(14)
+                .shadow(color: ChatTheme.info.opacity(0.3), radius: 8, x: 0, y: 4)
             }
             .padding(.top, 8)
 

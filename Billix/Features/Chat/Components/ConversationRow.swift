@@ -10,13 +10,14 @@ import SwiftUI
 // MARK: - Theme
 
 private enum ChatTheme {
-    static let background = Color(hex: "#F7F9F8")
+    static let background = Color(hex: "#F5F7F6")
     static let cardBackground = Color.white
-    static let primaryText = Color(hex: "#2D3B35")
-    static let secondaryText = Color(hex: "#8B9A94")
-    static let accent = Color(hex: "#5B8A6B")
-    static let info = Color(hex: "#5BA4D4")
-    static let unreadBadge = Color(hex: "#E07A6B")
+    static let primaryText = Color(hex: "#1A2420")
+    static let secondaryText = Color(hex: "#5C6B64")
+    static let previewText = Color(hex: "#6D7A73")
+    static let accent = Color(hex: "#2D6B4D")
+    static let info = Color(hex: "#3B8BC4")
+    static let unreadBadge = Color(hex: "#DC4B3E")
 }
 
 struct ConversationRow: View {
@@ -27,14 +28,14 @@ struct ConversationRow: View {
             // Avatar
             AvatarView(
                 url: conversation.otherParticipant.avatarUrl,
-                size: 52
+                size: 54
             )
 
             // Content
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 HStack {
                     Text(conversation.otherParticipant.displayName)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(ChatTheme.primaryText)
                         .lineLimit(1)
 
@@ -43,24 +44,25 @@ struct ConversationRow: View {
                     // Timestamp
                     if let lastMessageAt = conversation.conversation.lastMessageAt {
                         Text(formatTimestamp(lastMessageAt))
-                            .font(.system(size: 12))
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundColor(ChatTheme.secondaryText)
                     }
                 }
 
-                HStack {
+                HStack(spacing: 6) {
                     // Handle
                     Text(conversation.otherParticipant.formattedHandle)
-                        .font(.system(size: 13))
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundColor(ChatTheme.info)
 
                     // Preview
                     if let preview = conversation.conversation.lastMessagePreview {
                         Text("·")
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(ChatTheme.secondaryText)
                         Text(preview)
-                            .font(.system(size: 14))
-                            .foregroundColor(ChatTheme.secondaryText)
+                            .font(.system(size: 15))
+                            .foregroundColor(ChatTheme.previewText)
                             .lineLimit(1)
                     }
 
@@ -69,20 +71,21 @@ struct ConversationRow: View {
                     // Unread badge
                     if conversation.unreadCount > 0 {
                         Text("\(conversation.unreadCount)")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 5)
                             .background(ChatTheme.unreadBadge)
                             .clipShape(Capsule())
                     }
                 }
             }
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .padding(.horizontal, 16)
         .background(ChatTheme.cardBackground)
-        .cornerRadius(12)
+        .cornerRadius(14)
+        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
 
     private func formatTimestamp(_ date: Date) -> String {
