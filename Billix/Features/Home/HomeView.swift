@@ -767,7 +767,7 @@ private struct NotificationRow: View {
 
 private enum QuickActionType: String, Identifiable {
     case addBill = "Add Bill"
-    case scan = "Scan"
+    case chat = "Chat"
     case compare = "Swap"
     case budget = "Budget"
 
@@ -776,7 +776,7 @@ private enum QuickActionType: String, Identifiable {
     var icon: String {
         switch self {
         case .addBill: return "plus.circle.fill"
-        case .scan: return "doc.text.viewfinder"
+        case .chat: return "message.fill"
         case .compare: return "arrow.left.arrow.right.circle.fill"
         case .budget: return "chart.pie.fill"
         }
@@ -785,7 +785,7 @@ private enum QuickActionType: String, Identifiable {
     var color: Color {
         switch self {
         case .addBill: return Theme.accent
-        case .scan: return Theme.info
+        case .chat: return Theme.info
         case .compare: return Theme.purple
         case .budget: return Theme.warning
         }
@@ -802,10 +802,10 @@ private enum QuickActionType: String, Identifiable {
 private struct QuickActionsZone: View {
     @State private var showSwapHub = false
     @State private var showAddBill = false
-    @State private var showScan = false
+    @State private var showChat = false
     @State private var showBudget = false
 
-    private let actions: [QuickActionType] = [.addBill, .scan, .compare, .budget]
+    private let actions: [QuickActionType] = [.addBill, .chat, .compare, .budget]
 
     var body: some View {
         HStack(spacing: 10) {
@@ -853,8 +853,8 @@ private struct QuickActionsZone: View {
         .sheet(isPresented: $showAddBill) {
             AddBillActionSheet()
         }
-        .sheet(isPresented: $showScan) {
-            ScanBillView()
+        .sheet(isPresented: $showChat) {
+            ChatHubView()
         }
         .sheet(isPresented: $showBudget) {
             BudgetOverviewView()
@@ -867,8 +867,8 @@ private struct QuickActionsZone: View {
             showSwapHub = true
         case .addBill:
             showAddBill = true
-        case .scan:
-            showScan = true
+        case .chat:
+            showChat = true
         case .budget:
             showBudget = true
         }
