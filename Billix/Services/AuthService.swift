@@ -659,6 +659,24 @@ class AuthService: ObservableObject {
         print("✅ Bio updated")
     }
 
+    /// Update handle/username
+    func updateHandle(_ handle: String) async throws {
+        guard let userId = currentUser?.id else {
+            throw AuthError.noUserLoggedIn
+        }
+
+        try await supabase
+            .from("profiles")
+            .update(["handle": handle])
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+
+        // Refresh user data
+        let user = try await fetchUserData(userId: userId)
+        self.currentUser = user
+        print("✅ Handle updated to: \(handle)")
+    }
+
     /// Update avatar
     func updateAvatar(imageData: Data) async throws {
         guard let userId = currentUser?.id else {
