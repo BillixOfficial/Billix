@@ -138,54 +138,70 @@ struct LoginView: View {
                     .padding(.vertical, 8)
 
                     // Email
-                    TextField("Email", text: $email)
-                        .focused($focusedField, equals: .email)
-                        .keyboardType(.emailAddress)
-                        .textContentType(.emailAddress)
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color.black)
-                        .tint(Color.black)
-                        .padding(16)
-                        .background(Color.white)
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                        )
-                        .disabled(isLoading)
+                    ZStack(alignment: .leading) {
+                        if email.isEmpty {
+                            Text("Email")
+                                .font(.system(size: 16))
+                                .foregroundColor(.black.opacity(0.5))
+                                .padding(.leading, 16)
+                        }
+                        TextField("", text: $email)
+                            .focused($focusedField, equals: .email)
+                            .keyboardType(.emailAddress)
+                            .textContentType(.emailAddress)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color.black)
+                            .tint(Color.black)
+                            .padding(16)
+                    }
+                    .background(Color.white)
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
+                    .disabled(isLoading)
 
                     // Password
-                    HStack {
-                        if isSecured {
-                            SecureField("Password", text: $password)
-                                .focused($focusedField, equals: .password)
-                                .textContentType(isSignUpMode ? .newPassword : .password)
+                    ZStack(alignment: .leading) {
+                        if password.isEmpty {
+                            Text("Password")
                                 .font(.system(size: 16))
-                                .foregroundStyle(Color.black)
-                                .tint(Color.black)
-                        } else {
-                            TextField("Password", text: $password)
-                                .focused($focusedField, equals: .password)
-                                .textContentType(isSignUpMode ? .newPassword : .password)
-                                .autocapitalization(.none)
-                                .disableAutocorrection(true)
-                                .font(.system(size: 16))
-                                .foregroundStyle(Color.black)
-                                .tint(Color.black)
+                                .foregroundColor(.black.opacity(0.5))
+                                .padding(.leading, 16)
                         }
-
-                        Button(action: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                isSecured.toggle()
+                        HStack {
+                            if isSecured {
+                                SecureField("", text: $password)
+                                    .focused($focusedField, equals: .password)
+                                    .textContentType(isSignUpMode ? .newPassword : .password)
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(Color.black)
+                                    .tint(Color.black)
+                            } else {
+                                TextField("", text: $password)
+                                    .focused($focusedField, equals: .password)
+                                    .textContentType(isSignUpMode ? .newPassword : .password)
+                                    .autocapitalization(.none)
+                                    .disableAutocorrection(true)
+                                    .font(.system(size: 16))
+                                    .foregroundStyle(Color.black)
+                                    .tint(Color.black)
                             }
-                        }) {
-                            Image(systemName: isSecured ? "eye.slash" : "eye")
-                                .foregroundStyle(Color.gray)
+
+                            Button(action: {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    isSecured.toggle()
+                                }
+                            }) {
+                                Image(systemName: isSecured ? "eye.slash" : "eye")
+                                    .foregroundStyle(Color.gray)
+                            }
                         }
+                        .padding(16)
                     }
-                    .padding(16)
                     .background(Color.white)
                     .cornerRadius(16)
                     .overlay(
@@ -196,26 +212,34 @@ struct LoginView: View {
 
                     // Confirm Password (only in sign-up mode)
                     if isSignUpMode {
-                        HStack {
-                            if isSecured {
-                                SecureField("Confirm Password", text: $confirmPassword)
-                                    .focused($focusedField, equals: .confirmPassword)
-                                    .textContentType(.newPassword)
+                        ZStack(alignment: .leading) {
+                            if confirmPassword.isEmpty {
+                                Text("Confirm Password")
                                     .font(.system(size: 16))
-                                    .foregroundStyle(Color.black)
-                                    .tint(Color.black)
-                            } else {
-                                TextField("Confirm Password", text: $confirmPassword)
-                                    .focused($focusedField, equals: .confirmPassword)
-                                    .textContentType(.newPassword)
-                                    .autocapitalization(.none)
-                                    .disableAutocorrection(true)
-                                    .font(.system(size: 16))
-                                    .foregroundStyle(Color.black)
-                                    .tint(Color.black)
+                                    .foregroundColor(.black.opacity(0.5))
+                                    .padding(.leading, 16)
                             }
+                            HStack {
+                                if isSecured {
+                                    SecureField("", text: $confirmPassword)
+                                        .focused($focusedField, equals: .confirmPassword)
+                                        .textContentType(.newPassword)
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(Color.black)
+                                        .tint(Color.black)
+                                } else {
+                                    TextField("", text: $confirmPassword)
+                                        .focused($focusedField, equals: .confirmPassword)
+                                        .textContentType(.newPassword)
+                                        .autocapitalization(.none)
+                                        .disableAutocorrection(true)
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(Color.black)
+                                        .tint(Color.black)
+                                }
+                            }
+                            .padding(16)
                         }
-                        .padding(16)
                         .background(Color.white)
                         .cornerRadius(16)
                         .overlay(
@@ -240,6 +264,7 @@ struct LoginView: View {
 
                     // Sign In / Sign Up Button
                     Button(action: {
+                        print("🔘 Button pressed - isSignUpMode: \(isSignUpMode)")
                         if isSignUpMode {
                             handleSignUp()
                         } else {
@@ -284,6 +309,8 @@ struct LoginView: View {
                         .disabled(isLoading)
                     }
                 }
+                .id(isSignUpMode) // Force SwiftUI to re-render when mode changes
+                .animation(.easeInOut(duration: 0.2), value: isSignUpMode)
                 .padding(.horizontal, 32)
 
                 Spacer()
@@ -296,12 +323,11 @@ struct LoginView: View {
                         .shadow(color: Color.white.opacity(0.5), radius: 1, x: 0, y: 0)
 
                     Button(isSignUpMode ? "Sign in" : "Sign up") {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            isSignUpMode.toggle()
-                            // Clear fields when switching modes
-                            password = ""
-                            confirmPassword = ""
-                        }
+                        // Toggle without withAnimation to ensure SwiftUI properly re-renders
+                        isSignUpMode.toggle()
+                        // Clear fields when switching modes
+                        password = ""
+                        confirmPassword = ""
                     }
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.billixLoginTeal)
@@ -381,6 +407,7 @@ struct LoginView: View {
     }
 
     private func handleSignUp() {
+        print("🔐 handleSignUp() called")
         // Dismiss keyboard
         hideKeyboard()
         focusedField = nil
@@ -414,16 +441,20 @@ struct LoginView: View {
         }
 
         isLoading = true
+        print("🔐 Starting signup with email: \(email)")
 
         Task {
             do {
                 // AuthService handles the flow:
                 // - If email verification needed: shows EmailVerificationView
                 // - If no verification needed: proceeds to onboarding
-                try await authService.signUp(email: email, password: password)
+                let needsVerification = try await authService.signUp(email: email, password: password)
+                print("🔐 Signup completed - needsVerification: \(needsVerification)")
+                print("🔐 AuthService state - isAuthenticated: \(authService.isAuthenticated), needsOnboarding: \(authService.needsOnboarding), awaitingEmailVerification: \(authService.awaitingEmailVerification)")
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
             } catch {
+                print("🔐 Signup ERROR: \(error.localizedDescription)")
                 showErrorMessage(error.localizedDescription)
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.error)
