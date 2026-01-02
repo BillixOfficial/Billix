@@ -178,17 +178,14 @@ struct TipView: View {
                     }
                 }
 
-                // Success overlay
-                if viewModel.showSuccess {
-                    SuccessOverlay(
-                        message: "Tip saved!",
-                        points: 10,
-                        onDismiss: {
-                            dismiss()
-                        }
-                    )
-                }
+                // Toast notification
+                EmptyView()
             }
+            .toast(
+                isShowing: $viewModel.showToast,
+                message: "Tip saved!",
+                points: 5
+            )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -213,9 +210,10 @@ class TipViewModel: ObservableObject {
     @Published var tipData: TipWithReadStatus?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var showSuccess = false
+    @Published var showToast = false
 
     private let tipsService = TipsService.shared
+    private let rewardsService = RewardsService()
     private let taskService = TaskTrackingService()
     private let authService = AuthService.shared
 
@@ -237,31 +235,61 @@ class TipViewModel: ObservableObject {
         guard let tipId = tipData?.tip.id else { return }
 
         do {
-            // Mark tip as read
-            try await tipsService.markTipAsRead(tipId: tipId, readDuration: nil as Int?)
-
-            // Track task completion
-            if let userId = authService.currentUser?.id {
-                _ = try await taskService.incrementTaskProgress(
-                    userId: userId,
-                    taskKey: "daily_read_tip",
-                    sourceId: tipId
-                )
-
-                print("✅ Tip task progress tracked")
-            }
+            // 1. Mark tip as read
+            try await tipsService.markTipAsRead(tipId: tipId, readDuration: nil)
 
             // Update local state
             if let tipData = tipData {
                 self.tipData = TipWithReadStatus(
                     tip: tipData.tip,
                     hasRead: true,
-                    tipView: nil as UserTipView?
+                    tipView: nil
                 )
             }
 
-            // Show success
-            showSuccess = true
+            // 2. Track task completion AND auto-claim
+            if let userId = authService.currentUser?.id {
+                // Mark as completed
+                _ = try await taskService.incrementTaskProgress(
+                    userId: userId,
+                    taskKey: "daily_read_tip",
+                    sourceId: tipId
+                )
+
+                // Auto-claim points
+                let claimResult = try await taskService.claimTaskReward(
+                    userId: userId,
+                    taskKey: "daily_read_tip"
+                )
+
+                if claimResult.success {
+                    // Award points via RewardsService
+                    try await rewardsService.addPoints(
+                        userId: userId,
+                        amount: claimResult.pointsAwarded,
+                        type: "task_completion",
+                        description: "Daily tip read",
+                        source: "daily_read_tip"
+                    )
+
+                    // Notify RewardsViewModel to refresh
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("PointsUpdated"),
+                        object: nil
+                    )
+
+                    print("✅ Tip completed and claimed: +\(claimResult.pointsAwarded) pts")
+
+                    // Show toast notification
+                    showToast = true
+
+                    // Auto-dismiss toast after 2 seconds
+                    Task {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        showToast = false
+                    }
+                }
+            }
 
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()

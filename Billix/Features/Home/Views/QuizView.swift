@@ -45,17 +45,14 @@ struct QuizView: View {
                     }
                 }
 
-                // Success overlay
-                if viewModel.showSuccess {
-                    SuccessOverlay(
-                        message: "Quiz completed!",
-                        points: 15,
-                        onDismiss: {
-                            dismiss()
-                        }
-                    )
-                }
+                // Toast notification
+                EmptyView()
             }
+            .toast(
+                isShowing: $viewModel.showToast,
+                message: "Quiz completed!",
+                points: 8
+            )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -415,9 +412,10 @@ class QuizViewModel: ObservableObject {
     @Published var score = 0
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var showSuccess = false
+    @Published var showToast = false
 
     private let quizService = QuizService.shared
+    private let rewardsService = RewardsService()
     private let taskService = TaskTrackingService()
     private let authService = AuthService.shared
 
@@ -483,6 +481,7 @@ class QuizViewModel: ObservableObject {
         guard let quizId = quizData?.quiz.id else { return }
 
         do {
+            // 1. Submit quiz answers
             let submission = QuizSubmission(
                 quizId: quizId,
                 answers: selectedAnswers
@@ -492,19 +491,49 @@ class QuizViewModel: ObservableObject {
             score = attempt.score
             isCompleted = true
 
-            // Track task completion
+            // 2. Track task completion AND auto-claim
             if let userId = authService.currentUser?.id {
+                // Mark as completed
                 _ = try await taskService.incrementTaskProgress(
                     userId: userId,
                     taskKey: "daily_complete_quiz",
                     sourceId: quizId
                 )
 
-                print("✅ Quiz task progress tracked")
-            }
+                // Auto-claim points
+                let claimResult = try await taskService.claimTaskReward(
+                    userId: userId,
+                    taskKey: "daily_complete_quiz"
+                )
 
-            // Show success
-            showSuccess = true
+                if claimResult.success {
+                    // Award points via RewardsService
+                    try await rewardsService.addPoints(
+                        userId: userId,
+                        amount: claimResult.pointsAwarded,
+                        type: "task_completion",
+                        description: "Daily quiz completion",
+                        source: "daily_complete_quiz"
+                    )
+
+                    // Notify RewardsViewModel to refresh
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("PointsUpdated"),
+                        object: nil
+                    )
+
+                    print("✅ Quiz completed and claimed: +\(claimResult.pointsAwarded) pts")
+
+                    // Show toast notification
+                    showToast = true
+
+                    // Auto-dismiss toast after 2 seconds
+                    Task {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        showToast = false
+                    }
+                }
+            }
 
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()

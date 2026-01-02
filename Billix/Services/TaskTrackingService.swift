@@ -117,6 +117,60 @@ class TaskTrackingService {
 
         return response
     }
+
+    /// Fetch weekly check-in history for the current week (Monday to Sunday)
+    func getWeeklyCheckIns(userId: UUID) async throws -> [Bool] {
+        // Get the current week's Monday and Sunday
+        let calendar = Calendar.current
+        let now = Date()
+
+        // Get the start of the current week (Monday)
+        var components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
+        components.weekday = 2 // Monday
+        guard let weekStart = calendar.date(from: components) else {
+            return Array(repeating: false, count: 7)
+        }
+
+        // Get the end of the current week (Sunday at 11:59:59 PM)
+        guard let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
+            return Array(repeating: false, count: 7)
+        }
+
+        // Query user_task_completions for daily_check_in tasks in this week
+        struct CheckInCompletion: Codable {
+            let completedAt: Date
+
+            enum CodingKeys: String, CodingKey {
+                case completedAt = "completed_at"
+            }
+        }
+
+        let completions: [CheckInCompletion] = try await client
+            .from("user_task_completions")
+            .select("completed_at")
+            .eq("user_id", value: userId.uuidString)
+            .eq("task_key", value: "daily_check_in")
+            .gte("completed_at", value: weekStart.ISO8601Format())
+            .lt("completed_at", value: weekEnd.ISO8601Format())
+            .order("completed_at")
+            .execute()
+            .value
+
+        // Map completions to weekdays (Monday = index 0, Sunday = index 6)
+        var weekProgress = Array(repeating: false, count: 7)
+
+        for completion in completions {
+            let weekday = calendar.component(.weekday, from: completion.completedAt)
+            // weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+            // Convert to our index: 0 = Monday, 6 = Sunday
+            let index = weekday == 1 ? 6 : weekday - 2
+            if index >= 0 && index < 7 {
+                weekProgress[index] = true
+            }
+        }
+
+        return weekProgress
+    }
 }
 
 // MARK: - Data Transfer Objects (DTOs)

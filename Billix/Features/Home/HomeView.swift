@@ -224,14 +224,6 @@ struct HomeView: View {
                 // Refresh streak on pull-to-refresh
                 try? await streakService.fetchStreak()
             }
-            .task {
-                // Load streak and record activity when view appears
-                do {
-                    try await streakService.recordActivity()
-                } catch {
-                    print("❌ Error recording streak activity: \(error)")
-                }
-            }
             .onAppear {
                 // Show setup questions for first-time users
                 if let user = authService.currentUser, user.needsHomeSetup {

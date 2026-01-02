@@ -12,6 +12,11 @@ struct QuickTasksScreen: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = TasksViewModel()
 
+    // Sheet presentation states
+    @State private var showPollView = false
+    @State private var showQuizView = false
+    @State private var showTipView = false
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             ScrollView(showsIndicators: false) {
@@ -63,6 +68,29 @@ struct QuickTasksScreen: View {
         .navigationBarHidden(true)
         .task {
             await viewModel.loadTasks()
+        }
+        // Notification listeners for navigation
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToPoll"))) { _ in
+            print("📥 RECEIVED NavigateToPoll notification")
+            showPollView = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToQuiz"))) { _ in
+            print("📥 RECEIVED NavigateToQuiz notification")
+            showQuizView = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToTip"))) { _ in
+            print("📥 RECEIVED NavigateToTip notification")
+            showTipView = true
+        }
+        // Sheet presentations
+        .sheet(isPresented: $showPollView) {
+            PollView()
+        }
+        .sheet(isPresented: $showQuizView) {
+            QuizView()
+        }
+        .sheet(isPresented: $showTipView) {
+            TipView()
         }
     }
 

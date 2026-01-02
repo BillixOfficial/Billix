@@ -136,6 +136,13 @@
 		A69E78322F06E79B004E63B4 /* TaskTrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78312F06E79B004E63B4 /* TaskTrackingService.swift */; };
 		A69E78342F06E7E4004E63B4 /* TaskModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78332F06E7E4004E63B4 /* TaskModels.swift */; };
 		A69E78382F075036004E63B4 /* TasksViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78372F075036004E63B4 /* TasksViewModel.swift */; };
+		A6E5FF482F0880E5009F1277 /* PollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF452F0880E5009F1277 /* PollView.swift */; };
+		A6E5FF492F0880E5009F1277 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF462F0880E5009F1277 /* QuizView.swift */; };
+		A6E5FF4A2F0880E5009F1277 /* TipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF472F0880E5009F1277 /* TipView.swift */; };
+		A6E5FF4C2F088114009F1277 /* ToastNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4B2F088114009F1277 /* ToastNotification.swift */; };
+		A6E5FF502F088187009F1277 /* CommunityPollService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */; };
+		A6E5FF512F088187009F1277 /* QuizService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4E2F088187009F1277 /* QuizService.swift */; };
+		A6E5FF522F088187009F1277 /* TipsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4F2F088187009F1277 /* TipsService.swift */; };
 		A6F3C78C2EEF74C300264730 /* LocationMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF828B2EECA1C5008330C9 /* LocationMapView.swift */; };
 		A6F3C78D2EEF74CC00264730 /* LocationRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82872EECA1C5008330C9 /* LocationRow.swift */; };
 		A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */; };
@@ -409,6 +416,13 @@
 		A69E78312F06E79B004E63B4 /* TaskTrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskTrackingService.swift; sourceTree = "<group>"; };
 		A69E78332F06E7E4004E63B4 /* TaskModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskModels.swift; sourceTree = "<group>"; };
 		A69E78372F075036004E63B4 /* TasksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksViewModel.swift; sourceTree = "<group>"; };
+		A6E5FF452F0880E5009F1277 /* PollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollView.swift; sourceTree = "<group>"; };
+		A6E5FF462F0880E5009F1277 /* QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizView.swift; sourceTree = "<group>"; };
+		A6E5FF472F0880E5009F1277 /* TipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipView.swift; sourceTree = "<group>"; };
+		A6E5FF4B2F088114009F1277 /* ToastNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastNotification.swift; sourceTree = "<group>"; };
+		A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityPollService.swift; sourceTree = "<group>"; };
+		A6E5FF4E2F088187009F1277 /* QuizService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizService.swift; sourceTree = "<group>"; };
+		A6E5FF4F2F088187009F1277 /* TipsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipsService.swift; sourceTree = "<group>"; };
 		A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIResponse.swift; sourceTree = "<group>"; };
 		A6FF810F2ECBBCE3008330C9 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		A6FF811D2ECEB3BC008330C9 /* BillsExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillsExploreView.swift; sourceTree = "<group>"; };
@@ -724,6 +738,13 @@
 		8B8B8B8B8B8B8B8B8B8B8B8B /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */,
+				A6E5FF4E2F088187009F1277 /* QuizService.swift */,
+				A6E5FF4F2F088187009F1277 /* TipsService.swift */,
+				A6E5FF4B2F088114009F1277 /* ToastNotification.swift */,
+				A6E5FF452F0880E5009F1277 /* PollView.swift */,
+				A6E5FF462F0880E5009F1277 /* QuizView.swift */,
+				A6E5FF472F0880E5009F1277 /* TipView.swift */,
 				A69E78372F075036004E63B4 /* TasksViewModel.swift */,
 				A69E78332F06E7E4004E63B4 /* TaskModels.swift */,
 				A69E782B2F05D4BC004E63B4 /* HomePageZones.swift */,
@@ -1646,6 +1667,7 @@
 				A6FF824C2EDE3AD4008330C9 /* GeoGameResultView.swift in Sources */,
 				A6FF824D2EDE3AD4008330C9 /* GeoGameFloatingCard.swift in Sources */,
 				A6FF82862EE6420A008330C9 /* SeasonGameContainerView.swift in Sources */,
+				A6E5FF4C2F088114009F1277 /* ToastNotification.swift in Sources */,
 				A6FF824E2EDE3AD4008330C9 /* ComboStreakView.swift in Sources */,
 				A6FF824F2EDE3AD4008330C9 /* HealthBarView.swift in Sources */,
 				A6FF82502EDE3AD4008330C9 /* RewardMarketplace.swift in Sources */,
@@ -1713,6 +1735,9 @@
 				A602F25F2EF9AB2900856DEE /* SwapStoreKitService.swift in Sources */,
 				A602F2602EF9AB2900856DEE /* FindMatchView.swift in Sources */,
 				A602F2612EF9AB2900856DEE /* SwapMatchingService.swift in Sources */,
+				A6E5FF502F088187009F1277 /* CommunityPollService.swift in Sources */,
+				A6E5FF512F088187009F1277 /* QuizService.swift in Sources */,
+				A6E5FF522F088187009F1277 /* TipsService.swift in Sources */,
 				A602F2622EF9AB2900856DEE /* TrustLadderService.swift in Sources */,
 				A69E78202F05D3F5004E63B4 /* OutageBotViewModel.swift in Sources */,
 				A602F2632EF9AB2900856DEE /* SwapExecutionView.swift in Sources */,
@@ -1748,6 +1773,9 @@
 				D8E729C509255F5015837DD4 /* PlaceBidSheet.swift in Sources */,
 				12B8AABBC0EC521CAA0EE907 /* AllUploadsView.swift in Sources */,
 				A602F2762EFA002E00856DEE /* CustomDonationCard.swift in Sources */,
+				A6E5FF482F0880E5009F1277 /* PollView.swift in Sources */,
+				A6E5FF492F0880E5009F1277 /* QuizView.swift in Sources */,
+				A6E5FF4A2F0880E5009F1277 /* TipView.swift in Sources */,
 				A602F2772EFA002E00856DEE /* CustomDonationRequestSheet.swift in Sources */,
 				78CC9A4B4CE73C72FDFDAFBF /* UploadDetailView.swift in Sources */,
 				94CA342EC160B25D39828956 /* AnalysisResultsTabbedView.swift in Sources */,

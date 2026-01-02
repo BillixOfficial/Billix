@@ -30,6 +30,8 @@ struct RewardsHubView: View {
                         cashEquivalent: viewModel.points.cashEquivalent,
                         currentTier: viewModel.currentTier,
                         tierProgress: viewModel.tierProgress,
+                        streakCount: tasksViewModel.currentStreak,
+                        weeklyCheckIns: tasksViewModel.weeklyCheckIns,
                         onHistoryTapped: {
                             viewModel.showHistory = true
                         }
@@ -62,6 +64,7 @@ struct RewardsHubView: View {
         .onAppear {
             Task {
                 await viewModel.loadRewardsData()
+                await tasksViewModel.loadTasks()  // Load tasks to get weekly check-in data
             }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 appeared = true
@@ -719,14 +722,20 @@ struct DailyTaskCardView: View {
             canClaim: task.canClaim
         )) {
             // Handle task action
+            print("🟡 BUTTON TAPPED - Task: \(task.title), Type: \(task.taskType), canClaim: \(task.canClaim)")
             Task {
                 if task.taskType == .checkIn {
+                    print("🟢 CHECK-IN PATH - Calling performCheckIn()")
+                    print("🟢 ViewModel: \(viewModel)")
                     await viewModel.performCheckIn()
+                    print("🟢 performCheckIn() returned")
                     await rewardsViewModel.loadRewardsData() // Refresh balance
                 } else if task.canClaim {
+                    print("🟠 CLAIM PATH - Calling claimTask()")
                     await viewModel.claimTask(task)
                     await rewardsViewModel.loadRewardsData() // Refresh balance
                 } else {
+                    print("🔵 NAVIGATE PATH - Posting NavigateToUpload notification")
                     // Navigate to upload screen
                     NotificationCenter.default.post(name: NSNotification.Name("NavigateToUpload"), object: nil)
                 }

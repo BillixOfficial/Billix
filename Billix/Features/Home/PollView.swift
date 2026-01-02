@@ -143,17 +143,14 @@ struct PollView: View {
                     }
                 }
 
-                // Success overlay
-                if viewModel.showSuccess {
-                    SuccessOverlay(
-                        message: "Vote submitted!",
-                        points: 5,
-                        onDismiss: {
-                            dismiss()
-                        }
-                    )
-                }
+                // Toast notification
+                EmptyView()
             }
+            .toast(
+                isShowing: $viewModel.showToast,
+                message: "Vote submitted!",
+                points: 2
+            )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -323,44 +320,6 @@ struct ResultBar: View {
     }
 }
 
-struct SuccessOverlay: View {
-    let message: String
-    let points: Int
-    let onDismiss: () -> Void
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-
-            VStack(spacing: 20) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.green)
-
-                Text(message)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.white)
-
-                Text("+\(points) points")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(hex: "#F97316"))
-            }
-            .padding(40)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.white)
-            )
-            .shadow(radius: 20)
-            .padding(40)
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                onDismiss()
-            }
-        }
-    }
-}
 
 // MARK: - ViewModel
 
@@ -370,9 +329,10 @@ class PollViewModel: ObservableObject {
     @Published var selectedOption: PollOption?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var showSuccess = false
+    @Published var showToast = false
 
     private let pollService = CommunityPollService.shared
+    private let rewardsService = RewardsService()
     private let taskService = TaskTrackingService()
     private let authService = AuthService.shared
 
@@ -403,10 +363,10 @@ class PollViewModel: ObservableObject {
               let option = selectedOption else { return }
 
         do {
-            // Submit vote
+            // 1. Submit vote
             let updatedPoll = try await pollService.submitVote(pollId: pollId, option: option)
 
-            // Update poll data
+            // 2. Update poll data to show results
             pollData = PollWithUserResponse(
                 poll: updatedPoll,
                 userResponse: PollResponse(
@@ -419,19 +379,49 @@ class PollViewModel: ObservableObject {
                 hasVoted: true
             )
 
-            // Track task completion
+            // 3. Track task completion AND auto-claim
             if let userId = authService.currentUser?.id {
+                // Mark as completed
                 _ = try await taskService.incrementTaskProgress(
                     userId: userId,
                     taskKey: "daily_poll_vote",
                     sourceId: pollId
                 )
 
-                print("✅ Poll task progress tracked")
-            }
+                // Auto-claim points
+                let claimResult = try await taskService.claimTaskReward(
+                    userId: userId,
+                    taskKey: "daily_poll_vote"
+                )
 
-            // Show success
-            showSuccess = true
+                if claimResult.success {
+                    // Award points via RewardsService
+                    try await rewardsService.addPoints(
+                        userId: userId,
+                        amount: claimResult.pointsAwarded,
+                        type: "task_completion",
+                        description: "Daily poll vote",
+                        source: "daily_poll_vote"
+                    )
+
+                    // Notify RewardsViewModel to refresh
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("PointsUpdated"),
+                        object: nil
+                    )
+
+                    print("✅ Poll completed and claimed: +\(claimResult.pointsAwarded) pts")
+
+                    // Show toast notification
+                    showToast = true
+
+                    // Auto-dismiss toast after 2 seconds
+                    Task {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        showToast = false
+                    }
+                }
+            }
 
             // Haptic feedback
             let generator = UINotificationFeedbackGenerator()

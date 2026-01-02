@@ -23,6 +23,7 @@ class TasksViewModel: ObservableObject {
 
     @Published var tasks: [UserTask] = []
     @Published var currentStreak: Int = 0
+    @Published var weeklyCheckIns: [Bool] = Array(repeating: false, count: 7)  // Mon-Sun check-in status
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
@@ -61,7 +62,7 @@ class TasksViewModel: ObservableObject {
 
     /// Weekly tasks only
     var weeklyTasks: [UserTask] {
-        tasks.filter { $0.category == .weekly }
+        tasks.filter { $0.category == .weekly || $0.category == .unlimited }
     }
 
     /// Unlimited tasks
@@ -150,6 +151,15 @@ class TasksViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        // Listen for points updates (Quick Earnings completions)
+        NotificationCenter.default.publisher(for: NSNotification.Name("PointsUpdated"))
+            .sink { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    await self?.loadTasks()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Public Methods
@@ -172,6 +182,9 @@ class TasksViewModel: ObservableObject {
             // Convert to domain models
             tasks = taskDTOs.map { UserTask(from: $0) }
 
+            // Fetch weekly check-in history
+            weeklyCheckIns = try await taskTrackingService.getWeeklyCheckIns(userId: userId)
+
             isLoading = false
         } catch {
             errorMessage = "Failed to load tasks: \(error.localizedDescription)"
@@ -182,14 +195,27 @@ class TasksViewModel: ObservableObject {
 
     /// Handle task tap - routes to start/claim based on button state
     func handleTaskTap(_ task: UserTask) {
+        print("🔵 TASK TAPPED: \(task.taskKey) - Type: \(task.taskType) - Button State: \(task.buttonState)")
+
+        // Check-in is special - always performs check-in regardless of button state
+        if task.taskType == .checkIn {
+            Task {
+                await performCheckIn()
+            }
+            return
+        }
+
         switch task.buttonState {
         case .start:
+            print("🔵 Button state is START - calling startTask()")
             startTask(task)
         case .claim:
+            print("🔵 Button state is CLAIM - calling claimTask()")
             Task {
                 await claimTask(task)
             }
         case .completed:
+            print("🔵 Button state is COMPLETED - doing nothing")
             // Do nothing - task already claimed
             break
         }
@@ -197,6 +223,8 @@ class TasksViewModel: ObservableObject {
 
     /// Start a task - navigate to appropriate screen
     private func startTask(_ task: UserTask) {
+        print("🔵 START TASK CALLED for: \(task.taskType)")
+
         // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
@@ -208,32 +236,59 @@ class TasksViewModel: ObservableObject {
                 await performCheckIn()
             }
         case .billUpload:
+            print("📤 Posting NavigateToUpload notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToUpload"), object: nil)
         case .poll:
+            print("📤 Posting NavigateToPoll notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToPoll"), object: nil)
         case .quiz:
+            print("📤 Posting NavigateToQuiz notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToQuiz"), object: nil)
         case .tip:
+            print("📤 Posting NavigateToTip notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToTip"), object: nil)
         case .game:
+            print("📤 Posting NavigateToGame notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToGame"), object: nil)
         case .referral:
+            print("📤 Posting ShowReferralSheet notification")
             NotificationCenter.default.post(name: NSNotification.Name("ShowReferralSheet"), object: nil)
         case .social:
+            print("📤 Posting NavigateToSocial notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToSocial"), object: nil)
         }
     }
 
     /// Perform daily check-in
     func performCheckIn() async {
-        guard let userId = authService.currentUser?.id else { return }
+        print("🔵 CHECK-IN FUNCTION ENTERED")
+        print("🔵 AuthService: \(authService)")
+        print("🔵 AuthService.currentUser: \(String(describing: authService.currentUser))")
+        print("🔵 AuthService.isAuthenticated: \(authService.isAuthenticated)")
+
+        guard let userId = authService.currentUser?.id else {
+            print("❌ CHECK-IN FAILED - No user ID")
+            print("❌ authService.currentUser is nil!")
+            return
+        }
+
+        print("🔵 CHECK-IN BUTTON TAPPED - Starting performCheckIn()")
+        print("✅ User ID found: \(userId.uuidString)")
+
+        print("✅ User ID found: \(userId.uuidString)")
 
         do {
+            print("🌐 Calling check_in_daily RPC function...")
             let result = try await taskTrackingService.checkInDaily(userId: userId)
 
+            print("📦 Result received - success: \(result.success), points: \(result.pointsAwarded), message: \(result.message)")
+
             if result.success {
+                print("✅ CHECK-IN SUCCESS!")
+
                 // Update streak
                 currentStreak = result.currentStreak
+                print("🔥 Streak updated to: \(result.currentStreak)")
 
                 // Show success feedback
                 checkInStreak = CheckInStreak(
@@ -243,9 +298,11 @@ class TasksViewModel: ObservableObject {
                     milestoneReached: result.milestoneReached
                 )
                 showCheckInSuccess = true
+                print("🎉 showCheckInSuccess = true")
 
                 // Award points via RewardsViewModel
                 if result.pointsAwarded > 0 {
+                    print("💰 Awarding \(result.pointsAwarded) points...")
                     try await rewardsService.addPoints(
                         userId: userId,
                         amount: result.pointsAwarded,
@@ -262,19 +319,26 @@ class TasksViewModel: ObservableObject {
                     claimedPoints = result.pointsAwarded
                     claimedTaskTitle = "Daily Check-In"
                     showClaimSuccess = true
+                    print("🎊 showClaimSuccess = true")
+                } else {
+                    print("⚠️ No points awarded (pointsAwarded = 0)")
                 }
 
                 // Refresh tasks
+                print("🔄 Refreshing task list...")
                 await loadTasks()
 
                 // Haptic feedback
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
+                print("✅ CHECK-IN COMPLETE!")
 
             } else {
+                print("❌ CHECK-IN FAILED - Message: \(result.message)")
                 errorMessage = result.message
             }
         } catch {
+            print("❌ CHECK-IN ERROR - \(error.localizedDescription)")
             errorMessage = "Check-in failed: \(error.localizedDescription)"
             print("❌ Error during check-in: \(error)")
         }
