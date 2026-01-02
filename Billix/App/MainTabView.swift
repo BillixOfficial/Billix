@@ -2,6 +2,9 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
+    @State private var showPollView = false
+    @State private var showQuizView = false
+    @State private var showTipView = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -30,6 +33,15 @@ struct MainTabView: View {
                 .padding(.bottom, 10)
         }
         .ignoresSafeArea(.keyboard)
+        .sheet(isPresented: $showPollView) {
+            PollView()
+        }
+        .sheet(isPresented: $showQuizView) {
+            QuizView()
+        }
+        .sheet(isPresented: $showTipView) {
+            TipView()
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToUpload"))) { _ in
             withAnimation {
                 selectedTab = 2  // Switch to Upload tab
@@ -39,6 +51,15 @@ struct MainTabView: View {
             withAnimation {
                 selectedTab = 3  // Switch to Rewards tab (where game is)
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToPoll"))) { _ in
+            showPollView = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToQuiz"))) { _ in
+            showQuizView = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToTip"))) { _ in
+            showTipView = true
         }
     }
 }

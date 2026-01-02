@@ -9,10 +9,46 @@ class SupabaseService {
     let client: SupabaseClient
 
     private init() {
+        // Configure custom JSON decoder for date handling
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateString = try container.decode(String.self)
+
+            // Try ISO8601 with fractional seconds and timezone (for created_at, etc.)
+            let iso8601Formatter = ISO8601DateFormatter()
+            iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = iso8601Formatter.date(from: dateString) {
+                return date
+            }
+
+            // Try ISO8601 without fractional seconds
+            iso8601Formatter.formatOptions = [.withInternetDateTime]
+            if let date = iso8601Formatter.date(from: dateString) {
+                return date
+            }
+
+            // Try simple date format (YYYY-MM-DD) for active_date columns
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            if let date = dateFormatter.date(from: dateString) {
+                return date
+            }
+
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Cannot decode date from: \(dateString)"
+            )
+        }
+
         client = SupabaseClient(
             supabaseURL: URL(string: Config.supabaseURL)!,
             supabaseKey: Config.supabaseAnonKey,
             options: SupabaseClientOptions(
+                db: SupabaseClientOptions.DatabaseOptions(
+                    decoder: decoder
+                ),
                 auth: SupabaseClientOptions.AuthOptions(
                     emitLocalSessionAsInitialSession: true
                 )
