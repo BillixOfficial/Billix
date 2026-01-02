@@ -168,6 +168,10 @@ struct PartSelectionView: View {
                 }
             )
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DismissToRewards"))) { _ in
+            // Clear current game session when returning to rewards
+            viewModel.currentGameSession = nil
+        }
         .task {
             // Pre-fetch tutorial settings in background
             if let userId = viewModel.currentUserId {

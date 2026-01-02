@@ -73,15 +73,12 @@ struct SeasonGameContainerView: View {
                         // Return session for progress tracking
                         onComplete(viewModel.session)
 
-                        // Post notification to dismiss back to rewards
-                        NotificationCenter.default.post(
-                            name: NSNotification.Name("DismissToRewards"),
-                            object: nil
-                        )
-
-                        // Small delay to let notification propagate, then dismiss
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            dismiss()
+                        // Delay notification to allow save to complete before clearing state
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            NotificationCenter.default.post(
+                                name: NSNotification.Name("DismissToRewards"),
+                                object: nil
+                            )
                         }
                     }
                 )
