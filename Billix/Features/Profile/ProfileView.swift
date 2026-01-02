@@ -195,8 +195,10 @@ struct ProfileView: View {
     @State private var isJoiningHousehold = false
     @State private var joinCode = ""
 
-    // Trust & Points (default values for new users)
-    @State private var userTrustScore: Int = 2  // Out of 5, start at 2
+    // Trust & Points
+    private var userTrustScore: Int {
+        authService.currentUser?.vault.trustScore ?? 0
+    }
     @State private var userBillixPoints: Int = 100  // Start with 100 points
 
     // Username states

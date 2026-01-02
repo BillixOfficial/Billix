@@ -131,11 +131,6 @@ struct HomeView: View {
         Calendar.current.component(.weekday, from: Date())
     }
 
-    private var showClusters: Bool {
-        // Show clusters on Mon, Wed, Fri (2, 4, 6)
-        [2, 4, 6].contains(dayOfWeek)
-    }
-
     private var showLearnToLower: Bool {
         // Show Learn to Lower on Tue, Thu, Sat (3, 5, 7)
         [3, 5, 7].contains(dayOfWeek)
@@ -163,8 +158,8 @@ struct HomeView: View {
                         )
                     }
 
-                    // Financial Health Narrative - Story Arc
-                    FinancialNarrativeBanner()
+                    // Today's Utility News
+                    UtilityNewsBanner()
 
                     // Primary Actions
                     QuickActionsZone()
@@ -172,40 +167,19 @@ struct HomeView: View {
                     // Your Bills (with empty state if no bills)
                     BillsListZone()
 
-                    // Upcoming - AI-generated regional estimates
-                    UpcomingEstimatesZone(zipCode: userZip)
-
                     // Market Context - National Averages
                     BillTickerZone(zipCode: userZip)
 
                     // 30-Second Utility Checkup (Regional Signals)
                     UtilityCheckupZone()
 
-                    // Utility Intelligence (Dual Card)
-                    UtilityInsightZone(zipCode: userZip) {
-                        // Navigate to Upload tab
-                        NotificationCenter.default.post(
-                            name: .navigateToTab,
-                            object: nil,
-                            userInfo: ["tabIndex": 2]
-                        )
-                    }
-
-                    // Progress & Achievements
-                    AchievementBadgesZone()
-
-                    // Discovery (Contextual - rotates)
-                    if showClusters {
-                        ClustersTeaser(zipCode: userZip)
-                    }
+                    // Weather-Based Utility Insight
+                    UtilityInsightZone(zipCode: userZip)
 
                     // Education (Contextual - rotates)
                     if showLearnToLower {
                         LearnToLowerZone()
                     }
-
-                    // Community Poll (Daily Question)
-                    CommunityPollZoneNew()
 
                     // Invite & Earn (Referral System)
                     InviteEarnBannerNew()
@@ -335,159 +309,147 @@ private struct AllClearBanner: View {
     }
 }
 
-// MARK: - Financial Health Narrative Banner
+// MARK: - Utility News Banner (Today's News)
 
-private struct FinancialNarrativeBanner: View {
+private struct UtilityNewsBanner: View {
+    @StateObject private var newsService = UtilityNewsService.shared
     @State private var isExpanded = false
-
-    // Mock narrative data - would come from analytics
-    private let weeklyHighlight = "avoided a $22 spike"
-    private let weeklySavings = 8
-    private let causeAttribution = "Mostly from timing, not switching"
-    private let streakMessage = "You've been ahead of your bills for 6 days"
-    private let weekNumber = 3 // Week of month
 
     var body: some View {
         Button {
             haptic()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
                 isExpanded.toggle()
             }
         } label: {
             VStack(spacing: 0) {
-                // Main narrative
-                HStack(spacing: 12) {
-                    // Story icon
+                // Main banner (always visible)
+                HStack(alignment: .top, spacing: 12) {
+                    // News icon
                     ZStack {
                         Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Theme.accent, Theme.success],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
+                            .fill(Color.billixMoneyGreen.opacity(0.12))
                             .frame(width: 44, height: 44)
-
-                        Image(systemName: "text.book.closed.fill")
+                        Image(systemName: "newspaper.fill")
                             .font(.system(size: 18))
-                            .foregroundColor(.white)
+                            .foregroundColor(.billixMoneyGreen)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("This Week's Story")
+                        Text("TODAY'S UTILITY NEWS")
                             .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(Theme.accent)
-                            .textCase(.uppercase)
+                            .foregroundColor(Color(hex: "#8B9A94"))
                             .tracking(0.5)
 
-                        // Main narrative with cause attribution
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("You \(weeklyHighlight) and saved $\(weeklySavings) proactively.")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(Theme.primaryText)
+                        if let news = newsService.todaysNews {
+                            Text(news.headline)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(Color(hex: "#2D3B35"))
                                 .lineLimit(2)
+                                .multilineTextAlignment(.leading)
 
-                            // Cause attribution - teaches HOW they won
-                            Text(causeAttribution)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Theme.success)
+                            if let source = news.sourceName {
+                                Text("Source: \(source)")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(Color(hex: "#5B8A6B"))
+                            }
+                        } else if newsService.isLoading {
+                            HStack(spacing: 6) {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                                Text("Loading today's news...")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color(hex: "#8B9A94"))
+                            }
+                        } else {
+                            Text("Tap to load news")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color(hex: "#8B9A94"))
                         }
                     }
 
                     Spacer()
 
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Theme.accent)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Color(hex: "#8B9A94"))
                 }
-                .padding(14)
+                .padding(16)
 
-                // Expanded section
-                if isExpanded {
+                // Expanded content
+                if isExpanded, let news = newsService.todaysNews {
                     VStack(alignment: .leading, spacing: 12) {
                         Divider()
 
-                        // How you won breakdown
-                        HStack(spacing: 10) {
-                            Image(systemName: "chart.pie.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(Theme.info)
-                                .frame(width: 28, height: 28)
-                                .background(Theme.info.opacity(0.12))
-                                .cornerRadius(8)
+                        Text(news.summary)
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "#5D6D66"))
+                            .lineLimit(4)
+                            .multilineTextAlignment(.leading)
 
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("How You Saved")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundColor(Theme.secondaryText)
+                        // Category badge and source link
+                        HStack(spacing: 8) {
+                            categoryBadge(news.category, icon: news.categoryIcon)
 
-                                HStack(spacing: 12) {
-                                    HStack(spacing: 4) {
-                                        Circle().fill(Theme.success).frame(width: 6, height: 6)
-                                        Text("Timing: $6")
-                                            .font(.system(size: 12, weight: .medium))
-                                    }
-                                    HStack(spacing: 4) {
-                                        Circle().fill(Theme.info).frame(width: 6, height: 6)
-                                        Text("Avoidance: $2")
-                                            .font(.system(size: 12, weight: .medium))
-                                    }
+                            if let region = news.region, region != "national" {
+                                Text(region.capitalized)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(Color(hex: "#8B9A94"))
+                            }
+
+                            Spacer()
+
+                            if let urlString = news.sourceUrl,
+                               let url = URL(string: urlString) {
+                                Link(destination: url) {
+                                    Text("Read more →")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.billixMoneyGreen)
                                 }
-                                .foregroundColor(Theme.primaryText)
                             }
                         }
-
-                        // Streak message
-                        HStack(spacing: 10) {
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(Theme.danger)
-                                .frame(width: 28, height: 28)
-                                .background(Theme.danger.opacity(0.12))
-                                .cornerRadius(8)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Your Streak")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundColor(Theme.secondaryText)
-                                Text(streakMessage)
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(Theme.primaryText)
-                            }
-                        }
-
-                        // Identity reinforcement
-                        HStack(spacing: 6) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 12))
-                            Text("You're someone who stays ahead of their bills.")
-                                .font(.system(size: 12, weight: .semibold))
-                                .italic()
-                        }
-                        .foregroundColor(Theme.accent)
-                        .padding(.top, 4)
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 14)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
             .background(
-                LinearGradient(
-                    colors: [Theme.accent.opacity(0.08), Theme.success.opacity(0.05)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(Theme.cornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                    .stroke(Theme.accent.opacity(0.15), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
             )
         }
         .buttonStyle(ScaleButtonStyle())
         .padding(.horizontal, Theme.horizontalPadding)
+        .task {
+            await newsService.fetchTodaysNews()
+        }
+    }
+
+    @ViewBuilder
+    private func categoryBadge(_ category: String, icon: String) -> some View {
+        let color = categoryColor(category)
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 10))
+            Text(category.capitalized)
+                .font(.system(size: 11, weight: .medium))
+        }
+        .foregroundColor(color)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.1))
+        .cornerRadius(6)
+    }
+
+    private func categoryColor(_ category: String) -> Color {
+        switch category.lowercased() {
+        case "rates": return Color(hex: "#F59E0B")
+        case "policy": return Color(hex: "#3B82F6")
+        case "industry": return Color(hex: "#8B5CF6")
+        default: return Color(hex: "#5B8A6B")
+        }
     }
 }
 
@@ -848,7 +810,7 @@ private struct QuickActionsZone: View {
         .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
         .padding(.horizontal, Theme.horizontalPadding)
         .fullScreenCover(isPresented: $showSwapHub) {
-            SwapHubView()
+            BillSwapView()
         }
         .sheet(isPresented: $showAddBill) {
             AddBillActionSheet()
@@ -1839,82 +1801,6 @@ private struct MicroTaskCard: View {
         }
         .buttonStyle(ScaleButtonStyle())
         .disabled(task.isCompleted)
-    }
-}
-
-// MARK: - Zone E: Clusters
-
-private struct ClusterItem: Identifiable {
-    let id = UUID()
-    let category: String
-    let icon: String
-    let providerCount: Int
-    let avgPrice: String
-}
-
-private struct ClustersTeaser: View {
-    let zipCode: String
-
-    private let clusters = [
-        ClusterItem(category: "Internet", icon: "wifi", providerCount: 4, avgPrice: "$71"),
-        ClusterItem(category: "Electricity", icon: "bolt.fill", providerCount: 2, avgPrice: "$102"),
-        ClusterItem(category: "Phone", icon: "iphone", providerCount: 6, avgPrice: "$65"),
-    ]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Provider Clusters in \(zipCode)").sectionHeader()
-                Spacer()
-                Button { haptic() } label: {
-                    Text("See All")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Theme.accent)
-                }
-            }
-            .padding(.horizontal, Theme.horizontalPadding)
-
-            VStack(spacing: 10) {
-                ForEach(clusters) { cluster in
-                    ClusterRow(cluster: cluster)
-                }
-            }
-            .padding(.horizontal, Theme.horizontalPadding)
-        }
-    }
-}
-
-private struct ClusterRow: View {
-    let cluster: ClusterItem
-
-    var body: some View {
-        Button { haptic() } label: {
-            HStack(spacing: 14) {
-                Image(systemName: cluster.icon)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Theme.accent)
-                    .frame(width: 36, height: 36)
-                    .background(Theme.accentLight)
-                    .cornerRadius(10)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(cluster.category)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Theme.primaryText)
-                    Text("\(cluster.providerCount) Providers · Avg \(cluster.avgPrice)")
-                        .font(.system(size: 13))
-                        .foregroundColor(Theme.secondaryText)
-                }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(Color(hex: "#CBD5E0"))
-            }
-            .cardStyle()
-        }
-        .buttonStyle(ScaleButtonStyle())
     }
 }
 

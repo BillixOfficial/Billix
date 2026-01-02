@@ -98,78 +98,62 @@ struct UtilityCheckupZone: View {
 
 struct UtilityInsightZone: View {
     let zipCode: String
-    let onUploadTap: () -> Void
 
     var body: some View {
         VStack(spacing: 12) {
-            HStack(spacing: 12) {
-                // Rate Alert Card
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "#F59E0B"))
+            // Weather-Based Rate Alert Card
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "cloud.sun.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(hex: "#3B82F6"))
 
-                        Text("Rate Alert")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(Color(hex: "#2D3B35"))
-                    }
-
-                    Text("Electric rates up 3.2% in your area this month")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#8B9A94"))
-                        .lineLimit(2)
+                    Text("Weather Rate Alert")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(hex: "#2D3B35"))
 
                     Spacer()
 
-                    Text("View details →")
+                    Text("Today")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(hex: "#8B9A94"))
+                }
+
+                Text("Cooler temperatures expected this week. Consider reducing heating to save on your gas bill.")
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(hex: "#5D6D66"))
+                    .lineLimit(2)
+
+                HStack(spacing: 16) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "thermometer.medium")
+                            .font(.system(size: 11))
+                        Text("45°F")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundColor(Color(hex: "#3B82F6"))
+
+                    Text("Potential savings: $8-12")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(Color(hex: "#5B8A6B"))
                 }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(height: 110)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#F59E0B").opacity(0.08))
-                )
-
-                // Upload CTA Card
-                Button(action: onUploadTap) {
-                    VStack(spacing: 8) {
-                        ZStack {
-                            Circle()
-                                .fill(Color(hex: "#5B8A6B").opacity(0.1))
-                                .frame(width: 40, height: 40)
-
-                            Image(systemName: "doc.badge.plus")
-                                .font(.system(size: 18))
-                                .foregroundColor(Color(hex: "#5B8A6B"))
-                        }
-
-                        Text("Upload Bill")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "#2D3B35"))
-
-                        Text("Get personalized insights")
-                            .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#8B9A94"))
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(12)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 110)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.white)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(hex: "#5B8A6B").opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [5, 3]))
-                            )
-                    )
-                }
-                .buttonStyle(.plain)
             }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#3B82F6").opacity(0.08), Color(hex: "#60A5FA").opacity(0.04)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(Color(hex: "#3B82F6").opacity(0.15), lineWidth: 1)
+                    )
+            )
         }
         .padding(.horizontal, 20)
     }
