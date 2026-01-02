@@ -13,6 +13,62 @@ import Supabase
 
 // Note: ScreenshotVerificationStatus is defined in TrustLadderEnums.swift
 
+// MARK: - Screenshot Verification Result
+
+struct ScreenshotVerificationResult {
+    let rawText: String
+    let extractedAmount: Double?
+    let extractedProvider: String?
+    let extractedDate: Date?
+    let confidence: Double
+    let status: ScreenshotVerificationStatus
+    let flags: [VerificationFlag]
+
+    /// Verification flags that indicate potential issues
+    enum VerificationFlag: Equatable {
+        case amountMismatch(expected: Double, found: Double)
+        case providerNotFound
+        case dateTooOld
+        case possibleEdit
+        case lowConfidence
+
+        var displayName: String {
+            switch self {
+            case .amountMismatch(let expected, let found):
+                return "Amount mismatch: expected $\(String(format: "%.2f", expected)), found $\(String(format: "%.2f", found))"
+            case .providerNotFound:
+                return "Provider not found in screenshot"
+            case .dateTooOld:
+                return "Payment date is too old"
+            case .possibleEdit:
+                return "Screenshot may have been edited"
+            case .lowConfidence:
+                return "Low confidence verification"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .amountMismatch: return "dollarsign.circle.fill"
+            case .providerNotFound: return "building.2.fill"
+            case .dateTooOld: return "calendar.badge.exclamationmark"
+            case .possibleEdit: return "exclamationmark.triangle.fill"
+            case .lowConfidence: return "questionmark.circle.fill"
+            }
+        }
+    }
+
+    /// Whether this result passed verification
+    var isVerified: Bool {
+        status == .autoVerified || status == .verified
+    }
+
+    /// Human-readable confidence percentage
+    var confidencePercentage: String {
+        "\(Int(confidence * 100))%"
+    }
+}
+
 // MARK: - Verification Errors
 
 enum VerificationError: LocalizedError {
