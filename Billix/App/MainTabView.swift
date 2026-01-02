@@ -30,6 +30,16 @@ struct MainTabView: View {
                 .padding(.bottom, 10)
         }
         .ignoresSafeArea(.keyboard)
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToUpload"))) { _ in
+            withAnimation {
+                selectedTab = 2  // Switch to Upload tab
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToGame"))) { _ in
+            withAnimation {
+                selectedTab = 3  // Switch to Rewards tab (where game is)
+            }
+        }
     }
 }
 

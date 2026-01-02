@@ -222,6 +222,10 @@ struct SeasonSelectionView: View {
                     appeared = true
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DismissToRewards"))) { _ in
+                // Clear selected season to pop back to season selection
+                viewModel.selectedSeason = nil
+            }
         }
     }
 }

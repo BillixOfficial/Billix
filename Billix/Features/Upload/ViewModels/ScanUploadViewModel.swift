@@ -146,6 +146,7 @@ class ScanUploadViewModel: ObservableObject {
             statusMessage = "Saving..."
 
             // Save to SwiftData
+            var billId: UUID? = nil
             if let context = modelContext {
                 let storedBill = StoredBill(
                     fileName: fileName,
@@ -154,11 +155,17 @@ class ScanUploadViewModel: ObservableObject {
                 )
                 context.insert(storedBill)
                 try context.save()
+                billId = storedBill.id
             }
 
             progress = 1.0
             statusMessage = "Complete!"
             uploadState = .success(analysis)
+
+            // Track bill upload for tasks
+            if let billId = billId {
+                await trackBillUpload(billId: billId)
+            }
 
         } catch let error as UploadError {
             uploadState = .error(error)
@@ -187,6 +194,34 @@ class ScanUploadViewModel: ObservableObject {
         showCamera = false
         showPhotoPicker = false
         showDocumentPicker = false
+    }
+
+    // MARK: - Task Tracking
+
+    private func trackBillUpload(billId: UUID) async {
+        guard let userId = AuthService.shared.currentUser?.id else { return }
+
+        let taskTrackingService = TaskTrackingService()
+
+        do {
+            // Track daily upload task
+            _ = try await taskTrackingService.incrementTaskProgress(
+                userId: userId,
+                taskKey: "daily_upload_bill",
+                sourceId: billId
+            )
+
+            // Track weekly 5 bills task
+            _ = try await taskTrackingService.incrementTaskProgress(
+                userId: userId,
+                taskKey: "weekly_upload_5_bills",
+                sourceId: billId
+            )
+
+            print("✅ Bill upload tracked successfully")
+        } catch {
+            print("❌ Error tracking bill upload: \(error)")
+        }
     }
 
     // MARK: - Image Processing

@@ -8,7 +8,6 @@
 
 import Foundation
 import SwiftUI
-import Combine
 
 @MainActor
 class RewardsViewModel: ObservableObject {
@@ -91,7 +90,6 @@ class RewardsViewModel: ObservableObject {
     // MARK: - Timer
 
     private var countdownTimer: Timer?
-    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Initialization
 
@@ -106,10 +104,28 @@ class RewardsViewModel: ObservableObject {
         self.points = RewardsPoints(balance: 0, lifetimeEarned: 0, transactions: [])
 
         setupCountdownTimer()
+        setupNotificationObservers()
+    }
+
+    private func setupNotificationObservers() {
+        // Listen for points updates from task claims
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("PointsUpdated"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            print("🔔 RewardsViewModel received PointsUpdated notification")
+            Task { @MainActor in
+                print("🔄 Refreshing rewards data...")
+                await self?.loadRewardsData()
+                print("✅ Rewards data refreshed")
+            }
+        }
     }
 
     deinit {
         countdownTimer?.invalidate()
+        NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Public Methods

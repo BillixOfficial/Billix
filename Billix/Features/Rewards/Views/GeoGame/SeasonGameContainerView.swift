@@ -72,7 +72,17 @@ struct SeasonGameContainerView: View {
                     onDismiss: {
                         // Return session for progress tracking
                         onComplete(viewModel.session)
-                        dismiss()
+
+                        // Post notification to dismiss back to rewards
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("DismissToRewards"),
+                            object: nil
+                        )
+
+                        // Small delay to let notification propagate, then dismiss
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            dismiss()
+                        }
                     }
                 )
                 .transition(.opacity)

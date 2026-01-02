@@ -2,133 +2,37 @@
 //  QuickTasksScreen.swift
 //  Billix
 //
-//  Quick Earnings Hub - Offer Wall with mini-tasks grid
-//  Inspired by Bing Rewards vertical card layout
+//  Quick Earnings Hub - Task tracking with Supabase integration
+//  Supports daily/weekly resets, progress tracking, and point claiming
 //
 
 import SwiftUI
 
-// MARK: - Quick Task Model
-
-struct QuickTask: Identifiable {
-    let id = UUID()
-    let icon: String           // SF Symbol name
-    let customImage: String?   // Custom asset image name (optional)
-    let iconColor: Color
-    let title: String
-    let description: String
-    let points: Int
-    let ctaText: String        // Custom CTA text (e.g., "Vote now >")
-    let category: TaskCategory
-    let frequency: TaskFrequency  // Daily or one-time
-
-    enum TaskCategory {
-        case survey, video, email, referral, promotion, social, quiz
-    }
-
-    enum TaskFrequency {
-        case daily      // Resets every day
-        case oneTime    // Can only be completed once ever
-    }
-}
-
-// MARK: - Quick Tasks Screen
-
 struct QuickTasksScreen: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var completedTaskIDs: Set<UUID> = []  // Track completed tasks
-    @State private var lastResetDate: Date = Date()      // Track when daily tasks reset
-
-    // Sample tasks (replace with API data later)
-    private let tasks: [QuickTask] = [
-        QuickTask(
-            icon: "chart.bar.fill",
-            customImage: "BarGraph",
-            iconColor: Color(hex: "#3B82F6"),
-            title: "Share your opinion",
-            description: "Vote in the daily poll to see what other members think",
-            points: TaskConfiguration.pollVote,
-            ctaText: "Vote now >",
-            category: .survey,
-            frequency: .daily  // DAILY TASK
-        ),
-        QuickTask(
-            icon: "heart.fill",
-            customImage: "FollowHeart",
-            iconColor: Color(hex: "#EC4899"),
-            title: "Stay connected",
-            description: "Follow our page to get the latest updates and bonus codes",
-            points: TaskConfiguration.followSocial,
-            ctaText: "Follow us >",
-            category: .social,
-            frequency: .oneTime  // ONE-TIME ONLY
-        ),
-        QuickTask(
-            icon: "lightbulb.fill",
-            customImage: "LightBulbMoney",
-            iconColor: Color(hex: "#F59E0B"),
-            title: "Save smarter",
-            description: "Read today's quick tip to help you manage your budget better",
-            points: TaskConfiguration.readTip,
-            ctaText: "Read tip >",
-            category: .promotion,
-            frequency: .daily  // DAILY TASK
-        ),
-        QuickTask(
-            icon: "graduationcap.fill",
-            customImage: "GraduationCap",
-            iconColor: Color(hex: "#8B5CF6"),
-            title: "Test your knowledge",
-            description: "Answer three quick trivia questions to earn bonus points",
-            points: TaskConfiguration.completeQuiz,
-            ctaText: "Start quiz >",
-            category: .quiz,
-            frequency: .daily  // DAILY TASK
-        )
-    ]
+    @StateObject private var viewModel = TasksViewModel()
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 24) {
-                    // Header
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Earn More Points")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.billixDarkGreen)
+                    // Header with Streak Badge
+                    headerSection
 
-                        Text("Complete simple tasks to boost your balance")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(.billixMediumGreen)
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .padding(.top, 100)
+                    } else if let errorMessage = viewModel.errorMessage {
+                        errorView(errorMessage)
+                    } else {
+                        // Quick Earnings Tasks Grid
+                        quickEarningsGridView
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
-
-                    // 2-Column Grid of Task Cards
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible(), spacing: 16),
-                            GridItem(.flexible(), spacing: 16)
-                        ],
-                        spacing: 16
-                    ) {
-                        ForEach(tasks) { task in
-                            QuickTaskCard(
-                                task: task,
-                                isCompleted: isTaskCompleted(task)
-                            ) {
-                                // Handle task tap
-                                handleTaskTap(task)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
 
                     Spacer(minLength: 40)
                 }
             }
-            .background(Color(hex: "#F3F4F6").ignoresSafeArea())  // Light gray like Bing
+            .background(Color(hex: "#F3F4F6").ignoresSafeArea())
 
             // X Close Button
             Button {
@@ -145,51 +49,206 @@ struct QuickTasksScreen: View {
                     )
             }
             .padding(16)
+
+            // Claim Success Overlay
+            if viewModel.showClaimSuccess {
+                claimSuccessOverlay
+            }
+
+            // Check-in Success Overlay
+            if viewModel.showCheckInSuccess {
+                checkInSuccessOverlay
+            }
         }
         .navigationBarHidden(true)
+        .task {
+            await viewModel.loadTasks()
+        }
+    }
+
+    // MARK: - Header Section
+
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Quick Earnings")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.billixDarkGreen)
+
+                Text("Complete daily micro-tasks for quick points")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.billixMediumGreen)
+            }
+
+            // Unclaimed Tasks Indicator
+            if viewModel.hasUnclaimedQuickEarnings {
+                HStack(spacing: 6) {
+                    Image(systemName: "gift.fill")
+                        .font(.system(size: 12))
+                    Text("\(viewModel.unclaimedQuickEarningsCount) task\(viewModel.unclaimedQuickEarningsCount == 1 ? "" : "s") ready to claim!")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+                .foregroundColor(Color(hex: "#10B981"))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(Color(hex: "#10B981").opacity(0.1))
+                )
+                .padding(.top, 4)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+    }
+
+    // MARK: - Quick Earnings Grid View
+
+    private var quickEarningsGridView: some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: 16),
+                GridItem(.flexible(), spacing: 16)
+            ],
+            spacing: 16
+        ) {
+            ForEach(viewModel.quickEarningsTasks) { task in
+                QuickTaskCard(task: task) {
+                    viewModel.handleTaskTap(task)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+    }
+
+    // MARK: - Error View
+
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 40))
+                .foregroundColor(.orange)
+
+            Text(message)
+                .font(.system(size: 15))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            Button("Retry") {
+                Task {
+                    await viewModel.loadTasks()
+                }
+            }
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
+            .background(Color.billixMediumGreen)
+            .cornerRadius(10)
+        }
+        .padding(.top, 100)
+    }
+
+    // MARK: - Claim Success Overlay
+
+    private var claimSuccessOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    viewModel.dismissClaimSuccess()
+                }
+
+            VStack(spacing: 16) {
+                Text("🎉")
+                    .font(.system(size: 60))
+
+                Text("+ \(viewModel.claimedPoints) Points!")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.billixDarkGreen)
+
+                Text(viewModel.claimedTaskTitle)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.billixMediumGreen)
+            }
+            .padding(32)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.2), radius: 20)
+            )
+            .padding(40)
+        }
+        .transition(.opacity)
         .onAppear {
-            resetDailyTasksIfNeeded()
+            // Auto-dismiss after 2 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                viewModel.dismissClaimSuccess()
+            }
         }
     }
 
-    private func isTaskCompleted(_ task: QuickTask) -> Bool {
-        // Check if task is completed
-        return completedTaskIDs.contains(task.id)
-    }
+    // MARK: - Check-in Success Overlay
 
-    private func handleTaskTap(_ task: QuickTask) {
-        // Don't allow tapping completed one-time tasks
-        if task.frequency == .oneTime && completedTaskIDs.contains(task.id) {
-            return
+    private var checkInSuccessOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    viewModel.dismissCheckInSuccess()
+                }
+
+            VStack(spacing: 16) {
+                if let streak = viewModel.checkInStreak {
+                    Text(streak.flameEmoji)
+                        .font(.system(size: 60))
+
+                    if let milestone = streak.milestoneMessage {
+                        Text(milestone)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.billixDarkGreen)
+                            .multilineTextAlignment(.center)
+                    } else {
+                        Text(streak.streakText)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.billixDarkGreen)
+                    }
+
+                    Text("+ \(viewModel.claimedPoints) Points!")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(Color(hex: "#10B981"))
+
+                    if streak.isNewRecord {
+                        Text("🏆 New Record!")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.orange)
+                    }
+                }
+            }
+            .padding(32)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.2), radius: 20)
+            )
+            .padding(40)
         }
-
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
-
-        // Mark task as completed
-        completedTaskIDs.insert(task.id)
-
-        // TODO: Navigate to task completion flow based on category
-        // TODO: Award points to user
-        print("Completed task: \(task.title) - Earned \(task.points) points")
-    }
-
-    private func resetDailyTasksIfNeeded() {
-        let calendar = Calendar.current
-        if !calendar.isDate(lastResetDate, inSameDayAs: Date()) {
-            // New day - reset daily tasks
-            let oneTimeTasks = tasks.filter { $0.frequency == .oneTime }.map { $0.id }
-            completedTaskIDs = completedTaskIDs.filter { oneTimeTasks.contains($0) }
-            lastResetDate = Date()
+        .transition(.opacity)
+        .onAppear {
+            // Auto-dismiss after 2.5 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                viewModel.dismissCheckInSuccess()
+            }
         }
     }
 }
 
-// MARK: - Quick Task Card (Bing Rewards Style)
+// MARK: - Quick Task Card
 
 struct QuickTaskCard: View {
-    let task: QuickTask
-    let isCompleted: Bool
+    let task: UserTask
     let onTap: () -> Void
 
     var body: some View {
@@ -197,77 +256,103 @@ struct QuickTaskCard: View {
             ZStack(alignment: .topTrailing) {
                 // Main card content
                 VStack(alignment: .center, spacing: 0) {
-                    // Icon section - Fixed height area
+                    // Icon section
                     Group {
                         if let customImage = task.customImage {
-                            // Custom asset image
                             Image(customImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 100, height: 100)
                         } else {
-                            // SF Symbol fallback
-                            Image(systemName: task.icon)
+                            Image(systemName: task.iconName)
                                 .font(.system(size: 80, weight: .regular))
-                                .foregroundColor(task.iconColor)
+                                .foregroundColor(task.iconSwiftUIColor)
                                 .frame(width: 100, height: 100)
                         }
                     }
                     .frame(width: 100, height: 100)
-                    .padding(.top, 44)  // Space for point badge
+                    .padding(.top, 44)
                     .padding(.bottom, 16)
-                    .opacity(isCompleted ? 0.3 : 1.0)  // Greyed out when completed
+                    .opacity(task.isClaimed ? 0.3 : 1.0)
 
-                    // Title - Single line, no wrapping
+                    // Title
                     Text(task.title)
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(isCompleted ? .gray : .black)
+                        .foregroundColor(task.isClaimed ? .gray : .black)
                         .lineLimit(1)
                         .multilineTextAlignment(.center)
-                        .frame(height: 18)  // Fixed height
+                        .frame(height: 18)
                         .padding(.horizontal, 8)
 
-                    // Fixed spacing between title and description
-                    Spacer()
-                        .frame(height: 6)
+                    Spacer().frame(height: 6)
 
-                    // Description - Fixed height area
+                    // Description
                     Text(task.description)
                         .font(.system(size: 11, weight: .regular))
                         .lineSpacing(0)
-                        .foregroundColor(isCompleted ? .gray.opacity(0.6) : Color.black.opacity(0.6))
+                        .foregroundColor(task.isClaimed ? .gray.opacity(0.6) : Color.black.opacity(0.6))
                         .lineLimit(3)
                         .multilineTextAlignment(.center)
-                        .frame(height: 48, alignment: .top)  // Fixed height, top aligned
+                        .frame(height: 48, alignment: .top)
                         .padding(.horizontal, 8)
+
+                    // Progress Bar (for multi-step tasks)
+                    if task.showsProgressBar {
+                        VStack(spacing: 4) {
+                            GeometryReader { geometry in
+                                ZStack(alignment: .leading) {
+                                    // Background
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(height: 4)
+                                        .cornerRadius(2)
+
+                                    // Progress
+                                    Rectangle()
+                                        .fill(Color(hex: "#10B981"))
+                                        .frame(width: geometry.size.width * task.progressPercentage, height: 4)
+                                        .cornerRadius(2)
+                                }
+                            }
+                            .frame(height: 4)
+                            .padding(.horizontal, 8)
+
+                            Text(task.progressText)
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.top, 4)
+                    } else {
+                        Spacer(minLength: 0)
+                    }
 
                     Spacer(minLength: 0)
 
-                    // CTA - Fixed position at bottom
-                    Text(isCompleted ? "Completed ✓" : task.ctaText)
+                    // CTA Button
+                    Text(task.buttonState == .completed ? "Completed ✓" : task.buttonState == .claim ? "Claim" : task.ctaText)
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(isCompleted ? .gray : Color(hex: "#3B82F6"))
-                        .frame(height: 16)  // Fixed height
+                        .foregroundColor(task.buttonState.color)
+                        .frame(height: 16)
                         .padding(.bottom, 16)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 260)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(isCompleted ? Color.gray.opacity(0.1) : Color.white)
+                        .fill(task.isClaimed ? Color.gray.opacity(0.1) : Color.white)
                         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
                 )
 
-                // Point badge - Overlaid in top-right corner
-                Text(isCompleted ? "✓" : "+ \(task.points)")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(isCompleted ? .gray : Color(hex: "#F59E0B"))
+                // Point badge
+                Text(task.isClaimed ? "✓" : task.canClaim ? "Claim!" : "+ \(task.points)")
+                    .font(.system(size: task.canClaim ? 12 : 20, weight: .bold))
+                    .foregroundColor(task.isClaimed ? .gray : task.canClaim ? Color(hex: "#10B981") : Color(hex: "#F59E0B"))
                     .padding(.top, 12)
                     .padding(.trailing, 12)
             }
         }
         .buttonStyle(ScaleButtonStyle(scale: 0.97))
-        .disabled(isCompleted)  // Disable button when completed
+        .disabled(!task.buttonState.isEnabled)
     }
 }
 

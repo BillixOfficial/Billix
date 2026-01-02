@@ -623,6 +623,17 @@ class SeasonViewModel: ObservableObject {
 
             print("💾 Session progress saved to database successfully")
 
+            // Notify task tracking system
+            NotificationCenter.default.post(
+                name: NSNotification.Name("GameCompleted"),
+                object: nil,
+                userInfo: [
+                    "sessionId": session.id,
+                    "pointsEarned": session.totalPoints
+                ]
+            )
+            print("📤 Posted GameCompleted notification - sessionId: \(session.id), points: \(session.totalPoints)")
+
             // Reload parts to update unlock status if passed
             seasonParts = try await service.fetchSeasonParts(seasonId: seasonId)
 

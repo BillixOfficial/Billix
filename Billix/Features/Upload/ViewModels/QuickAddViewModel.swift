@@ -243,6 +243,9 @@ class QuickAddViewModel: ObservableObject {
 
         // Track the saved bill ID for potential upgrade
         savedBillId = billId
+
+        // Note: Quick Add bills do NOT count toward upload tasks
+        // Only full analysis bills trigger the "BillUploadCompleted" notification
     }
 
     // MARK: - Computed Properties
