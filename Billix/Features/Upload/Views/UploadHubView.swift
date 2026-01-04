@@ -48,7 +48,9 @@ struct UploadHubView: View {
     @State private var infoPulse = false
     @State private var quickAddInfoPulse = false
     @State private var navigateToUploadMethods = false
+
     @State private var refreshTrigger = UUID()
+
 
     // Derive recent uploads from SwiftData query (auto-updates on changes)
     private var recentUploads: [RecentUpload] {
@@ -63,7 +65,7 @@ struct UploadHubView: View {
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 8) {
 
                         // SECTION 1: Header
                         headerSection
@@ -71,14 +73,14 @@ struct UploadHubView: View {
 
                         // SECTION 2: Quick Add Card (Redesigned)
                         quickAddCard
-                            .padding(.horizontal, Theme.horizontalPadding)
+                            .padding(.horizontal, -8)
+                            .padding(.top, -4)
 
                         // SECTION 3: Recent Uploads - Horizontal scroll
                         inProgressSection
 
                         // SECTION 4: Upload for Full Analysis - Single card
                         fullAnalysisCard
-                            .padding(.horizontal, Theme.horizontalPadding)
 
                         Spacer(minLength: 100)
                     }
@@ -165,149 +167,102 @@ onSwitchToFullAnalysis: {
     // MARK: - Header Section
 
     private var headerSection: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 14) {
-                // Animated icon badge with gradient
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Theme.accent.opacity(0.15), Theme.accent.opacity(0.08)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 52, height: 52)
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Upload Your Bills")
+                .font(.system(size: 26, weight: .bold))
+                .foregroundColor(Theme.primaryText)
 
-                    Image(systemName: "doc.text.fill")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(Theme.accent)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Upload Your Bills")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(Theme.primaryText)
-
-                    Text("Track expenses & find savings")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Theme.secondaryText)
-                }
-
-                Spacer()
-            }
+            Text("Track expenses & find savings")
+                .font(.system(size: 15, weight: .regular))
+                .foregroundColor(Theme.secondaryText)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : -10)
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
     }
 
-    // MARK: - Quick Add Card (Engaging gradient design)
+    // MARK: - Quick Add Card (Redesigned with Image Background)
 
     private var quickAddCard: some View {
-        Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                viewModel.startQuickAdd()
-            }
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
-        } label: {
-            ZStack {
-                // Warm gradient background
-                RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [Theme.warmGradientStart, Theme.warmGradientEnd],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+        ZStack {
+            // Background: STRETCH to fill space (not zoom)
+            Image("QuickAddBox")
+                .resizable()
+                .frame(maxWidth: .infinity)
+                .frame(height: 150)
+                .cornerRadius(20)
 
-                // Decorative circles
-                GeometryReader { geo in
+            // Content: Floating in the middle
+            HStack(spacing: 16) {
+                // Lightning Icon
+                ZStack {
                     Circle()
-                        .fill(Theme.warning.opacity(0.08))
-                        .frame(width: 100, height: 100)
-                        .offset(x: geo.size.width - 60, y: -30)
-
-                    Circle()
-                        .fill(Theme.warning.opacity(0.05))
-                        .frame(width: 60, height: 60)
-                        .offset(x: geo.size.width - 100, y: geo.size.height - 40)
+                        .fill(Color.white)
+                        .frame(width: 44, height: 44)
+                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    Image(systemName: "bolt.fill")
+                        .foregroundColor(Color(hex: "#E8A54B"))
+                        .font(.system(size: 22, weight: .bold))
                 }
-                .clipped()
 
-                // Content
-                HStack(spacing: 16) {
-                    // Left side - Icon and info
-                    HStack(spacing: 14) {
-                        // Icon badge with shadow
-                        ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 50, height: 50)
-                                .shadow(color: Theme.warning.opacity(0.2), radius: 8, x: 0, y: 4)
+                // Text
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text("Quick Add")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(Theme.primaryText)
 
-                            Image(systemName: "bolt.fill")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(Theme.warning)
+                        // Info button
+                        Button {
+                            showQuickAddInfo.toggle()
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 14))
+                                .foregroundColor(Theme.secondaryText.opacity(0.7))
                         }
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack(spacing: 6) {
-                                Text("Quick Add")
-                                    .font(.system(size: 17, weight: .bold))
-                                    .foregroundColor(Theme.primaryText)
-
-                                // Info button
-                                Button {
-                                    showQuickAddInfo.toggle()
-                                } label: {
-                                    Image(systemName: "info.circle")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(Theme.secondaryText.opacity(0.8))
-                                }
-                                .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
-                                    QuickAddInfoPopover()
-                                        .presentationCompactAdaptation(.popover)
-                                }
-                            }
-
-                            Text("Answer 3 questions for rate comparison")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(Theme.secondaryText)
+                        .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
+                            QuickAddInfoPopover()
+                                .presentationCompactAdaptation(.popover)
                         }
                     }
 
-                    Spacer()
+                    Text("Answer 3 Questions")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Theme.secondaryText)
+                }
+                .fixedSize(horizontal: true, vertical: false)
 
-                    // Right side - CTA with gradient
+                Spacer()
+
+                // Start Button - Only clickable element
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        viewModel.startQuickAdd()
+                    }
+                    let generator = UIImpactFeedbackGenerator(style: .medium)
+                    generator.impactOccurred()
+                } label: {
                     HStack(spacing: 6) {
                         Text("Start")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 15, weight: .semibold))
+                            .fixedSize()
                         Image(systemName: "arrow.right")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 13, weight: .semibold))
                     }
                     .foregroundColor(.white)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 12)
+                    .frame(width: 90, height: 36)
                     .background(
-                        LinearGradient(
-                            colors: [Color(hex: "#E8A54B"), Color(hex: "#D4943E")],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(hex: "#C27810"))
                     )
-                    .cornerRadius(12)
-                    .shadow(color: Theme.warning.opacity(0.3), radius: 6, x: 0, y: 3)
                 }
-                .padding(18)
+                .buttonStyle(ScaleButtonStyle(scale: 0.98))
             }
-            .frame(height: 90)
-            .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
-            .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 4)
+            .padding(.leading, 32)
+            .padding(.trailing, 55)
+            .padding(.vertical, 16)
         }
-        .buttonStyle(ScaleButtonStyle(scale: 0.98))
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 20)
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
@@ -319,7 +274,7 @@ onSwitchToFullAnalysis: {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text("Recent Uploads")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(Theme.primaryText)
 
                 // Decorative dot
@@ -346,11 +301,8 @@ onSwitchToFullAnalysis: {
 
             if recentUploads.isEmpty {
                 // Single empty state card
-                HStack {
-                    EmptyUploadCard()
-                    Spacer()
-                }
-                .padding(.horizontal, Theme.horizontalPadding)
+                EmptyUploadCard()
+                    .padding(.horizontal, 24)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
@@ -372,13 +324,13 @@ onSwitchToFullAnalysis: {
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: appeared)
     }
 
-    // MARK: - Full Analysis Card (Navigation to upload method selection)
+    // MARK: - Full Analysis Card (4-Layer Z-Stack)
 
     private var fullAnalysisCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 6) {
                 Text("Full Analysis")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(Theme.primaryText)
 
                 // Info button
@@ -394,118 +346,110 @@ onSwitchToFullAnalysis: {
                         .presentationCompactAdaptation(.popover)
                 }
             }
+            .padding(.horizontal, Theme.horizontalPadding)
 
-            NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
-                ZStack {
-                    // Cool gradient background
-                    RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                        .fill(
-                            LinearGradient(
-                                colors: [Theme.coolGradientStart, Theme.coolGradientEnd],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+            HStack {
+                Spacer(minLength: 0)
+                ZStack(alignment: .center) {
+                    // LAYER 1 (Bottom): StartAnalysisCloud as background - Custom dimensions
+                    Image("StartAnalysisCloud")
+                        .resizable()
+                        .frame(width: 675, height: 211)
+                        .cornerRadius(20)
+
+                    // LAYER 2: MagnifyGlass centered
+                    Image("MagnifyGlass")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 230, height: 230)
+                        .offset(y: -10)
+
+                    // LAYER 3: Floating pills around magnifying glass
+                    ZStack {
+                        // Top-left: Line items
+                        Text("Line items")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Color(hex: "#5BA4D4"))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.white.opacity(0.9))
+                                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
                             )
-                        )
+                            .rotationEffect(.degrees(11))
+                            .offset(x: -99, y: -54)
 
-                    // Decorative elements
-                    GeometryReader { geo in
-                        Circle()
-                            .fill(Theme.info.opacity(0.08))
-                            .frame(width: 120, height: 120)
-                            .offset(x: geo.size.width - 70, y: -40)
+                        // Top-right: Surprises
+                        Text("Surprises")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Color(hex: "#5BA4D4"))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.white.opacity(0.9))
+                                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+                            )
+                            .rotationEffect(.degrees(-11))
+                            .offset(x: 99, y: -53)
 
-                        Circle()
-                            .fill(Theme.info.opacity(0.05))
-                            .frame(width: 80, height: 80)
-                            .offset(x: -20, y: geo.size.height - 50)
-                    }
-                    .clipped()
+                        // Bottom-left: Rate compare
+                        Text("Rate compare")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Color(hex: "#5BA4D4"))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.white.opacity(0.9))
+                                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+                            )
+                            .rotationEffect(.degrees(-18))
+                            .offset(x: -99, y: 25)
 
-                    VStack(spacing: 16) {
-                        // Top row: Icon + Text + Ready badge
-                        HStack(spacing: 14) {
-                            // Icon with white background and shadow
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white)
-                                    .frame(width: 50, height: 50)
-                                    .shadow(color: Theme.info.opacity(0.2), radius: 8, x: 0, y: 4)
-
-                                Image(systemName: "doc.text.viewfinder")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundColor(Theme.info)
-                            }
-
-                            // Text content
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Upload for Full Analysis")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(Theme.primaryText)
-
-                                Text("Get a complete breakdown of your bill")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(Theme.secondaryText)
-                            }
-
-                            Spacer()
-
-                            // Ready to Start badge
-                            VStack(spacing: 4) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.white)
-                                        .frame(width: 36, height: 36)
-                                        .shadow(color: Theme.info.opacity(0.15), radius: 4, x: 0, y: 2)
-
-                                    Image(systemName: "hand.tap.fill")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(Theme.info)
-                                }
-
-                                Text("Ready?")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(Theme.info)
-                            }
+                        // Bottom-right: Savings with lightbulb
+                        HStack(spacing: 4) {
+                            Image(systemName: "lightbulb.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(Color(hex: "#5BA4D4"))
+                            Text("Savings")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Color(hex: "#5BA4D4"))
                         }
-
-                        // Feature pills
-                        HStack(spacing: 8) {
-                            FeaturePill(icon: "chart.bar.fill", text: "Line items")
-                            FeaturePill(icon: "map.fill", text: "Rate compare")
-                            FeaturePill(icon: "lightbulb.fill", text: "Savings")
-                        }
-
-                        // CTA Button with gradient
-                        HStack(spacing: 8) {
-                            Text("Start Analysis")
-                                .font(.system(size: 15, weight: .bold))
-
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 13, weight: .bold))
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
                         .background(
-                            LinearGradient(
-                                colors: [Color(hex: "#5BA4D4"), Color(hex: "#4A93C3")],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
+                            Capsule()
+                                .fill(Color.white.opacity(0.9))
+                                .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
                         )
-                        .cornerRadius(12)
-                        .shadow(color: Theme.info.opacity(0.3), radius: 6, x: 0, y: 3)
+                        .rotationEffect(.degrees(10))
+                        .offset(x: 114, y: 10)
                     }
-                    .padding(18)
+
+                    // LAYER 4: Start Analysis button at bottom edge - Only clickable element
+                    VStack {
+                        Spacer()
+
+                        NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
+                            Text("Start Analysis")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 180, height: 50)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color(hex: "#5BA4D4"))
+                                )
+                        }
+                        .buttonStyle(ScaleButtonStyle(scale: 0.98))
+                        .offset(y: 12)
+                    }
+                    .frame(width: 675, height: 211)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: Theme.cornerRadius))
-                .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 4)
+                Spacer(minLength: 0)
             }
-            .buttonStyle(ScaleButtonStyle(scale: 0.98))
-            .simultaneousGesture(TapGesture().onEnded {
-                fullAnalysisTapped.toggle()
-            })
-            .sensoryFeedback(.impact(weight: .medium), trigger: fullAnalysisTapped)
+            .padding(.horizontal, -150)
         }
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 20)
@@ -701,70 +645,33 @@ struct RecentUploadCard: View {
     }
 }
 
-// MARK: - Empty Upload Card
+// MARK: - Empty Upload Card (No Container - Direct on Background)
 
 struct EmptyUploadCard: View {
     private let primaryText = Color(hex: "#2D3B35")
     private let secondaryText = Color(hex: "#8B9A94")
-    private let tertiaryText = Color(hex: "#A8B5AE")
-    private let accentColor = Color(hex: "#5B8A6B")
 
     var body: some View {
-        ZStack {
-            // Subtle gradient background
-            RoundedRectangle(cornerRadius: 18)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(hex: "#F7F9F8"), Color(hex: "#F0F3F1")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+        HStack(spacing: 16) {
+            // VaultEmpty PNG image - scaledToFit with fixed frame
+            Image("VaultEmpty")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 100, height: 100)
 
-            // Decorative circles
-            Circle()
-                .fill(accentColor.opacity(0.04))
-                .frame(width: 80, height: 80)
-                .offset(x: 60, y: -30)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Your vault is empty.")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(primaryText)
 
-            Circle()
-                .fill(accentColor.opacity(0.03))
-                .frame(width: 50, height: 50)
-                .offset(x: -50, y: 40)
-
-            HStack(spacing: 14) {
-                // Icon with background
-                ZStack {
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 48, height: 48)
-                        .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: 2)
-
-                    Image(systemName: "doc.text.fill")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(tertiaryText)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("No Bills Yet")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(primaryText)
-
-                    Text("Upload a bill to get started")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(secondaryText)
-                }
-
-                Spacer()
+                Text("Add a bill to start tracking.")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(secondaryText)
             }
-            .padding(16)
+
+            Spacer()
         }
-        .frame(height: 90)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(Color(hex: "#E5EAE7").opacity(0.6), lineWidth: 1)
-        )
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -864,6 +771,25 @@ struct InfoFeatureRow: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(primaryText)
         }
+    }
+}
+
+// MARK: - Floating Label Component
+
+struct FloatingLabel: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(Color(hex: "#5BA4D4"))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(Color.white.opacity(0.9))
+                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+            )
     }
 }
 
