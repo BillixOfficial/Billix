@@ -629,39 +629,7 @@ struct CoordinationFeeTransaction: Identifiable, Codable {
     }
 }
 
-// MARK: - Swap Dispute
-
-struct SwapDispute: Identifiable, Codable {
-    let id: UUID
-    let swapId: UUID
-    let reportedBy: UUID
-    let reportedUser: UUID
-    var reason: String
-    var description: String?
-    var evidenceUrls: [String]?
-    var status: String
-    var resolution: String?
-    var resolvedBy: UUID?
-    var resolvedAt: Date?
-    let createdAt: Date
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case swapId = "swap_id"
-        case reportedBy = "reported_by"
-        case reportedUser = "reported_user"
-        case reason, description
-        case evidenceUrls = "evidence_urls"
-        case status, resolution
-        case resolvedBy = "resolved_by"
-        case resolvedAt = "resolved_at"
-        case createdAt = "created_at"
-    }
-
-    var disputeReason: DisputeReason {
-        DisputeReason(rawValue: reason) ?? .other
-    }
-}
+// Note: SwapDispute is defined in BillSwap/Models/SwapDispute.swift
 
 // MARK: - Trust Tier Info (from DB)
 

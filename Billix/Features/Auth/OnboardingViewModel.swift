@@ -63,6 +63,11 @@ class OnboardingViewModel: ObservableObject {
     @Published var showImagePicker = false
     @Published var imagePickerSource: UIImagePickerController.SourceType = .photoLibrary
 
+    // MARK: - Handle Validation
+    @Published var isCheckingHandle = false
+    @Published var isHandleAvailable: Bool? = nil  // nil = not checked yet
+    private var handleCheckTask: Task<Void, Never>?
+
     // MARK: - Validation
 
     var isZipCodeValid: Bool {
@@ -97,12 +102,46 @@ class OnboardingViewModel: ObservableObject {
     var canProceedFromCurrentStep: Bool {
         switch currentStep {
         case 1: return isZipCodeValid
-        case 2: return isHandleValid
+        case 2: return isHandleValid && isHandleAvailable == true && !isCheckingHandle
         case 3: return isDisplayNameValid
         case 4: return true  // Avatar is optional
         case 5: return isBirthdayValid
         case 6: return true  // Gender is optional
         default: return false
+        }
+    }
+
+    /// Check if the handle is available (with debouncing)
+    func checkHandleAvailability() {
+        // Cancel any existing check
+        handleCheckTask?.cancel()
+
+        let trimmedHandle = handle.trimmingCharacters(in: .whitespaces).lowercased()
+
+        // Reset if handle is invalid
+        guard isHandleValid else {
+            isHandleAvailable = nil
+            isCheckingHandle = false
+            return
+        }
+
+        isCheckingHandle = true
+        isHandleAvailable = nil
+
+        // Debounce the check by 500ms
+        handleCheckTask = Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+
+            guard !Task.isCancelled else { return }
+
+            let available = await AuthService.shared.isHandleAvailable(trimmedHandle)
+
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                self.isHandleAvailable = available
+                self.isCheckingHandle = false
+            }
         }
     }
 

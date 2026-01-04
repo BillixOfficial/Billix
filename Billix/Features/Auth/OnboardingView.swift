@@ -201,14 +201,38 @@ struct OnboardingView: View {
                 } else {
                     viewModel.handle = cleaned
                 }
+                // Check availability when handle changes
+                viewModel.checkHandleAvailability()
             }
 
             // Validation feedback
-            if !viewModel.handle.isEmpty && !viewModel.isHandleValid {
-                Text("3-20 characters, letters, numbers, and underscores only")
-                    .font(.caption)
-                    .foregroundColor(.orange.opacity(0.9))
+            HStack(spacing: 6) {
+                if !viewModel.handle.isEmpty {
+                    if !viewModel.isHandleValid {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundColor(.orange)
+                        Text("3-20 characters, letters, numbers, and underscores only")
+                            .foregroundColor(.orange.opacity(0.9))
+                    } else if viewModel.isCheckingHandle {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(0.8)
+                        Text("Checking availability...")
+                            .foregroundColor(.white.opacity(0.7))
+                    } else if viewModel.isHandleAvailable == true {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("@\(viewModel.handle) is available!")
+                            .foregroundColor(.green)
+                    } else if viewModel.isHandleAvailable == false {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                        Text("@\(viewModel.handle) is already taken")
+                            .foregroundColor(.red.opacity(0.9))
+                    }
+                }
             }
+            .font(.caption)
 
             Spacer()
             Spacer()

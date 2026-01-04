@@ -589,6 +589,30 @@ class AuthService: ObservableObject {
         }
     }
 
+    // MARK: - Handle Availability
+
+    /// Check if a handle is already taken
+    func isHandleAvailable(_ handle: String) async -> Bool {
+        let normalizedHandle = handle.trimmingCharacters(in: .whitespaces).lowercased()
+
+        guard !normalizedHandle.isEmpty else { return false }
+
+        do {
+            let results: [[String: String]] = try await supabase
+                .from("profiles")
+                .select("handle")
+                .eq("handle", value: normalizedHandle)
+                .execute()
+                .value
+
+            return results.isEmpty
+        } catch {
+            print("⚠️ Error checking handle availability: \(error)")
+            // On error, assume it's available to let server-side validation handle it
+            return true
+        }
+    }
+
     // MARK: - Profile Updates
 
     /// Update user profile (updates both legacy and new profiles tables)
@@ -633,6 +657,24 @@ class AuthService: ObservableObject {
     func updateBio(_ bio: String) async throws {
         try await updateProfile(bio: bio)
         print("✅ Bio updated")
+    }
+
+    /// Update handle/username
+    func updateHandle(_ handle: String) async throws {
+        guard let userId = currentUser?.id else {
+            throw AuthError.noUserLoggedIn
+        }
+
+        try await supabase
+            .from("profiles")
+            .update(["handle": handle])
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+
+        // Refresh user data
+        let user = try await fetchUserData(userId: userId)
+        self.currentUser = user
+        print("✅ Handle updated to: \(handle)")
     }
 
     /// Update avatar

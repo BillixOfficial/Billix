@@ -98,78 +98,62 @@ struct UtilityCheckupZone: View {
 
 struct UtilityInsightZone: View {
     let zipCode: String
-    let onUploadTap: () -> Void
 
     var body: some View {
         VStack(spacing: 12) {
-            HStack(spacing: 12) {
-                // Rate Alert Card
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "#F59E0B"))
+            // Weather-Based Rate Alert Card
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "cloud.sun.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(hex: "#3B82F6"))
 
-                        Text("Rate Alert")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(Color(hex: "#2D3B35"))
-                    }
-
-                    Text("Electric rates up 3.2% in your area this month")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#8B9A94"))
-                        .lineLimit(2)
+                    Text("Weather Rate Alert")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(hex: "#2D3B35"))
 
                     Spacer()
 
-                    Text("View details →")
+                    Text("Today")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(hex: "#8B9A94"))
+                }
+
+                Text("Cooler temperatures expected this week. Consider reducing heating to save on your gas bill.")
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(hex: "#5D6D66"))
+                    .lineLimit(2)
+
+                HStack(spacing: 16) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "thermometer.medium")
+                            .font(.system(size: 11))
+                        Text("45°F")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundColor(Color(hex: "#3B82F6"))
+
+                    Text("Potential savings: $8-12")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(Color(hex: "#5B8A6B"))
                 }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(height: 110)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#F59E0B").opacity(0.08))
-                )
-
-                // Upload CTA Card
-                Button(action: onUploadTap) {
-                    VStack(spacing: 8) {
-                        ZStack {
-                            Circle()
-                                .fill(Color(hex: "#5B8A6B").opacity(0.1))
-                                .frame(width: 40, height: 40)
-
-                            Image(systemName: "doc.badge.plus")
-                                .font(.system(size: 18))
-                                .foregroundColor(Color(hex: "#5B8A6B"))
-                        }
-
-                        Text("Upload Bill")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "#2D3B35"))
-
-                        Text("Get personalized insights")
-                            .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "#8B9A94"))
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(12)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 110)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.white)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(hex: "#5B8A6B").opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [5, 3]))
-                            )
-                    )
-                }
-                .buttonStyle(.plain)
             }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#3B82F6").opacity(0.08), Color(hex: "#60A5FA").opacity(0.04)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(Color(hex: "#3B82F6").opacity(0.15), lineWidth: 1)
+                    )
+            )
         }
         .padding(.horizontal, 20)
     }
@@ -314,19 +298,28 @@ struct CommunityPollZoneNew: View {
 // MARK: - Invite & Earn Banner
 
 struct InviteEarnBannerNew: View {
+    @State private var showInviteSheet = false
+    @State private var showNativeShareSheet = false
+    @State private var referralCode = ""
+    @State private var shareMessage = ""
+    @State private var isLoading = false
+
+    private let purpleColor = Color(hex: "#9B7EB8")
+
     var body: some View {
         Button {
-            // Open referral flow
+            print("🔵 Invite button tapped")
+            loadReferralData()
         } label: {
             HStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .fill(Color(hex: "#9B7EB8").opacity(0.15))
+                        .fill(purpleColor.opacity(0.15))
                         .frame(width: 44, height: 44)
 
                     Image(systemName: "gift.fill")
                         .font(.system(size: 18))
-                        .foregroundColor(Color(hex: "#9B7EB8"))
+                        .foregroundColor(purpleColor)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -341,27 +334,219 @@ struct InviteEarnBannerNew: View {
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(hex: "#8B9A94"))
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(hex: "#8B9A94"))
+                }
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(
                         LinearGradient(
-                            colors: [Color(hex: "#9B7EB8").opacity(0.08), Color(hex: "#9B7EB8").opacity(0.03)],
+                            colors: [purpleColor.opacity(0.08), purpleColor.opacity(0.03)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color(hex: "#9B7EB8").opacity(0.2), lineWidth: 1)
+                            .stroke(purpleColor.opacity(0.2), lineWidth: 1)
                     )
             )
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 20)
+        .sheet(isPresented: $showInviteSheet) {
+            InviteOptionsSheet(
+                referralCode: referralCode,
+                shareMessage: shareMessage,
+                onShare: {
+                    showInviteSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showNativeShareSheet = true
+                    }
+                },
+                onCopy: {
+                    UIPasteboard.general.string = referralCode
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            )
+            .presentationDetents([.height(380)])
+            .presentationBackground(Color(hex: "#F5F7F6"))
+        }
+        .sheet(isPresented: $showNativeShareSheet) {
+            NativeShareSheet(items: [shareMessage])
+        }
     }
+
+    private func loadReferralData() {
+        print("🔵 loadReferralData() called")
+        isLoading = true
+
+        // Generate referral code and message
+        if referralCode.isEmpty {
+            referralCode = "BILLIX-\(String(UUID().uuidString.prefix(6)).uppercased())"
+        }
+        if shareMessage.isEmpty {
+            shareMessage = "Join me on Billix and save money on your bills! Use my code: \(referralCode) to get started. Download now!"
+        }
+
+        print("🟢 Generated code: \(referralCode)")
+        isLoading = false
+        showInviteSheet = true
+    }
+}
+
+// MARK: - Invite Options Sheet
+
+private struct InviteOptionsSheet: View {
+    let referralCode: String
+    let shareMessage: String
+    let onShare: () -> Void
+    let onCopy: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var codeCopied = false
+
+    private let purpleColor = Color(hex: "#9B7EB8")
+
+    var body: some View {
+        VStack(spacing: 20) {
+            // Header
+            HStack {
+                Text("Invite Friends")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(Color(hex: "#2D3B35"))
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(Color(hex: "#CBD5E0"))
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+
+            // Referral Code Display
+            VStack(spacing: 8) {
+                Text("Your Referral Code")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Color(hex: "#8B9A94"))
+
+                Text(referralCode)
+                    .font(.system(size: 28, weight: .bold, design: .monospaced))
+                    .foregroundColor(purpleColor)
+                    .tracking(2)
+            }
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(purpleColor.opacity(0.08))
+            )
+            .padding(.horizontal, 20)
+
+            // 500 Points Bonus Messaging
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: "#FFD700").opacity(0.2))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(Color(hex: "#FFD700"))
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Invite 5 friends, earn 500 bonus points!")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(hex: "#2D3B35"))
+                    Text("100 points per referral + 500 point bonus")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(hex: "#8B9A94"))
+                }
+
+                Spacer()
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(hex: "#FFD700").opacity(0.08))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color(hex: "#FFD700").opacity(0.3), lineWidth: 1)
+                    )
+            )
+            .padding(.horizontal, 20)
+
+            // Action Buttons
+            HStack(spacing: 12) {
+                // Copy Code Button
+                Button {
+                    onCopy()
+                    codeCopied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        codeCopied = false
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: codeCopied ? "checkmark" : "doc.on.doc")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(codeCopied ? "Copied!" : "Copy Code")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(codeCopied ? .white : purpleColor)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(codeCopied ? Color.green : purpleColor.opacity(0.12))
+                    )
+                }
+                .buttonStyle(.plain)
+
+                // Share Button
+                Button {
+                    onShare()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Share")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(purpleColor)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 20)
+
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Native Share Sheet
+
+struct NativeShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

@@ -195,8 +195,10 @@ struct ProfileView: View {
     @State private var isJoiningHousehold = false
     @State private var joinCode = ""
 
-    // Trust & Points (default values for new users)
-    @State private var userTrustScore: Int = 2  // Out of 5, start at 2
+    // Trust & Points
+    private var userTrustScore: Int {
+        authService.currentUser?.vault.trustScore ?? 0
+    }
     @State private var userBillixPoints: Int = 100  // Start with 100 points
 
     // Username states
@@ -243,7 +245,7 @@ struct ProfileView: View {
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 fetchUserEmail()
-                generateRandomUsernameIfNeeded()
+                loadUsernameFromProfile()
             }
             .sheet(isPresented: $showBioEditor) {
                 bioEditorSheet
@@ -384,9 +386,14 @@ struct ProfileView: View {
         .presentationBackground(Color(hex: "#F5F7F6"))
     }
 
-    private func generateRandomUsernameIfNeeded() {
-        if username.isEmpty {
+    private func loadUsernameFromProfile() {
+        // First try to load from database
+        if let handle = authService.currentUser?.billixProfile?.handle, !handle.isEmpty {
+            username = handle
+        } else if username.isEmpty {
+            // Generate random username and save it
             username = generateRandomUsername()
+            saveUsernameToDatabase(username)
         }
     }
 
@@ -408,7 +415,18 @@ struct ProfileView: View {
         let cleaned = editingUsername.filter { $0.isLetter || $0.isNumber }
         if cleaned.count >= 3 && cleaned.count <= 20 {
             username = cleaned
+            saveUsernameToDatabase(cleaned)
             showEditUsernameSheet = false
+        }
+    }
+
+    private func saveUsernameToDatabase(_ newUsername: String) {
+        Task {
+            do {
+                try await authService.updateHandle(newUsername)
+            } catch {
+                print("Failed to save username: \(error)")
+            }
         }
     }
 
