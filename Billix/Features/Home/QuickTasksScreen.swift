@@ -10,7 +10,7 @@ import SwiftUI
 
 struct QuickTasksScreen: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = TasksViewModel()
+    @ObservedObject private var viewModel = TasksViewModel.shared
 
     // Sheet presentation states
     @State private var showPollView = false
@@ -55,15 +55,13 @@ struct QuickTasksScreen: View {
             }
             .padding(16)
 
-            // Claim Success Overlay
-            if viewModel.showClaimSuccess {
+            // Claim Success Overlay (only for Quick Earnings tasks)
+            if viewModel.showClaimSuccess && isQuickEarningsTask(viewModel.claimedTaskTitle) {
                 claimSuccessOverlay
             }
 
-            // Check-in Success Overlay
-            if viewModel.showCheckInSuccess {
-                checkInSuccessOverlay
-            }
+            // Check-in Success Overlay (NOT shown in Quick Earnings - check-in is not a Quick Earnings task)
+            // Daily check-in notifications appear in the main tasks view only
         }
         .navigationBarHidden(true)
         .task {
@@ -91,6 +89,13 @@ struct QuickTasksScreen: View {
         }
         .sheet(isPresented: $showTipView) {
             TipView()
+        }
+        // Listen for task updates (when poll/quiz/tip/social is completed)
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PointsUpdated"))) { _ in
+            print("📥 [QUICK EARNINGS] PointsUpdated notification received - refreshing tasks")
+            Task {
+                await viewModel.loadTasks()
+            }
         }
     }
 
@@ -270,6 +275,13 @@ struct QuickTasksScreen: View {
                 viewModel.dismissCheckInSuccess()
             }
         }
+    }
+
+    // MARK: - Helper Methods
+
+    /// Check if a task title belongs to Quick Earnings tasks (poll, quiz, tip, social)
+    private func isQuickEarningsTask(_ taskTitle: String) -> Bool {
+        viewModel.quickEarningsTasks.contains { $0.title == taskTitle }
     }
 }
 

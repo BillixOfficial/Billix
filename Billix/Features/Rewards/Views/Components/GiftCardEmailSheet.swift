@@ -81,6 +81,7 @@ struct GiftCardEmailSheet: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.billixDarkGreen)
                             .keyboardType(.emailAddress)
+                            .textContentType(.emailAddress)
                             .autocapitalization(.none)
                             .autocorrectionDisabled()
                             .focused($isEmailFieldFocused)

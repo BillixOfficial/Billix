@@ -90,49 +90,6 @@ class RewardsService {
         return response
     }
 
-    // MARK: - Daily Game Cap
-
-    /// Check daily game cap status
-    func checkDailyGameCap(userId: UUID) async throws -> DailyGameCapDTO {
-        struct CheckCapParams: Encodable {
-            let p_user_id: String
-        }
-
-        let params = CheckCapParams(p_user_id: userId.uuidString)
-
-        let response: DailyGameCapDTO = try await client
-            .rpc("check_daily_game_cap", params: params)
-            .single()
-            .execute()
-            .value
-
-        return response
-    }
-
-    /// Update daily game cap after earning points
-    func updateDailyGameCap(
-        userId: UUID,
-        pointsEarned: Int
-    ) async throws -> DailyGameCapRecordDTO {
-        struct UpdateCapParams: Encodable {
-            let p_user_id: String
-            let p_points_earned: Int
-        }
-
-        let params = UpdateCapParams(
-            p_user_id: userId.uuidString,
-            p_points_earned: pointsEarned
-        )
-
-        let response: DailyGameCapRecordDTO = try await client
-            .rpc("update_daily_game_cap", params: params)
-            .single()
-            .execute()
-            .value
-
-        return response
-    }
-
     // MARK: - Real-time Subscriptions
 
     /// Subscribe to point balance changes (real-time updates)
@@ -217,52 +174,5 @@ struct PointTransactionDTO: Codable {
             description: description,
             createdAt: createdAt
         )
-    }
-}
-
-/// Response from check_daily_game_cap function
-struct DailyGameCapDTO: Codable {
-    let canEarnMore: Bool
-    let pointsEarned: Int
-    let remainingPoints: Int
-    let sessionsPlayed: Int
-
-    enum CodingKeys: String, CodingKey {
-        case canEarnMore = "can_earn_more"
-        case pointsEarned = "points_earned"
-        case remainingPoints = "remaining_points"
-        case sessionsPlayed = "sessions_played"
-    }
-
-    /// Convert to app model
-    func toDailyGameCap() -> DailyGameCap {
-        return DailyGameCap(
-            date: Date(),
-            pointsEarnedToday: pointsEarned,
-            sessionsPlayedToday: sessionsPlayed
-        )
-    }
-}
-
-/// Full daily_game_caps record
-struct DailyGameCapRecordDTO: Codable {
-    let id: UUID
-    let userId: UUID
-    let date: Date
-    let pointsEarned: Int
-    let sessionsPlayed: Int
-    let maxDailyPoints: Int
-    let createdAt: Date
-    let updatedAt: Date
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case userId = "user_id"
-        case date
-        case pointsEarned = "points_earned"
-        case sessionsPlayed = "sessions_played"
-        case maxDailyPoints = "max_daily_points"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
     }
 }

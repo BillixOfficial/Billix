@@ -80,45 +80,72 @@ class StreakService: ObservableObject {
 
     /// Fetch current streak status for the logged-in user
     func fetchStreak() async throws {
+        print("🔄 [STREAK SERVICE] fetchStreak() called - START")
+
         guard let userId = try? await supabase.auth.session.user.id else {
-            print("⚠️ StreakService: No user logged in")
+            print("⚠️ [STREAK SERVICE] No user logged in")
             return
         }
 
+        print("✅ [STREAK SERVICE] User ID: \(userId.uuidString)")
+
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            isLoading = false
+            print("🔄 [STREAK SERVICE] isLoading set to false")
+        }
 
         do {
+            print("🌐 [STREAK SERVICE] Calling get_streak_status RPC...")
             // Call the get_streak_status function
             let results: [StreakStatusResult] = try await supabase
                 .rpc("get_streak_status", params: ["p_user_id": userId.uuidString])
                 .execute()
                 .value
 
+            print("📦 [STREAK SERVICE] RPC response received - results count: \(results.count)")
+
             if let result = results.first {
+                print("📊 [STREAK SERVICE] Result data:")
+                print("   - currentStreak: \(result.currentStreak)")
+                print("   - longestStreak: \(result.longestStreak)")
+                print("   - isAtRisk: \(result.isAtRisk)")
+                print("   - lastActivityDate: \(result.lastActivityDate ?? "nil")")
+
+                // BEFORE update
+                print("📍 [STREAK SERVICE] BEFORE UPDATE - self.currentStreak = \(self.currentStreak)")
+
                 self.currentStreak = result.currentStreak
                 self.longestStreak = result.longestStreak
                 self.isAtRisk = result.isAtRisk
+
+                // AFTER update
+                print("📍 [STREAK SERVICE] AFTER UPDATE - self.currentStreak = \(self.currentStreak)")
 
                 // Parse last activity date
                 if let dateString = result.lastActivityDate {
                     let formatter = DateFormatter()
                     formatter.dateFormat = "yyyy-MM-dd"
                     self.lastActivityDate = formatter.date(from: dateString)
+                    print("📅 [STREAK SERVICE] lastActivityDate parsed: \(self.lastActivityDate?.description ?? "nil")")
                 }
 
-                print("✅ Streak fetched: \(self.currentStreak) days")
+                print("✅ [STREAK SERVICE] Streak fetched successfully: \(self.currentStreak) days")
             } else {
+                print("⚠️ [STREAK SERVICE] No streak record found in results")
                 // No streak record yet - will be created on first activity
                 self.currentStreak = 0
                 self.longestStreak = 0
                 self.isAtRisk = false
-                print("ℹ️ No streak record found - will create on first activity")
+                print("ℹ️ [STREAK SERVICE] Set to defaults - currentStreak: 0")
             }
         } catch {
-            print("❌ Error fetching streak: \(error)")
+            print("❌ [STREAK SERVICE] Error fetching streak: \(error)")
+            print("❌ [STREAK SERVICE] Error details: \(error.localizedDescription)")
             throw error
         }
+
+        print("✅ [STREAK SERVICE] fetchStreak() completed - FINAL currentStreak = \(self.currentStreak)")
     }
 
     /// Record activity and update streak

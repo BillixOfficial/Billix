@@ -11,6 +11,9 @@ import SwiftData
 @main
 struct BillixApp: App {
     @StateObject private var authService = AuthService.shared
+    @StateObject private var streakService = StreakService.shared
+    @StateObject private var tasksViewModel = TasksViewModel.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -31,6 +34,14 @@ struct BillixApp: App {
                 .environmentObject(authService)
         }
         .modelContainer(sharedModelContainer)
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .active {
+                // Fetch streak when app becomes active
+                Task {
+                    try? await streakService.fetchStreak()
+                }
+            }
+        }
     }
 }
 

@@ -13,11 +13,16 @@ import Combine
 @MainActor
 class TasksViewModel: ObservableObject {
 
+    // MARK: - Singleton
+
+    nonisolated(unsafe) static let shared = TasksViewModel()
+
     // MARK: - Services
 
     private let taskTrackingService: TaskTrackingService
     private let rewardsService: RewardsService
     private let authService: AuthService
+    private let streakService: StreakService
 
     // MARK: - Published State
 
@@ -116,26 +121,40 @@ class TasksViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(
+    private nonisolated init(
         taskTrackingService: TaskTrackingService = TaskTrackingService(),
         rewardsService: RewardsService = RewardsService(),
-        authService: AuthService = AuthService.shared
+        authService: AuthService = AuthService.shared,
+        streakService: StreakService = StreakService.shared
     ) {
         self.taskTrackingService = taskTrackingService
         self.rewardsService = rewardsService
         self.authService = authService
+        self.streakService = streakService
 
-        setupNotificationObservers()
+        print("🔧 [TASKS VM] TasksViewModel initialized - setting up notification observers")
+        Task { @MainActor in
+            setupNotificationObservers()
+        }
     }
 
     // MARK: - Setup
 
     private func setupNotificationObservers() {
+        print("🔧 [TASKS VM] Setting up notification observers...")
+
         // Listen for bill upload completions
         NotificationCenter.default.publisher(for: NSNotification.Name("BillUploadCompleted"))
             .sink { [weak self] notification in
-                guard let billId = notification.userInfo?["billId"] as? UUID else { return }
+                print("📤 [BILL UPLOAD DEBUG] BillUploadCompleted notification received")
+                print("📦 [BILL UPLOAD DEBUG] Notification userInfo: \(notification.userInfo ?? [:])")
+                guard let billId = notification.userInfo?["billId"] as? UUID else {
+                    print("❌ [BILL UPLOAD DEBUG] No billId found in notification userInfo")
+                    return
+                }
+                print("✅ [BILL UPLOAD DEBUG] Bill ID extracted: \(billId.uuidString)")
                 Task { @MainActor [weak self] in
+                    print("🔄 [BILL UPLOAD DEBUG] Calling trackBillUpload...")
                     await self?.trackBillUpload(billId: billId)
                 }
             }
@@ -144,9 +163,16 @@ class TasksViewModel: ObservableObject {
         // Listen for game completions
         NotificationCenter.default.publisher(for: NSNotification.Name("GameCompleted"))
             .sink { [weak self] notification in
+                print("📤 [GAME DEBUG] GameCompleted notification received")
+                print("📦 [GAME DEBUG] Notification userInfo: \(notification.userInfo ?? [:])")
                 guard let sessionId = notification.userInfo?["sessionId"] as? UUID,
-                      let pointsEarned = notification.userInfo?["pointsEarned"] as? Int else { return }
+                      let pointsEarned = notification.userInfo?["pointsEarned"] as? Int else {
+                    print("❌ [GAME DEBUG] Missing sessionId or pointsEarned in notification")
+                    return
+                }
+                print("✅ [GAME DEBUG] Session ID: \(sessionId.uuidString), Points: \(pointsEarned)")
                 Task { @MainActor [weak self] in
+                    print("🔄 [GAME DEBUG] Calling trackGameCompletion...")
                     await self?.trackGameCompletion(sessionId: sessionId, pointsEarned: pointsEarned)
                 }
             }
@@ -155,17 +181,21 @@ class TasksViewModel: ObservableObject {
         // Listen for points updates (Quick Earnings completions)
         NotificationCenter.default.publisher(for: NSNotification.Name("PointsUpdated"))
             .sink { [weak self] _ in
+                print("📤 [POINTS DEBUG] PointsUpdated notification received - reloading tasks")
                 Task { @MainActor [weak self] in
                     await self?.loadTasks()
                 }
             }
             .store(in: &cancellables)
+
+        print("✅ [TASKS VM] Notification observers set up successfully")
     }
 
     // MARK: - Public Methods
 
     /// Load all tasks for current user
     func loadTasks() async {
+        print("🔄 [STREAK DEBUG] loadTasks() called - START")
         isLoading = true
         errorMessage = nil
 
@@ -173,8 +203,11 @@ class TasksViewModel: ObservableObject {
             guard let userId = authService.currentUser?.id else {
                 errorMessage = "No authenticated user"
                 isLoading = false
+                print("❌ [STREAK DEBUG] No authenticated user")
                 return
             }
+
+            print("✅ [STREAK DEBUG] User ID: \(userId.uuidString)")
 
             // Fetch tasks from Supabase
             let taskDTOs = try await taskTrackingService.getUserTasks(userId: userId)
@@ -185,11 +218,28 @@ class TasksViewModel: ObservableObject {
             // Fetch weekly check-in history
             weeklyCheckIns = try await taskTrackingService.getWeeklyCheckIns(userId: userId)
 
+            // CRITICAL FIX: Fetch current streak from StreakService
+            print("🔄 [STREAK DEBUG] Calling streakService.fetchStreak()...")
+            try await streakService.fetchStreak()
+
+            // Update local currentStreak from StreakService
+            currentStreak = streakService.currentStreak
+            print("✅ [STREAK DEBUG] Streak fetched and updated! currentStreak = \(currentStreak)")
+            print("📊 [STREAK DEBUG] StreakService values - current: \(streakService.currentStreak), longest: \(streakService.longestStreak)")
+
             isLoading = false
+            print("✅ [STREAK DEBUG] loadTasks() completed successfully")
         } catch {
-            errorMessage = "Failed to load tasks: \(error.localizedDescription)"
+            // Don't show error message for task cancellation (expected when view dismisses)
+            if (error as NSError).domain == NSURLErrorDomain && (error as NSError).code == NSURLErrorCancelled {
+                print("⚠️ [STREAK DEBUG] Task cancelled (view dismissed)")
+            } else if error is CancellationError {
+                print("⚠️ [STREAK DEBUG] Task cancelled (Swift Concurrency)")
+            } else {
+                errorMessage = "Failed to load tasks: \(error.localizedDescription)"
+                print("❌ [STREAK DEBUG] Error loading tasks: \(error)")
+            }
             isLoading = false
-            print("❌ Error loading tasks: \(error)")
         }
     }
 
@@ -393,9 +443,18 @@ class TasksViewModel: ObservableObject {
 
     /// Track bill upload completion
     private func trackBillUpload(billId: UUID) async {
-        guard let userId = authService.currentUser?.id else { return }
+        print("🔄 [BILL UPLOAD DEBUG] trackBillUpload() called - START")
+        print("📋 [BILL UPLOAD DEBUG] Bill ID: \(billId.uuidString)")
+
+        guard let userId = authService.currentUser?.id else {
+            print("❌ [BILL UPLOAD DEBUG] No authenticated user - aborting")
+            return
+        }
+
+        print("✅ [BILL UPLOAD DEBUG] User ID: \(userId.uuidString)")
 
         do {
+            print("🔄 [BILL UPLOAD DEBUG] Incrementing daily_upload_bill task...")
             // Track daily_upload_bill task
             let dailyResult = try await taskTrackingService.incrementTaskProgress(
                 userId: userId,
@@ -403,6 +462,13 @@ class TasksViewModel: ObservableObject {
                 sourceId: billId
             )
 
+            print("✅ [BILL UPLOAD DEBUG] Daily task result:")
+            print("   - currentCount: \(dailyResult.currentCount)")
+            print("   - requiredCount: \(dailyResult.requiredCount)")
+            print("   - isCompleted: \(dailyResult.isCompleted)")
+            print("   - justCompleted: \(dailyResult.justCompleted)")
+
+            print("🔄 [BILL UPLOAD DEBUG] Incrementing weekly_upload_5_bills task...")
             // Track weekly_upload_5_bills task
             let weeklyResult = try await taskTrackingService.incrementTaskProgress(
                 userId: userId,
@@ -410,25 +476,45 @@ class TasksViewModel: ObservableObject {
                 sourceId: billId
             )
 
+            print("✅ [BILL UPLOAD DEBUG] Weekly task result:")
+            print("   - currentCount: \(weeklyResult.currentCount)")
+            print("   - requiredCount: \(weeklyResult.requiredCount)")
+            print("   - isCompleted: \(weeklyResult.isCompleted)")
+            print("   - justCompleted: \(weeklyResult.justCompleted)")
+
             // Show completion celebration if just completed weekly task
             if weeklyResult.justCompleted {
                 // Optionally show a celebration UI
-                print("🎉 Weekly task completed: Upload 5 bills!")
+                print("🎉 [BILL UPLOAD DEBUG] Weekly task completed: Upload 5 bills!")
             }
 
+            print("🔄 [BILL UPLOAD DEBUG] Refreshing tasks via loadTasks()...")
             // Refresh tasks
             await loadTasks()
 
+            print("✅ [BILL UPLOAD DEBUG] trackBillUpload() completed successfully")
+
         } catch {
-            print("❌ Error tracking bill upload: \(error)")
+            print("❌ [BILL UPLOAD DEBUG] Error tracking bill upload: \(error)")
+            print("❌ [BILL UPLOAD DEBUG] Error details: \(error.localizedDescription)")
         }
     }
 
     /// Track game completion
     private func trackGameCompletion(sessionId: UUID, pointsEarned: Int) async {
-        guard let userId = authService.currentUser?.id else { return }
+        print("🔄 [GAME DEBUG] trackGameCompletion() called - START")
+        print("📋 [GAME DEBUG] Session ID: \(sessionId.uuidString)")
+        print("💰 [GAME DEBUG] Points Earned: \(pointsEarned)")
+
+        guard let userId = authService.currentUser?.id else {
+            print("❌ [GAME DEBUG] No authenticated user - aborting")
+            return
+        }
+
+        print("✅ [GAME DEBUG] User ID: \(userId.uuidString)")
 
         do {
+            print("🔄 [GAME DEBUG] Incrementing weekly_play_7_games task...")
             // Track weekly_play_7_games task
             let result = try await taskTrackingService.incrementTaskProgress(
                 userId: userId,
@@ -437,16 +523,26 @@ class TasksViewModel: ObservableObject {
                 metadata: ["points_earned": pointsEarned]
             )
 
+            print("✅ [GAME DEBUG] Weekly task result:")
+            print("   - currentCount: \(result.currentCount)")
+            print("   - requiredCount: \(result.requiredCount)")
+            print("   - isCompleted: \(result.isCompleted)")
+            print("   - justCompleted: \(result.justCompleted)")
+
             // Show completion celebration if just completed
             if result.justCompleted {
-                print("🎉 Weekly task completed: Play 7 games!")
+                print("🎉 [GAME DEBUG] Weekly task completed: Play 7 games!")
             }
 
+            print("🔄 [GAME DEBUG] Refreshing tasks via loadTasks()...")
             // Refresh tasks
             await loadTasks()
 
+            print("✅ [GAME DEBUG] trackGameCompletion() completed successfully")
+
         } catch {
-            print("❌ Error tracking game completion: \(error)")
+            print("❌ [GAME DEBUG] Error tracking game completion: \(error)")
+            print("❌ [GAME DEBUG] Error details: \(error.localizedDescription)")
         }
     }
 

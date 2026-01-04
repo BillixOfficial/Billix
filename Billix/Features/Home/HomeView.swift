@@ -225,6 +225,11 @@ struct HomeView: View {
                 try? await streakService.fetchStreak()
             }
             .onAppear {
+                // Fetch streak on app launch
+                Task {
+                    try? await streakService.fetchStreak()
+                }
+
                 // Show setup questions for first-time users
                 if let user = authService.currentUser, user.needsHomeSetup {
                     // Delay slightly to let the main view settle

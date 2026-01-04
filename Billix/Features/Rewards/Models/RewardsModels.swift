@@ -349,24 +349,6 @@ struct LeaderboardEntry: Identifiable, Codable, Equatable {
     }
 }
 
-// MARK: - Daily Game Cap
-
-/// Tracks daily point earnings from Price Guessr game
-struct DailyGameCap {
-    let date: Date
-    var pointsEarnedToday: Int
-    var sessionsPlayedToday: Int
-    let maxDailyPoints: Int = TaskConfiguration.maxDailyGamePoints
-
-    var canEarnMore: Bool {
-        pointsEarnedToday < maxDailyPoints
-    }
-
-    var remainingPoints: Int {
-        max(0, maxDailyPoints - pointsEarnedToday)
-    }
-}
-
 // MARK: - Task Configuration
 
 /// Centralized point values for all earning activities

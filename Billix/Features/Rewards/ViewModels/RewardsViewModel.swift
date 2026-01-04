@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import Supabase
 
 @MainActor
 class RewardsViewModel: ObservableObject {
@@ -16,6 +17,9 @@ class RewardsViewModel: ObservableObject {
 
     private let rewardsService: RewardsService
     private let authService: AuthService
+    private var supabase: SupabaseClient {
+        SupabaseService.shared.client
+    }
 
     // MARK: - Points & Wallet
 
@@ -56,14 +60,6 @@ class RewardsViewModel: ObservableObject {
     @Published var showGeoGame: Bool = false
     @Published var activeGame: DailyGame?
     @Published var showSeasonSelection: Bool = false
-
-    // MARK: - Daily Game Cap Tracking
-
-    @Published var dailyGameCap: DailyGameCap = DailyGameCap(
-        date: Date(),
-        pointsEarnedToday: 0,
-        sessionsPlayedToday: 0
-    )
 
     // MARK: - Marketplace
 
@@ -303,24 +299,63 @@ class RewardsViewModel: ObservableObject {
         }
     }
 
-    func redeemGiftCard(_ reward: Reward, email: String) {
+    func redeemGiftCard(_ reward: Reward, email: String) async {
         guard canAffordReward(reward) else { return }
+        guard let userId = authService.currentUser?.id else { return }
 
-        let transaction = PointTransaction(
-            id: UUID(),
-            type: .redemption,
-            amount: -reward.pointsCost,
-            description: "Redeemed \(reward.title) - Sent to \(email)",
-            createdAt: Date()
-        )
+        do {
+            // 1. Save redemption to database
+            struct GiftCardRedemption: Encodable {
+                let user_id: String
+                let reward_id: String
+                let reward_title: String
+                let points_spent: Int
+                let delivery_email: String
+                let status: String
+            }
 
-        points.balance -= reward.pointsCost
-        points.transactions.insert(transaction, at: 0)
+            let redemption = GiftCardRedemption(
+                user_id: userId.uuidString,
+                reward_id: reward.id.uuidString,
+                reward_title: reward.title,
+                points_spent: reward.pointsCost,
+                delivery_email: email,
+                status: "pending"
+            )
 
-        animateBalanceChange(to: points.balance)
+            try await supabase
+                .from("gift_card_redemptions")
+                .insert(redemption)
+                .execute()
 
-        // In a real app, this would call an API to send the gift card to the email
-        print("Gift card \(reward.title) will be sent to \(email)")
+            // 2. Deduct points via RewardsService
+            try await rewardsService.addPoints(
+                userId: userId,
+                amount: -reward.pointsCost,
+                type: "redemption",
+                description: "Redeemed \(reward.title)",
+                source: reward.id.uuidString
+            )
+
+            // 3. Create local transaction for UI
+            let transaction = PointTransaction(
+                id: UUID(),
+                type: .redemption,
+                amount: -reward.pointsCost,
+                description: "Redeemed \(reward.title)",
+                createdAt: Date()
+            )
+
+            // 4. Update local state
+            points.balance -= reward.pointsCost
+            points.transactions.insert(transaction, at: 0)
+            animateBalanceChange(to: points.balance)
+
+            print("✅ Gift card redemption saved to database")
+        } catch {
+            print("❌ Error redeeming gift card: \(error)")
+            errorMessage = "Failed to redeem gift card. Please try again."
+        }
     }
 
     func selectBrandForAmountSheet(brandGroup: String) {
@@ -341,30 +376,18 @@ class RewardsViewModel: ObservableObject {
         todaysResult = result
         gamesPlayedToday += 1
 
-        // Reset cap if new day
-        if !Calendar.current.isDate(dailyGameCap.date, inSameDayAs: Date()) {
-            dailyGameCap = DailyGameCap(
-                date: Date(),
-                pointsEarnedToday: 0,
-                sessionsPlayedToday: 0
-            )
-        }
+        // Post GameCompleted notification for task tracking
+        // Points will be awarded when user claims the weekly task (Play 7 games = 500 pts)
+        NotificationCenter.default.post(
+            name: NSNotification.Name("GameCompleted"),
+            object: nil,
+            userInfo: [
+                "sessionId": UUID(), // Generate a session ID for tracking
+                "pointsEarned": result.pointsEarned // Preserved for metadata, but not awarded immediately
+            ]
+        )
 
-        // Add points if earned, with daily cap enforcement
-        if result.pointsEarned > 0 {
-            let cappedPoints = min(result.pointsEarned, dailyGameCap.remainingPoints)
-
-            if cappedPoints > 0 {
-                dailyGameCap.pointsEarnedToday += cappedPoints
-                dailyGameCap.sessionsPlayedToday += 1
-
-                addPoints(
-                    cappedPoints,
-                    description: "Price Guessr Session #\(dailyGameCap.sessionsPlayedToday)",
-                    type: .gameWin
-                )
-            }
-        }
+        print("📤 Posted GameCompleted notification - points will be awarded via weekly task claim")
     }
 
     func closeGeoGame() {
@@ -386,47 +409,65 @@ class RewardsViewModel: ObservableObject {
     func submitDonationRequest(
         organizationName: String,
         websiteOrLocation: String,
-        amount: DonationAmount,
-        donateInMyName: Bool,
-        donorName: String?,
-        donorEmail: String?
-    ) {
+        amount: DonationAmount
+    ) async {
         guard points.balance >= amount.pointsCost else { return }
+        guard let userId = authService.currentUser?.id else { return }
 
-        // Create donation request
-        let request = DonationRequest(
-            id: UUID(),
-            organizationName: organizationName,
-            websiteOrLocation: websiteOrLocation,
-            amount: amount,
-            donateInMyName: donateInMyName,
-            donorName: donorName,
-            donorEmail: donorEmail,
-            pointsUsed: amount.pointsCost,
-            status: .pending,
-            createdAt: Date(),
-            processedAt: nil
-        )
+        do {
+            // 1. Save donation request to database
+            struct DonationRequestInsert: Encodable {
+                let user_id: String
+                let organization_name: String
+                let website_or_location: String
+                let donation_amount_usd: Int
+                let points_spent: Int
+                let status: String
+            }
 
-        // Deduct points
-        let transaction = PointTransaction(
-            id: UUID(),
-            type: .redemption,
-            amount: -amount.pointsCost,
-            description: "Donation Request: \(organizationName) (\(amount.displayText))",
-            createdAt: Date()
-        )
+            let request = DonationRequestInsert(
+                user_id: userId.uuidString,
+                organization_name: organizationName,
+                website_or_location: websiteOrLocation,
+                donation_amount_usd: amount.rawValue,
+                points_spent: amount.pointsCost,
+                status: "pending"
+            )
 
-        points.balance -= amount.pointsCost
-        points.transactions.insert(transaction, at: 0)
-        donationRequests.insert(request, at: 0)
+            try await supabase
+                .from("donation_requests")
+                .insert(request)
+                .execute()
 
-        animateBalanceChange(to: points.balance)
+            // 2. Deduct points via RewardsService
+            try await rewardsService.addPoints(
+                userId: userId,
+                amount: -amount.pointsCost,
+                type: "donation",
+                description: "Donation to \(organizationName)",
+                source: "donation_request"
+            )
 
-        // In a real app, this would call an API to submit the request for verification
-        print("Donation request submitted: \(organizationName), Amount: \(amount.displayText), Location: \(websiteOrLocation)")
+            // 3. Create local transaction for UI
+            let transaction = PointTransaction(
+                id: UUID(),
+                type: .redemption,
+                amount: -amount.pointsCost,
+                description: "Donation to \(organizationName) (\(amount.displayText))",
+                createdAt: Date()
+            )
 
-        showDonationRequestSheet = false
+            // 4. Update local state
+            points.balance -= amount.pointsCost
+            points.transactions.insert(transaction, at: 0)
+            animateBalanceChange(to: points.balance)
+
+            showDonationRequestSheet = false
+            print("✅ Donation request saved to database")
+        } catch {
+            print("❌ Error submitting donation: \(error)")
+            errorMessage = "Failed to submit donation request. Please try again."
+        }
     }
 
     // MARK: - Private Methods

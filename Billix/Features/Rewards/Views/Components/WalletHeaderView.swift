@@ -323,7 +323,7 @@ struct StreakStatsCarousel: View {
 
     private func startTimer() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 4.5, repeats: true) { _ in
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 currentIndex = currentIndex == 0 ? 1 : 0
             }
@@ -365,12 +365,16 @@ struct WeeklyProgressSlide: View {
     }
 
     var body: some View {
+        let _ = print("🎯 [CAROUSEL] WeeklyProgressSlide rendering - streakCount: \(streakCount), actualStreak: \(actualStreak)")
         HStack(spacing: 12) {
             // Left side: Streak Count
             VStack(spacing: 2) {
                 Text("\(streakCount)")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(streakColor)
+                    .onAppear {
+                        print("🎯 [CAROUSEL] Streak text appeared with value: \(streakCount)")
+                    }
 
                 Text("Day Streak!")
                     .font(.system(size: 8, weight: .semibold))

@@ -12,9 +12,10 @@ import SwiftUI
 struct RewardsHubView: View {
 
     @StateObject private var viewModel = RewardsViewModel(authService: AuthService.shared)
-    @StateObject private var tasksViewModel = TasksViewModel()
+    @ObservedObject private var tasksViewModel = TasksViewModel.shared
     @State private var selectedTab: RewardsTab = .earn
     @State private var appeared = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -61,10 +62,23 @@ struct RewardsHubView: View {
             }
             .navigationBarHidden(true)
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active && appeared {
+                print("🔄 [REWARDS HUB] Scene became active - refreshing tasks")
+                Task {
+                    await tasksViewModel.loadTasks()
+                    await viewModel.loadRewardsData()
+                }
+            }
+        }
         .onAppear {
+            print("🔄 [REWARDS HUB] onAppear triggered")
             Task {
+                print("🔄 [REWARDS HUB] Loading rewards data...")
                 await viewModel.loadRewardsData()
-                await tasksViewModel.loadTasks()  // Load tasks to get weekly check-in data
+                print("🔄 [REWARDS HUB] Loading tasks...")
+                await tasksViewModel.loadTasks()
+                print("✅ [REWARDS HUB] Tasks loaded - tasksViewModel.currentStreak = \(tasksViewModel.currentStreak)")
             }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 appeared = true
@@ -110,7 +124,9 @@ struct RewardsHubView: View {
                     reward: reward,
                     userPoints: viewModel.points.balance,
                     onRedeem: { email in
-                        viewModel.redeemGiftCard(reward, email: email)
+                        Task {
+                            await viewModel.redeemGiftCard(reward, email: email)
+                        }
                     }
                 )
             } else {
@@ -133,14 +149,13 @@ struct RewardsHubView: View {
                 userName: "John Doe", // TODO: Get from user profile
                 userEmail: "john@example.com", // TODO: Get from user profile
                 onSubmit: { org, location, amount, inName, donorName, donorEmail in
-                    viewModel.submitDonationRequest(
-                        organizationName: org,
-                        websiteOrLocation: location,
-                        amount: amount,
-                        donateInMyName: inName,
-                        donorName: donorName,
-                        donorEmail: donorEmail
-                    )
+                    Task {
+                        await viewModel.submitDonationRequest(
+                            organizationName: org,
+                            websiteOrLocation: location,
+                            amount: amount
+                        )
+                    }
                 }
             )
             .presentationDetents([.large])
@@ -607,13 +622,25 @@ struct DailyTasksSection: View {
         let calendar = Calendar.current
         let now = currentTime
 
-        // Get tomorrow at midnight
-        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
-              let midnight = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: tomorrow) else {
+        // Get EST timezone
+        guard let estTimeZone = TimeZone(identifier: "America/New_York") else {
             return "24h"
         }
 
-        let components = calendar.dateComponents([.hour, .minute], from: now, to: midnight)
+        // Create EST calendar
+        var estCalendar = Calendar.current
+        estCalendar.timeZone = estTimeZone
+
+        // Get current time in EST
+        let nowInEST = now
+
+        // Get tomorrow at midnight EST
+        guard let tomorrow = estCalendar.date(byAdding: .day, value: 1, to: nowInEST),
+              let midnightEST = estCalendar.date(bySettingHour: 0, minute: 0, second: 0, of: tomorrow) else {
+            return "24h"
+        }
+
+        let components = calendar.dateComponents([.hour, .minute], from: now, to: midnightEST)
         let hours = components.hour ?? 0
         let minutes = components.minute ?? 0
 
@@ -753,24 +780,33 @@ struct WeeklyTasksSection: View {
     // Timer to update countdown
     let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
-    // Calculate time until Sunday midnight
+    // Calculate time until Sunday midnight EST
     private var timeUntilReset: String {
         let calendar = Calendar.current
         let now = currentTime
 
-        // Get next Sunday at midnight
-        var components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
+        // Get EST timezone
+        guard let estTimeZone = TimeZone(identifier: "America/New_York") else {
+            return "7 days"
+        }
+
+        // Create EST calendar
+        var estCalendar = Calendar.current
+        estCalendar.timeZone = estTimeZone
+
+        // Get next Sunday at midnight EST
+        var components = estCalendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
         components.weekday = 1 // Sunday
         components.hour = 0
         components.minute = 0
         components.second = 0
 
-        guard let nextSunday = calendar.date(from: components) else {
+        guard let nextSunday = estCalendar.date(from: components) else {
             return "7 days"
         }
 
         // If nextSunday is in the past, add a week
-        let sunday = nextSunday < now ? calendar.date(byAdding: .weekOfYear, value: 1, to: nextSunday)! : nextSunday
+        let sunday = nextSunday < now ? estCalendar.date(byAdding: .weekOfYear, value: 1, to: nextSunday)! : nextSunday
 
         let componentsUntil = calendar.dateComponents([.day, .hour], from: now, to: sunday)
         let days = componentsUntil.day ?? 0
@@ -897,7 +933,7 @@ struct TaskCard: View {
                 Text(task.title)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.billixDarkGreen)
-                    .lineLimit(1)
+                    .lineLimit(2)
 
                 if task.isPortal {
                     // Portal tasks show subtitle instead of points
