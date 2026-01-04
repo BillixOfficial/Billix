@@ -14,8 +14,9 @@ struct ContinuousHealthBar: View {
 
     // Health properties
     var healthPercentage: Double {
-        // Convert discrete hearts (0-3) to continuous percentage (0-100)
-        Double(viewModel.session.health) / 3.0 * 100.0
+        // Convert discrete hearts (0-10) to continuous percentage (0-100)
+        // 10 max health = 10% penalty per wrong answer (can make 9 mistakes)
+        Double(viewModel.session.health) / 10.0 * 100.0
     }
 
     var healthGradient: LinearGradient {

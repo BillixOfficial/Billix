@@ -46,23 +46,20 @@ struct RewardMarketplace: View {
     }
 
     var body: some View {
-        ZStack {
-            if canAccessShop {
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+        // Shop is always accessible to all users (canAccessShop always true)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 24) {
                         // ZONE 1: Weekly Giveaway Card (highest priority)
                         WeeklyGiveawayCard(
-                            userEntries: 5,  // TODO: Get from user data
-                            totalEntries: 1247,  // TODO: Get from backend
+                            userEntries: 0,
+                            totalEntries: 0,
                             currentTier: currentTier,
+                            isComingSoon: true,  // Feature not complete yet
                             onBuyEntries: {
-                                // Buy entry with points
-                                if let entry = giveawayEntries.first {
-                                    onRewardTapped(entry)
-                                }
+                                // Coming soon - no action
                             },
                             onHowToEarn: {
-                                // Show info modal
+                                // Coming soon - no action
                             }
                         )
                         .padding(.top, 12)
@@ -112,111 +109,6 @@ struct RewardMarketplace: View {
                     }
                     .padding(.bottom, 20)
                 }
-            } else {
-                // Lock overlay when shop is locked (Bronze tier)
-                LockedShopOverlay(userPoints: userPoints)
-            }
-        }
-    }
-}
-
-// MARK: - Locked Shop Overlay
-
-struct LockedShopOverlay: View {
-    let userPoints: Int
-
-    var progress: Double {
-        min(Double(userPoints) / 8000.0, 1.0)
-    }
-
-    var pointsRemaining: Int {
-        max(8000 - userPoints, 0)
-    }
-
-    var body: some View {
-        VStack(spacing: 20) {
-            // Lock icon
-            ZStack {
-                Circle()
-                    .fill(Color.billixSilverTier.opacity(0.15))
-                    .frame(width: 100, height: 100)
-
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 44, weight: .semibold))
-                    .foregroundColor(.billixSilverTier)
-            }
-
-            // Message
-            VStack(spacing: 8) {
-                Text("Unlock Rewards Shop")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.billixDarkGreen)
-
-                Text("Reach Silver Tier to access rewards")
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(.billixMediumGreen)
-                    .multilineTextAlignment(.center)
-            }
-
-            // Progress card
-            VStack(spacing: 12) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Your Progress")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.billixMediumGreen)
-                            .textCase(.uppercase)
-                            .tracking(0.5)
-
-                        Text("\(userPoints) / 8,000 points")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.billixDarkGreen)
-                    }
-
-                    Spacer()
-
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("\(pointsRemaining)")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.billixMoneyGreen)
-
-                        Text("to unlock")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.billixMediumGreen)
-                    }
-                }
-
-                // Progress bar
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.billixMediumGreen.opacity(0.15))
-                        .frame(height: 12)
-
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            LinearGradient(
-                                colors: [.billixMoneyGreen, .billixSilverTier],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: UIScreen.main.bounds.width * 0.8 * progress, height: 12)
-                }
-            }
-            .padding(20)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .shadow(color: .black.opacity(0.04), radius: 8)
-            )
-            .padding(.horizontal, 20)
-
-            // CTA
-            Text("Keep earning points to unlock!")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.billixMediumGreen)
-        }
-        .padding(.vertical, 40)
     }
 }
 

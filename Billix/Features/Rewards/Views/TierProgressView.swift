@@ -149,36 +149,15 @@ struct TierCard: View {
     }
 
     var tierBenefits: [String] {
-        switch tier {
-        case .bronze:
-            return [
-                "Earn points from games",
-                "Daily check-in rewards",
-                "Access to leaderboard"
-            ]
-        case .silver:
-            return [
-                "🔓 Access Rewards Shop",
-                "+10% bonus on all earnings",
-                "Silver tier badge",
-                "Weekly giveaway entry"
-            ]
-        case .gold:
-            return [
-                "🔓 Exclusive gold rewards",
-                "+15% bonus on all earnings",
-                "Gold tier badge",
-                "2x weekly giveaway entries"
-            ]
-        case .platinum:
-            return [
-                "🔓 Premium rewards",
-                "+20% bonus on all earnings",
-                "Platinum tier badge",
-                "3x weekly giveaway entries",
-                "VIP support"
-            ]
-        }
+        // All tiers currently have the same access
+        // Future: Add tier-specific bonuses and benefits
+        return [
+            "Earn points from games",
+            "Daily check-in rewards",
+            "Access to Rewards Shop",
+            "Weekly giveaway entries",
+            "Access to leaderboard"
+        ]
     }
 
     var body: some View {

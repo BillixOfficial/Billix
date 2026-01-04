@@ -84,23 +84,6 @@ struct GeoGameResultView: View {
             .padding(16)
             .background((viewModel.didLoseHealthOnPrice ? Color.red : Color.billixMoneyGreen).opacity(0.1))
             .cornerRadius(12)
-
-            // Points earned (only if didn't lose heart)
-            if !viewModel.didLoseHealthOnPrice {
-                HStack {
-                    Text("+\(viewModel.gameState.phase2Points) points")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.billixMoneyGreen)
-                    Spacer()
-                }
-            } else {
-                HStack {
-                    Text("You lost a heart")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.red)
-                    Spacer()
-                }
-            }
         }
     }
 

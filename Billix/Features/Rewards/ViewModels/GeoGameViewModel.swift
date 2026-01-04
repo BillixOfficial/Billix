@@ -753,7 +753,7 @@ class GeoGameViewModel: ObservableObject {
 
         // Create final game result
         let result = GameResult(
-            id: UUID(),
+            id: session.id,
             gameId: session.questions.first?.id ?? UUID(),
             userGuess: 0,
             actualPrice: 0,

@@ -119,6 +119,33 @@
 		A64F7F522ECBB46B005576C5 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4E2ECBB46B005576C5 /* Config.swift */; };
 		A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */; };
 		A64F7F552ECBB46B005576C5 /* StoredBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */; };
+		A69E78142F05D397004E63B4 /* StreakService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78122F05D397004E63B4 /* StreakService.swift */; };
+		A69E78152F05D397004E63B4 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78112F05D397004E63B4 /* OpenAIService.swift */; };
+		A69E78162F05D397004E63B4 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78132F05D397004E63B4 /* WeatherService.swift */; };
+		A69E78192F05D3AC004E63B4 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78182F05D3AC004E63B4 /* SubscriptionService.swift */; };
+		A69E781A2F05D3AC004E63B4 /* BillixScoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78172F05D3AC004E63B4 /* BillixScoreService.swift */; };
+		A69E781D2F05D3CE004E63B4 /* BillixScoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E781B2F05D3CE004E63B4 /* BillixScoreModels.swift */; };
+		A69E781E2F05D3CE004E63B4 /* SubscriptionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E781C2F05D3CE004E63B4 /* SubscriptionModels.swift */; };
+		A69E78202F05D3F5004E63B4 /* OutageBotViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E781F2F05D3F5004E63B4 /* OutageBotViewModel.swift */; };
+		A69E78232F05D400004E63B4 /* ExploreCarouselModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78212F05D400004E63B4 /* ExploreCarouselModels.swift */; };
+		A69E78242F05D400004E63B4 /* OutageBotModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78222F05D400004E63B4 /* OutageBotModels.swift */; };
+		A69E78262F05D42D004E63B4 /* UnlockCreditsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78252F05D42D004E63B4 /* UnlockCreditsService.swift */; };
+		A69E78292F05D487004E63B4 /* ExploreSubFeatureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78282F05D487004E63B4 /* ExploreSubFeatureSheet.swift */; };
+		A69E782A2F05D487004E63B4 /* ExploreCarouselCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78272F05D487004E63B4 /* ExploreCarouselCard.swift */; };
+		A69E782E2F05D4BC004E63B4 /* HomePageZones.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E782B2F05D4BC004E63B4 /* HomePageZones.swift */; };
+		A69E782F2F05D4BC004E63B4 /* HomeSetupQuestionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E782C2F05D4BC004E63B4 /* HomeSetupQuestionsView.swift */; };
+		A69E78302F05D4BC004E63B4 /* QuickActionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E782D2F05D4BC004E63B4 /* QuickActionViews.swift */; };
+		A69E78322F06E79B004E63B4 /* TaskTrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78312F06E79B004E63B4 /* TaskTrackingService.swift */; };
+		A69E78342F06E7E4004E63B4 /* TaskModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78332F06E7E4004E63B4 /* TaskModels.swift */; };
+		A69E78382F075036004E63B4 /* TasksViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78372F075036004E63B4 /* TasksViewModel.swift */; };
+		A6E5FF482F0880E5009F1277 /* PollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF452F0880E5009F1277 /* PollView.swift */; };
+		A6E5FF492F0880E5009F1277 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF462F0880E5009F1277 /* QuizView.swift */; };
+		A6E5FF4A2F0880E5009F1277 /* TipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF472F0880E5009F1277 /* TipView.swift */; };
+		A6E5FF4C2F088114009F1277 /* ToastNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4B2F088114009F1277 /* ToastNotification.swift */; };
+		A6E5FF502F088187009F1277 /* CommunityPollService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */; };
+		A6E5FF512F088187009F1277 /* QuizService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4E2F088187009F1277 /* QuizService.swift */; };
+		A6E5FF522F088187009F1277 /* TipsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4F2F088187009F1277 /* TipsService.swift */; };
+		A6E5FF542F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF532F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift */; };
 		A6F3C78C2EEF74C300264730 /* LocationMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF828B2EECA1C5008330C9 /* LocationMapView.swift */; };
 		A6F3C78D2EEF74CC00264730 /* LocationRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82872EECA1C5008330C9 /* LocationRow.swift */; };
 		A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */; };
@@ -426,6 +453,33 @@
 		A64F7F4A2ECBB46B005576C5 /* BillAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillAnalysis.swift; sourceTree = "<group>"; };
 		A64F7F4B2ECBB46B005576C5 /* StoredBill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredBill.swift; sourceTree = "<group>"; };
 		A64F7F4E2ECBB46B005576C5 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		A69E78112F05D397004E63B4 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
+		A69E78122F05D397004E63B4 /* StreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakService.swift; sourceTree = "<group>"; };
+		A69E78132F05D397004E63B4 /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
+		A69E78172F05D3AC004E63B4 /* BillixScoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillixScoreService.swift; sourceTree = "<group>"; };
+		A69E78182F05D3AC004E63B4 /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
+		A69E781B2F05D3CE004E63B4 /* BillixScoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillixScoreModels.swift; sourceTree = "<group>"; };
+		A69E781C2F05D3CE004E63B4 /* SubscriptionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionModels.swift; sourceTree = "<group>"; };
+		A69E781F2F05D3F5004E63B4 /* OutageBotViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutageBotViewModel.swift; sourceTree = "<group>"; };
+		A69E78212F05D400004E63B4 /* ExploreCarouselModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreCarouselModels.swift; sourceTree = "<group>"; };
+		A69E78222F05D400004E63B4 /* OutageBotModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutageBotModels.swift; sourceTree = "<group>"; };
+		A69E78252F05D42D004E63B4 /* UnlockCreditsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlockCreditsService.swift; sourceTree = "<group>"; };
+		A69E78272F05D487004E63B4 /* ExploreCarouselCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreCarouselCard.swift; sourceTree = "<group>"; };
+		A69E78282F05D487004E63B4 /* ExploreSubFeatureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreSubFeatureSheet.swift; sourceTree = "<group>"; };
+		A69E782B2F05D4BC004E63B4 /* HomePageZones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageZones.swift; sourceTree = "<group>"; };
+		A69E782C2F05D4BC004E63B4 /* HomeSetupQuestionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeSetupQuestionsView.swift; sourceTree = "<group>"; };
+		A69E782D2F05D4BC004E63B4 /* QuickActionViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionViews.swift; sourceTree = "<group>"; };
+		A69E78312F06E79B004E63B4 /* TaskTrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskTrackingService.swift; sourceTree = "<group>"; };
+		A69E78332F06E7E4004E63B4 /* TaskModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskModels.swift; sourceTree = "<group>"; };
+		A69E78372F075036004E63B4 /* TasksViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksViewModel.swift; sourceTree = "<group>"; };
+		A6E5FF452F0880E5009F1277 /* PollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollView.swift; sourceTree = "<group>"; };
+		A6E5FF462F0880E5009F1277 /* QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizView.swift; sourceTree = "<group>"; };
+		A6E5FF472F0880E5009F1277 /* TipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipView.swift; sourceTree = "<group>"; };
+		A6E5FF4B2F088114009F1277 /* ToastNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastNotification.swift; sourceTree = "<group>"; };
+		A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityPollService.swift; sourceTree = "<group>"; };
+		A6E5FF4E2F088187009F1277 /* QuizService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizService.swift; sourceTree = "<group>"; };
+		A6E5FF4F2F088187009F1277 /* TipsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipsService.swift; sourceTree = "<group>"; };
+		A6E5FF532F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SweepstakesOfficialRulesView.swift; sourceTree = "<group>"; };
 		A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIResponse.swift; sourceTree = "<group>"; };
 		A6FF810F2ECBBCE3008330C9 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		A6FF811D2ECEB3BC008330C9 /* BillsExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillsExploreView.swift; sourceTree = "<group>"; };
@@ -852,6 +906,18 @@
 		8B8B8B8B8B8B8B8B8B8B8B8B /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */,
+				A6E5FF4E2F088187009F1277 /* QuizService.swift */,
+				A6E5FF4F2F088187009F1277 /* TipsService.swift */,
+				A6E5FF4B2F088114009F1277 /* ToastNotification.swift */,
+				A6E5FF452F0880E5009F1277 /* PollView.swift */,
+				A6E5FF462F0880E5009F1277 /* QuizView.swift */,
+				A6E5FF472F0880E5009F1277 /* TipView.swift */,
+				A69E78372F075036004E63B4 /* TasksViewModel.swift */,
+				A69E78332F06E7E4004E63B4 /* TaskModels.swift */,
+				A69E782B2F05D4BC004E63B4 /* HomePageZones.swift */,
+				A69E782C2F05D4BC004E63B4 /* HomeSetupQuestionsView.swift */,
+				A69E782D2F05D4BC004E63B4 /* QuickActionViews.swift */,
 				F9F1894F2F05F79C007CF227 /* HomeSetupQuestionsView.swift */,
 				F9F189502F05F79C007CF227 /* QuickActionViews.swift */,
 				F9F1894D2F05F78D007CF227 /* HomePageZones.swift */,
@@ -894,6 +960,8 @@
 		9EXP10REM0DELSGR0UP12345 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A69E78212F05D400004E63B4 /* ExploreCarouselModels.swift */,
+				A69E78222F05D400004E63B4 /* OutageBotModels.swift */,
 				F9F189282F05F641007CF227 /* ExploreCarouselModels.swift */,
 				F9F189272F05F641007CF227 /* OutageBotModels.swift */,
 				8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */,
@@ -950,6 +1018,8 @@
 		A602F24C2EF9AB2900856DEE /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A69E781B2F05D3CE004E63B4 /* BillixScoreModels.swift */,
+				A69E781C2F05D3CE004E63B4 /* SubscriptionModels.swift */,
 				F9F1892F2F05F6D1007CF227 /* AssistRequestModels.swift */,
 				F9F189342F05F6D2007CF227 /* BillReceiptModels.swift */,
 				F9F189312F05F6D2007CF227 /* MarketplaceFeedModels.swift */,
@@ -964,6 +1034,9 @@
 		A602F2532EF9AB2900856DEE /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				A69E78252F05D42D004E63B4 /* UnlockCreditsService.swift */,
+				A69E78172F05D3AC004E63B4 /* BillixScoreService.swift */,
+				A69E78182F05D3AC004E63B4 /* SubscriptionService.swift */,
 				F9F189412F05F73F007CF227 /* AssistMessagingService.swift */,
 				F9F189422F05F73F007CF227 /* AssistRequestService.swift */,
 				F9F1893E2F05F73F007CF227 /* AssistStoreKitService.swift */,
@@ -1030,6 +1103,10 @@
 		A64F7F502ECBB46B005576C5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				A69E78312F06E79B004E63B4 /* TaskTrackingService.swift */,
+				A69E78112F05D397004E63B4 /* OpenAIService.swift */,
+				A69E78122F05D397004E63B4 /* StreakService.swift */,
+				A69E78132F05D397004E63B4 /* WeatherService.swift */,
 				F9F1891D2F05F5E6007CF227 /* OpenAIService.swift */,
 				F9F1891C2F05F5E6007CF227 /* StreakService.swift */,
 				F9F1891B2F05F5E6007CF227 /* WeatherService.swift */,
@@ -1052,6 +1129,8 @@
 		A6FF811F2ECEB3BC008330C9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A69E78272F05D487004E63B4 /* ExploreCarouselCard.swift */,
+				A69E78282F05D487004E63B4 /* ExploreSubFeatureSheet.swift */,
 				F9F1893B2F05F6E2007CF227 /* ExploreSubFeatureSheet.swift */,
 				F9F1892D2F05F652007CF227 /* ExploreCarouselCard.swift */,
 				A6FF811D2ECEB3BC008330C9 /* BillsExploreView.swift */,
@@ -1063,6 +1142,7 @@
 		A6FF81232ECEB3D3008330C9 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				A69E781F2F05D3F5004E63B4 /* OutageBotViewModel.swift */,
 				F9F1892B2F05F64A007CF227 /* OutageBotViewModel.swift */,
 				A6FF81222ECEB3D3008330C9 /* BillsExploreViewModel.swift */,
 				8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */,
@@ -1322,6 +1402,7 @@
 		A6FF823E2EDE3AD4008330C9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A6E5FF532F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift */,
 				A6FF828E2EECA1C5008330C9 /* Seasons */,
 				A6FF822B2EDE3AD4008330C9 /* Components */,
 				A6FF823A2EDE3AD4008330C9 /* GeoGame */,
@@ -1736,6 +1817,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A69E78262F05D42D004E63B4 /* UnlockCreditsService.swift in Sources */,
 				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
 				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
 				F90BBA642F078B500041159A /* ProofService.swift in Sources */,
@@ -1760,7 +1842,11 @@
 				A6FF81702ED4BB24008330C9 /* ScanUploadViewModel.swift in Sources */,
 				A6FF81712ED4BB24008330C9 /* QuickAddStep2Provider.swift in Sources */,
 				A6FF81722ED4BB24008330C9 /* ScanUploadProgressView.swift in Sources */,
+				A69E78192F05D3AC004E63B4 /* SubscriptionService.swift in Sources */,
+				A69E781A2F05D3AC004E63B4 /* BillixScoreService.swift in Sources */,
 				A6FF81732ED4BB24008330C9 /* QuickAddStep4Result.swift in Sources */,
+				A69E78232F05D400004E63B4 /* ExploreCarouselModels.swift in Sources */,
+				A69E78242F05D400004E63B4 /* OutageBotModels.swift in Sources */,
 				A6FF81742ED4BB24008330C9 /* UploadViewModel.swift in Sources */,
 				A6FF81752ED4BB24008330C9 /* QuickAddStep3Amount.swift in Sources */,
 				A6FF81762ED4BB24008330C9 /* QuickAddStep1BillType.swift in Sources */,
@@ -1773,6 +1859,10 @@
 				A6FF827C2EE6418A008330C9 /* UserGameSettings.swift in Sources */,
 				A6FF827D2EE6418A008330C9 /* Season.swift in Sources */,
 				A6FF827E2EE6418A008330C9 /* UserSeasonProgress.swift in Sources */,
+				A69E782E2F05D4BC004E63B4 /* HomePageZones.swift in Sources */,
+				A69E78322F06E79B004E63B4 /* TaskTrackingService.swift in Sources */,
+				A69E782F2F05D4BC004E63B4 /* HomeSetupQuestionsView.swift in Sources */,
+				A69E78302F05D4BC004E63B4 /* QuickActionViews.swift in Sources */,
 				A602F2342EF886CF00856DEE /* TutorialManager.swift in Sources */,
 				A6FF827F2EE6418A008330C9 /* SeasonLocation.swift in Sources */,
 				A6FF82802EE6418A008330C9 /* SeasonPart.swift in Sources */,
@@ -1868,6 +1958,7 @@
 				A6FF824C2EDE3AD4008330C9 /* GeoGameResultView.swift in Sources */,
 				A6FF824D2EDE3AD4008330C9 /* GeoGameFloatingCard.swift in Sources */,
 				A6FF82862EE6420A008330C9 /* SeasonGameContainerView.swift in Sources */,
+				A6E5FF4C2F088114009F1277 /* ToastNotification.swift in Sources */,
 				A6FF824E2EDE3AD4008330C9 /* ComboStreakView.swift in Sources */,
 				A6FF824F2EDE3AD4008330C9 /* HealthBarView.swift in Sources */,
 				F9F189202F05F5E6007CF227 /* OpenAIService.swift in Sources */,
@@ -1875,6 +1966,7 @@
 				A602F2442EF9AA6700856DEE /* BillCoachModels.swift in Sources */,
 				A602F2452EF9AA6700856DEE /* BillCoachFlowView.swift in Sources */,
 				A6FF82512EDE3AD4008330C9 /* Phase1LocationView.swift in Sources */,
+				A6E5FF542F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift in Sources */,
 				A6FF82522EDE3AD4008330C9 /* GeoGameHowToPlayView.swift in Sources */,
 				F9F189352F05F6D2007CF227 /* AssistRequestModels.swift in Sources */,
 				F9F189292F05F641007CF227 /* OutageBotModels.swift in Sources */,
@@ -1901,6 +1993,10 @@
 				A6FF82602EDE3AD4008330C9 /* GeoGameOverView.swift in Sources */,
 				A6FF82612EDE3AD4008330C9 /* GlassCard.swift in Sources */,
 				A6FF82622EDE3AD4008330C9 /* GeoGameFlowView.swift in Sources */,
+				A69E78142F05D397004E63B4 /* StreakService.swift in Sources */,
+				A69E78152F05D397004E63B4 /* OpenAIService.swift in Sources */,
+				A69E78342F06E7E4004E63B4 /* TaskModels.swift in Sources */,
+				A69E78162F05D397004E63B4 /* WeatherService.swift in Sources */,
 				A6FF82632EDE3AD4008330C9 /* TierUpCelebrationView.swift in Sources */,
 				A6FF82642EDE3AD4008330C9 /* RewardsModels.swift in Sources */,
 				A6FF82652EDE3AD4008330C9 /* GeoGameContainerView.swift in Sources */,
@@ -1908,6 +2004,7 @@
 				F90BBA542F078B500041159A /* DisputeSheet.swift in Sources */,
 				A6FF82672EDE3AD4008330C9 /* RewardsViewModel.swift in Sources */,
 				A6FF82682EDE3AD4008330C9 /* GeoGameDataService.swift in Sources */,
+				A69E78382F075036004E63B4 /* TasksViewModel.swift in Sources */,
 				F9076D682ED19DEE0051E1D8 /* SettingsRow.swift in Sources */,
 				A602F2382EF88B1900856DEE /* GameBoostsModal.swift in Sources */,
 				A602F2392EF88B1900856DEE /* ContinuousHealthBar.swift in Sources */,
@@ -1917,6 +2014,8 @@
 				A6FF812B2ECEB3E5008330C9 /* BillMarketplaceCard.swift in Sources */,
 				F9076D4D2ED19DA20051E1D8 /* MockDataService.swift in Sources */,
 				24955520921B5C9DA4A9F6C1 /* ProfileView.swift in Sources */,
+				A69E78292F05D487004E63B4 /* ExploreSubFeatureSheet.swift in Sources */,
+				A69E782A2F05D487004E63B4 /* ExploreCarouselCard.swift in Sources */,
 				F9076D4C2ED19DA20051E1D8 /* AuthService.swift in Sources */,
 				A602F2482EF9AA9600856DEE /* ZipCodeService.swift in Sources */,
 				A602F2492EF9AA9600856DEE /* StoreKitService.swift in Sources */,
@@ -1928,12 +2027,23 @@
 				997CBF23130BB5B902F1F489 /* AuthViewModel.swift in Sources */,
 				16473D354B7EF3B1A7B15B25 /* MarketplaceTheme.swift in Sources */,
 				63D72A126147271EDE056149 /* MarketplaceView.swift in Sources */,
+				A69E781D2F05D3CE004E63B4 /* BillixScoreModels.swift in Sources */,
+				A69E781E2F05D3CE004E63B4 /* SubscriptionModels.swift in Sources */,
 				F9F189472F05F73F007CF227 /* UnlockCreditsService.swift in Sources */,
 				4614EEB8EF0F53C5ED197D9C /* BillListing.swift in Sources */,
 				9FBD55C9B930DD08A6264CFC /* Cluster.swift in Sources */,
 				8160262B8986E8E8430FB93A /* MarketplaceItems.swift in Sources */,
 				0B3978E45C38518CA2B82A3D /* MockMarketplaceData.swift in Sources */,
 				D50D3D7825651D05B03F2F66 /* MarketplaceViewModel.swift in Sources */,
+				A602F25F2EF9AB2900856DEE /* SwapStoreKitService.swift in Sources */,
+				A602F2602EF9AB2900856DEE /* FindMatchView.swift in Sources */,
+				A602F2612EF9AB2900856DEE /* SwapMatchingService.swift in Sources */,
+				A6E5FF502F088187009F1277 /* CommunityPollService.swift in Sources */,
+				A6E5FF512F088187009F1277 /* QuizService.swift in Sources */,
+				A6E5FF522F088187009F1277 /* TipsService.swift in Sources */,
+				A602F2622EF9AB2900856DEE /* TrustLadderService.swift in Sources */,
+				A69E78202F05D3F5004E63B4 /* OutageBotViewModel.swift in Sources */,
+				A602F2632EF9AB2900856DEE /* SwapExecutionView.swift in Sources */,
 				F9F189512F05F79C007CF227 /* HomeSetupQuestionsView.swift in Sources */,
 				F9F189482F05F73F007CF227 /* MarketplaceFeedService.swift in Sources */,
 				A602F2622EF9AB2900856DEE /* TrustLadderService.swift in Sources */,
@@ -1969,6 +2079,9 @@
 				12B8AABBC0EC521CAA0EE907 /* AllUploadsView.swift in Sources */,
 				F90BBA632F078B500041159A /* PointsService.swift in Sources */,
 				A602F2762EFA002E00856DEE /* CustomDonationCard.swift in Sources */,
+				A6E5FF482F0880E5009F1277 /* PollView.swift in Sources */,
+				A6E5FF492F0880E5009F1277 /* QuizView.swift in Sources */,
+				A6E5FF4A2F0880E5009F1277 /* TipView.swift in Sources */,
 				A602F2772EFA002E00856DEE /* CustomDonationRequestSheet.swift in Sources */,
 				78CC9A4B4CE73C72FDFDAFBF /* UploadDetailView.swift in Sources */,
 				94CA342EC160B25D39828956 /* AnalysisResultsTabbedView.swift in Sources */,

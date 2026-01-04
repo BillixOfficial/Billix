@@ -22,8 +22,10 @@ struct CompactTopHUD: View {
 
         // Check if it's a session-based game (30 questions)
         if totalQuestions >= 30 {
-            // Session mode: "Q 12/30"
-            return "Q \(currentIndex)/\(totalQuestions)"
+            // Session mode: Show location number instead of question number
+            // 30 questions = 10 locations × 3 questions each
+            let locationNumber = ((currentIndex - 1) / 3) + 1
+            return "Loc \(locationNumber)/10"
         } else {
             // Season mode: "Loc 1 • Q 2/3"
             let locationNumber = viewModel.currentLocationNumber

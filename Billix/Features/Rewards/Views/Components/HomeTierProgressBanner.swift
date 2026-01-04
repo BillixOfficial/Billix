@@ -37,12 +37,12 @@ struct HomeTierProgressBanner: View {
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(.billixMoneyGreen)
 
-                            Text("Quick! Unlock Rewards Shop")
+                            Text("Reach Silver Tier")
                                 .font(.system(size: 15, weight: .bold))
                                 .foregroundColor(.billixDarkGreen)
                         }
 
-                        Text("\(pointsRemaining) more points to unlock")
+                        Text("\(pointsRemaining) more points to Silver")
                             .font(.system(size: 13, weight: .regular))
                             .foregroundColor(.billixMediumGreen)
                     }

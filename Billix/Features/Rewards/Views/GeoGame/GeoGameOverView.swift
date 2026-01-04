@@ -18,7 +18,6 @@ struct GeoGameOverView: View {
     @State private var showContent = false
     @State private var showStars = false
     @State private var showStats = false
-    @State private var animatedPoints = 0
     @State private var animatedAccuracy = 0.0
     @State private var showConfetti = false
     @State private var pulseButton = false
@@ -307,32 +306,6 @@ struct GeoGameOverView: View {
 
                     // Stats card with animated reveals
                     VStack(spacing: 0) {
-                        // Points - most prominent
-                        VStack(spacing: 4) {
-                            Text("TOTAL POINTS")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.7))
-                                .tracking(1.2)
-
-                            Text("\(animatedPoints)")
-                                .font(.system(size: 48, weight: .black))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [Color.billixArcadeGold, Color(hex: "#FFA500")],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .shadow(color: Color.billixArcadeGold.opacity(0.5), radius: 10)
-                        }
-                        .padding(.vertical, 20)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.white.opacity(0.1))
-                        .clipShape(UnevenRoundedRectangle(topLeadingRadius: 16, topTrailingRadius: 16))
-
-                        Divider()
-                            .background(Color.white.opacity(0.2))
-
                         // Secondary stats
                         VStack(spacing: 16) {
                             AnimatedStatRow(
@@ -485,10 +458,7 @@ struct GeoGameOverView: View {
                 showStats = true
             }
 
-            // 4. Animate point count-up
-            animatePointCounter()
-
-            // 5. Animate accuracy count-up
+            // 4. Animate accuracy count-up
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 animateAccuracy()
             }
@@ -498,24 +468,6 @@ struct GeoGameOverView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
                 pulseButton = true
-            }
-        }
-    }
-
-    private func animatePointCounter() {
-        let duration = 1.0
-        let steps = 30
-        let increment = session.totalPoints / steps
-
-        for i in 0...steps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + (duration / Double(steps)) * Double(i)) {
-                animatedPoints = min(increment * i, session.totalPoints)
-
-                // Haptic feedback at milestones
-                if i == steps / 2 || i == steps {
-                    let generator = UIImpactFeedbackGenerator(style: .light)
-                    generator.impactOccurred()
-                }
             }
         }
     }

@@ -13,11 +13,9 @@ struct WalletHeaderView: View {
     let cashEquivalent: Double
     let currentTier: RewardsTier
     let tierProgress: Double  // 0.0 to 1.0 progress to next tier
+    let streakCount: Int  // Real check-in streak from TasksViewModel
+    let weeklyCheckIns: [Bool]  // Actual check-in days (Mon-Sun)
     let onHistoryTapped: () -> Void
-
-    // Mock data for visual design (will be replaced with real data later)
-    let streakCount: Int = 7
-    let streakAtRisk: Bool = false
 
     @State private var animatedPoints: Int = 0
     @State private var showShimmer = false
@@ -83,11 +81,6 @@ struct WalletHeaderView: View {
                             .foregroundColor(.billixMediumGreen)
                     }
 
-                    // Cash equivalent
-                    Text("≈ \(String(format: "$%.2f", cashEquivalent)) value")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.billixMediumGreen)
-
                     // Tier progress
                     if let nextTier = currentTier.nextTier {
                         Text("\(pointsToNextTier) pts to \(nextTier.rawValue)")
@@ -118,9 +111,11 @@ struct WalletHeaderView: View {
 
             // Streak & Stats Carousel
             StreakStatsCarousel(
-                streakDays: 7,
+                streakDays: streakCount,
+                weeklyCheckIns: weeklyCheckIns,
                 thisWeek: 240,
-                toNextTier: pointsToNextTier
+                toNextTier: pointsToNextTier,
+                currentTier: currentTier
             )
             .padding(.bottom, 12)
             .background(
@@ -249,23 +244,24 @@ struct TierProgressRing: View {
 
 struct StreakStatsCarousel: View {
     let streakDays: Int
+    let weeklyCheckIns: [Bool]  // Actual check-in days from database (Mon-Sun)
     let thisWeek: Int
     let toNextTier: Int
+    let currentTier: RewardsTier
 
     @State private var currentIndex: Int = 0
     @State private var timer: Timer?
 
-    // Mock weekly progress (last 7 days, ordered Monday to Sunday, most recent = end)
+    // Week days (Monday to Sunday)
     private let weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    private let weekProgress = [false, false, false, true, true, true, true] // 4-day streak (Thu-Sun)
 
-    // Tier badges (Bronze, Silver, Gold, Platinum, Diamond)
-    private let tierBadges: [(tier: String, isEarned: Bool)] = [
-        ("Bronze", true),
-        ("Silver", false),
-        ("Gold", false),
-        ("Platinum", false)
-    ]
+    // Tier badges - dynamically calculated based on currentTier
+    private var tierBadges: [(tier: String, isEarned: Bool)] {
+        let allTiers: [RewardsTier] = [.bronze, .silver, .gold, .platinum]
+        return allTiers.map { tier in
+            (tier: tier.rawValue, isEarned: tier.pointsRange.lowerBound <= currentTier.pointsRange.lowerBound)
+        }
+    }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -287,7 +283,7 @@ struct StreakStatsCarousel: View {
             // Content
             TabView(selection: $currentIndex) {
                 // Slide 1: Weekly Progress
-                WeeklyProgressSlide(days: weekDays, progress: weekProgress)
+                WeeklyProgressSlide(days: weekDays, progress: weeklyCheckIns, actualStreak: streakDays)
                     .tag(0)
 
                 // Slide 2: My Tier Badges
@@ -324,7 +320,7 @@ struct StreakStatsCarousel: View {
 
     private func startTimer() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 4.5, repeats: true) { _ in
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 currentIndex = currentIndex == 0 ? 1 : 0
             }
@@ -341,20 +337,12 @@ struct StreakStatsCarousel: View {
 struct WeeklyProgressSlide: View {
     let days: [String]
     let progress: [Bool]
+    let actualStreak: Int  // Real streak count from database
 
     @State private var animatedChecks: [Bool] = Array(repeating: false, count: 7)
 
     private var streakCount: Int {
-        // Count consecutive true values from the end
-        var count = 0
-        for i in stride(from: progress.count - 1, through: 0, by: -1) {
-            if progress[i] {
-                count += 1
-            } else {
-                break
-            }
-        }
-        return count
+        actualStreak  // Use the real streak count instead of calculating
     }
 
     private var streakColor: Color {
@@ -374,12 +362,16 @@ struct WeeklyProgressSlide: View {
     }
 
     var body: some View {
+        let _ = print("🎯 [CAROUSEL] WeeklyProgressSlide rendering - streakCount: \(streakCount), actualStreak: \(actualStreak)")
         HStack(spacing: 12) {
             // Left side: Streak Count
             VStack(spacing: 2) {
                 Text("\(streakCount)")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(streakColor)
+                    .onAppear {
+                        print("🎯 [CAROUSEL] Streak text appeared with value: \(streakCount)")
+                    }
 
                 Text("Day Streak!")
                     .font(.system(size: 8, weight: .semibold))
@@ -557,6 +549,8 @@ struct RollingNumberView: View {
             cashEquivalent: 0.73,
             currentTier: .bronze,
             tierProgress: 0.18,  // 1,450 / 8,000 = ~18%
+            streakCount: 3,
+            weeklyCheckIns: [false, false, false, false, true, true, true],  // Thu-Fri-Sat checked
             onHistoryTapped: {}
         )
 
@@ -572,6 +566,8 @@ struct RollingNumberView: View {
             cashEquivalent: 6.00,
             currentTier: .silver,
             tierProgress: 0.18,  // 4,000 / 22,000 = ~18%
+            streakCount: 5,
+            weeklyCheckIns: [false, false, true, true, true, true, true],  // Wed-Sun checked
             onHistoryTapped: {}
         )
 
@@ -587,6 +583,8 @@ struct RollingNumberView: View {
             cashEquivalent: 22.50,
             currentTier: .gold,
             tierProgress: 0.21,  // 15,000 / 70,000 = ~21%
+            streakCount: 7,
+            weeklyCheckIns: [true, true, true, true, true, true, true],  // Full week checked
             onHistoryTapped: {}
         )
 

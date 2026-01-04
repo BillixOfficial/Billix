@@ -12,8 +12,10 @@ import SwiftUI
 struct RewardsHubView: View {
 
     @StateObject private var viewModel = RewardsViewModel(authService: AuthService.shared)
+    @ObservedObject private var tasksViewModel = TasksViewModel.shared
     @State private var selectedTab: RewardsTab = .earn
     @State private var appeared = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -29,6 +31,8 @@ struct RewardsHubView: View {
                         cashEquivalent: viewModel.points.cashEquivalent,
                         currentTier: viewModel.currentTier,
                         tierProgress: viewModel.tierProgress,
+                        streakCount: tasksViewModel.currentStreak,
+                        weeklyCheckIns: tasksViewModel.weeklyCheckIns,
                         onHistoryTapped: {
                             viewModel.showHistory = true
                         }
@@ -45,7 +49,7 @@ struct RewardsHubView: View {
                     // Tab Content
                     TabView(selection: $selectedTab) {
                         // Earn Points Tab
-                        EarnPointsTabView(viewModel: viewModel)
+                        EarnPointsTabView(viewModel: viewModel, tasksViewModel: tasksViewModel)
                             .tag(RewardsTab.earn)
 
                         // Marketplace Tab
@@ -58,13 +62,35 @@ struct RewardsHubView: View {
             }
             .navigationBarHidden(true)
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active && appeared {
+                print("🔄 [REWARDS HUB] Scene became active - refreshing tasks")
+                Task {
+                    await tasksViewModel.loadTasks()
+                    await viewModel.loadRewardsData()
+                }
+            }
+        }
         .onAppear {
+            print("🔄 [REWARDS HUB] onAppear triggered")
             Task {
+                print("🔄 [REWARDS HUB] Loading rewards data...")
                 await viewModel.loadRewardsData()
+                print("🔄 [REWARDS HUB] Loading tasks...")
+                await tasksViewModel.loadTasks()
+                print("✅ [REWARDS HUB] Tasks loaded - tasksViewModel.currentStreak = \(tasksViewModel.currentStreak)")
             }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 appeared = true
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToGame"))) { _ in
+            // Open season selection screen when game task is tapped
+            viewModel.showSeasonSelection = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DismissToRewards"))) { _ in
+            // Dismiss season selection when returning from game
+            viewModel.showSeasonSelection = false
         }
         .sheet(isPresented: $viewModel.showHistory) {
             PointsHistoryView(transactions: viewModel.points.transactions)
@@ -98,7 +124,9 @@ struct RewardsHubView: View {
                     reward: reward,
                     userPoints: viewModel.points.balance,
                     onRedeem: { email in
-                        viewModel.redeemGiftCard(reward, email: email)
+                        Task {
+                            await viewModel.redeemGiftCard(reward, email: email)
+                        }
                     }
                 )
             } else {
@@ -121,14 +149,13 @@ struct RewardsHubView: View {
                 userName: "John Doe", // TODO: Get from user profile
                 userEmail: "john@example.com", // TODO: Get from user profile
                 onSubmit: { org, location, amount, inName, donorName, donorEmail in
-                    viewModel.submitDonationRequest(
-                        organizationName: org,
-                        websiteOrLocation: location,
-                        amount: amount,
-                        donateInMyName: inName,
-                        donorName: donorName,
-                        donorEmail: donorEmail
-                    )
+                    Task {
+                        await viewModel.submitDonationRequest(
+                            organizationName: org,
+                            websiteOrLocation: location,
+                            amount: amount
+                        )
+                    }
                 }
             )
             .presentationDetents([.large])
@@ -232,6 +259,7 @@ struct TabSelector: View {
 
 struct EarnPointsTabView: View {
     @ObservedObject var viewModel: RewardsViewModel
+    @ObservedObject var tasksViewModel: TasksViewModel
     @State private var appeared = false
 
     var body: some View {
@@ -252,7 +280,7 @@ struct EarnPointsTabView: View {
                 .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
 
                 // Daily Tasks Section
-                DailyTasksSection()
+                DailyTasksSection(tasksViewModel: tasksViewModel, rewardsViewModel: viewModel)
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .opacity(appeared ? 1 : 0)
@@ -260,7 +288,7 @@ struct EarnPointsTabView: View {
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.25), value: appeared)
 
                 // Weekly Tasks Section
-                WeeklyTasksSection()
+                WeeklyTasksSection(tasksViewModel: tasksViewModel)
                     .padding(.horizontal, 20)
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : 20)
@@ -460,7 +488,7 @@ struct DailyGameHeroCard: View {
                                     .font(.system(size: 16))
                                     .foregroundColor(.billixArcadeGold)
 
-                                Text("Win up to 110 pts")
+                                Text("Test your price knowledge")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white.opacity(0.95))
                             }
@@ -525,7 +553,7 @@ struct DailyGameHeroCard: View {
         }
         .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Daily Price Guessr game. Guess prices around the world. Win up to 110 points.")
+        .accessibilityLabel("Daily Price Guessr game. Guess prices around the world. Test your price knowledge.")
         .onAppear {
             // Start animations
             withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
@@ -581,34 +609,47 @@ struct FABButtonStyle: ButtonStyle {
 // MARK: - Daily Tasks Section
 
 struct DailyTasksSection: View {
+    @ObservedObject var tasksViewModel: TasksViewModel
+    @ObservedObject var rewardsViewModel: RewardsViewModel
     @State private var showQuickTasks = false
-    @State private var tasks: [RewardTask] = [
-        RewardTask(
-            id: UUID(),
-            title: "Check in today",
-            points: TaskConfiguration.dailyCheckIn,
-            icon: "calendar.badge.checkmark",
-            isCompleted: true,
-            type: .daily
-        ),
-        RewardTask(
-            id: UUID(),
-            title: "Upload a bill",
-            points: TaskConfiguration.uploadBill,
-            icon: "doc.badge.plus",
-            isCompleted: false,
-            type: .daily
-        ),
-        RewardTask(
-            id: UUID(),
-            title: "Quick Earnings",
-            points: 0,  // Portal tasks don't award points
-            icon: "bolt.fill",
-            isCompleted: false,
-            type: .daily,
-            isPortal: true  // Makes this a portal task
-        )
-    ]
+    @State private var currentTime = Date()
+
+    // Timer to update countdown
+    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
+    // Calculate time until midnight
+    private var timeUntilReset: String {
+        let calendar = Calendar.current
+        let now = currentTime
+
+        // Get EST timezone
+        guard let estTimeZone = TimeZone(identifier: "America/New_York") else {
+            return "24h"
+        }
+
+        // Create EST calendar
+        var estCalendar = Calendar.current
+        estCalendar.timeZone = estTimeZone
+
+        // Get current time in EST
+        let nowInEST = now
+
+        // Get tomorrow at midnight EST
+        guard let tomorrow = estCalendar.date(byAdding: .day, value: 1, to: nowInEST),
+              let midnightEST = estCalendar.date(bySettingHour: 0, minute: 0, second: 0, of: tomorrow) else {
+            return "24h"
+        }
+
+        let components = calendar.dateComponents([.hour, .minute], from: now, to: midnightEST)
+        let hours = components.hour ?? 0
+        let minutes = components.minute ?? 0
+
+        if hours > 0 {
+            return "\(hours)h"
+        } else {
+            return "\(minutes)m"
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -620,27 +661,45 @@ struct DailyTasksSection: View {
 
                 Spacer()
 
-                Text("Resets in 14h")
+                Text("Resets in \(timeUntilReset)")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.billixMediumGreen)
             }
 
             // Tasks
-            VStack(spacing: 12) {
-                ForEach(tasks) { task in
-                    TaskCard(task: task) {
-                        // Portal tasks open sheets, regular tasks claim points
-                        if task.isPortal {
-                            showQuickTasks = true
-                        } else {
-                            // Claim action
-                            if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-                                tasks[index].isCompleted = true
-                            }
-                        }
+            if tasksViewModel.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+            } else {
+                VStack(spacing: 12) {
+                    // Show only daily tasks (check-in and bill upload)
+                    ForEach(tasksViewModel.dailyTasks.filter { $0.taskType == .checkIn || $0.taskType == .billUpload }) { task in
+                        DailyTaskCardView(task: task, viewModel: tasksViewModel, rewardsViewModel: rewardsViewModel)
+                    }
+
+                    // Quick Earnings portal card
+                    TaskCard(task: RewardTask(
+                        id: UUID(),
+                        title: "Quick Earnings",
+                        points: 0,
+                        icon: "bolt.fill",
+                        isCompleted: false,
+                        type: .daily,
+                        isPortal: true,
+                        buttonText: nil,
+                        canClaim: false
+                    )) {
+                        showQuickTasks = true
                     }
                 }
             }
+        }
+        .task {
+            await tasksViewModel.loadTasks()
+        }
+        .onReceive(timer) { _ in
+            currentTime = Date()
         }
         .sheet(isPresented: $showQuickTasks) {
             QuickTasksScreen()
@@ -648,39 +707,119 @@ struct DailyTasksSection: View {
     }
 }
 
+// MARK: - Daily Task Card View
+
+struct DailyTaskCardView: View {
+    let task: UserTask
+    @ObservedObject var viewModel: TasksViewModel
+    @ObservedObject var rewardsViewModel: RewardsViewModel
+
+    // Use different icons based on task type and completion status
+    private var taskIcon: String {
+        switch task.taskType {
+        case .checkIn:
+            return task.isClaimed ? "calendar.badge.checkmark" : "calendar"
+        case .billUpload:
+            // Keep bill icon, don't change to checkmark
+            return "doc.badge.plus"
+        default:
+            return task.iconName
+        }
+    }
+
+    // Determine button text based on task state
+    private var buttonText: String {
+        if task.canClaim {
+            return "Claim"
+        } else {
+            // Use task's CTA text from database (e.g., "Check In", "Upload Bill")
+            return task.ctaText
+        }
+    }
+
+    var body: some View {
+        TaskCard(task: RewardTask(
+            id: UUID(),
+            title: task.title,
+            points: task.points,
+            icon: taskIcon,
+            isCompleted: task.isClaimed,
+            type: .daily,
+            buttonText: buttonText,
+            canClaim: task.canClaim
+        )) {
+            // Handle task action
+            print("🟡 BUTTON TAPPED - Task: \(task.title), Type: \(task.taskType), canClaim: \(task.canClaim)")
+            Task {
+                if task.taskType == .checkIn {
+                    print("🟢 CHECK-IN PATH - Calling performCheckIn()")
+                    print("🟢 ViewModel: \(viewModel)")
+                    await viewModel.performCheckIn()
+                    print("🟢 performCheckIn() returned")
+                    await rewardsViewModel.loadRewardsData() // Refresh balance
+                } else if task.canClaim {
+                    print("🟠 CLAIM PATH - Calling claimTask()")
+                    await viewModel.claimTask(task)
+                    await rewardsViewModel.loadRewardsData() // Refresh balance
+                } else {
+                    print("🔵 NAVIGATE PATH - Posting NavigateToUpload notification")
+                    // Navigate to upload screen
+                    NotificationCenter.default.post(name: NSNotification.Name("NavigateToUpload"), object: nil)
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Weekly Tasks Section
 
 struct WeeklyTasksSection: View {
-    @State private var tasks: [RewardTask] = [
-        RewardTask(
-            id: UUID(),
-            title: "Refer a friend",
-            points: TaskConfiguration.referFriend,
-            icon: "person.2.fill",
-            isCompleted: false,
-            type: .weekly
-        ),
-        RewardTask(
-            id: UUID(),
-            title: "Upload 5 bills",
-            points: TaskConfiguration.upload5Bills,
-            icon: "doc.on.doc.fill",
-            isCompleted: false,
-            type: .weekly,
-            progress: 2,
-            progressTotal: 5
-        ),
-        RewardTask(
-            id: UUID(),
-            title: "Play Price Guessr 7 times",
-            points: TaskConfiguration.playGames7x,
-            icon: "gamecontroller.fill",
-            isCompleted: false,
-            type: .weekly,
-            progress: 3,
-            progressTotal: 7
-        )
-    ]
+    @ObservedObject var tasksViewModel: TasksViewModel
+    @State private var currentTime = Date()
+
+    // Timer to update countdown
+    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
+    // Calculate time until Sunday midnight EST
+    private var timeUntilReset: String {
+        let calendar = Calendar.current
+        let now = currentTime
+
+        // Get EST timezone
+        guard let estTimeZone = TimeZone(identifier: "America/New_York") else {
+            return "7 days"
+        }
+
+        // Create EST calendar
+        var estCalendar = Calendar.current
+        estCalendar.timeZone = estTimeZone
+
+        // Get next Sunday at midnight EST
+        var components = estCalendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
+        components.weekday = 1 // Sunday
+        components.hour = 0
+        components.minute = 0
+        components.second = 0
+
+        guard let nextSunday = estCalendar.date(from: components) else {
+            return "7 days"
+        }
+
+        // If nextSunday is in the past, add a week
+        let sunday = nextSunday < now ? estCalendar.date(byAdding: .weekOfYear, value: 1, to: nextSunday)! : nextSunday
+
+        let componentsUntil = calendar.dateComponents([.day, .hour], from: now, to: sunday)
+        let days = componentsUntil.day ?? 0
+        let hours = componentsUntil.hour ?? 0
+
+        if days > 0 {
+            return "\(days) day\(days == 1 ? "" : "s")"
+        } else if hours > 0 {
+            return "\(hours)h"
+        } else {
+            return "< 1h"
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -692,19 +831,77 @@ struct WeeklyTasksSection: View {
 
                 Spacer()
 
-                Text("Resets in 4 days")
+                Text("Resets in \(timeUntilReset)")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.billixMediumGreen)
             }
 
             // Tasks
-            VStack(spacing: 12) {
-                ForEach(tasks) { task in
-                    TaskCard(task: task) {
-                        // Claim action
-                        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-                            tasks[index].isCompleted = true
-                        }
+            if tasksViewModel.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(tasksViewModel.weeklyTasks) { task in
+                        WeeklyTaskCardView(task: task, viewModel: tasksViewModel)
+                    }
+                }
+            }
+        }
+        .task {
+            await tasksViewModel.loadTasks()
+        }
+        .onReceive(timer) { _ in
+            currentTime = Date()
+        }
+    }
+}
+
+// MARK: - Weekly Task Card View
+
+struct WeeklyTaskCardView: View {
+    let task: UserTask
+    @ObservedObject var viewModel: TasksViewModel
+
+    // Determine button text based on task state
+    private var buttonText: String {
+        if task.canClaim {
+            return "Claim"
+        } else {
+            // Use task's CTA text from database (e.g., "Upload Bills", "Play Games")
+            return task.ctaText
+        }
+    }
+
+    var body: some View {
+        TaskCard(task: RewardTask(
+            id: UUID(),
+            title: task.title,
+            points: task.points,
+            icon: task.iconName,
+            isCompleted: task.isClaimed,
+            type: .weekly,
+            progress: task.currentCount,
+            progressTotal: task.requiresCount > 1 ? task.requiresCount : nil,
+            buttonText: buttonText,
+            canClaim: task.canClaim
+        )) {
+            // Handle task action
+            Task {
+                if task.canClaim {
+                    await viewModel.claimTask(task)
+                } else {
+                    // Navigate based on task type
+                    switch task.taskType {
+                    case .billUpload:
+                        NotificationCenter.default.post(name: NSNotification.Name("NavigateToUpload"), object: nil)
+                    case .game:
+                        NotificationCenter.default.post(name: NSNotification.Name("NavigateToGame"), object: nil)
+                    case .referral:
+                        NotificationCenter.default.post(name: NSNotification.Name("ShowReferralSheet"), object: nil)
+                    default:
+                        break
                     }
                 }
             }
@@ -736,6 +933,7 @@ struct TaskCard: View {
                 Text(task.title)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(.billixDarkGreen)
+                    .lineLimit(2)
 
                 if task.isPortal {
                     // Portal tasks show subtitle instead of points
@@ -816,16 +1014,24 @@ struct TaskCard: View {
                 }
                 .buttonStyle(ScaleButtonStyle(scale: 0.95))
             } else {
-                // Regular tasks show "Claim" gradient button
+                // Regular tasks show button with context-appropriate text
                 Button(action: onClaim) {
-                    Text("Claim")
+                    Text(task.buttonText ?? "Claim")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
+                        .fixedSize()
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .background(
+                            // Use gold gradient for "Claim" button text, green for other actions
+                            (task.buttonText == "Claim" || task.canClaim) ?
                             LinearGradient(
                                 colors: [.billixArcadeGold, .billixPrizeOrange],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ) :
+                            LinearGradient(
+                                colors: [.billixMoneyGreen, .billixMediumGreen],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -1134,6 +1340,8 @@ struct RewardTask: Identifiable {
     var progress: Int?
     var progressTotal: Int?
     var isPortal: Bool = false  // Special task that opens a new screen
+    var buttonText: String?  // Custom button text (e.g., "Check In", "Upload", "Play Now")
+    var canClaim: Bool = false  // Whether task is ready to be claimed
 
     enum TaskType {
         case daily

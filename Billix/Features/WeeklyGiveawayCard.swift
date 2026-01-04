@@ -12,6 +12,7 @@ struct WeeklyGiveawayCard: View {
     let userEntries: Int
     let totalEntries: Int
     let currentTier: RewardsTier
+    let isComingSoon: Bool
     let onBuyEntries: () -> Void
     let onHowToEarn: () -> Void
 
@@ -301,6 +302,7 @@ struct PrizeTierCompact: View {
                 userEntries: 5,
                 totalEntries: 1247,
                 currentTier: .silver,
+                isComingSoon: false,
                 onBuyEntries: {},
                 onHowToEarn: {}
             )
@@ -309,15 +311,16 @@ struct PrizeTierCompact: View {
     }
 }
 
-#Preview("Locked (Bronze Tier)") {
+#Preview("Coming Soon") {
     ZStack {
         Color.billixLightGreen.ignoresSafeArea()
 
         ScrollView {
             WeeklyGiveawayCard(
                 userEntries: 0,
-                totalEntries: 1247,
+                totalEntries: 0,
                 currentTier: .bronze,
+                isComingSoon: true,
                 onBuyEntries: {},
                 onHowToEarn: {}
             )

@@ -18,7 +18,6 @@ struct CustomDonationRequestSheet: View {
     @State private var organizationName: String = ""
     @State private var websiteOrLocation: String = ""
     @State private var selectedAmount: DonationAmount = .ten
-    @State private var donateInMyName: Bool = true
     @FocusState private var focusedField: Field?
 
     enum Field {
@@ -59,11 +58,11 @@ struct CustomDonationRequestSheet: View {
                                 .foregroundColor(.white)
                         }
 
-                        Text("Make an Impact")
+                        Text("Request Billix Donation")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.billixDarkGreen)
 
-                        Text("Choose your cause")
+                        Text("We'll donate on your behalf")
                             .font(.system(size: 15, weight: .medium))
                             .foregroundColor(.billixMediumGreen)
                     }
@@ -112,6 +111,8 @@ struct CustomDonationRequestSheet: View {
                                 .foregroundColor(.billixDarkGreen)
                                 .autocapitalization(.none)
                                 .autocorrectionDisabled()
+                                .keyboardType(.URL)
+                                .textContentType(.URL)
                                 .focused($focusedField, equals: .website)
                                 .padding(14)
                                 .background(
@@ -133,7 +134,7 @@ struct CustomDonationRequestSheet: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(Color(hex: "#0D9488"))
 
-                            Text("We can only donate to registered non-profits")
+                            Text("Billix donates in our company name to verified 501(c)(3) organizations")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(.billixMediumGreen)
                         }
@@ -192,40 +193,6 @@ struct CustomDonationRequestSheet: View {
                         }
                     }
 
-                    // SECTION C: The "On Behalf Of" Info
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("DONOR INFORMATION")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.billixMediumGreen)
-                            .textCase(.uppercase)
-                            .tracking(0.5)
-
-                        // Toggle
-                        Toggle(isOn: $donateInMyName) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Donate in my name")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.billixDarkGreen)
-
-                                if donateInMyName {
-                                    Text("We will use \(userName) and \(userEmail) for the receipt")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(.billixMediumGreen)
-                                } else {
-                                    Text("We will make an anonymous donation")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(.billixMediumGreen)
-                                }
-                            }
-                        }
-                        .tint(Color(hex: "#0D9488"))
-                        .padding(16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white)
-                        )
-                    }
-
                     // FOOTER: Disclaimer (Info/Neutral - not success)
                     VStack(spacing: 16) {
                         HStack(spacing: 10) {
@@ -256,9 +223,8 @@ struct CustomDonationRequestSheet: View {
 
                     // Submit Button
                     Button {
-                        let donorName = donateInMyName ? userName : nil
-                        let donorEmail = donateInMyName ? userEmail : nil
-                        onSubmit(organizationName, websiteOrLocation, selectedAmount, donateInMyName, donorName, donorEmail)
+                        // All donations are anonymous - no donor information collected
+                        onSubmit(organizationName, websiteOrLocation, selectedAmount, false, nil, nil)
                         dismiss()
                     } label: {
                         HStack(spacing: 10) {
