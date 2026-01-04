@@ -98,13 +98,26 @@ class TipsService: TipsServiceProtocol {
             return cached.tip
         }
 
-        // Query for today's tip
-        let todayString = ISO8601DateFormatter().string(from: Date()).prefix(10)
+        // Get today's date in EST timezone (matching task reset logic)
+        let calendar = Calendar.current
+        guard let estTimeZone = TimeZone(identifier: "America/New_York") else {
+            return nil
+        }
+
+        let now = Date()
+        let estComponents = calendar.dateComponents(in: estTimeZone, from: now)
+        guard let year = estComponents.year,
+              let month = estComponents.month,
+              let day = estComponents.day else {
+            return nil
+        }
+
+        let todayString = String(format: "%04d-%02d-%02d", year, month, day)
 
         let response: [Tip] = try await supabase
             .from("tips")
             .select()
-            .eq("active_date", value: String(todayString))
+            .eq("active_date", value: todayString)
             .limit(1)
             .execute()
             .value
@@ -152,11 +165,22 @@ class TipsService: TipsServiceProtocol {
             return nil // Not authenticated means no view record
         }
 
+        // Get today's start in EST (matching task reset logic)
+        let calendar = Calendar.current
+        var estComponents = calendar.dateComponents(in: TimeZone(identifier: "America/New_York")!, from: Date())
+        estComponents.hour = 0
+        estComponents.minute = 0
+        estComponents.second = 0
+        guard let todayStart = calendar.date(from: estComponents) else {
+            return nil
+        }
+
         let response: [UserTipView] = try await supabase
             .from("tip_views")
             .select()
             .eq("tip_id", value: tipId.uuidString)
             .eq("user_id", value: session.user.id.uuidString)
+            .gte("viewed_at", value: todayStart.ISO8601Format())
             .limit(1)
             .execute()
             .value

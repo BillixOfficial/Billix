@@ -124,13 +124,26 @@ class CommunityPollService: CommunityPollServiceProtocol {
             return cached
         }
 
-        // Query for today's poll
-        let todayString = ISO8601DateFormatter().string(from: Date()).prefix(10)
+        // Get today's date in EST timezone (matching task reset logic)
+        let calendar = Calendar.current
+        guard let estTimeZone = TimeZone(identifier: "America/New_York") else {
+            return nil
+        }
+
+        let now = Date()
+        let estComponents = calendar.dateComponents(in: estTimeZone, from: now)
+        guard let year = estComponents.year,
+              let month = estComponents.month,
+              let day = estComponents.day else {
+            return nil
+        }
+
+        let todayString = String(format: "%04d-%02d-%02d", year, month, day)
 
         let response: [CommunityPoll] = try await supabase
             .from("community_polls")
             .select()
-            .eq("active_date", value: String(todayString))
+            .eq("active_date", value: todayString)
             .limit(1)
             .execute()
             .value
@@ -217,11 +230,22 @@ class CommunityPollService: CommunityPollServiceProtocol {
             return nil // Not authenticated means no response
         }
 
+        // Get today's start in EST (matching task reset logic)
+        let calendar = Calendar.current
+        var estComponents = calendar.dateComponents(in: TimeZone(identifier: "America/New_York")!, from: Date())
+        estComponents.hour = 0
+        estComponents.minute = 0
+        estComponents.second = 0
+        guard let todayStart = calendar.date(from: estComponents) else {
+            return nil
+        }
+
         let response: [PollResponse] = try await supabase
             .from("poll_responses")
             .select()
             .eq("poll_id", value: pollId.uuidString)
             .eq("user_id", value: session.user.id.uuidString)
+            .gte("created_at", value: todayStart.ISO8601Format())
             .limit(1)
             .execute()
             .value

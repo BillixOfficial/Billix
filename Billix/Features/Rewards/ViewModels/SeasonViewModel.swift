@@ -553,7 +553,7 @@ class SeasonViewModel: ObservableObject {
                 id: UUID(),
                 questions: sessionQuestions,
                 currentQuestionIndex: 0,
-                health: 3,
+                health: 10,  // 10 health = 10% per wrong answer (can make 9 mistakes)
                 totalPoints: 0,
                 questionsCorrect: 0,
                 startedAt: Date(),

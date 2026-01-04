@@ -48,7 +48,7 @@ struct RewardsHowItWorksSheet: View {
                         items: [
                             "Upload a bill: Earn points instantly",
                             "Complete daily challenges: Build streaks",
-                            "Play GeoGame: Test your knowledge and win big"
+                            "Play Price Guessr: Test your knowledge and win big"
                         ]
                     )
 
@@ -87,17 +87,16 @@ struct RewardsHowItWorksSheet: View {
                     Divider()
                         .padding(.horizontal)
 
-                    // GeoGame Section
+                    // Price Guessr Section
                     FeatureSection(
                         icon: "map.fill",
                         iconColor: .blue,
-                        title: "GeoGame Challenge",
+                        title: "Price Guessr Challenge",
                         description: "Test your knowledge of prices around the world",
                         items: [
                             "Guess locations based on landmarks",
                             "Estimate prices for common items",
-                            "Build combos for multiplier bonuses",
-                            "3 hearts - don't lose them all!"
+                            "Health bar - answer carefully to survive!"
                         ]
                     )
 

@@ -488,7 +488,7 @@ struct DailyGameHeroCard: View {
                                     .font(.system(size: 16))
                                     .foregroundColor(.billixArcadeGold)
 
-                                Text("Win up to 110 pts")
+                                Text("Test your price knowledge")
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white.opacity(0.95))
                             }
@@ -553,7 +553,7 @@ struct DailyGameHeroCard: View {
         }
         .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Daily Price Guessr game. Guess prices around the world. Win up to 110 points.")
+        .accessibilityLabel("Daily Price Guessr game. Guess prices around the world. Test your price knowledge.")
         .onAppear {
             // Start animations
             withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {

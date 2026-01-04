@@ -33,10 +33,11 @@ class RewardsViewModel: ObservableObject {
 
     // MARK: - Tier System
 
-    // Current tier based on points balance
+    // Current tier based on LIFETIME points earned (not current balance)
+    // This ensures users don't lose tier status when redeeming rewards
     var currentTier: RewardsTier {
         RewardsTier.allCases.last { tier in
-            points.balance >= tier.pointsRange.lowerBound
+            points.lifetimeEarned >= tier.pointsRange.lowerBound
         } ?? .bronze
     }
 
@@ -46,7 +47,7 @@ class RewardsViewModel: ObservableObject {
 
         let currentMin = Double(currentTier.pointsRange.lowerBound)
         let nextMin = Double(nextTier.pointsRange.lowerBound)
-        let current = Double(points.balance)
+        let current = Double(points.lifetimeEarned)
 
         let progress = (current - currentMin) / (nextMin - currentMin)
         return max(0.0, min(progress, 1.0))

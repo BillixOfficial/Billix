@@ -19,6 +19,7 @@ struct WeeklyGiveawayCard: View {
     @State private var timer: Timer?
     @State private var ticketCount: Int = 1
     @State private var shimmerOffset: CGFloat = -300
+    @State private var showOfficialRules: Bool = false
 
     var isEligible: Bool {
         true  // Draw available to everyone
@@ -26,13 +27,13 @@ struct WeeklyGiveawayCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if isEligible {
-                eligibleCard
-            } else {
-                lockedCard
-            }
+            // Draw is available to everyone (isEligible always true)
+            eligibleCard
         }
         .padding(.horizontal, 20)
+        .sheet(isPresented: $showOfficialRules) {
+            SweepstakesOfficialRulesView()
+        }
         .onAppear {
             calculateTimeRemaining()
             startTimer()
@@ -50,9 +51,9 @@ struct WeeklyGiveawayCard: View {
             // Dark Premium Gradient Background
             LinearGradient(
                 colors: [
-                    Color(hex: "#1e3a8a"), // Deep Navy
-                    Color(hex: "#7e22ce"), // Purple
-                    Color(hex: "#be185d")  // Deep Pink accent
+                    Color.billixDarkGreen,
+                    Color.billixMoneyGreen,
+                    Color.billixArcadeGold
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -78,6 +79,17 @@ struct WeeklyGiveawayCard: View {
                         .font(.system(size: 11, weight: .black))
                         .foregroundColor(.billixArcadeGold)
                         .tracking(1)
+
+                    // Info button for official rules
+                    Button(action: {
+                        showOfficialRules = true
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                    }) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
 
                     Spacer()
 
@@ -213,7 +225,7 @@ struct WeeklyGiveawayCard: View {
                     }
 
                     // Cost label
-                    Text("\(ticketCount * 100) Points per entry")
+                    Text("100 points per entry")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -285,7 +297,7 @@ struct WeeklyGiveawayCard: View {
                         }
                     }
 
-                    Text("\(totalEntries) users entered today")
+                    Text("Users entered this week")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.white.opacity(0.9))
 
@@ -316,56 +328,6 @@ struct WeeklyGiveawayCard: View {
         }
         .cornerRadius(20)
         .shadow(color: .purple.opacity(0.4), radius: 20, x: 0, y: 10)
-    }
-
-    // MARK: - Locked Card
-
-    private var lockedCard: some View {
-        ZStack {
-            // Desaturated gradient for locked state
-            LinearGradient(
-                colors: [
-                    Color(hex: "#374151"),
-                    Color(hex: "#4B5563")
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            VStack(spacing: 20) {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 48))
-                    .foregroundColor(.white.opacity(0.5))
-
-                VStack(spacing: 8) {
-                    Text("Unlock at Silver Tier")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(.white)
-
-                    Text("Reach 8,000 points to enter the draw")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                }
-
-                Button {
-                    onHowToEarn()
-                } label: {
-                    Text("How to Earn Points")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.billixArcadeGold)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .background(
-                            Capsule()
-                                .stroke(Color.billixArcadeGold, lineWidth: 2)
-                        )
-                }
-            }
-            .padding(.vertical, 40)
-        }
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.3), radius: 15, x: 0, y: 8)
     }
 
     // MARK: - Timer Functions

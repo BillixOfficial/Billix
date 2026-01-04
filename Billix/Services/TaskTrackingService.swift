@@ -120,18 +120,28 @@ class TaskTrackingService {
 
     /// Fetch weekly check-in history for the current week (Monday to Sunday)
     func getWeeklyCheckIns(userId: UUID) async throws -> [Bool] {
-        // Get the current week's Monday and Sunday
-        let calendar = Calendar.current
+        // Use EST timezone to match task reset logic
+        var calendar = Calendar.current
+        guard let estTimeZone = TimeZone(identifier: "America/New_York") else {
+            return Array(repeating: false, count: 7)
+        }
+        calendar.timeZone = estTimeZone
+
         let now = Date()
 
-        // Get the start of the current week (Monday)
+        // Get the start of the current week (Monday) in EST
         var components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
         components.weekday = 2 // Monday
+        components.hour = 0
+        components.minute = 0
+        components.second = 0
+        components.timeZone = estTimeZone
+
         guard let weekStart = calendar.date(from: components) else {
             return Array(repeating: false, count: 7)
         }
 
-        // Get the end of the current week (Sunday at 11:59:59 PM)
+        // Get the end of the current week (Sunday at 11:59:59 PM EST)
         guard let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
             return Array(repeating: false, count: 7)
         }

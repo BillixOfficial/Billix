@@ -81,11 +81,6 @@ struct WalletHeaderView: View {
                             .foregroundColor(.billixMediumGreen)
                     }
 
-                    // Cash equivalent
-                    Text("≈ \(String(format: "$%.2f", cashEquivalent)) value")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.billixMediumGreen)
-
                     // Tier progress
                     if let nextTier = currentTier.nextTier {
                         Text("\(pointsToNextTier) pts to \(nextTier.rawValue)")
@@ -119,7 +114,8 @@ struct WalletHeaderView: View {
                 streakDays: streakCount,
                 weeklyCheckIns: weeklyCheckIns,
                 thisWeek: 240,
-                toNextTier: pointsToNextTier
+                toNextTier: pointsToNextTier,
+                currentTier: currentTier
             )
             .padding(.bottom, 12)
             .background(
@@ -251,6 +247,7 @@ struct StreakStatsCarousel: View {
     let weeklyCheckIns: [Bool]  // Actual check-in days from database (Mon-Sun)
     let thisWeek: Int
     let toNextTier: Int
+    let currentTier: RewardsTier
 
     @State private var currentIndex: Int = 0
     @State private var timer: Timer?
@@ -258,13 +255,13 @@ struct StreakStatsCarousel: View {
     // Week days (Monday to Sunday)
     private let weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-    // Tier badges (Bronze, Silver, Gold, Platinum, Diamond)
-    private let tierBadges: [(tier: String, isEarned: Bool)] = [
-        ("Bronze", true),
-        ("Silver", false),
-        ("Gold", false),
-        ("Platinum", false)
-    ]
+    // Tier badges - dynamically calculated based on currentTier
+    private var tierBadges: [(tier: String, isEarned: Bool)] {
+        let allTiers: [RewardsTier] = [.bronze, .silver, .gold, .platinum]
+        return allTiers.map { tier in
+            (tier: tier.rawValue, isEarned: tier.pointsRange.lowerBound <= currentTier.pointsRange.lowerBound)
+        }
+    }
 
     var body: some View {
         HStack(spacing: 8) {

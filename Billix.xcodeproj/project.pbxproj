@@ -143,6 +143,7 @@
 		A6E5FF502F088187009F1277 /* CommunityPollService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */; };
 		A6E5FF512F088187009F1277 /* QuizService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4E2F088187009F1277 /* QuizService.swift */; };
 		A6E5FF522F088187009F1277 /* TipsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF4F2F088187009F1277 /* TipsService.swift */; };
+		A6E5FF542F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FF532F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift */; };
 		A6F3C78C2EEF74C300264730 /* LocationMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF828B2EECA1C5008330C9 /* LocationMapView.swift */; };
 		A6F3C78D2EEF74CC00264730 /* LocationRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82872EECA1C5008330C9 /* LocationRow.swift */; };
 		A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */; };
@@ -423,6 +424,7 @@
 		A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityPollService.swift; sourceTree = "<group>"; };
 		A6E5FF4E2F088187009F1277 /* QuizService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizService.swift; sourceTree = "<group>"; };
 		A6E5FF4F2F088187009F1277 /* TipsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipsService.swift; sourceTree = "<group>"; };
+		A6E5FF532F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SweepstakesOfficialRulesView.swift; sourceTree = "<group>"; };
 		A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIResponse.swift; sourceTree = "<group>"; };
 		A6FF810F2ECBBCE3008330C9 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		A6FF811D2ECEB3BC008330C9 /* BillsExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillsExploreView.swift; sourceTree = "<group>"; };
@@ -1217,6 +1219,7 @@
 		A6FF823E2EDE3AD4008330C9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A6E5FF532F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift */,
 				A6FF828E2EECA1C5008330C9 /* Seasons */,
 				A6FF822B2EDE3AD4008330C9 /* Components */,
 				A6FF823A2EDE3AD4008330C9 /* GeoGame */,
@@ -1674,6 +1677,7 @@
 				A602F2442EF9AA6700856DEE /* BillCoachModels.swift in Sources */,
 				A602F2452EF9AA6700856DEE /* BillCoachFlowView.swift in Sources */,
 				A6FF82512EDE3AD4008330C9 /* Phase1LocationView.swift in Sources */,
+				A6E5FF542F0A2EDA009F1277 /* SweepstakesOfficialRulesView.swift in Sources */,
 				A6FF82522EDE3AD4008330C9 /* GeoGameHowToPlayView.swift in Sources */,
 				A6FF82532EDE3AD4008330C9 /* GeoGameViewModel.swift in Sources */,
 				A6FF82542EDE3AD4008330C9 /* GiftCardHeroSection.swift in Sources */,
