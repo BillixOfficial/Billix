@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "QuickAddBox.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
