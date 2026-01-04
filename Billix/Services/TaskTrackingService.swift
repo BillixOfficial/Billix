@@ -126,22 +126,26 @@ class TaskTrackingService {
             return Array(repeating: false, count: 7)
         }
         calendar.timeZone = estTimeZone
+        calendar.firstWeekday = 2 // Monday is first day of week
 
         let now = Date()
 
-        // Get the start of the current week (Monday) in EST
-        var components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
-        components.weekday = 2 // Monday
-        components.hour = 0
-        components.minute = 0
-        components.second = 0
-        components.timeZone = estTimeZone
+        // Find the Monday of the current week
+        let currentWeekday = calendar.component(.weekday, from: now)
+        // currentWeekday: 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri, 7=Sat
+        let daysFromMonday: Int
+        if currentWeekday == 1 { // Sunday
+            daysFromMonday = 6
+        } else {
+            daysFromMonday = currentWeekday - 2
+        }
 
-        guard let weekStart = calendar.date(from: components) else {
+        // Get Monday at 00:00:00 EST
+        guard let weekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: calendar.startOfDay(for: now)) else {
             return Array(repeating: false, count: 7)
         }
 
-        // Get the end of the current week (Sunday at 11:59:59 PM EST)
+        // Get next Monday at 00:00:00 EST (end of this week)
         guard let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
             return Array(repeating: false, count: 7)
         }

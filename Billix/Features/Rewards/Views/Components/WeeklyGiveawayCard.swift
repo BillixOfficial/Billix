@@ -12,6 +12,7 @@ struct WeeklyGiveawayCard: View {
     let userEntries: Int
     let totalEntries: Int
     let currentTier: RewardsTier
+    let isComingSoon: Bool
     let onBuyEntries: () -> Void
     let onHowToEarn: () -> Void
 
@@ -29,15 +30,24 @@ struct WeeklyGiveawayCard: View {
         VStack(spacing: 0) {
             // Draw is available to everyone (isEligible always true)
             eligibleCard
+                .overlay(
+                    Group {
+                        if isComingSoon {
+                            comingSoonOverlay
+                        }
+                    }
+                )
         }
         .padding(.horizontal, 20)
         .sheet(isPresented: $showOfficialRules) {
             SweepstakesOfficialRulesView()
         }
         .onAppear {
-            calculateTimeRemaining()
-            startTimer()
-            startShimmer()
+            if !isComingSoon {
+                calculateTimeRemaining()
+                startTimer()
+                startShimmer()
+            }
         }
         .onDisappear {
             timer?.invalidate()
@@ -330,6 +340,41 @@ struct WeeklyGiveawayCard: View {
         .shadow(color: .purple.opacity(0.4), radius: 20, x: 0, y: 10)
     }
 
+    // MARK: - Coming Soon Overlay
+
+    private var comingSoonOverlay: some View {
+        ZStack {
+            // Semi-transparent dark overlay
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.black.opacity(0.85))
+
+            VStack(spacing: 16) {
+                // Icon
+                Image(systemName: "clock.badge.exclamationmark.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(.billixArcadeGold)
+
+                // Coming Soon text
+                Text("COMING SOON")
+                    .font(.system(size: 28, weight: .black, design: .rounded))
+                    .foregroundColor(.white)
+                    .tracking(2)
+
+                // Description
+                Text("Weekly Sweepstakes")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.8))
+
+                Text("Win $50 off your bill every week")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white.opacity(0.6))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+            .padding(24)
+        }
+    }
+
     // MARK: - Timer Functions
 
     func calculateTimeRemaining() {
@@ -432,6 +477,7 @@ struct PulseButtonStyle: ButtonStyle {
                 userEntries: 5,
                 totalEntries: 1240,
                 currentTier: .silver,
+                isComingSoon: false,
                 onBuyEntries: {
                     print("Buy entries")
                 },
@@ -444,15 +490,16 @@ struct PulseButtonStyle: ButtonStyle {
     }
 }
 
-#Preview("Locked") {
+#Preview("Coming Soon") {
     ZStack {
         Color.billixLightGreen.ignoresSafeArea()
 
         ScrollView {
             WeeklyGiveawayCard(
                 userEntries: 0,
-                totalEntries: 1240,
+                totalEntries: 0,
                 currentTier: .bronze,
+                isComingSoon: true,
                 onBuyEntries: {},
                 onHowToEarn: {}
             )

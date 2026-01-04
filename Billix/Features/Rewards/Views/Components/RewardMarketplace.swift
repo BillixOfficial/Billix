@@ -51,17 +51,15 @@ struct RewardMarketplace: View {
             VStack(spacing: 24) {
                         // ZONE 1: Weekly Giveaway Card (highest priority)
                         WeeklyGiveawayCard(
-                            userEntries: 5,  // TODO: Get from user data
-                            totalEntries: 1247,  // TODO: Get from backend
+                            userEntries: 0,
+                            totalEntries: 0,
                             currentTier: currentTier,
+                            isComingSoon: true,  // Feature not complete yet
                             onBuyEntries: {
-                                // Buy entry with points
-                                if let entry = giveawayEntries.first {
-                                    onRewardTapped(entry)
-                                }
+                                // Coming soon - no action
                             },
                             onHowToEarn: {
-                                // Show info modal
+                                // Coming soon - no action
                             }
                         )
                         .padding(.top, 12)
