@@ -11,7 +11,7 @@ struct MainTabView: View {
                 case 0:
                     HomeView()
                 case 1:
-                    ExploreView()
+                    ExploreLandingView()
                 case 2:
                     UploadHubView()
                 case 3:
