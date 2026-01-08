@@ -17,7 +17,7 @@ struct ExploreLandingView: View {
             ZStack {
                 // Sunrise gradient background
                 LinearGradient(
-                    colors: [Color(hex: "#FFD700").opacity(0.4), Color.white],
+                    colors: [Color(hex: "#90EE90").opacity(0.4), Color.white],
                     startPoint: .top,
                     endPoint: .center
                 )
@@ -30,28 +30,26 @@ struct ExploreLandingView: View {
                     .offset(x: 100, y: -250)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        // Header
-                        headerSection
+                VStack(spacing: 24) {
+                    // Header
+                    headerSection
 
-                        // Search Bar
-                        ExploreSearchBar(
-                            searchQuery: $searchQuery,
-                            onVoiceSearch: { showVoiceSearch = true }
-                        )
-                        .padding(.horizontal, 20)
+                    // Search Bar
+                    ExploreSearchBar(
+                        searchQuery: $searchQuery,
+                        onVoiceSearch: { showVoiceSearch = true }
+                    )
+                    .padding(.horizontal, 20)
 
-                        // Economy by AI Section
-                        EconomyAISection(iconSize: 150)
+                    // Economy by AI Section
+                    EconomyAISection(iconSize: 150)
 
-                        // See What Your Neighbors Pay Section
-                        NeighborsPaySection()
+                    // See What Your Neighbors Pay Section
+                    NeighborsPaySection()
 
-                        Spacer(minLength: 100) // Bottom tab bar padding
-                    }
-                    .padding(.top, 12)
+                    Spacer(minLength: 100) // Bottom tab bar padding
                 }
+                .padding(.top, 12)
             }
             .navigationBarHidden(true)
         }
