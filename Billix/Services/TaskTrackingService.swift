@@ -130,27 +130,20 @@ class TaskTrackingService {
 
         let now = Date()
 
-        // Find the Monday of the current week
-        let currentWeekday = calendar.component(.weekday, from: now)
-        // currentWeekday: 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri, 7=Sat
-        let daysFromMonday: Int
-        if currentWeekday == 1 { // Sunday
-            daysFromMonday = 6
-        } else {
-            daysFromMonday = currentWeekday - 2
-        }
-
-        // Get Monday at 00:00:00 EST
-        guard let weekStart = calendar.date(byAdding: .day, value: -daysFromMonday, to: calendar.startOfDay(for: now)) else {
+        // Use rolling 7-day window instead of calendar week
+        // Go back 6 days from today to get last 7 days (today + 6 previous days)
+        guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -6, to: calendar.startOfDay(for: now)) else {
             return Array(repeating: false, count: 7)
         }
 
-        // Get next Monday at 00:00:00 EST (end of this week)
-        guard let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) else {
+        let windowStart = sevenDaysAgo
+
+        // Window end is tomorrow at 00:00:00 EST (to include all of today)
+        guard let windowEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)) else {
             return Array(repeating: false, count: 7)
         }
 
-        // Query user_task_completions for daily_check_in tasks in this week
+        // Query user_task_completions for daily_check_in tasks in rolling 7-day window
         struct CheckInCompletion: Codable {
             let completedAt: Date
 
@@ -164,8 +157,8 @@ class TaskTrackingService {
             .select("completed_at")
             .eq("user_id", value: userId.uuidString)
             .eq("task_key", value: "daily_check_in")
-            .gte("completed_at", value: weekStart.ISO8601Format())
-            .lt("completed_at", value: weekEnd.ISO8601Format())
+            .gte("completed_at", value: windowStart.ISO8601Format())
+            .lt("completed_at", value: windowEnd.ISO8601Format())
             .order("completed_at")
             .execute()
             .value

@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// Main Explore page with tabs for Bills and Housing marketplaces
+/// Main Explore page with tabs for Market Trends and Housing
 struct ExploreTabView: View {
-    @State private var selectedTab: ExploreTab = .bills
+    @State private var selectedTab: ExploreTab = .housing
+    @StateObject private var locationManager = LocationManager()
+    @StateObject private var housingViewModel = HousingSearchViewModel()
 
     var body: some View {
         NavigationView {
@@ -14,17 +16,23 @@ struct ExploreTabView: View {
 
                 // Tab content
                 TabView(selection: $selectedTab) {
-                    BillsExploreView()
-                        .tag(ExploreTab.bills)
+                    HousingExploreView(
+                        locationManager: locationManager,
+                        viewModel: housingViewModel
+                    )
+                    .tag(ExploreTab.housing)
 
-                    HousingExploreView()
-                        .tag(ExploreTab.housing)
+                    MarketTrendsView(
+                        locationManager: locationManager,
+                        housingViewModel: housingViewModel
+                    )
+                    .tag(ExploreTab.marketTrends)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
             }
             .navigationTitle("Explore")
-            .navigationBarTitleDisplayMode(.large)
-            .background(Color.billixCreamBeige.opacity(0.3))
+            .navigationBarTitleDisplayMode(.inline)
+            .background(Color(hex: "#F3F4F6"))
         }
     }
 }
@@ -33,48 +41,39 @@ struct ExploreTabView: View {
 
 struct TabPickerView: View {
     @Binding var selectedTab: ExploreTab
-    @Namespace private var animation
 
     var body: some View {
+        // Native iOS Segmented Control Style
         HStack(spacing: 0) {
             ForEach(ExploreTab.allCases, id: \.self) { tab in
                 Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
                         selectedTab = tab
                     }
                 } label: {
-                    VStack(spacing: 8) {
-                        HStack(spacing: 6) {
-                            Text(tab.icon)
-                                .font(.title3)
+                    HStack(spacing: 6) {
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 15, weight: .medium))
 
-                            Text(tab.title)
-                                .font(.headline)
-                                .fontWeight(selectedTab == tab ? .bold : .medium)
-                        }
-                        .foregroundColor(selectedTab == tab ? .billixNavyBlue : .billixDarkTeal.opacity(0.6))
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
-
-                        // Underline indicator
-                        if selectedTab == tab {
-                            Rectangle()
-                                .fill(Color.billixMoneyGreen)
-                                .frame(height: 3)
-                                .matchedGeometryEffect(id: "tab", in: animation)
-                        } else {
-                            Rectangle()
-                                .fill(Color.clear)
-                                .frame(height: 3)
-                        }
+                        Text(tab.title)
+                            .font(.system(size: 15, weight: .medium))
                     }
+                    .foregroundColor(selectedTab == tab ? .white : .billixDarkTeal)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(selectedTab == tab ? Color.billixDarkTeal : Color.clear)
+                    )
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
         }
+        .padding(4)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.6))
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.gray.opacity(0.12))
         )
     }
 }
@@ -82,8 +81,8 @@ struct TabPickerView: View {
 // MARK: - Tab Enum
 
 enum ExploreTab: String, CaseIterable {
-    case bills = "Bills"
     case housing = "Housing"
+    case marketTrends = "Market Trends"
 
     var title: String {
         rawValue
@@ -91,36 +90,10 @@ enum ExploreTab: String, CaseIterable {
 
     var icon: String {
         switch self {
-        case .bills:
-            return "⚡"
         case .housing:
-            return "🏠"
-        }
-    }
-}
-
-// MARK: - Placeholder Housing View
-
-struct HousingExploreView: View {
-    var body: some View {
-        ZStack {
-            Color.billixCreamBeige.opacity(0.3)
-                .ignoresSafeArea()
-
-            VStack(spacing: 20) {
-                Image(systemName: "house.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.billixMoneyGreen)
-
-                Text("Housing Marketplace")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.billixNavyBlue)
-
-                Text("Coming in Phase 4")
-                    .font(.body)
-                    .foregroundColor(.billixDarkTeal)
-            }
+            return "house.fill"
+        case .marketTrends:
+            return "chart.bar.fill"
         }
     }
 }

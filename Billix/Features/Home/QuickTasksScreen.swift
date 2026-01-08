@@ -331,9 +331,9 @@ struct QuickTaskCard: View {
                         .font(.system(size: 11, weight: .regular))
                         .lineSpacing(0)
                         .foregroundColor(task.isClaimed ? .gray.opacity(0.6) : Color.black.opacity(0.6))
-                        .lineLimit(3)
+                        .lineLimit(4)
                         .multilineTextAlignment(.center)
-                        .frame(height: 48, alignment: .top)
+                        .frame(minHeight: 48, maxHeight: 64, alignment: .top)
                         .padding(.horizontal, 8)
 
                     // Progress Bar (for multi-step tasks)
