@@ -322,14 +322,20 @@ onSwitchToFullAnalysis: {
 
     private var fullAnalysisCard: some View {
         VStack(spacing: 20) {
-            // Magnifying glass icon with subtle green circle
+            // Magnifying glass icon with double circle background
             ZStack {
+                // Outer large light circle
                 Circle()
-                    .fill(Color(hex: "#E8F5E9").opacity(0.5))
-                    .frame(width: 100, height: 100)
+                    .fill(Color(hex: "#E8F5E9").opacity(0.3))
+                    .frame(width: 120, height: 120)
+
+                // Inner green circle
+                Circle()
+                    .fill(Color(hex: "#E8F5E9"))
+                    .frame(width: 90, height: 90)
 
                 Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 48, weight: .regular))
+                    .font(.system(size: 44, weight: .regular))
                     .foregroundColor(Color(hex: "#6B7280"))
             }
 
@@ -346,12 +352,12 @@ onSwitchToFullAnalysis: {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
 
-            // Inline pills - horizontal row
+            // Inline pills with individual colors
             HStack(spacing: 8) {
-                PillTag(text: "Line Items")
-                PillTag(text: "Surprises")
-                PillTag(text: "Rate compare")
-                PillTag(text: "Savings")
+                ColoredPillTag(text: "Line Items", backgroundColor: Color(hex: "#E9D5FF"))
+                ColoredPillTag(text: "Surprises", backgroundColor: Color(hex: "#DBEAFE"))
+                ColoredPillTag(text: "Rate compare", backgroundColor: Color(hex: "#FED7AA"))
+                ColoredPillTag(text: "Savings", backgroundColor: Color(hex: "#FED7AA"))
             }
 
             // Full-width button
@@ -737,6 +743,25 @@ struct PillTag: View {
             .background(
                 Capsule()
                     .fill(Color(hex: "#F3F4F6"))
+            )
+    }
+}
+
+// MARK: - Colored Pill Tag Component
+
+struct ColoredPillTag: View {
+    let text: String
+    let backgroundColor: Color
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 12, weight: .medium))
+            .foregroundColor(Color(hex: "#6B7280"))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(backgroundColor)
             )
     }
 }
