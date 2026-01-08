@@ -101,10 +101,12 @@ struct NeighborsPaySection: View {
                         }
                         .buttonStyle(ScaleButtonStyle())
                         .tag(card)
-                    } else {
-                        // Placeholder - no navigation yet
-                        NeighborPayCardView(card: card)
-                            .tag(card)
+                    } else if card == .bills {
+                        NavigationLink(destination: BillsTestView()) {
+                            NeighborPayCardView(card: card)
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .tag(card)
                     }
                 }
             }
