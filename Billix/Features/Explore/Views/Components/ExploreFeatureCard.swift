@@ -34,7 +34,7 @@ struct EconomyFeatureCard: View {
 
                 // Small text at bottom, centered - very close to icon
                 Text(title)
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.system(size: 13, weight: .bold))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)

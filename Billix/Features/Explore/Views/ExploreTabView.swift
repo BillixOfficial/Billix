@@ -31,8 +31,8 @@ struct ExploreTabView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
             }
             .navigationTitle("Explore")
-            .navigationBarTitleDisplayMode(.large)
-            .background(Color.billixCreamBeige.opacity(0.3))
+            .navigationBarTitleDisplayMode(.inline)
+            .background(Color(hex: "#F3F4F6"))
         }
     }
 }
