@@ -84,7 +84,7 @@ struct UploadHubView: View {
 
                     Spacer(minLength: 100)
                 }
-                .padding(.top, 8)
+                .padding(.top, 24)
             }
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $navigateToUploadMethods) {
@@ -242,7 +242,7 @@ onSwitchToFullAnalysis: {
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color(hex: "#5B8A6B"))
@@ -755,7 +755,7 @@ struct ColoredPillTag: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 12, weight: .medium))
+            .font(.system(size: 10, weight: .semibold))
             .foregroundColor(Color(hex: "#6B7280"))
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
