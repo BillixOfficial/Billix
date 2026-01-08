@@ -199,25 +199,30 @@ onSwitchToFullAnalysis: {
 
     private var quickAddCard: some View {
         VStack(spacing: 16) {
-            // Green lightning icon in circle
-            ZStack {
-                Circle()
-                    .fill(Color(hex: "#E8F5E9"))
-                    .frame(width: 60, height: 60)
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(Color(hex: "#5B8A6B"))
-            }
+            // Icon and text - horizontal layout
+            HStack(spacing: 16) {
+                // Green lightning icon in circle (left side)
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: "#E8F5E9"))
+                        .frame(width: 60, height: 60)
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(Color(hex: "#5B8A6B"))
+                }
 
-            // Title and subtitle
-            VStack(spacing: 4) {
-                Text("Quick Add")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Theme.primaryText)
+                // Title and subtitle (left-aligned)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Quick Add")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Theme.primaryText)
 
-                Text("Answer 3 Questions")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(Theme.secondaryText)
+                    Text("Answer 3 Questions")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Theme.secondaryText)
+                }
+
+                Spacer()
             }
 
             // Full-width button
