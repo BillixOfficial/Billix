@@ -67,24 +67,25 @@ struct UploadHubView: View {
                 )
                 .ignoresSafeArea()
 
-                VStack(spacing: 4) {
+                ScrollView {
+                    VStack(spacing: 12) {
 
-                    // SECTION 1: Header
-                    headerSection
-                        .padding(.horizontal, Theme.horizontalPadding)
+                        // SECTION 1: Header
+                        headerSection
+                            .padding(.horizontal, Theme.horizontalPadding)
 
-                    // SECTION 2: Quick Add Card (Redesigned)
-                    quickAddCard
+                        // SECTION 2: Quick Add Card (Redesigned)
+                        quickAddCard
 
-                    // SECTION 3: Recent Uploads - Horizontal scroll
-                    inProgressSection
+                        // SECTION 3: Recent Uploads - Horizontal scroll
+                        inProgressSection
 
-                    // SECTION 4: Upload for Full Analysis - Single card
-                    fullAnalysisCard
-
-                    Spacer(minLength: 20)
+                        // SECTION 4: Upload for Full Analysis - Single card
+                        fullAnalysisCard
+                            .padding(.bottom, 20)
+                    }
+                    .padding(.top, 24)
                 }
-                .padding(.top, 24)
             }
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $navigateToUploadMethods) {
@@ -250,7 +251,7 @@ onSwitchToFullAnalysis: {
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
-        .padding(18)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
@@ -265,7 +266,7 @@ onSwitchToFullAnalysis: {
     // MARK: - In Progress Section (Horizontal scroll)
 
     private var inProgressSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 // Clipboard icon
                 Image(systemName: "doc.on.clipboard")
@@ -322,26 +323,26 @@ onSwitchToFullAnalysis: {
     // MARK: - Full Analysis Card (Clean White Card Design)
 
     private var fullAnalysisCard: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 14) {
             // Magnifying glass icon with triple circle background
             ZStack {
                 // Outer largest light circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.25))
-                    .frame(width: 110, height: 110)
+                    .frame(width: 100, height: 100)
 
                 // Middle circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.4))
-                    .frame(width: 82, height: 82)
+                    .frame(width: 75, height: 75)
 
                 // Inner green circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9"))
-                    .frame(width: 60, height: 60)
+                    .frame(width: 55, height: 55)
 
                 Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 38, weight: .regular))
+                    .font(.system(size: 36, weight: .regular))
                     .foregroundColor(Color(hex: "#6B7280"))
             }
 
@@ -387,7 +388,7 @@ onSwitchToFullAnalysis: {
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
-        .padding(18)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
@@ -615,7 +616,7 @@ struct EmptyUploadCard: View {
 
             Spacer()
         }
-        .padding(18)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
