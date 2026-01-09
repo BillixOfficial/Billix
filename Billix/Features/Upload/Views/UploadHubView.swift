@@ -205,9 +205,9 @@ onSwitchToFullAnalysis: {
                 ZStack {
                     Circle()
                         .fill(Color(hex: "#E8F5E9"))
-                        .frame(width: 60, height: 60)
+                        .frame(width: 50, height: 50)
                     Image(systemName: "bolt.fill")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundColor(Color(hex: "#5B8A6B"))
                 }
 
@@ -267,14 +267,15 @@ onSwitchToFullAnalysis: {
     private var inProgressSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("Recent Uploads")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(Theme.primaryText)
+                // Clipboard icon
+                Image(systemName: "doc.on.clipboard")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color(hex: "#8B9A94"))
 
-                // Decorative dot
-                Circle()
-                    .fill(Color(hex: "#5B8A6B"))
-                    .frame(width: 8, height: 8)
+                Text("RECENT UPLOADS")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(Color(hex: "#8B9A94"))
+                    .tracking(0.5)
 
                 Spacer()
 
@@ -296,7 +297,7 @@ onSwitchToFullAnalysis: {
             if recentUploads.isEmpty {
                 // Single empty state card
                 EmptyUploadCard()
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 20)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
@@ -322,20 +323,25 @@ onSwitchToFullAnalysis: {
 
     private var fullAnalysisCard: some View {
         VStack(spacing: 20) {
-            // Magnifying glass icon with double circle background
+            // Magnifying glass icon with triple circle background
             ZStack {
-                // Outer large light circle
+                // Outer largest light circle
                 Circle()
-                    .fill(Color(hex: "#E8F5E9").opacity(0.3))
-                    .frame(width: 120, height: 120)
+                    .fill(Color(hex: "#E8F5E9").opacity(0.25))
+                    .frame(width: 150, height: 150)
+
+                // Middle circle
+                Circle()
+                    .fill(Color(hex: "#E8F5E9").opacity(0.4))
+                    .frame(width: 115, height: 115)
 
                 // Inner green circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9"))
-                    .frame(width: 90, height: 90)
+                    .frame(width: 85, height: 85)
 
                 Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 44, weight: .regular))
+                    .font(.system(size: 50, weight: .regular))
                     .foregroundColor(Color(hex: "#6B7280"))
             }
 
@@ -345,12 +351,14 @@ onSwitchToFullAnalysis: {
                 .foregroundColor(Theme.primaryText)
                 .multilineTextAlignment(.center)
 
-            // Description
+            // Description - full text, no truncation
             Text("Upload a bill to find savings, track expenses, and get insights.")
                 .font(.system(size: 14, weight: .regular))
                 .foregroundColor(Theme.secondaryText)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 16)
 
             // Inline pills with individual colors
             HStack(spacing: 8) {
@@ -581,7 +589,7 @@ struct RecentUploadCard: View {
     }
 }
 
-// MARK: - Empty Upload Card (No Container - Direct on Background)
+// MARK: - Empty Upload Card (White Card Container)
 
 struct EmptyUploadCard: View {
     private let primaryText = Color(hex: "#2D3B35")
@@ -607,6 +615,12 @@ struct EmptyUploadCard: View {
 
             Spacer()
         }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+        )
         .frame(maxWidth: .infinity)
     }
 }
