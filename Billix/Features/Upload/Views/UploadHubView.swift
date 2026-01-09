@@ -73,7 +73,7 @@ struct UploadHubView: View {
                         // SECTION 1: Header
                         headerSection
                             .padding(.horizontal, Theme.horizontalPadding)
-                            .padding(.bottom, 10)
+                            .padding(.bottom, 16)
 
                         // SECTION 2: Quick Add Card (Redesigned)
                         quickAddCard
@@ -85,7 +85,7 @@ struct UploadHubView: View {
 
                         // SECTION 4: Upload for Full Analysis - Single card
                         fullAnalysisCard
-                            .padding(.bottom, 40)
+                            .padding(.bottom, 24)
                     }
                     .padding(.top, 18)
                 }
@@ -307,46 +307,46 @@ onSwitchToFullAnalysis: {
     // MARK: - Full Analysis Card (Clean White Card Design)
 
     private var fullAnalysisCard: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             // Magnifying glass icon with triple circle background
             ZStack {
                 // Outer largest light circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.25))
-                    .frame(width: 80, height: 80)
+                    .frame(width: 100, height: 100)
 
                 // Middle circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.4))
-                    .frame(width: 60, height: 60)
+                    .frame(width: 75, height: 75)
 
                 // Inner green circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9"))
-                    .frame(width: 45, height: 45)
+                    .frame(width: 55, height: 55)
 
                 Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 28, weight: .regular))
+                    .font(.system(size: 36, weight: .regular))
                     .foregroundColor(Color(hex: "#6B7280"))
             }
 
             // Title
             Text("Analyze a New Bill")
-                .font(.system(size: 17, weight: .bold))
+                .font(.system(size: 19, weight: .bold))
                 .foregroundColor(Theme.primaryText)
                 .multilineTextAlignment(.center)
 
             // Description - full text, no truncation
             Text("Upload a bill to find savings, track expenses, and get insights.")
-                .font(.system(size: 12, weight: .regular))
+                .font(.system(size: 14, weight: .regular))
                 .foregroundColor(Theme.secondaryText)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 12)
 
             // Inline pills with individual colors
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 ColoredPillTag(text: "Line Items", backgroundColor: Color(hex: "#E9D5FF"))
                 ColoredPillTag(text: "Surprises", backgroundColor: Color(hex: "#DBEAFE"))
                 ColoredPillTag(text: "Rate compare", backgroundColor: Color(hex: "#FED7AA"))
@@ -372,8 +372,8 @@ onSwitchToFullAnalysis: {
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
@@ -756,10 +756,10 @@ struct ColoredPillTag: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 10, weight: .semibold))
+            .font(.system(size: 11, weight: .semibold))
             .foregroundColor(Color(hex: "#6B7280"))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
             .background(
                 Capsule()
                     .fill(backgroundColor)
