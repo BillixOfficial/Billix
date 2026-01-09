@@ -82,7 +82,7 @@ struct UploadHubView: View {
                     // SECTION 4: Upload for Full Analysis - Single card
                     fullAnalysisCard
 
-                    Spacer(minLength: 100)
+                    Spacer(minLength: 20)
                 }
                 .padding(.top, 24)
             }
@@ -198,7 +198,7 @@ onSwitchToFullAnalysis: {
     // MARK: - Quick Add Card (Clean White Card Design)
 
     private var quickAddCard: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 14) {
             // Icon and text - horizontal layout
             HStack(spacing: 16) {
                 // Green lightning icon in circle (left side)
@@ -250,7 +250,7 @@ onSwitchToFullAnalysis: {
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
-        .padding(20)
+        .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
@@ -322,26 +322,26 @@ onSwitchToFullAnalysis: {
     // MARK: - Full Analysis Card (Clean White Card Design)
 
     private var fullAnalysisCard: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             // Magnifying glass icon with triple circle background
             ZStack {
                 // Outer largest light circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.25))
-                    .frame(width: 150, height: 150)
+                    .frame(width: 110, height: 110)
 
                 // Middle circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.4))
-                    .frame(width: 115, height: 115)
+                    .frame(width: 82, height: 82)
 
                 // Inner green circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9"))
-                    .frame(width: 85, height: 85)
+                    .frame(width: 60, height: 60)
 
                 Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 50, weight: .regular))
+                    .font(.system(size: 38, weight: .regular))
                     .foregroundColor(Color(hex: "#6B7280"))
             }
 
@@ -358,7 +358,7 @@ onSwitchToFullAnalysis: {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 12)
 
             // Inline pills with individual colors
             HStack(spacing: 8) {
@@ -387,7 +387,7 @@ onSwitchToFullAnalysis: {
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
-        .padding(20)
+        .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
@@ -615,7 +615,7 @@ struct EmptyUploadCard: View {
 
             Spacer()
         }
-        .padding(20)
+        .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
