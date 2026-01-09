@@ -282,23 +282,35 @@ onSwitchToFullAnalysis: {
                 EmptyUploadCard()
                     .padding(.horizontal, 20)
             } else {
-                // Show vault icon + uploaded bills in horizontal scroll
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
-                        // Vault icon as first item
-                        VaultIconCard()
+                // Show vault icon + uploaded bills in ONE container card
+                HStack(spacing: 12) {
+                    // Vault icon on left (fixed size)
+                    Image("VaultEmpty")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 70, height: 70)
 
-                        ForEach(recentUploads) { upload in
-                            Button {
-                                viewModel.selectedUpload = upload
-                            } label: {
-                                RecentUploadCard(upload: upload)
+                    // Scrollable bill cards on right (smaller, inside container)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(recentUploads) { upload in
+                                Button {
+                                    viewModel.selectedUpload = upload
+                                } label: {
+                                    CompactBillCard(upload: upload)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
-                            .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .padding(.horizontal, Theme.horizontalPadding)
                 }
+                .padding(14)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+                )
+                .padding(.horizontal, 20)
             }
         }
         .opacity(appeared ? 1 : 0)
@@ -592,6 +604,80 @@ struct VaultIconCard: View {
                 .frame(width: 80, height: 80)
         }
         .frame(width: 155, height: 130)
+    }
+}
+
+// MARK: - Compact Bill Card (Smaller card for container view)
+
+struct CompactBillCard: View {
+    let upload: RecentUpload
+
+    private var primaryText: Color { Color(hex: "#2D3B35") }
+    private var warningColor: Color { Color(hex: "#F59E0B") }
+
+    private var sourceAccentColor: Color {
+        upload.source == .quickAdd ? Color(hex: "#F59E0B") : Color(hex: "#3D8B7C")
+    }
+
+    var body: some View {
+        ZStack {
+            // White card base
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.white)
+
+            // Top accent bar (smaller)
+            VStack {
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(
+                        LinearGradient(
+                            colors: [sourceAccentColor.opacity(0.15), sourceAccentColor.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: 30)
+                Spacer()
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            VStack(alignment: .leading, spacing: 6) {
+                // Category badge (smaller)
+                HStack(spacing: 4) {
+                    if upload.source == .quickAdd {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 8, weight: .semibold))
+                            .foregroundColor(warningColor)
+                    }
+                    Text(upload.source.displayName)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(sourceAccentColor)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(Color.white)
+                        .shadow(color: sourceAccentColor.opacity(0.1), radius: 2, x: 0, y: 1)
+                )
+
+                // Provider name (compact)
+                Text(upload.provider)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(primaryText)
+                    .lineLimit(1)
+
+                Spacer()
+
+                // Amount only (no status icon to save space)
+                Text(upload.formattedAmount)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(primaryText)
+            }
+            .padding(10)
+        }
+        .frame(width: 100, height: 90)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
 }
 
