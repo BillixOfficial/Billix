@@ -234,12 +234,18 @@ onSwitchToFullAnalysis: {
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
             } label: {
-                HStack {
-                    Text("Start Quick Add")
-                        .font(.system(size: 16, weight: .semibold))
-                    Spacer()
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 14, weight: .semibold))
+                ZStack {
+                    HStack {
+                        Text("Start Quick Add")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    HStack {
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 20)
@@ -371,12 +377,18 @@ onSwitchToFullAnalysis: {
 
             // Full-width button
             NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
-                HStack {
-                    Text("Start Analysis")
-                        .font(.system(size: 16, weight: .semibold))
-                    Spacer()
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 14, weight: .semibold))
+                ZStack {
+                    HStack {
+                        Text("Start Analysis")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    HStack {
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 20)
@@ -388,7 +400,8 @@ onSwitchToFullAnalysis: {
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
-        .padding(14)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
@@ -616,7 +629,8 @@ struct EmptyUploadCard: View {
 
             Spacer()
         }
-        .padding(16)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
