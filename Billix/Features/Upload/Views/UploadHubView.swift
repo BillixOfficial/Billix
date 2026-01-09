@@ -395,7 +395,7 @@ onSwitchToFullAnalysis: {
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color(hex: "#5B8A6B"))
