@@ -68,7 +68,7 @@ struct UploadHubView: View {
                 .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 10) {
+                    VStack(spacing: 8) {
 
                         // SECTION 1: Header
                         headerSection
@@ -82,9 +82,9 @@ struct UploadHubView: View {
 
                         // SECTION 4: Upload for Full Analysis - Single card
                         fullAnalysisCard
-                            .padding(.bottom, 24)
+                            .padding(.bottom, 40)
                     }
-                    .padding(.top, 20)
+                    .padding(.top, 18)
                 }
             }
             .navigationBarHidden(true)
@@ -199,7 +199,7 @@ onSwitchToFullAnalysis: {
     // MARK: - Quick Add Card (Clean White Card Design)
 
     private var quickAddCard: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 12) {
             // Icon and text - horizontal layout
             HStack(spacing: 16) {
                 // Green lightning icon in circle (left side)
@@ -266,7 +266,7 @@ onSwitchToFullAnalysis: {
     // MARK: - In Progress Section (Horizontal scroll)
 
     private var inProgressSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 // Clipboard icon
                 Image(systemName: "doc.on.clipboard")
@@ -323,26 +323,26 @@ onSwitchToFullAnalysis: {
     // MARK: - Full Analysis Card (Clean White Card Design)
 
     private var fullAnalysisCard: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             // Magnifying glass icon with triple circle background
             ZStack {
                 // Outer largest light circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.25))
-                    .frame(width: 90, height: 90)
+                    .frame(width: 85, height: 85)
 
                 // Middle circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.4))
-                    .frame(width: 68, height: 68)
+                    .frame(width: 64, height: 64)
 
                 // Inner green circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9"))
-                    .frame(width: 50, height: 50)
+                    .frame(width: 48, height: 48)
 
                 Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 32, weight: .regular))
+                    .font(.system(size: 30, weight: .regular))
                     .foregroundColor(Color(hex: "#6B7280"))
             }
 
