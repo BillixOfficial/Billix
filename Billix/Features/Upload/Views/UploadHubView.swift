@@ -169,34 +169,13 @@ onSwitchToFullAnalysis: {
     // MARK: - Header Section
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Upload Your Bills")
-                .font(.system(size: 26, weight: .bold))
-                .foregroundColor(Theme.primaryText)
-
-            // Bill Review button
-            Button {
-                // Action TBD
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 14, weight: .semibold))
-                    Text("Bill Review")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .foregroundColor(Color(hex: "#8B6914"))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(Color(hex: "#F5E6D3"))
-                )
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : -10)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
+        Text("Upload Your Bills")
+            .font(.system(size: 26, weight: .bold))
+            .foregroundColor(Theme.primaryText)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : -10)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
     }
 
     // MARK: - Quick Add Card (Clean White Card Design)
