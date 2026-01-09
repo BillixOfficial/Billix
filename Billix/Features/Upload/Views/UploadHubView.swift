@@ -206,6 +206,18 @@ onSwitchToFullAnalysis: {
                 }
 
                 Spacer()
+
+                // Info button
+                Button {
+                    showQuickAddInfo.toggle()
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 18))
+                        .foregroundColor(Theme.secondaryText.opacity(0.7))
+                }
+                .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
+                    QuickAddInfoPopover()
+                }
             }
 
             // Full-width button
@@ -344,11 +356,23 @@ onSwitchToFullAnalysis: {
                     .foregroundColor(Color(hex: "#6B7280"))
             }
 
-            // Title
-            Text("Analyze a New Bill")
-                .font(.system(size: 19, weight: .bold))
-                .foregroundColor(Theme.primaryText)
-                .multilineTextAlignment(.center)
+            // Title with info button
+            HStack(spacing: 8) {
+                Text("Analyze a New Bill")
+                    .font(.system(size: 19, weight: .bold))
+                    .foregroundColor(Theme.primaryText)
+
+                Button {
+                    showFullAnalysisInfo.toggle()
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 16))
+                        .foregroundColor(Theme.secondaryText.opacity(0.7))
+                }
+                .popover(isPresented: $showFullAnalysisInfo, arrowEdge: .top) {
+                    FullAnalysisInfoPopover()
+                }
+            }
 
             // Description - full text, no truncation
             Text("Upload a bill to find savings, track expenses, and get insights.")
