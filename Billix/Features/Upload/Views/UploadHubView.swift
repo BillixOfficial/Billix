@@ -614,7 +614,7 @@ struct EmptyUploadCard: View {
                     .font(.system(size: 15, weight: .bold))
                     .foregroundColor(primaryText)
 
-                Text("Add a bill to start tracking.")
+                Text("Analyze a Bill to start tracking.")
                     .font(.system(size: 13, weight: .regular))
                     .foregroundColor(secondaryText)
             }
