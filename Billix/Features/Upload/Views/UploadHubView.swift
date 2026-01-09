@@ -282,9 +282,12 @@ onSwitchToFullAnalysis: {
                 EmptyUploadCard()
                     .padding(.horizontal, 20)
             } else {
-                // Show uploaded bills in horizontal scroll
+                // Show vault icon + uploaded bills in horizontal scroll
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
+                        // Vault icon as first item
+                        VaultIconCard()
+
                         ForEach(recentUploads) { upload in
                             Button {
                                 viewModel.selectedUpload = upload
@@ -571,6 +574,24 @@ struct RecentUploadCard: View {
         case .needsConfirmation: return warningColor
         case .failed: return .red
         }
+    }
+}
+
+// MARK: - Vault Icon Card (Scrollable card with just vault icon)
+
+struct VaultIconCard: View {
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+
+            Image("VaultEmpty")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 80, height: 80)
+        }
+        .frame(width: 155, height: 130)
     }
 }
 
