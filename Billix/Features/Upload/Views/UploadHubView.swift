@@ -277,12 +277,12 @@ onSwitchToFullAnalysis: {
             }
             .padding(.horizontal, Theme.horizontalPadding)
 
-            // Always show empty vault card
-            EmptyUploadCard()
-                .padding(.horizontal, 20)
-
-            // Show uploaded bills below if any exist
-            if !recentUploads.isEmpty {
+            if recentUploads.isEmpty {
+                // Show empty vault card when no uploads
+                EmptyUploadCard()
+                    .padding(.horizontal, 20)
+            } else {
+                // Show uploaded bills in horizontal scroll
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
                         ForEach(recentUploads) { upload in
@@ -296,7 +296,6 @@ onSwitchToFullAnalysis: {
                     }
                     .padding(.horizontal, Theme.horizontalPadding)
                 }
-                .padding(.top, 12)
             }
         }
         .opacity(appeared ? 1 : 0)
