@@ -53,12 +53,17 @@ struct UploadHubView: View {
 
     // Derive recent uploads from SwiftData query (auto-updates on changes)
     private var recentUploads: [RecentUpload] {
-        storedBills.prefix(4).compactMap { $0.toRecentUpload() }
+        storedBills.prefix(3).compactMap { $0.toRecentUpload() }
+    }
+
+    private var numberOfAddCards: Int {
+        let billCount = recentUploads.count
+        return max(0, 4 - billCount)
     }
 
     var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .top) {
                 // Background matching Explore screen
                 LinearGradient(
                     colors: [Color(hex: "#90EE90").opacity(0.4), Color.white],
@@ -67,27 +72,26 @@ struct UploadHubView: View {
                 )
                 .ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 0) {
+                VStack(spacing: 0) {
+                    // SECTION 1: Header
+                    headerSection
+                        .padding(.horizontal, Theme.horizontalPadding)
+                        .padding(.top, 12)
+                        .padding(.bottom, 16)
 
-                        // SECTION 1: Header
-                        headerSection
-                            .padding(.horizontal, Theme.horizontalPadding)
-                            .padding(.bottom, 16)
+                    // SECTION 2: Quick Add Card (Redesigned)
+                    quickAddCard
+                        .padding(.bottom, 16)
 
-                        // SECTION 2: Quick Add Card (Redesigned)
-                        quickAddCard
-                            .padding(.bottom, 16)
+                    // SECTION 3: Recent Uploads - Horizontal scroll
+                    inProgressSection
+                        .padding(.bottom, 16)
 
-                        // SECTION 3: Recent Uploads - Horizontal scroll
-                        inProgressSection
-                            .padding(.bottom, 20)
+                    // SECTION 4: Upload for Full Analysis - Single card
+                    fullAnalysisCard
+                        .padding(.bottom, 12)
 
-                        // SECTION 4: Upload for Full Analysis - Single card
-                        fullAnalysisCard
-                            .padding(.bottom, 24)
-                    }
-                    .padding(.top, 18)
+                    Spacer()
                 }
             }
             .navigationBarHidden(true)
@@ -181,7 +185,7 @@ onSwitchToFullAnalysis: {
     // MARK: - Quick Add Card (Clean White Card Design)
 
     private var quickAddCard: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             // Icon and text - horizontal layout
             HStack(spacing: 14) {
                 // Green lightning icon in circle (left side)
@@ -217,6 +221,7 @@ onSwitchToFullAnalysis: {
                 }
                 .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
                     QuickAddInfoPopover()
+                        .presentationCompactAdaptation(.popover)
                 }
             }
 
@@ -245,7 +250,7 @@ onSwitchToFullAnalysis: {
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
-        .padding(14)
+        .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
@@ -294,35 +299,29 @@ onSwitchToFullAnalysis: {
                 EmptyUploadCard()
                     .padding(.horizontal, 20)
             } else {
-                // Show vault icon + uploaded bills in ONE container card
-                HStack(spacing: 12) {
-                    // Vault icon on left (fixed size)
-                    Image("VaultEmpty")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 70, height: 70)
-
-                    // Scrollable bill cards on right (smaller, inside container)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            ForEach(recentUploads) { upload in
-                                Button {
-                                    viewModel.selectedUpload = upload
-                                } label: {
-                                    CompactBillCard(upload: upload)
-                                }
-                                .buttonStyle(PlainButtonStyle())
+                // Show uploaded bills and add cards in horizontal scroll
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        // Show bill cards first
+                        ForEach(recentUploads) { upload in
+                            Button {
+                                viewModel.selectedUpload = upload
+                            } label: {
+                                CompactBillCard(upload: upload)
                             }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+
+                        // Show add cards to fill up to 4 total
+                        ForEach(0..<numberOfAddCards, id: \.self) { _ in
+                            NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
+                                AddBillCard()
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
+                    .padding(.horizontal, 20)
                 }
-                .padding(14)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white)
-                        .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
-                )
-                .padding(.horizontal, 20)
             }
         }
         .opacity(appeared ? 1 : 0)
@@ -333,26 +332,26 @@ onSwitchToFullAnalysis: {
     // MARK: - Full Analysis Card (Clean White Card Design)
 
     private var fullAnalysisCard: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             // Magnifying glass icon with triple circle background
             ZStack {
                 // Outer largest light circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.25))
-                    .frame(width: 100, height: 100)
+                    .frame(width: 80, height: 80)
 
                 // Middle circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9").opacity(0.4))
-                    .frame(width: 75, height: 75)
+                    .frame(width: 60, height: 60)
 
                 // Inner green circle
                 Circle()
                     .fill(Color(hex: "#E8F5E9"))
-                    .frame(width: 55, height: 55)
+                    .frame(width: 45, height: 45)
 
                 Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 36, weight: .regular))
+                    .font(.system(size: 28, weight: .regular))
                     .foregroundColor(Color(hex: "#6B7280"))
             }
 
@@ -371,6 +370,7 @@ onSwitchToFullAnalysis: {
                 }
                 .popover(isPresented: $showFullAnalysisInfo, arrowEdge: .top) {
                     FullAnalysisInfoPopover()
+                        .presentationCompactAdaptation(.popover)
                 }
             }
 
@@ -411,7 +411,7 @@ onSwitchToFullAnalysis: {
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
@@ -699,7 +699,7 @@ struct CompactBillCard: View {
             }
             .padding(10)
         }
-        .frame(width: 100, height: 90)
+        .frame(width: 115, height: 105)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
@@ -739,6 +739,47 @@ struct EmptyUploadCard: View {
                 .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
         )
         .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Add Bill Card (Dashed Border Placeholder)
+
+struct AddBillCard: View {
+    private let accentColor = Color(hex: "#5B8A6B") // Theme.accent
+
+    var body: some View {
+        ZStack {
+            // Dashed border background
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(
+                    accentColor.opacity(0.4),
+                    style: StrokeStyle(lineWidth: 2, dash: [8, 4])
+                )
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(accentColor.opacity(0.03))
+                )
+
+            // Plus icon centered
+            VStack(spacing: 6) {
+                // Circular background with plus icon
+                ZStack {
+                    Circle()
+                        .fill(accentColor.opacity(0.12))
+                        .frame(width: 36, height: 36)
+
+                    Image(systemName: "plus")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(accentColor)
+                }
+
+                // "Add Bill" text
+                Text("Add Bill")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(accentColor.opacity(0.8))
+            }
+        }
+        .frame(width: 115, height: 105)
     }
 }
 
