@@ -237,19 +237,13 @@ onSwitchToFullAnalysis: {
                 let generator = UIImpactFeedbackGenerator(style: .medium)
                 generator.impactOccurred()
             } label: {
-                ZStack {
-                    HStack {
-                        Text("Start Quick Add")
-                            .font(.system(size: 16, weight: .semibold))
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    HStack {
-                        Spacer()
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
+                HStack(spacing: 8) {
+                    Text("Start Quick Add")
+                        .font(.system(size: 16, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
                 }
+                .frame(maxWidth: .infinity)
                 .foregroundColor(.white)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
@@ -304,11 +298,12 @@ onSwitchToFullAnalysis: {
             }
             .padding(.horizontal, Theme.horizontalPadding)
 
-            if recentUploads.isEmpty {
-                // Single empty state card
-                EmptyUploadCard()
-                    .padding(.horizontal, 20)
-            } else {
+            // Always show empty vault card
+            EmptyUploadCard()
+                .padding(.horizontal, 20)
+
+            // Show uploaded bills below if any exist
+            if !recentUploads.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 14) {
                         ForEach(recentUploads) { upload in
@@ -322,6 +317,7 @@ onSwitchToFullAnalysis: {
                     }
                     .padding(.horizontal, Theme.horizontalPadding)
                 }
+                .padding(.top, 12)
             }
         }
         .opacity(appeared ? 1 : 0)
@@ -380,19 +376,13 @@ onSwitchToFullAnalysis: {
 
             // Full-width button
             NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
-                ZStack {
-                    HStack {
-                        Text("Start Analysis")
-                            .font(.system(size: 16, weight: .semibold))
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    HStack {
-                        Spacer()
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
+                HStack(spacing: 8) {
+                    Text("Start Analysis")
+                        .font(.system(size: 16, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
                 }
+                .frame(maxWidth: .infinity)
                 .foregroundColor(.white)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
