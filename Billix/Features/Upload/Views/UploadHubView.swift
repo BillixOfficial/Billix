@@ -346,7 +346,7 @@ onSwitchToFullAnalysis: {
                 .padding(.horizontal, 12)
 
             // Inline pills with individual colors
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 ColoredPillTag(text: "Line Items", backgroundColor: Color(hex: "#E9D5FF"))
                 ColoredPillTag(text: "Surprises", backgroundColor: Color(hex: "#DBEAFE"))
                 ColoredPillTag(text: "Rate compare", backgroundColor: Color(hex: "#FED7AA"))
@@ -756,10 +756,10 @@ struct ColoredPillTag: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 11, weight: .semibold))
+            .font(.system(size: 10, weight: .semibold))
             .foregroundColor(Color(hex: "#6B7280"))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
             .background(
                 Capsule()
                     .fill(backgroundColor)
