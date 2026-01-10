@@ -262,6 +262,7 @@ struct ProofTipRow: View {
         counterOfferByUserId: nil,
         feeAmountCentsInitiator: 99,
         feeAmountCentsCounterparty: 99,
+        spreadFeeCents: 0,
         feePaidInitiator: true,
         feePaidCounterparty: true,
         pointsWaiverInitiator: false,

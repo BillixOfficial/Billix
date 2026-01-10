@@ -2,7 +2,7 @@
 //  BillSwapService.swift
 //  Billix
 //
-//  Bill Swap Core Service
+//  Bill Swap Core Service with Import, Activity Feed, and Proof Handling
 //
 
 import Foundation
@@ -11,7 +11,8 @@ import Supabase
 // MARK: - Private Codable Payloads
 
 private struct CreateBillPayload: Codable {
-    let ownerUserId: String
+    // Note: owner_user_id is NOT included - database uses auth.uid() default
+    // This ensures RLS policy always passes
     let title: String
     let category: String
     let providerName: String?
@@ -23,7 +24,6 @@ private struct CreateBillPayload: Codable {
     let billImageUrl: String?
 
     enum CodingKeys: String, CodingKey {
-        case ownerUserId = "owner_user_id"
         case title
         case category
         case providerName = "provider_name"
@@ -45,6 +45,7 @@ private struct CreateSwapPayload: Codable {
     let counterpartyUserId: String?
     let feeAmountCentsInitiator: Int
     let feeAmountCentsCounterparty: Int
+    let spreadFeeCents: Int
     let acceptDeadline: String
 
     enum CodingKeys: String, CodingKey {
@@ -56,7 +57,44 @@ private struct CreateSwapPayload: Codable {
         case counterpartyUserId = "counterparty_user_id"
         case feeAmountCentsInitiator = "fee_amount_cents_initiator"
         case feeAmountCentsCounterparty = "fee_amount_cents_counterparty"
+        case spreadFeeCents = "spread_fee_cents"
         case acceptDeadline = "accept_deadline"
+    }
+}
+
+private struct CreateProofPayload: Codable {
+    let swapId: String
+    let submittedByUserId: String
+    let proofType: String
+    let imageUrl: String
+    let notes: String?
+    let status: String
+
+    enum CodingKeys: String, CodingKey {
+        case swapId = "swap_id"
+        case submittedByUserId = "submitted_by_user_id"
+        case proofType = "proof_type"
+        case imageUrl = "image_url"
+        case notes
+        case status
+    }
+}
+
+private struct ActivityFeedPayload: Codable {
+    let swapId: String
+    let category1: String
+    let category2: String
+    let amountRange: String
+    let tierBadge1: String
+    let tierBadge2: String
+
+    enum CodingKeys: String, CodingKey {
+        case swapId = "swap_id"
+        case category1 = "category_1"
+        case category2 = "category_2"
+        case amountRange = "amount_range"
+        case tierBadge1 = "tier_badge_1"
+        case tierBadge2 = "tier_badge_2"
     }
 }
 
@@ -144,10 +182,88 @@ class BillSwapService: ObservableObject {
     @Published var myBills: [SwapBill] = []
     @Published var activeSwaps: [BillSwap] = []
     @Published var swapHistory: [BillSwap] = []
+    @Published var activityFeed: [SwapActivityFeedItem] = []
+    @Published var activityStats: ActivityFeedStats?
     @Published var isLoading = false
     @Published var error: Error?
 
     private init() {}
+
+    // MARK: - Import Bill from Upload
+
+    /// Import a bill from the Upload feature's BillAnalysis
+    func importBillFromAnalysis(_ analysis: BillAnalysis) async throws -> SwapBill {
+        guard let userId = SupabaseService.shared.currentUserId else {
+            throw BillSwapError.notAuthenticated
+        }
+
+        // Validate amount is within swap range ($20-$200)
+        let amountCents = Int(analysis.amount * 100)
+        guard amountCents >= 2000 && amountCents <= 20000 else {
+            throw BillSwapError.operationFailed("Bill amount must be between $20 and $200 for swapping")
+        }
+
+        // Check tier limit
+        let profile = try await trustService.fetchCurrentUserProfile()
+        if amountCents > profile.tier.maxBillCents {
+            throw BillSwapError.tierCapExceeded(maxCents: profile.tier.maxBillCents)
+        }
+
+        // Map analysis category to swap category
+        let swapCategory = mapAnalysisCategoryToSwapCategory(analysis.category)
+
+        // Parse due date from string or default to 2 weeks from now
+        let dueDate: Date
+        if let dueDateStr = analysis.dueDate {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withFullDate]
+            dueDate = formatter.date(from: dueDateStr) ?? Date().addingTimeInterval(86400 * 14)
+        } else {
+            dueDate = Date().addingTimeInterval(86400 * 14)
+        }
+
+        // Create bill request
+        let request = CreateBillRequest(
+            title: "\(analysis.provider) Bill",
+            category: swapCategory,
+            providerName: analysis.provider,
+            amountCents: amountCents,
+            dueDate: dueDate,
+            paymentUrl: nil,
+            accountNumberLast4: extractLast4FromAccountNumber(analysis.accountNumber),
+            billImageUrl: nil
+        )
+
+        return try await createBill(request)
+    }
+
+    /// Map BillAnalysis category to SwapBillCategory
+    private func mapAnalysisCategoryToSwapCategory(_ category: String) -> SwapBillCategory {
+        switch category.lowercased() {
+        case "electric", "electricity", "power":
+            return .electric
+        case "gas", "natural gas":
+            return .naturalGas
+        case "water", "sewer":
+            return .water
+        case "internet", "broadband":
+            return .internet
+        case "phone", "mobile", "cell":
+            return .phonePlan
+        case "cable", "tv":
+            return .cable
+        case "streaming", "netflix", "hulu", "disney", "hbo":
+            return .netflix
+        default:
+            return .electric
+        }
+    }
+
+    /// Extract last 4 digits from account number
+    private func extractLast4FromAccountNumber(_ accountNumber: String?) -> String? {
+        guard let account = accountNumber, account.count >= 4 else { return nil }
+        return String(account.suffix(4))
+    }
 
     // MARK: - Bills
 
@@ -208,13 +324,18 @@ class BillSwapService: ObservableObject {
             throw BillSwapError.tierCapExceeded(maxCents: profile.tier.maxBillCents)
         }
 
+        // Format date as YYYY-MM-DD for PostgreSQL date column
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+
+        // Note: owner_user_id is set by database default (auth.uid())
+        // This guarantees RLS policy passes
         let billPayload = CreateBillPayload(
-            ownerUserId: userId.uuidString,
             title: request.title,
             category: request.category.rawValue,
             providerName: request.providerName,
             amountCents: request.amountCents,
-            dueDate: ISO8601DateFormatter().string(from: request.dueDate),
+            dueDate: dateFormatter.string(from: request.dueDate),
             status: SwapBillStatus.active.rawValue,
             paymentUrl: request.paymentUrl,
             accountNumberLast4: request.accountNumberLast4,
@@ -271,10 +392,12 @@ class BillSwapService: ObservableObject {
             throw BillSwapError.notAuthenticated
         }
 
-        let fileName = "\(userId.uuidString)/\(UUID().uuidString).jpg"
+        // Use lowercased UUIDs to match PostgreSQL's auth.uid()::text format
+        // PostgreSQL returns lowercase UUIDs, but Swift's uuidString is uppercase
+        let fileName = "\(userId.uuidString.lowercased())/\(UUID().uuidString.lowercased()).jpg"
 
         try await supabase.storage
-            .from("bill-images")
+            .from("bills")
             .upload(
                 path: fileName,
                 file: imageData,
@@ -282,7 +405,7 @@ class BillSwapService: ObservableObject {
             )
 
         let publicURL = try supabase.storage
-            .from("bill-images")
+            .from("bills")
             .getPublicURL(path: fileName)
 
         return publicURL.absoluteString
@@ -385,9 +508,25 @@ class BillSwapService: ObservableObject {
             throw error
         }
 
-        // Set fees based on swap type
-        let initiatorFee = request.swapType.initiatorFeeCents
-        let counterpartyFee = request.swapType.counterpartyFeeCents
+        // Get bill B amount if available (for spread fee calculation)
+        var billBAmountCents: Int? = nil
+        if let billBId = request.billBId {
+            let billB: SwapBill = try await supabase
+                .from("swap_bills")
+                .select()
+                .eq("id", value: billBId.uuidString)
+                .single()
+                .execute()
+                .value
+            billBAmountCents = billB.amountCents
+        }
+
+        // Calculate fees with spread fee for unequal bills
+        let fees = SwapFeeCalculator.calculateTotalFees(
+            billACents: billA.amountCents,
+            billBCents: billBAmountCents,
+            swapType: request.swapType
+        )
 
         // Calculate accept deadline (24 hours)
         let acceptDeadline = Calendar.current.date(byAdding: .hour, value: 24, to: Date())!
@@ -399,8 +538,9 @@ class BillSwapService: ObservableObject {
             billAId: request.billAId.uuidString,
             billBId: request.billBId?.uuidString,
             counterpartyUserId: request.counterpartyUserId?.uuidString,
-            feeAmountCentsInitiator: initiatorFee,
-            feeAmountCentsCounterparty: counterpartyFee,
+            feeAmountCentsInitiator: fees.totalInitiator,
+            feeAmountCentsCounterparty: fees.totalCounterparty,
+            spreadFeeCents: fees.spreadFee,
             acceptDeadline: ISO8601DateFormatter().string(from: acceptDeadline)
         )
 
@@ -623,5 +763,206 @@ class BillSwapService: ObservableObject {
 
         // Update local state
         activeSwaps.removeAll { $0.id == swapId }
+
+        // Add to activity feed
+        try await logSwapToActivityFeed(swap)
+    }
+
+    // MARK: - Proof Handling
+
+    /// Submit payment proof for a swap
+    func submitPaymentProof(
+        swapId: UUID,
+        imageData: Data,
+        proofType: ProofType = .screenshot,
+        notes: String? = nil
+    ) async throws -> SwapProof {
+        guard let userId = SupabaseService.shared.currentUserId else {
+            throw BillSwapError.notAuthenticated
+        }
+
+        // Upload proof image
+        let imageUrl = try await uploadProofImage(imageData, swapId: swapId)
+
+        let proofPayload = CreateProofPayload(
+            swapId: swapId.uuidString,
+            submittedByUserId: userId.uuidString,
+            proofType: proofType.rawValue,
+            imageUrl: imageUrl,
+            notes: notes,
+            status: ProofStatus.pending.rawValue
+        )
+
+        let response: [SwapProof] = try await supabase
+            .from("swap_proofs")
+            .insert(proofPayload)
+            .select()
+            .execute()
+            .value
+
+        guard let proof = response.first else {
+            throw BillSwapError.operationFailed("Failed to submit proof")
+        }
+
+        return proof
+    }
+
+    /// Upload proof image to storage
+    private func uploadProofImage(_ imageData: Data, swapId: UUID) async throws -> String {
+        guard let userId = SupabaseService.shared.currentUserId else {
+            throw BillSwapError.notAuthenticated
+        }
+
+        let fileName = "proofs/\(swapId.uuidString.lowercased())/\(userId.uuidString.lowercased())_\(UUID().uuidString.lowercased()).jpg"
+
+        try await supabase.storage
+            .from("bills")
+            .upload(
+                path: fileName,
+                file: imageData,
+                options: FileOptions(contentType: "image/jpeg")
+            )
+
+        let publicURL = try supabase.storage
+            .from("bills")
+            .getPublicURL(path: fileName)
+
+        return publicURL.absoluteString
+    }
+
+    /// Fetch proofs for a swap
+    func fetchProofs(for swapId: UUID) async throws -> [SwapProof] {
+        let proofs: [SwapProof] = try await supabase
+            .from("swap_proofs")
+            .select()
+            .eq("swap_id", value: swapId.uuidString)
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+
+        return proofs
+    }
+
+    /// Approve a proof (marks it as accepted)
+    func approveProof(_ proofId: UUID) async throws {
+        try await supabase
+            .from("swap_proofs")
+            .update(["status": ProofStatus.accepted.rawValue, "updated_at": ISO8601DateFormatter().string(from: Date())])
+            .eq("id", value: proofId.uuidString)
+            .execute()
+    }
+
+    /// Reject a proof
+    func rejectProof(_ proofId: UUID, reason: String) async throws {
+        try await supabase
+            .from("swap_proofs")
+            .update([
+                "status": ProofStatus.rejected.rawValue,
+                "rejection_reason": reason,
+                "updated_at": ISO8601DateFormatter().string(from: Date())
+            ])
+            .eq("id", value: proofId.uuidString)
+            .execute()
+    }
+
+    // MARK: - Activity Feed
+
+    /// Fetch recent activity feed for social proof
+    func fetchActivityFeed(limit: Int = 20) async throws -> [SwapActivityFeedItem] {
+        let feed: [SwapActivityFeedItem] = try await supabase
+            .from("swap_activity_feed")
+            .select()
+            .order("timestamp", ascending: false)
+            .limit(limit)
+            .execute()
+            .value
+
+        activityFeed = feed
+        return feed
+    }
+
+    /// Fetch activity feed statistics
+    func fetchActivityStats() async throws -> ActivityFeedStats {
+        // Get today's swaps
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfWeek = calendar.date(byAdding: .day, value: -7, to: Date())!
+
+        let todayFormatter = ISO8601DateFormatter()
+
+        // Count swaps today
+        let todayCountResponse: [CountResponse] = try await supabase
+            .from("swap_activity_feed")
+            .select("id", head: false, count: .exact)
+            .gte("timestamp", value: todayFormatter.string(from: startOfToday))
+            .execute()
+            .value
+
+        // Count swaps this week
+        let weekCountResponse: [CountResponse] = try await supabase
+            .from("swap_activity_feed")
+            .select("id", head: false, count: .exact)
+            .gte("timestamp", value: todayFormatter.string(from: startOfWeek))
+            .execute()
+            .value
+
+        let stats = ActivityFeedStats(
+            totalSwapsToday: todayCountResponse.count,
+            totalSwapsThisWeek: weekCountResponse.count,
+            averageMatchTime: nil, // Would need additional tracking
+            mostActiveCategory: nil
+        )
+
+        activityStats = stats
+        return stats
+    }
+
+    /// Log completed swap to activity feed (called internally on completion)
+    private func logSwapToActivityFeed(_ swap: BillSwap) async throws {
+        guard let billA = swap.billA,
+              let billB = swap.billB,
+              let initiatorProfile = swap.initiatorProfile,
+              let counterpartyProfile = swap.counterpartyProfile else {
+            // Fetch bills if not attached
+            return
+        }
+
+        let amountRange = SwapAmountRange.fromCents(max(billA.amountCents, billB.amountCents))
+
+        let feedPayload = ActivityFeedPayload(
+            swapId: swap.id.uuidString,
+            category1: billA.category.rawValue,
+            category2: billB.category.rawValue,
+            amountRange: amountRange.rawValue,
+            tierBadge1: initiatorProfile.tier.rawValue,
+            tierBadge2: counterpartyProfile.tier.rawValue
+        )
+
+        try await supabase
+            .from("swap_activity_feed")
+            .insert(feedPayload)
+            .execute()
+    }
+
+    // MARK: - Create Swap from Match
+
+    /// Create a swap directly from a match
+    func createSwapFromMatch(_ match: SwapMatch) async throws -> BillSwap {
+        let request = CreateSwapRequest(
+            billAId: match.yourBill.id,
+            billBId: match.theirBill.id,
+            counterpartyUserId: match.partnerProfile.userId,
+            swapType: .twoSided
+        )
+
+        return try await createSwap(request)
     }
 }
+
+// MARK: - Helper Types
+
+private struct CountResponse: Codable {
+    let id: UUID
+}
+
+// Note: ProofType, ProofStatus, and SwapProof are defined in SwapProof.swift

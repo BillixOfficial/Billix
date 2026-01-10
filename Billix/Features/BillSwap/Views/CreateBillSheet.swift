@@ -2,7 +2,7 @@
 //  CreateBillSheet.swift
 //  Billix
 //
-//  Create Bill Sheet for Bill Swap
+//  Create Bill Sheet for Bill Swap - Redesigned
 //
 
 import SwiftUI
@@ -31,6 +31,13 @@ struct CreateBillSheet: View {
     @State private var showError = false
     @State private var errorMessage = ""
 
+    // Focus
+    @FocusState private var focusedField: Field?
+
+    enum Field {
+        case title, provider, amount, url, account
+    }
+
     private var amountCents: Int {
         let cleanAmount = amountText.replacingOccurrences(of: "$", with: "")
             .replacingOccurrences(of: ",", with: "")
@@ -54,172 +61,46 @@ struct CreateBillSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                // Bill Photo Section
-                Section {
-                    VStack(spacing: 12) {
-                        if let image = billImage {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxHeight: 200)
-                                .cornerRadius(12)
-                                .overlay(alignment: .topTrailing) {
-                                    Button {
-                                        billImage = nil
-                                        selectedPhoto = nil
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.title2)
-                                            .foregroundColor(.white)
-                                            .shadow(radius: 2)
-                                    }
-                                    .padding(8)
-                                }
-                        }
+            ZStack {
+                // Background
+                BillSwapTheme.background
+                    .ignoresSafeArea()
 
-                        PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                            HStack {
-                                Image(systemName: billImage == nil ? "photo.on.rectangle.angled" : "arrow.triangle.2.circlepath")
-                                    .font(.system(size: 18))
-                                Text(billImage == nil ? "Add Bill Photo" : "Change Photo")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                            }
-                            .foregroundColor(Color.billixMoneyGreen)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(Color.billixMoneyGreen.opacity(0.1))
-                            .cornerRadius(10)
-                        }
-                        .onChange(of: selectedPhoto) { oldValue, newValue in
-                            loadPhoto(from: newValue)
-                        }
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Bill Photo Card
+                        photoSection
+
+                        // Bill Details Card
+                        detailsSection
+
+                        // Amount & Due Date Card
+                        amountSection
+
+                        // Payment Info Card
+                        paymentInfoSection
+
+                        // Swap Types Info
+                        swapTypesInfo
+
+                        // Create Button
+                        createButton
+                            .padding(.top, 8)
                     }
-                } header: {
-                    Text("Bill Photo")
-                } footer: {
-                    Text("Upload a photo of your bill to help verify the payment details")
-                }
-
-                // Bill Details Section
-                Section {
-                    TextField("Bill Title", text: $title)
-                        .textContentType(.none)
-
-                    Picker("Category", selection: $category) {
-                        ForEach(SwapBillCategory.allCases, id: \.self) { cat in
-                            Label(cat.displayName, systemImage: cat.icon)
-                                .tag(cat)
-                        }
-                    }
-
-                    TextField("Provider Name (Optional)", text: $providerName)
-                } header: {
-                    Text("Bill Details")
-                }
-
-                // Amount Section
-                Section {
-                    HStack {
-                        Text("$")
-                            .foregroundColor(.secondary)
-                        TextField("Amount", text: $amountText)
-                            .keyboardType(.decimalPad)
-                    }
-
-                    if amountCents > 0 {
-                        if amountCents > maxAmountCents {
-                            Label(
-                                "Amount exceeds your tier limit (\(formattedMaxAmount))",
-                                systemImage: "exclamationmark.triangle"
-                            )
-                            .font(.caption)
-                            .foregroundColor(.red)
-                        } else if amountCents < 100 {
-                            Label(
-                                "Minimum amount is $1.00",
-                                systemImage: "exclamationmark.triangle"
-                            )
-                            .font(.caption)
-                            .foregroundColor(.red)
-                        }
-                    }
-
-                    DatePicker(
-                        "Due Date",
-                        selection: $dueDate,
-                        in: Date()...,
-                        displayedComponents: .date
-                    )
-                } header: {
-                    Text("Amount & Due Date")
-                } footer: {
-                    Text("Your tier allows bills up to \(formattedMaxAmount)")
-                }
-
-                // Payment Info Section
-                Section {
-                    TextField("Payment URL (Optional)", text: $paymentUrl)
-                        .keyboardType(.URL)
-                        .textContentType(.URL)
-                        .autocapitalization(.none)
-
-                    TextField("Account Last 4 Digits (Optional)", text: $accountLast4)
-                        .keyboardType(.numberPad)
-                        .onChange(of: accountLast4) { oldValue, newValue in
-                            if newValue.count > 4 {
-                                accountLast4 = String(newValue.prefix(4))
-                            }
-                        }
-                } header: {
-                    Text("Payment Info")
-                } footer: {
-                    Text("This helps your swap partner pay the correct bill")
-                }
-
-                // Swap Types Section
-                Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("Two-Sided Swap", systemImage: "arrow.left.arrow.right")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-
-                        Text("Both parties pay each other's bills. Fee: $0.99 each")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.vertical, 4)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("One-Sided Assist", systemImage: "hand.raised")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-
-                        Text("A helper pays your bill. Fee: $1.49 (helper pays)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.vertical, 4)
-                } header: {
-                    Text("Swap Types Available")
+                    .padding(BillSwapTheme.screenPadding)
                 }
             }
             .navigationTitle("Add Bill")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .foregroundColor(BillSwapTheme.secondaryText)
                     }
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Create") {
-                        createBill()
-                    }
-                    .disabled(!isValid || isCreating || isUploadingImage)
-                    .fontWeight(.semibold)
                 }
             }
             .alert("Error", isPresented: $showError) {
@@ -229,14 +110,449 @@ struct CreateBillSheet: View {
             }
             .overlay {
                 if isCreating || isUploadingImage {
-                    ProgressView(isUploadingImage ? "Uploading photo..." : "Creating...")
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(12)
+                    ZStack {
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                                .tint(BillSwapTheme.accent)
+
+                            Text(isUploadingImage ? "Uploading photo..." : "Creating bill...")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(BillSwapTheme.primaryText)
+                        }
+                        .padding(24)
+                        .background(BillSwapTheme.cardBackground)
+                        .cornerRadius(16)
+                        .shadow(color: .black.opacity(0.1), radius: 10)
+                    }
                 }
             }
         }
     }
+
+    // MARK: - Photo Section
+
+    private var photoSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(icon: "camera.fill", title: "Bill Photo")
+
+            VStack(spacing: 12) {
+                if let image = billImage {
+                    ZStack(alignment: .topTrailing) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 180)
+                            .cornerRadius(12)
+
+                        Button {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            billImage = nil
+                            selectedPhoto = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(.white)
+                                .shadow(color: .black.opacity(0.3), radius: 2)
+                        }
+                        .padding(8)
+                    }
+                }
+
+                PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                    HStack(spacing: 8) {
+                        Image(systemName: billImage == nil ? "photo.on.rectangle.angled" : "arrow.triangle.2.circlepath")
+                            .font(.system(size: 16))
+                        Text(billImage == nil ? "Add Bill Photo" : "Change Photo")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .foregroundColor(BillSwapTheme.accent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(BillSwapTheme.accentLight)
+                    .cornerRadius(10)
+                }
+                .onChange(of: selectedPhoto) { oldValue, newValue in
+                    loadPhoto(from: newValue)
+                }
+
+                Text("Upload a photo of your bill to help verify the payment details")
+                    .font(.system(size: 12))
+                    .foregroundColor(BillSwapTheme.secondaryText)
+            }
+            .padding(16)
+            .background(BillSwapTheme.cardBackground)
+            .cornerRadius(BillSwapTheme.cardCornerRadius)
+            .shadow(
+                color: BillSwapTheme.cardShadow,
+                radius: BillSwapTheme.cardShadowRadius,
+                x: 0,
+                y: BillSwapTheme.cardShadowY
+            )
+        }
+    }
+
+    // MARK: - Details Section
+
+    private var detailsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(icon: "doc.text.fill", title: "Bill Details")
+
+            VStack(spacing: 16) {
+                // Title field
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Bill Title")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(BillSwapTheme.secondaryText)
+
+                    TextField("e.g., Electric Bill", text: $title)
+                        .font(.system(size: 15))
+                        .foregroundColor(BillSwapTheme.primaryText)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(BillSwapTheme.secondaryBackground)
+                        .cornerRadius(10)
+                        .focused($focusedField, equals: .title)
+                }
+
+                // Category picker
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Category")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(BillSwapTheme.secondaryText)
+
+                    Menu {
+                        ForEach(SwapBillCategory.allCases, id: \.self) { cat in
+                            Button {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                category = cat
+                            } label: {
+                                Label(cat.displayName, systemImage: cat.icon)
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: category.icon)
+                                .font(.system(size: 18))
+                                .foregroundColor(BillSwapTheme.categoryColor(for: category.rawValue))
+
+                            Text(category.displayName)
+                                .font(.system(size: 15))
+                                .foregroundColor(BillSwapTheme.primaryText)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(BillSwapTheme.secondaryText)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(BillSwapTheme.secondaryBackground)
+                        .cornerRadius(10)
+                    }
+                }
+
+                // Provider field
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Provider Name (Optional)")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(BillSwapTheme.secondaryText)
+
+                    TextField("e.g., ConEd, Spectrum", text: $providerName)
+                        .font(.system(size: 15))
+                        .foregroundColor(BillSwapTheme.primaryText)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(BillSwapTheme.secondaryBackground)
+                        .cornerRadius(10)
+                        .focused($focusedField, equals: .provider)
+                }
+            }
+            .padding(16)
+            .background(BillSwapTheme.cardBackground)
+            .cornerRadius(BillSwapTheme.cardCornerRadius)
+            .shadow(
+                color: BillSwapTheme.cardShadow,
+                radius: BillSwapTheme.cardShadowRadius,
+                x: 0,
+                y: BillSwapTheme.cardShadowY
+            )
+        }
+    }
+
+    // MARK: - Amount Section
+
+    private var amountSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(icon: "dollarsign.circle.fill", title: "Amount & Due Date")
+
+            VStack(spacing: 16) {
+                // Amount field
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("Amount")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(BillSwapTheme.secondaryText)
+
+                        Spacer()
+
+                        Text("Tier limit: \(formattedMaxAmount)")
+                            .font(.system(size: 11))
+                            .foregroundColor(BillSwapTheme.mutedText)
+                    }
+
+                    HStack(spacing: 8) {
+                        Text("$")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(BillSwapTheme.secondaryText)
+
+                        TextField("0.00", text: $amountText)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(BillSwapTheme.primaryText)
+                            .keyboardType(.decimalPad)
+                            .focused($focusedField, equals: .amount)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .background(BillSwapTheme.secondaryBackground)
+                    .cornerRadius(10)
+
+                    // Validation messages
+                    if amountCents > 0 {
+                        if amountCents > maxAmountCents {
+                            validationMessage(
+                                "Amount exceeds your tier limit (\(formattedMaxAmount))",
+                                isError: true
+                            )
+                        } else if amountCents < 100 {
+                            validationMessage(
+                                "Minimum amount is $1.00",
+                                isError: true
+                            )
+                        } else {
+                            validationMessage(
+                                "Amount is within your tier limit",
+                                isError: false
+                            )
+                        }
+                    }
+                }
+
+                // Due date
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Due Date")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(BillSwapTheme.secondaryText)
+
+                    DatePicker(
+                        "",
+                        selection: $dueDate,
+                        in: Date()...,
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .tint(BillSwapTheme.accent)
+                }
+            }
+            .padding(16)
+            .background(BillSwapTheme.cardBackground)
+            .cornerRadius(BillSwapTheme.cardCornerRadius)
+            .shadow(
+                color: BillSwapTheme.cardShadow,
+                radius: BillSwapTheme.cardShadowRadius,
+                x: 0,
+                y: BillSwapTheme.cardShadowY
+            )
+        }
+    }
+
+    // MARK: - Payment Info Section
+
+    private var paymentInfoSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(icon: "creditcard.fill", title: "Payment Info (Optional)")
+
+            VStack(spacing: 16) {
+                // Payment URL
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Payment URL")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(BillSwapTheme.secondaryText)
+
+                    TextField("https://pay.provider.com", text: $paymentUrl)
+                        .font(.system(size: 15))
+                        .foregroundColor(BillSwapTheme.primaryText)
+                        .keyboardType(.URL)
+                        .textContentType(.URL)
+                        .autocapitalization(.none)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(BillSwapTheme.secondaryBackground)
+                        .cornerRadius(10)
+                        .focused($focusedField, equals: .url)
+                }
+
+                // Account last 4
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Account Last 4 Digits")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(BillSwapTheme.secondaryText)
+
+                    TextField("1234", text: $accountLast4)
+                        .font(.system(size: 15))
+                        .foregroundColor(BillSwapTheme.primaryText)
+                        .keyboardType(.numberPad)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(BillSwapTheme.secondaryBackground)
+                        .cornerRadius(10)
+                        .focused($focusedField, equals: .account)
+                        .onChange(of: accountLast4) { oldValue, newValue in
+                            if newValue.count > 4 {
+                                accountLast4 = String(newValue.prefix(4))
+                            }
+                        }
+                }
+
+                Text("This helps your swap partner pay the correct bill")
+                    .font(.system(size: 12))
+                    .foregroundColor(BillSwapTheme.secondaryText)
+            }
+            .padding(16)
+            .background(BillSwapTheme.cardBackground)
+            .cornerRadius(BillSwapTheme.cardCornerRadius)
+            .shadow(
+                color: BillSwapTheme.cardShadow,
+                radius: BillSwapTheme.cardShadowRadius,
+                x: 0,
+                y: BillSwapTheme.cardShadowY
+            )
+        }
+    }
+
+    // MARK: - Swap Types Info
+
+    private var swapTypesInfo: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader(icon: "info.circle.fill", title: "Swap Types Available")
+
+            VStack(spacing: 12) {
+                // Two-sided
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(BillSwapTheme.accentLight)
+                            .frame(width: 40, height: 40)
+
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.system(size: 16))
+                            .foregroundColor(BillSwapTheme.accent)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Two-Sided Swap")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(BillSwapTheme.primaryText)
+
+                        Text("Both parties pay each other's bills • Fee: $0.99 each")
+                            .font(.system(size: 12))
+                            .foregroundColor(BillSwapTheme.secondaryText)
+                    }
+
+                    Spacer()
+                }
+
+                Divider()
+
+                // One-sided
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(BillSwapTheme.statusPending.opacity(0.15))
+                            .frame(width: 40, height: 40)
+
+                        Image(systemName: "hand.raised.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(BillSwapTheme.statusPending)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("One-Sided Assist")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(BillSwapTheme.primaryText)
+
+                        Text("A helper pays your bill • Fee: $1.49 (helper pays)")
+                            .font(.system(size: 12))
+                            .foregroundColor(BillSwapTheme.secondaryText)
+                    }
+
+                    Spacer()
+                }
+            }
+            .padding(16)
+            .background(BillSwapTheme.cardBackground)
+            .cornerRadius(BillSwapTheme.cardCornerRadius)
+            .shadow(
+                color: BillSwapTheme.cardShadow,
+                radius: BillSwapTheme.cardShadowRadius,
+                x: 0,
+                y: BillSwapTheme.cardShadowY
+            )
+        }
+    }
+
+    // MARK: - Create Button
+
+    private var createButton: some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            createBill()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "plus.circle.fill")
+                Text("Create Bill")
+            }
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(isValid ? BillSwapTheme.accent : BillSwapTheme.secondaryText)
+            .cornerRadius(14)
+        }
+        .disabled(!isValid || isCreating || isUploadingImage)
+    }
+
+    // MARK: - Helper Views
+
+    private func sectionHeader(icon: String, title: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(BillSwapTheme.accent)
+
+            Text(title)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(BillSwapTheme.primaryText)
+        }
+    }
+
+    private func validationMessage(_ text: String, isError: Bool) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: isError ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                .font(.system(size: 11))
+
+            Text(text)
+                .font(.system(size: 11))
+        }
+        .foregroundColor(isError ? BillSwapTheme.statusDispute : BillSwapTheme.statusComplete)
+    }
+
+    // MARK: - Actions
 
     private func loadPhoto(from item: PhotosPickerItem?) {
         guard let item = item else { return }
@@ -285,6 +601,7 @@ struct CreateBillSheet: View {
                 )
 
                 await MainActor.run {
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
                     dismiss()
                 }
             } catch {

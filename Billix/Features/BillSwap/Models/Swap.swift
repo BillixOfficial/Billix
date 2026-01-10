@@ -34,20 +34,87 @@ enum BillSwapType: String, Codable, CaseIterable {
         }
     }
 
-    /// Fee for initiator in cents
+    /// Facilitation fee for initiator in cents ($1.99)
     var initiatorFeeCents: Int {
         switch self {
-        case .twoSided: return 99       // $0.99
+        case .twoSided: return 199      // $1.99
         case .oneSidedAssist: return 0  // Free for recipient
         }
     }
 
-    /// Fee for counterparty (helper) in cents
+    /// Facilitation fee for counterparty (helper) in cents ($1.99)
     var counterpartyFeeCents: Int {
         switch self {
-        case .twoSided: return 99       // $0.99
-        case .oneSidedAssist: return 149 // $1.49 for helper
+        case .twoSided: return 199      // $1.99
+        case .oneSidedAssist: return 199 // $1.99 for helper
         }
+    }
+
+    /// Formatted fee string
+    var formattedFee: String {
+        "$1.99"
+    }
+}
+
+// MARK: - Fee Calculator
+
+enum SwapFeeCalculator {
+    /// Facilitation fee per user in cents
+    static let facilitationFeeCents: Int = 199  // $1.99
+
+    /// Spread fee percentage (for unequal bill amounts)
+    static let spreadFeePercentage: Double = 0.03  // 3%
+
+    /// Calculate spread fee for unequal bills
+    static func calculateSpreadFee(billACents: Int, billBCents: Int) -> Int {
+        let difference = abs(billACents - billBCents)
+        return Int(Double(difference) * spreadFeePercentage)
+    }
+
+    /// Calculate total fees for a swap
+    static func calculateTotalFees(billACents: Int, billBCents: Int?, swapType: BillSwapType) -> SwapFees {
+        let spreadFee: Int
+        if let billBCents = billBCents {
+            spreadFee = calculateSpreadFee(billACents: billACents, billBCents: billBCents)
+        } else {
+            spreadFee = 0
+        }
+
+        let initiatorFee = swapType.initiatorFeeCents
+        let counterpartyFee = swapType.counterpartyFeeCents
+
+        return SwapFees(
+            facilitationFeeInitiator: initiatorFee,
+            facilitationFeeCounterparty: counterpartyFee,
+            spreadFee: spreadFee,
+            totalInitiator: initiatorFee + (spreadFee / 2),
+            totalCounterparty: counterpartyFee + (spreadFee / 2)
+        )
+    }
+}
+
+/// Fee breakdown for a swap
+struct SwapFees {
+    let facilitationFeeInitiator: Int
+    let facilitationFeeCounterparty: Int
+    let spreadFee: Int
+    let totalInitiator: Int
+    let totalCounterparty: Int
+
+    var totalAllFees: Int {
+        totalInitiator + totalCounterparty
+    }
+
+    var formattedInitiatorFee: String {
+        String(format: "$%.2f", Double(totalInitiator) / 100.0)
+    }
+
+    var formattedCounterpartyFee: String {
+        String(format: "$%.2f", Double(totalCounterparty) / 100.0)
+    }
+
+    var formattedSpreadFee: String {
+        String(format: "$%.2f", Double(spreadFee) / 100.0)
     }
 }
 
@@ -170,9 +237,10 @@ struct BillSwap: Identifiable, Codable, Equatable, Hashable {
     var counterOfferAmountCents: Int?
     var counterOfferByUserId: UUID?
 
-    // Fees
+    // Fees (in cents) - $1.99 = 199 cents per user
     let feeAmountCentsInitiator: Int
     let feeAmountCentsCounterparty: Int
+    var spreadFeeCents: Int  // 3% of bill difference
     var feePaidInitiator: Bool
     var feePaidCounterparty: Bool
     var pointsWaiverInitiator: Bool
@@ -207,6 +275,7 @@ struct BillSwap: Identifiable, Codable, Equatable, Hashable {
         case counterOfferByUserId = "counter_offer_by_user_id"
         case feeAmountCentsInitiator = "fee_amount_cents_initiator"
         case feeAmountCentsCounterparty = "fee_amount_cents_counterparty"
+        case spreadFeeCents = "spread_fee_cents"
         case feePaidInitiator = "fee_paid_initiator"
         case feePaidCounterparty = "fee_paid_counterparty"
         case pointsWaiverInitiator = "points_waiver_initiator"
