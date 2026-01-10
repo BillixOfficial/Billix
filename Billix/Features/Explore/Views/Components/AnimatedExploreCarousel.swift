@@ -3,19 +3,24 @@
 //  Billix
 //
 //  Created by Claude Code on 1/10/26.
-//  Full-screen animated carousel inspired by React Native movie carousel
+//  Full-screen animated carousel with iOS 17+ visualEffect and safeAreaPadding
 //
 
 import SwiftUI
 
 struct AnimatedExploreCarousel: View {
-    @State private var scrollOffset: CGFloat = 0
     @Binding var navigationDestination: ExploreDestination?
-    @State private var topPaddingPercent: CGFloat = 0.24 // Adjustable top padding (24%)
+    @State private var currentCardID: Int? = 150 // Start in middle of large array
+    @State private var topPaddingPercent: CGFloat = 0.25 // Adjustable top padding (25%)
     @State private var cardHeightPercent: CGFloat = 0.64 // Adjustable card height (64%)
-    @State private var cardWidthPercent: CGFloat = 0.70 // Adjustable card width (70%)
+    @State private var cardWidthPercent: CGFloat = 0.62 // Adjustable card width (62%)
 
-    private let cards = AnimatedExploreCardModel.mockCards
+    private let baseCards = AnimatedExploreCardModel.mockCards
+    private var allCards: [AnimatedExploreCardModel] {
+        // Large repetition for "infinite" scroll (3 × 100 = 300 cards)
+        // User starts at index 150, can scroll 150 cards in either direction
+        Array(repeating: baseCards, count: 100).flatMap { $0 }
+    }
     private let screenWidth = UIScreen.main.bounds.width
     private let screenHeight = UIScreen.main.bounds.height
     private var cardWidth: CGFloat {
@@ -26,6 +31,9 @@ struct AnimatedExploreCarousel: View {
     }
     private var backdropHeight: CGFloat {
         screenHeight * 0.65 // 65% of screen height
+    }
+    private var cardSpacing: CGFloat {
+        screenWidth * 0.08 // 8% spacing for peek effect
     }
 
     var body: some View {
@@ -38,101 +46,6 @@ struct AnimatedExploreCarousel: View {
             // Scrollable cards layer - extends to navbar
             scrollableCardsLayer
                 .padding(.top, screenHeight * topPaddingPercent) // Adjustable top padding
-
-            // Debug controls
-            VStack {
-                HStack(spacing: 15) {
-                    VStack {
-                        Text("Top: \(Int(topPaddingPercent * 100))%")
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                            .padding(4)
-                            .background(Color.black.opacity(0.7))
-                            .cornerRadius(4)
-
-                        HStack {
-                            Button("-") {
-                                topPaddingPercent = max(0.1, topPaddingPercent - 0.01)
-                            }
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .frame(width: 35, height: 35)
-                            .background(Color.red)
-                            .cornerRadius(8)
-
-                            Button("+") {
-                                topPaddingPercent = min(0.6, topPaddingPercent + 0.01)
-                            }
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .frame(width: 35, height: 35)
-                            .background(Color.green)
-                            .cornerRadius(8)
-                        }
-                    }
-
-                    VStack {
-                        Text("Height: \(Int(cardHeightPercent * 100))%")
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                            .padding(4)
-                            .background(Color.black.opacity(0.7))
-                            .cornerRadius(4)
-
-                        HStack {
-                            Button("-") {
-                                cardHeightPercent = max(0.4, cardHeightPercent - 0.01)
-                            }
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .frame(width: 35, height: 35)
-                            .background(Color.red)
-                            .cornerRadius(8)
-
-                            Button("+") {
-                                cardHeightPercent = min(0.9, cardHeightPercent + 0.01)
-                            }
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .frame(width: 35, height: 35)
-                            .background(Color.green)
-                            .cornerRadius(8)
-                        }
-                    }
-
-                    VStack {
-                        Text("Width: \(Int(cardWidthPercent * 100))%")
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                            .padding(4)
-                            .background(Color.black.opacity(0.7))
-                            .cornerRadius(4)
-
-                        HStack {
-                            Button("-") {
-                                cardWidthPercent = max(0.5, cardWidthPercent - 0.01)
-                            }
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .frame(width: 35, height: 35)
-                            .background(Color.red)
-                            .cornerRadius(8)
-
-                            Button("+") {
-                                cardWidthPercent = min(1.0, cardWidthPercent + 0.01)
-                            }
-                            .font(.title3)
-                            .foregroundColor(.white)
-                            .frame(width: 35, height: 35)
-                            .background(Color.green)
-                            .cornerRadius(8)
-                        }
-                    }
-                }
-                .padding(.top, 60)
-
-                Spacer()
-            }
         }
         .ignoresSafeArea()
     }
@@ -140,17 +53,19 @@ struct AnimatedExploreCarousel: View {
     // MARK: - Backdrop Layer with Wipe Animation
 
     private var backdropLayerWithWipe: some View {
-        GeometryReader { _ in
-            ZStack(alignment: .leading) {
-                ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
+        // Map large array index (0-299) to base card index (0-2)
+        let activeIndex = (currentCardID ?? 150) % baseCards.count
+
+        return GeometryReader { _ in
+            ZStack {
+                ForEach(Array(baseCards.enumerated()), id: \.element.id) { index, card in
                     LinearGradient(
                         colors: card.backdropGradient,
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-                    .frame(width: getBackdropWidth(for: index))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .clipped()
+                    .opacity(index == activeIndex ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.3), value: activeIndex)
                 }
 
                 // Bottom fade gradient
@@ -169,95 +84,88 @@ struct AnimatedExploreCarousel: View {
     // MARK: - Scrollable Cards Layer
 
     private var scrollableCardsLayer: some View {
-        ScrollViewReader { _ in
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 0) {
-                    // Left spacer for centering first card
-                    Spacer()
-                        .frame(width: (screenWidth - cardWidth) / 2)
-
-                    ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
-                        GeometryReader { geo in
-                            let offset = geo.frame(in: .global).minX
-                            let centerOffset = (screenWidth - cardWidth) / 2
-                            let normalizedOffset = (offset - centerOffset) / cardWidth
-
-                            Button {
-                                navigationDestination = card.destination
-                            } label: {
-                                AnimatedExploreCard(
-                                    card: card,
-                                    cardWidth: cardWidth,
-                                    cardHeight: cardHeight,
-                                    translateY: getTranslateY(for: normalizedOffset)
-                                )
-                                .padding(.top, 80) // Extra padding to show rounded corners
-                                .padding(.bottom, -80) // Negative padding to keep position
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .onChange(of: offset) { _, _ in
-                                // Track scroll position for backdrop animation
-                                if abs(normalizedOffset) < 0.5 {
-                                    scrollOffset = CGFloat(index) * cardWidth
-                                }
-                            }
-                        }
-                        .frame(width: cardWidth)
-                    }
-
-                    // Right spacer for centering last card
-                    Spacer()
-                        .frame(width: (screenWidth - cardWidth) / 2)
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: cardSpacing) {
+                ForEach(Array(allCards.enumerated()), id: \.offset) { index, card in
+                    cardView(for: index)
+                        .containerRelativeFrame(.horizontal)
+                        .id(index)
                 }
-                .scrollTargetLayout()
             }
-            .scrollTargetBehavior(.paging)
+            .scrollTargetLayout()
         }
+        .scrollTargetBehavior(.viewAligned)
+        .scrollPosition(id: $currentCardID)
+        .safeAreaPadding(.horizontal, (screenWidth - cardWidth) / 2)
+    }
+
+    // MARK: - Individual Card View
+
+    private func cardView(for index: Int) -> some View {
+        let card = baseCards[index % baseCards.count]  // Map 0-299 → 0-2
+
+        return Button {
+            // Only navigate if this is the centered card
+            if currentCardID == index {
+                navigationDestination = card.destination
+            }
+        } label: {
+            AnimatedExploreCard(
+                card: card,
+                cardWidth: cardWidth,
+                cardHeight: cardHeight,
+                translateY: 0  // No offset on card itself
+            )
+            .visualEffect { content, geometryProxy in
+                content
+                    .offset(y: calculateElevation(for: geometryProxy))
+            }
+            .padding(.top, 80) // Extra padding to show rounded corners
+            .padding(.bottom, -80) // Negative padding to keep position
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    // MARK: - Helper Functions
+
+    // Calculate elevation based on distance from viewport center
+    private func calculateElevation(for proxy: GeometryProxy) -> CGFloat {
+        // Get card's center X in scroll view space
+        let cardCenterX = proxy.frame(in: .scrollView).midX
+
+        // Get viewport center X
+        let viewportCenterX = proxy.bounds(of: .scrollView)?.midX ?? 0
+
+        // Distance from card center to viewport center
+        let distanceFromCenter = abs(cardCenterX - viewportCenterX)
+
+        // Normalize: 0 = center, 1 = one card width away
+        let normalizedDistance = min(distanceFromCenter / cardWidth, 1.0)
+
+        // Interpolate with ease-out curve
+        let elevationRange: CGFloat = 50
+        let easedDistance = 1 - pow(1 - normalizedDistance, 2)  // Ease-out quadratic
+        return -elevationRange * (1 - easedDistance)
     }
 
     // MARK: - Page Indicators
 
     private var pageIndicators: some View {
-        HStack(spacing: 8) {
-            let currentIndex = Int(round(scrollOffset / cardWidth))
-            ForEach(0..<cards.count, id: \.self) { index in
+        let activeIndex = (currentCardID ?? 150) % baseCards.count
+
+        return HStack(spacing: 8) {
+            ForEach(0..<baseCards.count, id: \.self) { index in
                 Circle()
-                    .fill(currentIndex == index ? cards[index].accentColor : Color.gray.opacity(0.3))
+                    .fill(activeIndex == index ? baseCards[index].accentColor : Color.gray.opacity(0.3))
                     .frame(
-                        width: currentIndex == index ? 10 : 8,
-                        height: currentIndex == index ? 10 : 8
+                        width: activeIndex == index ? 10 : 8,
+                        height: activeIndex == index ? 10 : 8
                     )
-                    .animation(.spring(response: 0.3), value: currentIndex)
+                    .animation(.spring(response: 0.3), value: activeIndex)
             }
         }
     }
 
-    // MARK: - Helper Functions
-
-    /// Calculate backdrop width for sliding wipe effect
-    private func getBackdropWidth(for index: Int) -> CGFloat {
-        let currentCardIndex = Int(round(scrollOffset / cardWidth))
-
-        if index < currentCardIndex {
-            return screenWidth // Previous cards full width
-        } else if index == currentCardIndex {
-            return screenWidth // Current card full width
-        } else if index == currentCardIndex + 1 {
-            // Next card - animate width based on scroll progress
-            let progress = (scrollOffset / cardWidth) - CGFloat(currentCardIndex)
-            return screenWidth * progress
-        } else {
-            return 0 // Future cards hidden
-        }
-    }
-
-    /// Calculate vertical bounce offset for cards
-    private func getTranslateY(for normalizedOffset: CGFloat) -> CGFloat {
-        // Center card: 0 offset → translateY = -50 (raised)
-        // Side cards: ±1 offset → translateY = 0 (lowered)
-        let absOffset = abs(normalizedOffset)
-        return (absOffset * 50) - 50
-    }
 }
 
 #Preview("Animated Carousel") {
