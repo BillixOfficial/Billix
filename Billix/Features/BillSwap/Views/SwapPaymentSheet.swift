@@ -314,6 +314,7 @@ struct PointsBalanceView: View {
         counterOfferByUserId: nil,
         feeAmountCentsInitiator: 99,
         feeAmountCentsCounterparty: 99,
+        spreadFeeCents: 0,
         feePaidInitiator: false,
         feePaidCounterparty: false,
         pointsWaiverInitiator: false,

@@ -277,10 +277,14 @@ enum SwapProofError: LocalizedError {
     }
 }
 
-// MARK: - BillSwapProof Type Alias
+// MARK: - Type Aliases
 
 /// Type alias for views that use `BillSwapProof` naming
 typealias BillSwapProof = SwapProof
+
+/// Type aliases for backward compatibility with BillSwapService
+typealias ProofType = SwapProofType
+typealias ProofStatus = SwapProofStatus
 
 // MARK: - SwapProof Alias Properties
 

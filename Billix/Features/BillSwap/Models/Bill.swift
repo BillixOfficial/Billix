@@ -59,6 +59,9 @@ struct SwapBill: Identifiable, Codable, Equatable {
     let createdAt: Date
     var updatedAt: Date
 
+    /// Owner's trust profile (not persisted, used for matching)
+    var ownerProfile: TrustProfile?
+
     enum CodingKeys: String, CodingKey {
         case id
         case ownerUserId = "owner_user_id"
@@ -73,6 +76,24 @@ struct SwapBill: Identifiable, Codable, Equatable {
         case billImageUrl = "bill_image_url"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        // Note: ownerProfile is intentionally excluded - not persisted
+    }
+
+    // Custom Equatable (exclude ownerProfile from comparison)
+    static func == (lhs: SwapBill, rhs: SwapBill) -> Bool {
+        lhs.id == rhs.id &&
+        lhs.ownerUserId == rhs.ownerUserId &&
+        lhs.title == rhs.title &&
+        lhs.category == rhs.category &&
+        lhs.providerName == rhs.providerName &&
+        lhs.amountCents == rhs.amountCents &&
+        lhs.dueDate == rhs.dueDate &&
+        lhs.status == rhs.status &&
+        lhs.paymentUrl == rhs.paymentUrl &&
+        lhs.accountNumberLast4 == rhs.accountNumberLast4 &&
+        lhs.billImageUrl == rhs.billImageUrl &&
+        lhs.createdAt == rhs.createdAt &&
+        lhs.updatedAt == rhs.updatedAt
     }
 
     // MARK: - Computed Properties

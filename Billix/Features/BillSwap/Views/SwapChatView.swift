@@ -25,27 +25,33 @@ struct SwapChatView: View {
                 // Messages
                 ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(viewModel.groupedMessages, id: \.date) { group in
-                                // Date header
-                                Text(formatDateHeader(group.date))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .padding(.vertical, 8)
+                        if viewModel.messages.isEmpty && !viewModel.isLoading {
+                            EmptyChatState()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .padding(.top, 100)
+                        } else {
+                            LazyVStack(spacing: 16) {
+                                ForEach(viewModel.groupedMessages, id: \.date) { group in
+                                    // Date header
+                                    Text(formatDateHeader(group.date))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .padding(.vertical, 8)
 
-                                ForEach(group.messages) { message in
-                                    ChatBubble(
-                                        message: message,
-                                        isMyMessage: viewModel.isMyMessage(message),
-                                        onFlag: {
-                                            Task { await viewModel.flagMessage(message) }
-                                        }
-                                    )
-                                    .id(message.id)
+                                    ForEach(group.messages) { message in
+                                        ChatBubble(
+                                            message: message,
+                                            isMyMessage: viewModel.isMyMessage(message),
+                                            onFlag: {
+                                                Task { await viewModel.flagMessage(message) }
+                                            }
+                                        )
+                                        .id(message.id)
+                                    }
                                 }
                             }
+                            .padding()
                         }
-                        .padding()
                     }
                     .onChange(of: viewModel.messages.count) { _, _ in
                         if let lastMessage = viewModel.messages.last {
@@ -291,6 +297,7 @@ struct EmptyChatState: View {
             counterOfferByUserId: nil,
             feeAmountCentsInitiator: 99,
             feeAmountCentsCounterparty: 99,
+            spreadFeeCents: 0,
             feePaidInitiator: true,
             feePaidCounterparty: true,
             pointsWaiverInitiator: false,

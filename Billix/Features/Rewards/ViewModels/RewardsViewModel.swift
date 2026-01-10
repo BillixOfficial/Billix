@@ -112,9 +112,11 @@ class RewardsViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             print("🔔 RewardsViewModel received PointsUpdated notification")
-            Task { @MainActor in
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
                 print("🔄 Refreshing rewards data...")
-                await self?.loadRewardsData()
+                await self.loadRewardsData()
                 print("✅ Rewards data refreshed")
             }
         }
