@@ -103,13 +103,14 @@ struct ActivityFeedHeader: View {
                     .foregroundColor(.billixGoldenAmber)
                 Text("Live Swaps")
                     .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "2D3B35"))
 
                 Spacer()
 
                 if let stats = stats {
                     Text(stats.formattedTodayCount)
                         .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color(hex: "5B8A6B"))
                 }
             }
 
@@ -128,8 +129,8 @@ struct ActivityFeedHeader: View {
         .background(
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color.billixDarkTeal.opacity(0.08),
-                    Color.billixMoneyGreen.opacity(0.05)
+                    Color.billixDarkTeal.opacity(0.15),
+                    Color.billixMoneyGreen.opacity(0.10)
                 ]),
                 startPoint: .leading,
                 endPoint: .trailing
@@ -152,13 +153,14 @@ struct ActivityFeedList: View {
                 VStack(spacing: 8) {
                     Image(systemName: "arrow.left.arrow.right.circle")
                         .font(.system(size: 32))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color(hex: "8B9A94"))
                     Text("No recent swaps")
                         .font(.system(size: 13))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color(hex: "8B9A94"))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 32)
+                .background(Color(hex: "F7F9F8"))
             } else {
                 LazyVStack(spacing: 0) {
                     ForEach(items) { item in
