@@ -131,7 +131,14 @@ struct UploadMethodSelectionView: View {
 
             Spacer()
         }
-        .background(Color.billixLightGreen.ignoresSafeArea())
+        .background(
+            LinearGradient(
+                colors: [Color(hex: "#90EE90").opacity(0.4), Color.white],
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
+        )
         .navigationTitle("Full Analysis")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
