@@ -214,6 +214,7 @@ struct ChatConversationView: View {
                 HStack(alignment: .bottom) {
                     TextField("Message...", text: $viewModel.messageText, axis: .vertical)
                         .font(.system(size: 16))
+                        .foregroundColor(ChatTheme.primaryText)
                         .lineLimit(1...5)
                         .focused($isInputFocused)
                         .onChange(of: viewModel.messageText) { _, newValue in
