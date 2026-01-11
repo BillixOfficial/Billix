@@ -80,24 +80,33 @@ struct Conversation: Codable, Identifiable, Equatable {
 // MARK: - Chat Participant
 
 struct ChatParticipant: Codable, Identifiable, Equatable, Hashable {
-    let id: UUID
-    let handle: String
-    let displayName: String
-    let avatarUrl: String?
+    let userId: UUID
+    let handle: String?
+    let displayName: String?
+
+    // Conformance to Identifiable using userId
+    var id: UUID { userId }
 
     enum CodingKeys: String, CodingKey {
-        case id
+        case userId = "user_id"
         case handle
         case displayName = "display_name"
-        case avatarUrl = "avatar_url"
+    }
+
+    // Display name for UI (fallback to handle if no display name)
+    var displayLabel: String {
+        displayName ?? handle ?? "Unknown"
     }
 
     var formattedHandle: String {
-        return "@\(handle)"
+        if let h = handle {
+            return "@\(h)"
+        }
+        return ""
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+        hasher.combine(userId)
     }
 }
 

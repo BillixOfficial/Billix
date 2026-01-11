@@ -145,14 +145,15 @@ class ChatService: ObservableObject {
 
         let results: [ChatParticipant] = try await supabase
             .from("profiles")
-            .select("id, handle, display_name, avatar_url")
+            .select("user_id, handle, display_name")
             .ilike("handle", pattern: "%\(trimmedQuery)%")
+            .neq("user_id", value: currentUserId!.uuidString)
             .limit(20)
             .execute()
             .value
 
-        // Filter out current user
-        return results.filter { $0.id != currentUserId }
+        // Filter out users without handles
+        return results.filter { $0.handle != nil }
     }
 
     /// Find a user by exact handle
@@ -162,7 +163,7 @@ class ChatService: ObservableObject {
 
         let results: [ChatParticipant] = try await supabase
             .from("profiles")
-            .select("id, handle, display_name, avatar_url")
+            .select("user_id, handle, display_name")
             .eq("handle", value: normalizedHandle)
             .limit(1)
             .execute()
@@ -258,8 +259,8 @@ class ChatService: ObservableObject {
     private func fetchParticipant(id: UUID) async throws -> ChatParticipant {
         let results: [ChatParticipant] = try await supabase
             .from("profiles")
-            .select("id, handle, display_name, avatar_url")
-            .eq("id", value: id.uuidString)
+            .select("user_id, handle, display_name")
+            .eq("user_id", value: id.uuidString)
             .limit(1)
             .execute()
             .value
