@@ -10,10 +10,14 @@ import SwiftUI
 
 struct AnimatedExploreCarousel: View {
     @Binding var navigationDestination: ExploreDestination?
+    @Binding var activeCardIndex: Int
+    let namespace: Namespace.ID
     @State private var currentCardID: Int? = 150 // Start in middle of large array
     @State private var topPaddingPercent: CGFloat = 0.25 // Adjustable top padding (25%)
-    @State private var cardHeightPercent: CGFloat = 0.64 // Adjustable card height (64%)
-    @State private var cardWidthPercent: CGFloat = 0.62 // Adjustable card width (62%)
+    @State private var cardHeightPercent: CGFloat = 0.77 // Adjustable card height (77%)
+    @State private var cardWidthPercent: CGFloat = 0.70 // Adjustable card width (70%)
+    @State private var buttonBottomPadding: CGFloat = 138 // Black button bottom padding
+    @State private var placeholderHeightPercent: CGFloat = 0.46 // Placeholder height as % of card (46%)
 
     private let baseCards = AnimatedExploreCardModel.mockCards
     private var allCards: [AnimatedExploreCardModel] {
@@ -33,7 +37,7 @@ struct AnimatedExploreCarousel: View {
         screenHeight * 0.65 // 65% of screen height
     }
     private var cardSpacing: CGFloat {
-        screenWidth * 0.08 // 8% spacing for peek effect
+        screenWidth * 0.05 // 5% spacing for increased peek effect
     }
 
     var body: some View {
@@ -48,6 +52,11 @@ struct AnimatedExploreCarousel: View {
                 .padding(.top, screenHeight * topPaddingPercent) // Adjustable top padding
         }
         .ignoresSafeArea()
+        .onChange(of: currentCardID) { oldValue, newValue in
+            if let newValue = newValue {
+                activeCardIndex = newValue % baseCards.count
+            }
+        }
     }
 
     // MARK: - Backdrop Layer with Wipe Animation
@@ -58,13 +67,26 @@ struct AnimatedExploreCarousel: View {
 
         return GeometryReader { _ in
             ZStack {
+                // Background images (if available)
+                ForEach(Array(baseCards.enumerated()), id: \.element.id) { index, card in
+                    if let imageName = card.imageName {
+                        Image(imageName)
+                            .resizable()
+                            .scaledToFill()
+                            .blur(radius: 15)
+                            .opacity(index == activeIndex ? 0.7 : 0)
+                            .animation(.easeInOut(duration: 0.3), value: activeIndex)
+                    }
+                }
+
+                // Gradient overlays
                 ForEach(Array(baseCards.enumerated()), id: \.element.id) { index, card in
                     LinearGradient(
                         colors: card.backdropGradient,
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-                    .opacity(index == activeIndex ? 1 : 0)
+                    .opacity(index == activeIndex ? 0.25 : 0)
                     .animation(.easeInOut(duration: 0.3), value: activeIndex)
                 }
 
@@ -107,23 +129,38 @@ struct AnimatedExploreCarousel: View {
         return Button {
             // Only navigate if this is the centered card
             if currentCardID == index {
-                navigationDestination = card.destination
+                print("🔘 Card tapped: \(card.title), destination: \(card.destination)")
+
+                // Haptic feedback - feels tactile
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
+
+                // Delay navigation to show button animation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    navigationDestination = card.destination
+                }
+            } else {
+                print("⚠️ Card tapped but not centered. Current: \(currentCardID ?? -1), Tapped: \(index)")
             }
         } label: {
             AnimatedExploreCard(
                 card: card,
                 cardWidth: cardWidth,
                 cardHeight: cardHeight,
-                translateY: 0  // No offset on card itself
+                translateY: 0,  // No offset on card itself
+                buttonBottomPadding: buttonBottomPadding,
+                placeholderHeightPercent: placeholderHeightPercent,
+                namespace: namespace
             )
             .visualEffect { content, geometryProxy in
                 content
                     .offset(y: calculateElevation(for: geometryProxy))
+                    .opacity(calculateOpacity(for: geometryProxy))
             }
             .padding(.top, 80) // Extra padding to show rounded corners
             .padding(.bottom, -80) // Negative padding to keep position
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(PressableButtonStyle())
     }
 
     // MARK: - Helper Functions
@@ -148,6 +185,26 @@ struct AnimatedExploreCarousel: View {
         return -elevationRange * (1 - easedDistance)
     }
 
+    // Calculate opacity based on distance from viewport center
+    private func calculateOpacity(for proxy: GeometryProxy) -> CGFloat {
+        // Get card's center X in scroll view space
+        let cardCenterX = proxy.frame(in: .scrollView).midX
+
+        // Get viewport center X
+        let viewportCenterX = proxy.bounds(of: .scrollView)?.midX ?? 0
+
+        // Distance from card center to viewport center
+        let distanceFromCenter = abs(cardCenterX - viewportCenterX)
+
+        // Normalize: 0 = center, 1 = one card width away
+        let normalizedDistance = min(distanceFromCenter / cardWidth, 1.0)
+
+        // Interpolate opacity: 1.0 at center, 0.4 at edges
+        let minOpacity: CGFloat = 0.4
+        let maxOpacity: CGFloat = 1.0
+        return maxOpacity - (normalizedDistance * (maxOpacity - minOpacity))
+    }
+
     // MARK: - Page Indicators
 
     private var pageIndicators: some View {
@@ -168,22 +225,32 @@ struct AnimatedExploreCarousel: View {
 
 }
 
+// MARK: - Custom Button Style
+
+struct PressableButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
+    }
+}
+
 #Preview("Animated Carousel") {
-    struct PreviewWrapper: View {
-        @State private var destination: ExploreDestination?
+    @Previewable @State var destination: ExploreDestination?
+    @Previewable @State var activeIndex = 0
+    @Previewable @Namespace var namespace
 
-        var body: some View {
-            VStack {
-                AnimatedExploreCarousel(navigationDestination: $destination)
+    VStack {
+        AnimatedExploreCarousel(
+            navigationDestination: $destination,
+            activeCardIndex: $activeIndex,
+            namespace: namespace
+        )
 
-                if let dest = destination {
-                    Text("Selected: \(String(describing: dest))")
-                        .padding()
-                }
-            }
-            .background(Color(hex: "#90EE90").opacity(0.4))
+        if let dest = destination {
+            Text("Selected: \(String(describing: dest))")
+                .padding()
         }
     }
-
-    return PreviewWrapper()
+    .background(Color(hex: "#90EE90").opacity(0.4))
 }

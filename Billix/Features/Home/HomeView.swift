@@ -145,7 +145,7 @@ struct HomeView: View {
             Theme.background.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: Theme.sectionSpacing) {
+                VStack(spacing: 28) {
                     // Top section - Header & Search
                     VStack(spacing: Theme.cardSpacing) {
                         HeaderZone(
@@ -157,6 +157,7 @@ struct HomeView: View {
                             notificationCount: notificationCount
                         )
                     }
+                    .padding(.top, 8)
 
                     // Today's Utility News
                     UtilityNewsBanner()
@@ -189,7 +190,7 @@ struct HomeView: View {
 
                     Spacer().frame(height: 100)
                 }
-                .padding(.top, 12)
+                .padding(.top, 20)
             }
             .refreshable {
                 await MainActor.run {
@@ -481,9 +482,9 @@ private struct HeaderZone: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("\(greeting), \(userName)")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.primaryText)

@@ -41,7 +41,6 @@ struct UploadHubView: View {
     @StateObject private var viewModel = UploadViewModel()
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \StoredBill.uploadDate, order: .reverse) private var storedBills: [StoredBill]
-    @State private var appeared = false
     @State private var fullAnalysisTapped = false
     @State private var showFullAnalysisInfo = false
     @State private var showQuickAddInfo = false
@@ -77,19 +76,19 @@ struct UploadHubView: View {
                     headerSection
                         .padding(.horizontal, Theme.horizontalPadding)
                         .padding(.top, 12)
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 24)
 
                     // SECTION 2: Quick Add Card (Redesigned)
                     quickAddCard
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 28)
 
                     // SECTION 3: Recent Uploads - Horizontal scroll
                     inProgressSection
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 28)
 
                     // SECTION 4: Upload for Full Analysis - Single card
                     fullAnalysisCard
-                        .padding(.bottom, 12)
+                        .padding(.bottom, 32)
 
                     Spacer()
                 }
@@ -103,9 +102,6 @@ struct UploadHubView: View {
             viewModel.modelContext = modelContext
             // Force refresh when view appears
             refreshTrigger = UUID()
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                appeared = true
-            }
         }
         .task(id: refreshTrigger) {
             // Task runs when refreshTrigger changes, causing view to re-render with latest @Query data
@@ -177,9 +173,6 @@ onSwitchToFullAnalysis: {
             .font(.system(size: 26, weight: .bold))
             .foregroundColor(Theme.primaryText)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .opacity(appeared ? 1 : 0)
-            .offset(y: appeared ? 0 : -10)
-            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
     }
 
     // MARK: - Quick Add Card (Clean White Card Design)
@@ -257,9 +250,6 @@ onSwitchToFullAnalysis: {
                 .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
         )
         .padding(.horizontal, 20)
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
     }
 
     // MARK: - In Progress Section (Horizontal scroll)
@@ -324,9 +314,6 @@ onSwitchToFullAnalysis: {
                 }
             }
         }
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: appeared)
     }
 
     // MARK: - Full Analysis Card (Clean White Card Design)
@@ -418,9 +405,6 @@ onSwitchToFullAnalysis: {
                 .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
         )
         .padding(.horizontal, 20)
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4), value: appeared)
     }
 
 }
