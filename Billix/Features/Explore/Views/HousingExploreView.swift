@@ -469,18 +469,21 @@ struct DraggableResultsSheet: View {
                         .padding(.bottom, 16)
                     }
                 } else {
-                    // Large state: Scrollable full view
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            // Rent Estimate
+                    // Large state: Fixed rent estimate + scrollable listings
+                    VStack(spacing: 0) {
+                        // Fixed Rent Estimate (stays at top)
+                        VStack(spacing: 12) {
                             CompactRentEstimate(estimate: rentEstimate)
                                 .padding(.horizontal, 20)
                                 .padding(.top, 16)
 
                             Divider()
                                 .padding(.horizontal, 20)
+                        }
+                        .background(Color.white)
 
-                            // Comparable Listings
+                        // Scrollable Comparable Listings
+                        ScrollView {
                             VStack(alignment: .leading, spacing: 16) {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text("Comparable Listings")
@@ -492,6 +495,7 @@ struct DraggableResultsSheet: View {
                                         .foregroundColor(.secondary)
                                 }
                                 .padding(.horizontal, 20)
+                                .padding(.top, 16)
 
                                 VStack(spacing: 12) {
                                     ForEach(comparables) { property in
