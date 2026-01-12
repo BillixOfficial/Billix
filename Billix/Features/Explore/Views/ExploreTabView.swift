@@ -24,14 +24,18 @@ struct ExploreTabView: View {
 
                 MarketTrendsView(
                     locationManager: locationManager,
-                    housingViewModel: housingViewModel
+                    housingViewModel: housingViewModel,
+                    onSwitchToHousing: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            selectedTab = .housing
+                        }
+                    }
                 )
                 .tag(ExploreTab.marketTrends)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
         }
-        .navigationTitle("Explore")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .background(Color(hex: "#F3F4F6"))
     }
 }

@@ -15,6 +15,12 @@ enum ExploreDestination: Hashable {
     case bills
 }
 
+/// Filter pill model for active filters display
+struct FilterPill: Identifiable {
+    let id: String
+    let label: String
+}
+
 /// Card model for animated explore carousel
 struct AnimatedExploreCardModel: Identifiable {
     let id = UUID()
@@ -65,9 +71,9 @@ extension AnimatedExploreCardModel {
             buttonText: "Explore Bills"
         ),
 
-        // Card 3: Economy by AI (MOVED TO THIRD)
+        // Card 3: My Economy (MOVED TO THIRD)
         AnimatedExploreCardModel(
-            title: "Economy by AI",
+            title: "My Economy",
             description: "AI-powered economic insights and forecasts",
             icon: "chart.line.uptrend.xyaxis",
             imageName: nil,
