@@ -12,81 +12,90 @@ struct MarketTrendsView: View {
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var housingViewModel: HousingSearchViewModel
     @StateObject private var viewModel: MarketTrendsViewModel
+    let onSwitchToHousing: () -> Void
 
-    init(locationManager: LocationManager, housingViewModel: HousingSearchViewModel) {
+    init(
+        locationManager: LocationManager,
+        housingViewModel: HousingSearchViewModel,
+        onSwitchToHousing: @escaping () -> Void
+    ) {
         self.locationManager = locationManager
         self.housingViewModel = housingViewModel
+        self.onSwitchToHousing = onSwitchToHousing
         _viewModel = StateObject(wrappedValue: MarketTrendsViewModel(housingViewModel: housingViewModel))
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let isWideScreen = geometry.size.width > 600
+        ScrollView {
+            VStack(spacing: 20) {
+                if viewModel.isLoading {
+                    loadingView
+                } else if let data = viewModel.marketData {
+                    // Ticker Header (replaces AverageRentCard)
+                    TickerHeaderView(
+                        averageRent: data.averageRent,
+                        changePercent: data.yearOverYearChange,
+                        lowRent: data.lowRent,
+                        highRent: data.highRent
+                    )
+                    .padding(.horizontal, 20)
 
-            ScrollView {
-                VStack(spacing: 24) {
-                    if viewModel.isLoading {
-                        loadingView
-                    } else if let data = viewModel.marketData {
-                        // Top section: Average Rent + Bedroom Breakdown
-                        if isWideScreen {
-                            // Desktop/iPad: Side by side
-                            HStack(alignment: .top, spacing: 16) {
-                                AverageRentCard(
-                                    averageRent: data.averageRent,
-                                    changePercent: data.rentChange12Month,
-                                    lowRent: data.lowRent,
-                                    highRent: data.highRent
-                                )
-                                .frame(maxWidth: .infinity)
+                    // Tab Picker (Summary | Breakdown)
+                    MarketContentTabPicker(selectedTab: $viewModel.selectedContentTab)
 
-                                BedroomBreakdownGrid(stats: data.bedroomStats)
-                                    .frame(maxWidth: .infinity)
-                            }
-                        } else {
-                            // Mobile: Stacked
-                            VStack(spacing: 16) {
-                                AverageRentCard(
-                                    averageRent: data.averageRent,
-                                    changePercent: data.rentChange12Month,
-                                    lowRent: data.lowRent,
-                                    highRent: data.highRent
-                                )
-
-                                BedroomBreakdownGrid(stats: data.bedroomStats)
-                            }
-                        }
-
-                        // Bottom section: Time selector + Chart
+                    // Conditional Content based on selected tab
+                    if viewModel.selectedContentTab == .summary {
+                        // SUMMARY TAB
                         VStack(spacing: 16) {
+                            // Market summary card with health indicator
+                            MarketSummaryView(
+                                marketData: data,
+                                marketHealth: calculateMarketHealth(changePercent: data.yearOverYearChange)
+                            )
+
                             // Time range selector
                             TimeRangeSelector(selectedRange: $viewModel.selectedTimeRange)
 
-                            // Historical chart
+                            // Chart with gradient (average only)
                             RentHistoryChart(
-                                historyData: viewModel.filteredHistoryData,
-                                timeRange: viewModel.selectedTimeRange
+                                historyData: viewModel.averageOnlyHistoryData,
+                                timeRange: viewModel.selectedTimeRange,
+                                chartMode: .averageOnly
                             )
                         }
+                        .padding(.horizontal, 20)
                     } else {
-                        emptyStateView
+                        // BREAKDOWN TAB
+                        VStack(spacing: 16) {
+                            // Bedroom breakdown grid
+                            BedroomBreakdownGrid(stats: data.bedroomStats)
+
+                            // Time range selector
+                            TimeRangeSelector(selectedRange: $viewModel.selectedTimeRange)
+
+                            // Chart with all bedroom types
+                            RentHistoryChart(
+                                historyData: viewModel.filteredHistoryData,
+                                timeRange: viewModel.selectedTimeRange,
+                                chartMode: .allTypes
+                            )
+                        }
+                        .padding(.horizontal, 20)
                     }
+
+                    // Bottom CTA button
+                    ViewUnitsButton {
+                        navigateToHousingTab(with: data)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                } else {
+                    emptyStateView
                 }
-                .padding(20)
-                .padding(.bottom, 100)  // Extra padding for bottom nav bar
             }
-            .background(
-                LinearGradient(
-                    colors: [
-                        Color(hex: "F8F9FA"),
-                        Color(hex: "E9ECEF")
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-            )
+            .padding(.bottom, 100)  // Extra padding for bottom nav bar
         }
+        .background(Color(hex: "F8F9FA").ignoresSafeArea())
         .task {
             // Auto-load NYC on first appear
             if viewModel.marketData == nil {
@@ -128,6 +137,27 @@ struct MarketTrendsView: View {
         .frame(maxWidth: .infinity)
         .padding(.top, 100)
     }
+
+    // MARK: - Helpers
+
+    private func calculateMarketHealth(changePercent: Double) -> MarketHealth {
+        if changePercent > 5.0 {
+            return .hot
+        } else if changePercent < -5.0 {
+            return .cool
+        } else {
+            return .moderate
+        }
+    }
+
+    private func navigateToHousingTab(with data: MarketTrendsData) {
+        // Set filters on Housing tab
+        housingViewModel.activeLocation = data.location
+        housingViewModel.activePriceRange = data.lowRent...data.highRent
+
+        // Trigger tab switch
+        onSwitchToHousing()
+    }
 }
 
 // MARK: - Preview
@@ -135,6 +165,9 @@ struct MarketTrendsView: View {
 #Preview("Market Trends View") {
     MarketTrendsView(
         locationManager: LocationManager.preview(),
-        housingViewModel: HousingSearchViewModel()
+        housingViewModel: HousingSearchViewModel(),
+        onSwitchToHousing: {
+            print("Navigate to Housing tab")
+        }
     )
 }

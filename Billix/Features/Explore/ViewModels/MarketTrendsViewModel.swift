@@ -9,6 +9,15 @@
 import Foundation
 import Combine
 
+// MARK: - Market Content Tab
+
+enum MarketContentTab: String, CaseIterable, Identifiable {
+    case summary = "Summary"
+    case breakdown = "Breakdown"
+
+    var id: String { rawValue }
+}
+
 @MainActor
 class MarketTrendsViewModel: ObservableObject {
 
@@ -19,6 +28,7 @@ class MarketTrendsViewModel: ObservableObject {
     @Published var selectedTimeRange: TimeRange = .oneYear
     @Published var isLoading: Bool = false
     @Published var currentLocation: String = ""
+    @Published var selectedContentTab: MarketContentTab = .summary
 
     // MARK: - Shared State
 
@@ -35,6 +45,10 @@ class MarketTrendsViewModel: ObservableObject {
         ) ?? Date()
 
         return historyData.filter { $0.date >= cutoffDate }
+    }
+
+    var averageOnlyHistoryData: [RentHistoryPoint] {
+        filteredHistoryData.filter { $0.bedroomType == .average }
     }
 
     // MARK: - Initialization

@@ -13,16 +13,15 @@ struct BedroomStatCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Bedroom label
-            Text(stat.bedroomLabel.uppercased() + " RENTALS")
-                .font(.system(size: 10, weight: .semibold))
+            // Bedroom label (cleaner, no uppercase)
+            Text(stat.bedroomLabel + " Rentals")
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.secondary)
-                .tracking(0.3)
 
             // Price
             Text(stat.formattedRent)
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.billixDarkTeal)
+                .foregroundColor(.primary)
                 .monospacedDigit()
 
             // Change percentage
@@ -36,11 +35,14 @@ struct BedroomStatCard: View {
             .foregroundColor(stat.changeColor)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.white)
-                .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+                )
         )
     }
 }
