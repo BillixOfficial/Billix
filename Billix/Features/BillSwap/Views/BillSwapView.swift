@@ -75,28 +75,16 @@ struct BillSwapView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 12) {
-                        // Import from uploads
-                        Button {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            viewModel.showImportSheet = true
-                        } label: {
-                            Image(systemName: "square.and.arrow.down")
-                                .font(.system(size: 18))
-                                .foregroundColor(BillSwapTheme.accent)
-                        }
-
-                        // Create new bill
-                        Button {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            viewModel.showCreateBillSheet = true
-                        } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(BillSwapTheme.accent)
-                        }
-                        .disabled(!viewModel.canCreateBill)
+                    // Create new bill (opens walkthrough)
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        viewModel.showCreateBillSheet = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(BillSwapTheme.accent)
                     }
+                    .disabled(!viewModel.canCreateBill)
                 }
             }
             .task {
@@ -107,9 +95,6 @@ struct BillSwapView: View {
             }
             .sheet(isPresented: $viewModel.showCreateBillSheet) {
                 CreateBillSheet(viewModel: viewModel)
-            }
-            .sheet(isPresented: $viewModel.showImportSheet) {
-                ImportBillSheet(viewModel: viewModel)
             }
             .sheet(isPresented: $showInfoSheet) {
                 BillSwapInfoSheet()
