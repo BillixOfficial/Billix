@@ -49,6 +49,9 @@ struct QuickActionsZone: View {
     @State private var showChat = false
     @State private var showBudget = false
 
+    // Observe chat service for unread count
+    @ObservedObject private var chatService = ChatService.shared
+
     private let actions: [QuickActionType] = [.addBill, .chat, .compare, .budget]
 
     var body: some View {
@@ -67,6 +70,17 @@ struct QuickActionsZone: View {
                             Image(systemName: action.icon)
                                 .font(.system(size: 22))
                                 .foregroundColor(action.color)
+
+                            // Chat notification badge
+                            if action == .chat && chatService.totalUnreadCount > 0 {
+                                Text("\(chatService.totalUnreadCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 16, height: 16)
+                                    .background(Color(hex: "#DC4B3E"))
+                                    .clipShape(Circle())
+                                    .offset(x: 14, y: -14)
+                            }
                         }
 
                         VStack(spacing: 2) {
@@ -99,6 +113,18 @@ struct QuickActionsZone: View {
         }
         .sheet(isPresented: $showChat) {
             ChatHubView()
+        }
+        .onChange(of: showChat) { _, isShowing in
+            // Refresh unread count when chat is closed
+            if !isShowing {
+                Task {
+                    await chatService.refreshUnreadCount()
+                }
+            }
+        }
+        .task {
+            // Load unread count on appear
+            await chatService.refreshUnreadCount()
         }
         .sheet(isPresented: $showBudget) {
             BudgetOverviewView()
