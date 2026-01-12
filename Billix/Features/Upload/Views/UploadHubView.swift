@@ -63,13 +63,9 @@ struct UploadHubView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                // Background matching Explore screen
-                LinearGradient(
-                    colors: [Color(hex: "#90EE90").opacity(0.4), Color.white],
-                    startPoint: .top,
-                    endPoint: .center
-                )
-                .ignoresSafeArea()
+                // Background matching Home screen
+                Theme.background
+                    .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // SECTION 1: Header

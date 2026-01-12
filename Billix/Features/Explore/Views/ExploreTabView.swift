@@ -7,33 +7,32 @@ struct ExploreTabView: View {
     @StateObject private var housingViewModel = HousingSearchViewModel()
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Custom tab picker
-                TabPickerView(selectedTab: $selectedTab)
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+        VStack(spacing: 0) {
+            // Custom tab picker - positioned right below nav bar
+            TabPickerView(selectedTab: $selectedTab)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
 
-                // Tab content
-                TabView(selection: $selectedTab) {
-                    HousingExploreView(
-                        locationManager: locationManager,
-                        viewModel: housingViewModel
-                    )
-                    .tag(ExploreTab.housing)
+            // Tab content
+            TabView(selection: $selectedTab) {
+                HousingExploreView(
+                    locationManager: locationManager,
+                    viewModel: housingViewModel
+                )
+                .tag(ExploreTab.housing)
 
-                    MarketTrendsView(
-                        locationManager: locationManager,
-                        housingViewModel: housingViewModel
-                    )
-                    .tag(ExploreTab.marketTrends)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
+                MarketTrendsView(
+                    locationManager: locationManager,
+                    housingViewModel: housingViewModel
+                )
+                .tag(ExploreTab.marketTrends)
             }
-            .navigationTitle("Explore")
-            .navigationBarTitleDisplayMode(.inline)
-            .background(Color(hex: "#F3F4F6"))
+            .tabViewStyle(.page(indexDisplayMode: .never))
         }
+        .navigationTitle("Explore")
+        .navigationBarTitleDisplayMode(.inline)
+        .background(Color(hex: "#F3F4F6"))
     }
 }
 

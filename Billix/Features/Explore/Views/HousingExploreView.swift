@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import MapKit
 
 /// Map-first property explorer: Filters → Estimate Panel + Map → Comparable Listings
 struct HousingExploreView: View {
@@ -111,11 +112,10 @@ struct HousingExploreView: View {
                                 }
                                 .padding(.horizontal, 20)
                             } else {
-                                // Mobile: Stack vertically (Map → Estimate)
-                                VStack(spacing: 20) {
-                                    // Map first (priority on mobile)
-                                    PropertyMapView(
-                                        searchedProperty: nil,
+                                // Mobile: Combined map + estimate card
+                                VStack(spacing: 0) {
+                                    // Map only (no legend)
+                                    CompactMapView(
                                         comparables: viewModel.propertyMarkers,
                                         region: $viewModel.mapRegion,
                                         selectedPropertyId: $viewModel.selectedPropertyId,
@@ -123,17 +123,21 @@ struct HousingExploreView: View {
                                             viewModel.selectPropertyFromMap(id: id)
                                         }
                                     )
-                                    .frame(height: 300)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+                                    .frame(height: 280)
 
-                                    // Estimate panel below (clear separation)
-                                    RentEstimatePanel(
+                                    // Rent estimate inside same card
+                                    CompactRentEstimate(
                                         estimate: viewModel.selectedPropertyId == nil
                                             ? viewModel.aggregateEstimate()
                                             : viewModel.rentEstimate ?? viewModel.aggregateEstimate()
                                     )
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, 12)
+                                    .padding(.bottom, 20)
                                 }
+                                .background(Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
                                 .padding(.horizontal, 20)
                             }
 
@@ -207,6 +211,154 @@ struct HousingExploreView: View {
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - Compact Map View (No Legend)
+
+struct CompactMapView: View {
+    let comparables: [PropertyMarker]
+    @Binding var region: MKCoordinateRegion
+    @Binding var selectedPropertyId: String?
+    var onPinTap: (String) -> Void
+
+    @State private var position: MapCameraPosition
+
+    init(
+        comparables: [PropertyMarker],
+        region: Binding<MKCoordinateRegion>,
+        selectedPropertyId: Binding<String?>,
+        onPinTap: @escaping (String) -> Void
+    ) {
+        self.comparables = comparables
+        self._region = region
+        self._selectedPropertyId = selectedPropertyId
+        self.onPinTap = onPinTap
+        self._position = State(initialValue: .region(region.wrappedValue))
+    }
+
+    var body: some View {
+        Map(position: $position) {
+            // Comparable properties (green pins) - tappable
+            ForEach(comparables) { comp in
+                Annotation("", coordinate: comp.coordinate) {
+                    PropertyPin(
+                        isSelected: comp.id == selectedPropertyId,
+                        isMain: false
+                    )
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.3)) {
+                            onPinTap(comp.id)
+                        }
+                    }
+                }
+            }
+        }
+        .mapStyle(.standard(pointsOfInterest: .excludingAll))
+        .mapControls {
+            MapUserLocationButton()
+            MapCompass()
+        }
+    }
+}
+
+// MARK: - Compact Rent Estimate
+
+struct CompactRentEstimate: View {
+    let estimate: RentEstimateResult
+
+    var body: some View {
+        VStack(spacing: 10) {
+            // Divider line at top
+            Rectangle()
+                .fill(Color.gray.opacity(0.2))
+                .frame(height: 1)
+                .padding(.bottom, 4)
+
+            // Title
+            Text("Estimated Monthly Rent")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.secondary)
+
+            // Main estimate
+            Text("$\(Int(estimate.estimatedRent))/mo")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundColor(.billixDarkTeal)
+                .monospacedDigit()
+
+            // Stat pills row
+            HStack(spacing: 10) {
+                CompactStatPill(
+                    label: "per sq.ft.",
+                    value: "$\(String(format: "%.2f", estimate.perSqft))"
+                )
+
+                CompactStatPill(
+                    label: "per bedroom",
+                    value: "$\(Int(estimate.perBedroom))"
+                )
+            }
+
+            // Confidence badge
+            HStack(spacing: 4) {
+                Image(systemName: confidenceIcon)
+                    .font(.system(size: 10, weight: .semibold))
+
+                Text("\(estimate.confidence) Confidence")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundColor(confidenceColor)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(
+                Capsule()
+                    .fill(confidenceColor.opacity(0.12))
+            )
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var confidenceIcon: String {
+        switch estimate.confidence {
+        case "High": return "checkmark.seal.fill"
+        case "Medium": return "exclamationmark.triangle.fill"
+        default: return "questionmark.circle.fill"
+        }
+    }
+
+    private var confidenceColor: Color {
+        switch estimate.confidence {
+        case "High": return .billixMoneyGreen
+        case "Medium": return .billixGoldenAmber
+        default: return .billixStreakOrange
+        }
+    }
+}
+
+// MARK: - Compact Stat Pill
+
+struct CompactStatPill: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        VStack(spacing: 3) {
+            Text(value)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(.billixDarkTeal)
+                .monospacedDigit()
+
+            Text(label)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.billixDarkTeal.opacity(0.08))
+        )
     }
 }
 
