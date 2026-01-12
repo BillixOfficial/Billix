@@ -284,36 +284,21 @@ private struct UserSearchRowEnhanced: View {
                     .fill(ChatTheme.accent.opacity(0.15))
                     .frame(width: 50, height: 50)
 
-                if let urlString = user.avatarUrl, let url = URL(string: urlString) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        default:
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 22))
-                                .foregroundColor(ChatTheme.accent)
-                        }
-                    }
-                    .frame(width: 50, height: 50)
-                    .clipShape(Circle())
-                } else {
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 22))
-                        .foregroundColor(ChatTheme.accent)
-                }
+                Image(systemName: "person.fill")
+                    .font(.system(size: 22))
+                    .foregroundColor(ChatTheme.accent)
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(user.displayName)
+                Text(user.displayLabel)
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(ChatTheme.primaryText)
 
-                Text(user.formattedHandle)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(ChatTheme.info)
+                if !user.formattedHandle.isEmpty {
+                    Text(user.formattedHandle)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(ChatTheme.info)
+                }
             }
 
             Spacer()
@@ -336,7 +321,7 @@ private struct UserSearchRowEnhanced: View {
 struct NewChatView_Previews: PreviewProvider {
     static var previews: some View {
         NewChatView { user in
-            print("Selected: \(user.handle)")
+            print("Selected: \(user.formattedHandle)")
         }
     }
 }

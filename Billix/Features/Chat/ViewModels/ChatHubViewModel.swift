@@ -34,8 +34,8 @@ class ChatHubViewModel: ObservableObject {
 
         let query = searchQuery.lowercased()
         return conversations.filter { convo in
-            convo.otherParticipant.handle.lowercased().contains(query) ||
-            convo.otherParticipant.displayName.lowercased().contains(query)
+            (convo.otherParticipant.handle?.lowercased().contains(query) ?? false) ||
+            (convo.otherParticipant.displayName?.lowercased().contains(query) ?? false)
         }
     }
 

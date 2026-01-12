@@ -25,16 +25,13 @@ struct ConversationRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            // Avatar
-            AvatarView(
-                url: conversation.otherParticipant.avatarUrl,
-                size: 54
-            )
+            // Avatar (using placeholder since avatarUrl was removed)
+            AvatarView(url: nil, size: 54)
 
             // Content
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
-                    Text(conversation.otherParticipant.displayName)
+                    Text(conversation.otherParticipant.displayLabel)
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(ChatTheme.primaryText)
                         .lineLimit(1)
@@ -51,15 +48,19 @@ struct ConversationRow: View {
 
                 HStack(spacing: 6) {
                     // Handle
-                    Text(conversation.otherParticipant.formattedHandle)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(ChatTheme.info)
+                    if !conversation.otherParticipant.formattedHandle.isEmpty {
+                        Text(conversation.otherParticipant.formattedHandle)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(ChatTheme.info)
+                    }
 
                     // Preview
                     if let preview = conversation.conversation.lastMessagePreview {
-                        Text("·")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(ChatTheme.secondaryText)
+                        if !conversation.otherParticipant.formattedHandle.isEmpty {
+                            Text("·")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(ChatTheme.secondaryText)
+                        }
                         Text(preview)
                             .font(.system(size: 15))
                             .foregroundColor(ChatTheme.previewText)
@@ -159,16 +160,18 @@ struct UserSearchRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            AvatarView(url: user.avatarUrl, size: 44)
+            AvatarView(url: nil, size: 44)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(user.displayName)
+                Text(user.displayLabel)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(ChatTheme.primaryText)
 
-                Text(user.formattedHandle)
-                    .font(.system(size: 14))
-                    .foregroundColor(ChatTheme.info)
+                if !user.formattedHandle.isEmpty {
+                    Text(user.formattedHandle)
+                        .font(.system(size: 14))
+                        .foregroundColor(ChatTheme.info)
+                }
             }
 
             Spacer()
@@ -205,10 +208,9 @@ struct ConversationRow_Previews: PreviewProvider {
                     isBlockedBy2: false
                 ),
                 otherParticipant: ChatParticipant(
-                    id: UUID(),
+                    userId: UUID(),
                     handle: "savingsking",
-                    displayName: "John Smith",
-                    avatarUrl: nil
+                    displayName: "John Smith"
                 ),
                 unreadCount: 3
             ))
@@ -228,10 +230,9 @@ struct ConversationRow_Previews: PreviewProvider {
                     isBlockedBy2: false
                 ),
                 otherParticipant: ChatParticipant(
-                    id: UUID(),
+                    userId: UUID(),
                     handle: "billhelper",
-                    displayName: "Jane Doe",
-                    avatarUrl: nil
+                    displayName: "Jane Doe"
                 ),
                 unreadCount: 0
             ))

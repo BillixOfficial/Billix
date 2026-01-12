@@ -114,16 +114,18 @@ struct ChatConversationView: View {
     private var headerView: some View {
         HStack(spacing: 10) {
             if let participant = viewModel.otherParticipant {
-                AvatarView(url: participant.avatarUrl, size: 34)
+                AvatarView(url: nil, size: 34)
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(participant.displayName)
+                    Text(participant.displayLabel)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(ChatTheme.primaryText)
 
-                    Text(participant.formattedHandle)
-                        .font(.system(size: 12))
-                        .foregroundColor(ChatTheme.info)
+                    if !participant.formattedHandle.isEmpty {
+                        Text(participant.formattedHandle)
+                            .font(.system(size: 12))
+                            .foregroundColor(ChatTheme.info)
+                    }
                 }
             }
         }
@@ -212,6 +214,7 @@ struct ChatConversationView: View {
                 HStack(alignment: .bottom) {
                     TextField("Message...", text: $viewModel.messageText, axis: .vertical)
                         .font(.system(size: 16))
+                        .foregroundColor(ChatTheme.primaryText)
                         .lineLimit(1...5)
                         .focused($isInputFocused)
                         .onChange(of: viewModel.messageText) { _, newValue in
@@ -312,10 +315,9 @@ struct ChatConversationView_Previews: PreviewProvider {
             ChatConversationView(
                 conversationId: UUID(),
                 otherParticipant: ChatParticipant(
-                    id: UUID(),
+                    userId: UUID(),
                     handle: "savingsking",
-                    displayName: "John Smith",
-                    avatarUrl: nil
+                    displayName: "John Smith"
                 )
             )
         }
