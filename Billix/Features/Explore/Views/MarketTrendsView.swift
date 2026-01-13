@@ -40,55 +40,46 @@ struct MarketTrendsView: View {
                     )
                     .padding(.horizontal, 20)
 
-                    // Tab Picker (Summary | Breakdown)
+                    // Time range selector
+                    TimeRangeSelector(selectedRange: $viewModel.selectedTimeRange)
+                        .padding(.horizontal, 20)
+
+                    // Chart (shown for both tabs)
+                    RentHistoryChart(
+                        historyData: viewModel.selectedContentTab == .summary
+                            ? viewModel.averageOnlyHistoryData
+                            : viewModel.chartHistoryData,
+                        timeRange: viewModel.selectedTimeRange,
+                        chartMode: viewModel.selectedContentTab == .summary
+                            ? .averageOnly
+                            : .allTypes,
+                        selectedBedroomTypes: viewModel.selectedBedroomTypes,
+                        selectedDataPoint: $viewModel.selectedDataPoint,
+                        isScrubbing: $viewModel.isScrubbingChart
+                    )
+
+                    // Tab Picker (Summary | Breakdown) - BELOW chart
                     MarketContentTabPicker(selectedTab: $viewModel.selectedContentTab)
 
                     // Conditional Content based on selected tab
-                    if viewModel.selectedContentTab == .summary {
-                        // SUMMARY TAB
-                        VStack(spacing: 16) {
-                            // Market summary card with health indicator
-                            MarketSummaryView(
-                                marketData: data,
-                                marketHealth: calculateMarketHealth(changePercent: data.yearOverYearChange)
-                            )
-
-                            // Time range selector
-                            TimeRangeSelector(selectedRange: $viewModel.selectedTimeRange)
-
-                            // Chart with gradient (average only)
-                            RentHistoryChart(
-                                historyData: viewModel.averageOnlyHistoryData,
-                                timeRange: viewModel.selectedTimeRange,
-                                chartMode: .averageOnly
-                            )
-                        }
+                    if viewModel.selectedContentTab == .breakdown {
+                        // BREAKDOWN TAB - Bedroom Breakdown Grid
+                        BedroomBreakdownGrid(
+                            stats: data.bedroomStats,
+                            selectedBedroomTypes: viewModel.selectedBedroomTypes,
+                            onBedroomTap: { type in
+                                viewModel.toggleBedroomType(type)
+                            }
+                        )
                         .padding(.horizontal, 20)
                     } else {
-                        // BREAKDOWN TAB
-                        VStack(spacing: 16) {
-                            // Bedroom breakdown grid
-                            BedroomBreakdownGrid(stats: data.bedroomStats)
-
-                            // Time range selector
-                            TimeRangeSelector(selectedRange: $viewModel.selectedTimeRange)
-
-                            // Chart with all bedroom types
-                            RentHistoryChart(
-                                historyData: viewModel.filteredHistoryData,
-                                timeRange: viewModel.selectedTimeRange,
-                                chartMode: .allTypes
-                            )
-                        }
+                        // SUMMARY TAB - Market Overview
+                        MarketSummaryView(
+                            marketData: data,
+                            marketHealth: calculateMarketHealth(changePercent: data.yearOverYearChange)
+                        )
                         .padding(.horizontal, 20)
                     }
-
-                    // Bottom CTA button
-                    ViewUnitsButton {
-                        navigateToHousingTab(with: data)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
                 } else {
                     emptyStateView
                 }

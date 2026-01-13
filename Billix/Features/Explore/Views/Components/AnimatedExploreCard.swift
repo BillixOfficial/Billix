@@ -48,11 +48,11 @@ struct AnimatedExploreCard: View {
                     // Image or icon
                     Group {
                         if let imageName = card.imageName {
-                            // Use actual image if provided - expand to hide sharp edges
+                            // Use actual image if provided - expand to fill and hide edges
                             Image(imageName)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: geometry.size.width * 1.1, height: geometry.size.height * 1.1)
+                                .frame(width: geometry.size.width * 1.3, height: geometry.size.height * 1.3)
                         } else {
                             // Fallback to SF Symbol
                             Image(systemName: card.icon)

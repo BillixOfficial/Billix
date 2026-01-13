@@ -19,6 +19,17 @@ struct AnimatedExploreCarousel: View {
     @State private var buttonBottomPadding: CGFloat = 138 // Black button bottom padding
     @State private var placeholderHeightPercent: CGFloat = 0.46 // Placeholder height as % of card (46%)
 
+    // Backdrop settings (applied from debug session)
+    private let backdropOpacity: CGFloat = 1.0
+    private let backdropBlurRadius: CGFloat = 13
+    private let backdropOffsetX: CGFloat = -50
+    private let backdropOffsetY: CGFloat = -20
+    private let backdropWidthMultiplier: CGFloat = 1.3
+    private let backdropHeightPercent: CGFloat = 0.65 // Backdrop height as % of screen
+
+    // Peeking card opacity setting
+    private let peekingCardMinOpacity: CGFloat = 0.55 // Min opacity for side cards
+
     private let baseCards = AnimatedExploreCardModel.mockCards
     private var allCards: [AnimatedExploreCardModel] {
         // Large repetition for "infinite" scroll (3 × 100 = 300 cards)
@@ -34,7 +45,7 @@ struct AnimatedExploreCarousel: View {
         screenHeight * cardHeightPercent // Adjustable card height
     }
     private var backdropHeight: CGFloat {
-        screenHeight * 0.65 // 65% of screen height
+        screenHeight * backdropHeightPercent // Adjustable backdrop height
     }
     private var cardSpacing: CGFloat {
         screenWidth * 0.05 // 5% spacing for increased peek effect
@@ -65,7 +76,7 @@ struct AnimatedExploreCarousel: View {
         // Map large array index (0-299) to base card index (0-2)
         let activeIndex = (currentCardID ?? 150) % baseCards.count
 
-        return GeometryReader { _ in
+        return GeometryReader { geometry in
             ZStack {
                 // Background images (if available)
                 ForEach(Array(baseCards.enumerated()), id: \.element.id) { index, card in
@@ -73,8 +84,13 @@ struct AnimatedExploreCarousel: View {
                         Image(imageName)
                             .resizable()
                             .scaledToFill()
-                            .blur(radius: 15)
-                            .opacity(index == activeIndex ? 0.7 : 0)
+                            .frame(
+                                width: geometry.size.width * backdropWidthMultiplier,
+                                height: geometry.size.height
+                            )
+                            .blur(radius: backdropBlurRadius)
+                            .offset(x: backdropOffsetX, y: backdropOffsetY)
+                            .opacity(index == activeIndex ? backdropOpacity : 0)
                             .animation(.easeInOut(duration: 0.3), value: activeIndex)
                     }
                 }
@@ -199,10 +215,9 @@ struct AnimatedExploreCarousel: View {
         // Normalize: 0 = center, 1 = one card width away
         let normalizedDistance = min(distanceFromCenter / cardWidth, 1.0)
 
-        // Interpolate opacity: 1.0 at center, 0.4 at edges
-        let minOpacity: CGFloat = 0.4
+        // Interpolate opacity: 1.0 at center, peekingCardMinOpacity at edges
         let maxOpacity: CGFloat = 1.0
-        return maxOpacity - (normalizedDistance * (maxOpacity - minOpacity))
+        return maxOpacity - (normalizedDistance * (maxOpacity - peekingCardMinOpacity))
     }
 
     // MARK: - Page Indicators

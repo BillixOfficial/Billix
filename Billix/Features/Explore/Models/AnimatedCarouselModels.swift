@@ -47,8 +47,8 @@ extension AnimatedExploreCardModel {
             imageName: "HouseExplore_OFFICIAL",
             accentColor: .billixDarkTeal,
             backdropGradient: [
-                Color(hex: "#5B8A6B").opacity(0.8),
-                Color(hex: "#3D6B52").opacity(0.6)
+                Color(hex: "#A8C7D8").opacity(0.8),
+                Color(hex: "#7BA8C1").opacity(0.6)
             ],
             destination: .housingTrends,
             categories: ["Housing", "Market", "Data"],

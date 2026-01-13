@@ -10,6 +10,8 @@ import SwiftUI
 
 struct BedroomBreakdownGrid: View {
     let stats: [BedroomStats]
+    let selectedBedroomTypes: Set<BedroomType>
+    let onBedroomTap: (BedroomType) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -22,9 +24,28 @@ struct BedroomBreakdownGrid: View {
                 spacing: 12
             ) {
                 ForEach(stats) { stat in
-                    BedroomStatCard(stat: stat)
+                    let bedroomType = mapBedroomCountToType(stat.bedroomCount)
+
+                    BedroomStatCard(
+                        stat: stat,
+                        bedroomType: bedroomType,
+                        isSelected: selectedBedroomTypes.contains(bedroomType),
+                        onTap: { onBedroomTap(bedroomType) }
+                    )
                 }
             }
+        }
+    }
+
+    private func mapBedroomCountToType(_ count: Int) -> BedroomType {
+        switch count {
+        case 0: return .studio
+        case 1: return .oneBed
+        case 2: return .twoBed
+        case 3: return .threeBed
+        case 4: return .fourBed
+        case 5: return .fiveBed
+        default: return .average
         }
     }
 }
@@ -40,7 +61,11 @@ struct BedroomBreakdownGrid: View {
             BedroomStats(bedroomCount: 3, averageRent: 1349, rentChange: -8.9, sampleSize: 54),
             BedroomStats(bedroomCount: 4, averageRent: 1900, rentChange: 29.8, sampleSize: 32),
             BedroomStats(bedroomCount: 5, averageRent: 2317, rentChange: -17.3, sampleSize: 18)
-        ]
+        ],
+        selectedBedroomTypes: [.studio, .twoBed],
+        onBedroomTap: { type in
+            print("Tapped: \(type.rawValue)")
+        }
     )
     .padding()
     .background(Color.billixCreamBeige)

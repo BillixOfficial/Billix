@@ -12,8 +12,8 @@ import Combine
 // MARK: - Market Content Tab
 
 enum MarketContentTab: String, CaseIterable, Identifiable {
-    case summary = "Summary"
     case breakdown = "Breakdown"
+    case summary = "Summary"
 
     var id: String { rawValue }
 }
@@ -28,7 +28,14 @@ class MarketTrendsViewModel: ObservableObject {
     @Published var selectedTimeRange: TimeRange = .oneYear
     @Published var isLoading: Bool = false
     @Published var currentLocation: String = ""
-    @Published var selectedContentTab: MarketContentTab = .summary
+    @Published var selectedContentTab: MarketContentTab = .breakdown
+
+    // Chart interaction state
+    @Published var selectedDataPoint: RentHistoryPoint?
+    @Published var isScrubbingChart: Bool = false
+
+    // Bedroom type filtering
+    @Published var selectedBedroomTypes: Set<BedroomType> = []
 
     // MARK: - Shared State
 
@@ -49,6 +56,16 @@ class MarketTrendsViewModel: ObservableObject {
 
     var averageOnlyHistoryData: [RentHistoryPoint] {
         filteredHistoryData.filter { $0.bedroomType == .average }
+    }
+
+    var chartHistoryData: [RentHistoryPoint] {
+        if selectedBedroomTypes.isEmpty {
+            // No selection: show all types (excluding average)
+            return filteredHistoryData.filter { $0.bedroomType != .average }
+        } else {
+            // Show only selected types
+            return filteredHistoryData.filter { selectedBedroomTypes.contains($0.bedroomType) }
+        }
     }
 
     // MARK: - Initialization
@@ -109,5 +126,13 @@ class MarketTrendsViewModel: ObservableObject {
 
     func changeTimeRange(_ range: TimeRange) {
         selectedTimeRange = range
+    }
+
+    func toggleBedroomType(_ type: BedroomType) {
+        if selectedBedroomTypes.contains(type) {
+            selectedBedroomTypes.remove(type)
+        } else {
+            selectedBedroomTypes.insert(type)
+        }
     }
 }
