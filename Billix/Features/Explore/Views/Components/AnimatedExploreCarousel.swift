@@ -145,8 +145,6 @@ struct AnimatedExploreCarousel: View {
         return Button {
             // Only navigate if this is the centered card
             if currentCardID == index {
-                print("🔘 Card tapped: \(card.title), destination: \(card.destination)")
-
                 // Haptic feedback - feels tactile
                 let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                 impactFeedback.impactOccurred()
@@ -155,8 +153,6 @@ struct AnimatedExploreCarousel: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                     navigationDestination = card.destination
                 }
-            } else {
-                print("⚠️ Card tapped but not centered. Current: \(currentCardID ?? -1), Tapped: \(index)")
             }
         } label: {
             AnimatedExploreCard(
