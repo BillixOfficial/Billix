@@ -291,6 +291,7 @@ struct StreakStatsCarousel: View {
                     .tag(1)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
+            .animation(.easeInOut(duration: 0.4), value: currentIndex)
             .frame(height: 70)
 
             // Right Arrow

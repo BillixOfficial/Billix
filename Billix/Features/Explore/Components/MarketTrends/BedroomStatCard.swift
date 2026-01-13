@@ -7,22 +7,31 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct BedroomStatCard: View {
     let stat: BedroomStats
+    let bedroomType: BedroomType
+    let isSelected: Bool
+    let onTap: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Bedroom label
-            Text(stat.bedroomLabel.uppercased() + " RENTALS")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.secondary)
-                .tracking(0.3)
+            // Bedroom label with color dot indicator
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(bedroomType.chartColor)
+                    .frame(width: 8, height: 8)
+
+                Text(stat.bedroomLabel + " Rentals")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
 
             // Price
             Text(stat.formattedRent)
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.billixDarkTeal)
+                .foregroundColor(.primary)
                 .monospacedDigit()
 
             // Change percentage
@@ -36,12 +45,22 @@ struct BedroomStatCard: View {
             .foregroundColor(stat.changeColor)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+                .fill(isSelected ? bedroomType.chartColor.opacity(0.1) : Color.white)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isSelected ? bedroomType.chartColor : Color.gray.opacity(0.15),
+                                lineWidth: isSelected ? 2 : 1)
+                )
         )
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: isSelected)
+        .onTapGesture {
+            onTap()
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
     }
 }
 
@@ -55,7 +74,10 @@ struct BedroomStatCard: View {
                 averageRent: 826,
                 rentChange: -2.9,
                 sampleSize: 45
-            )
+            ),
+            bedroomType: .studio,
+            isSelected: false,
+            onTap: { print("Studio tapped") }
         )
 
         BedroomStatCard(
@@ -64,7 +86,10 @@ struct BedroomStatCard: View {
                 averageRent: 792,
                 rentChange: 21.6,
                 sampleSize: 67
-            )
+            ),
+            bedroomType: .oneBed,
+            isSelected: true,
+            onTap: { print("1 BD tapped") }
         )
 
         BedroomStatCard(
@@ -73,7 +98,10 @@ struct BedroomStatCard: View {
                 averageRent: 1258,
                 rentChange: 8.9,
                 sampleSize: 89
-            )
+            ),
+            bedroomType: .twoBed,
+            isSelected: false,
+            onTap: { print("2 BD tapped") }
         )
     }
     .padding()

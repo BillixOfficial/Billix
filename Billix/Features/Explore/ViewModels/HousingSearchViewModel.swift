@@ -29,6 +29,7 @@ class HousingSearchViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var rentEstimate: RentEstimateResult? = nil
     @Published var comparables: [RentalComparable] = []
+    @Published var showResultsSheet: Bool = false
 
     // MARK: - Table Sorting
 
@@ -121,6 +122,91 @@ class HousingSearchViewModel: ObservableObject {
 
     var comparableMarkers: [PropertyMarker] {
         propertyMarkers.filter { !$0.isSearchedProperty }
+    }
+
+    // MARK: - Active Filters
+
+    var activeFilterCount: Int {
+        var count = 0
+
+        if activePropertyType != .all { count += 1 }
+        if activeBedrooms != nil { count += 1 }
+        if activeBathrooms != nil { count += 1 }
+        if activePriceRange != nil { count += 1 }
+        if activeSqftRange != nil { count += 1 }
+        if activeYearBuiltRange != nil { count += 1 }
+        if activeLotSizeRange != nil { count += 1 }
+        if activeDaysOldRange != nil { count += 1 }
+        if !activeAmenities.isEmpty { count += 1 }
+        if !activeKeywords.isEmpty { count += 1 }
+
+        return count
+    }
+
+    var activeFilterPills: [FilterPill] {
+        var pills: [FilterPill] = []
+
+        if activePropertyType != .all {
+            pills.append(FilterPill(id: "type", label: activePropertyType.rawValue))
+        }
+
+        if let beds = activeBedrooms {
+            pills.append(FilterPill(id: "beds", label: "\(beds)+ bed\(beds == 1 ? "" : "s")"))
+        }
+
+        if let baths = activeBathrooms {
+            pills.append(FilterPill(id: "baths", label: "\(Int(baths))+ bathroom\(baths == 1.0 ? "" : "s")"))
+        }
+
+        if let priceRange = activePriceRange {
+            pills.append(FilterPill(id: "price", label: "$\(Int(priceRange.lowerBound))-\(Int(priceRange.upperBound))/mo"))
+        }
+
+        if let sqftRange = activeSqftRange {
+            pills.append(FilterPill(id: "sqft", label: "\(Int(sqftRange.lowerBound))-\(Int(sqftRange.upperBound)) sq.ft."))
+        }
+
+        if let yearRange = activeYearBuiltRange {
+            pills.append(FilterPill(id: "year", label: "Built \(yearRange.lowerBound)-\(yearRange.upperBound)"))
+        }
+
+        if let lotRange = activeLotSizeRange {
+            pills.append(FilterPill(id: "lot", label: "\(Int(lotRange.lowerBound))-\(Int(lotRange.upperBound)) lot sq.ft."))
+        }
+
+        if let daysRange = activeDaysOldRange {
+            pills.append(FilterPill(id: "days", label: "Listed \(daysRange.lowerBound)-\(daysRange.upperBound) days ago"))
+        }
+
+        if !activeAmenities.isEmpty {
+            pills.append(FilterPill(id: "amenities", label: "\(activeAmenities.count) amenity filter\(activeAmenities.count == 1 ? "" : "s")"))
+        }
+
+        if !activeKeywords.isEmpty {
+            pills.append(FilterPill(id: "keywords", label: "Keywords: \(activeKeywords)"))
+        }
+
+        return pills
+    }
+
+    func removeFilter(id: String) {
+        switch id {
+        case "type": activePropertyType = .all
+        case "beds": activeBedrooms = nil
+        case "baths": activeBathrooms = nil
+        case "price": activePriceRange = nil
+        case "sqft": activeSqftRange = nil
+        case "year": activeYearBuiltRange = nil
+        case "lot": activeLotSizeRange = nil
+        case "days": activeDaysOldRange = nil
+        case "amenities": activeAmenities = []
+        case "keywords": activeKeywords = ""
+        default: break
+        }
+
+        Task {
+            await applyFilters()
+        }
     }
 
     // MARK: - Rentcast API Integration
@@ -257,6 +343,7 @@ class HousingSearchViewModel: ObservableObject {
         propertyMarkers = [searchedMarker] + compMarkers
         mapRegion = region
         hasSearched = true
+        showResultsSheet = true
         isLoading = false
     }
 
@@ -270,6 +357,7 @@ class HousingSearchViewModel: ObservableObject {
         lookbackDays = 30
 
         hasSearched = false
+        showResultsSheet = false
         isLoading = false
         rentEstimate = nil
         comparables = []
@@ -448,8 +536,11 @@ class HousingSearchViewModel: ObservableObject {
             lookbackDays: 30
         )
 
+        // Center map on NYC coordinates (Times Square)
+        let baseCoordinate = CLLocationCoordinate2D(latitude: 40.7580, longitude: -73.9855)
+
         let estimate = HousingMockData.generateRentEstimate(params: params)
-        let comps = HousingMockData.generateComparables(params: params, estimate: estimate)
+        let comps = HousingMockData.generateComparables(params: params, estimate: estimate, baseCoordinate: baseCoordinate)
 
         // Store original unfiltered data
         allComparables = comps
@@ -466,9 +557,8 @@ class HousingSearchViewModel: ObservableObject {
             )
         }
 
-        // Center map on NYC coordinates (Times Square)
         mapRegion = MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 40.7580, longitude: -73.9855),
+            center: baseCoordinate,
             span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
         )
 
@@ -476,6 +566,7 @@ class HousingSearchViewModel: ObservableObject {
         comparables = filteredComps
         propertyMarkers = markers
         hasSearched = true
+        showResultsSheet = true
         isLoading = false
         isInitialLoad = false
     }

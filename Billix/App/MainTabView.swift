@@ -23,11 +23,11 @@ struct MainTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
 
             // Custom Bottom Navigation Bar
             CustomBottomNavBar(selectedTab: $selectedTab)
-                .padding(.horizontal, 5)
-                .padding(.bottom, 10)
+                .edgesIgnoringSafeArea(.bottom)
         }
         .ignoresSafeArea(.keyboard)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToUpload"))) { _ in
@@ -74,14 +74,19 @@ struct CustomBottomNavBar: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 8)
-        .frame(height: 72)
+        .padding(.top, 12)
+        .padding(.bottom, -6) // Push icons even lower
         .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: -2)
+            UnevenRoundedRectangle(
+                topLeadingRadius: 0,
+                bottomLeadingRadius: 28,
+                bottomTrailingRadius: 28,
+                topTrailingRadius: 0
+            )
+            .fill(.white)
+            .ignoresSafeArea(edges: .bottom)
         )
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -1)
     }
 }
 
@@ -95,28 +100,22 @@ struct CustomNavItem: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
-                ZStack {
-                    // Active indicator background
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(color.opacity(0.12))
-                            .frame(width: 56, height: 32)
-                            .transition(.scale.combined(with: .opacity))
-                    }
+            VStack(spacing: 2) {
+                // Icon
+                Image(systemName: icon)
+                    .font(.system(size: 24, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor(isSelected ? color : Color.gray.opacity(0.5))
+                    .symbolEffect(.bounce, value: isSelected)
+                    .frame(height: 24)
 
-                    Image(systemName: icon)
-                        .font(.system(size: isSelected ? 22 : 20, weight: isSelected ? .semibold : .regular))
-                        .foregroundColor(isSelected ? color : Color.gray.opacity(0.5))
-                        .symbolEffect(.bounce, value: isSelected)
-                }
-                .frame(height: 32)
-
+                // Label
                 Text(label)
-                    .font(.system(size: isSelected ? 11 : 10, weight: isSelected ? .semibold : .medium))
+                    .font(.system(size: 9, weight: isSelected ? .semibold : .medium))
                     .foregroundColor(isSelected ? color : Color.gray.opacity(0.6))
+                    .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
         .buttonStyle(NavButtonStyle())
     }

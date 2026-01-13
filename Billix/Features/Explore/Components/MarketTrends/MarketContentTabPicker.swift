@@ -1,0 +1,39 @@
+//
+//  MarketContentTabPicker.swift
+//  Billix
+//
+//  Created by Claude Code on 1/12/26.
+//  Segmented control for Summary/Breakdown tab switching
+//
+
+import SwiftUI
+
+struct MarketContentTabPicker: View {
+    @Binding var selectedTab: MarketContentTab
+
+    var body: some View {
+        Picker("Content", selection: $selectedTab) {
+            ForEach(MarketContentTab.allCases) { tab in
+                Text(tab.rawValue).tag(tab)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 20)
+    }
+}
+
+// MARK: - Preview
+
+#Preview("Market Content Tab Picker") {
+    @Previewable @State var selectedTab: MarketContentTab = .summary
+
+    VStack(spacing: 20) {
+        MarketContentTabPicker(selectedTab: $selectedTab)
+
+        Text("Selected: \(selectedTab.rawValue)")
+            .font(.system(size: 14))
+            .foregroundColor(.secondary)
+    }
+    .padding()
+    .background(Color(hex: "F8F9FA"))
+}

@@ -33,17 +33,6 @@ private enum Theme {
     static let cornerRadius: CGFloat = 20
     static let shadowColor = Color.black.opacity(0.06)
     static let shadowRadius: CGFloat = 12
-
-    // Quick Add Blob sizing (easily adjustable)
-    static let quickAddBlobHeight: CGFloat = 220
-    static let quickAddBlobCornerRadius: CGFloat = 20
-
-    // Full Analysis Blob sizing (easily adjustable)
-    static let fullAnalysisBlobWidth: CGFloat = 474
-    static let fullAnalysisBlobHeight: CGFloat = 248
-    static let fullAnalysisBlobCornerRadius: CGFloat = 20
-    static let magnifyGlassSize: CGFloat = 149
-    static let magnifyGlassYOffset: CGFloat = -40
 }
 
 /// Upload Hub with clean, modern design
@@ -52,7 +41,6 @@ struct UploadHubView: View {
     @StateObject private var viewModel = UploadViewModel()
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \StoredBill.uploadDate, order: .reverse) private var storedBills: [StoredBill]
-    @State private var appeared = false
     @State private var fullAnalysisTapped = false
     @State private var showFullAnalysisInfo = false
     @State private var showQuickAddInfo = false
@@ -62,59 +50,44 @@ struct UploadHubView: View {
 
     @State private var refreshTrigger = UUID()
 
-    // Design adjustments
-    private let quickAddContentYOffset: CGFloat = -25
-    private let recentUploadsYOffset: CGFloat = -50
-
-    // Full Analysis blob adjustments
-    private let fullAnalysisBlobWidth: CGFloat = 474
-    private let fullAnalysisBlobHeight: CGFloat = 248
-    private let fullAnalysisBlobYOffset: CGFloat = -27
-
-    // Element position controls
-    private let startAnalysisButtonYOffset: CGFloat = -13
-    private let magnifyGlassYOffset: CGFloat = -15
-    private let magnifyGlassXOffset: CGFloat = 10
-    private let magnifyGlassWidth: CGFloat = 159
-    private let magnifyGlassHeight: CGFloat = 229
-
     // Derive recent uploads from SwiftData query (auto-updates on changes)
     private var recentUploads: [RecentUpload] {
-        storedBills.prefix(4).compactMap { $0.toRecentUpload() }
+        storedBills.prefix(3).compactMap { $0.toRecentUpload() }
+    }
+
+    private var numberOfAddCards: Int {
+        let billCount = recentUploads.count
+        return max(0, 4 - billCount)
     }
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Background matching Explore screen
-                LinearGradient(
-                    colors: [Color(hex: "#90EE90").opacity(0.4), Color.white],
-                    startPoint: .top,
-                    endPoint: .center
-                )
-                .ignoresSafeArea()
+            ZStack(alignment: .top) {
+                // Background matching Home screen
+                Theme.background
+                    .ignoresSafeArea()
 
-                VStack(spacing: 4) {
-
+                VStack(spacing: 0) {
                     // SECTION 1: Header
                     headerSection
                         .padding(.horizontal, Theme.horizontalPadding)
+                        .padding(.top, 12)
+                        .padding(.bottom, 24)
 
                     // SECTION 2: Quick Add Card (Redesigned)
                     quickAddCard
-                        .padding(.horizontal, -8)
-                        .padding(.top, -8)
+                        .padding(.bottom, 28)
 
                     // SECTION 3: Recent Uploads - Horizontal scroll
                     inProgressSection
-                        .padding(.top, recentUploadsYOffset)
+                        .padding(.bottom, 28)
 
                     // SECTION 4: Upload for Full Analysis - Single card
                     fullAnalysisCard
+                        .padding(.bottom, 32)
 
-                    Spacer(minLength: 100)
+                    Spacer()
                 }
-                .padding(.top, 8)
             }
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $navigateToUploadMethods) {
@@ -125,9 +98,6 @@ struct UploadHubView: View {
             viewModel.modelContext = modelContext
             // Force refresh when view appears
             refreshTrigger = UUID()
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                appeared = true
-            }
         }
         .task(id: refreshTrigger) {
             // Task runs when refreshTrigger changes, causing view to re-render with latest @Query data
@@ -195,121 +165,103 @@ onSwitchToFullAnalysis: {
     // MARK: - Header Section
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Upload Your Bills")
-                .font(.system(size: 26, weight: .bold))
-                .foregroundColor(Theme.primaryText)
-
-            Text("Track expenses & find savings")
-                .font(.system(size: 15, weight: .regular))
-                .foregroundColor(Theme.secondaryText)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : -10)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
+        Text("Upload Your Bills")
+            .font(.system(size: 26, weight: .bold))
+            .foregroundColor(Theme.primaryText)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Quick Add Card (Redesigned with Image Background)
+    // MARK: - Quick Add Card (Clean White Card Design)
 
     private var quickAddCard: some View {
-        ZStack {
-            // Background: STRETCH to fill space (not zoom)
-            Image("NEWEST_QuickBlob")
-                .resizable()
-                .frame(maxWidth: .infinity)
-                .frame(height: Theme.quickAddBlobHeight)
-                .cornerRadius(Theme.quickAddBlobCornerRadius)
-
-            // Content: Floating in the middle
-            HStack(spacing: 16) {
-                // Lightning Icon
+        VStack(spacing: 8) {
+            // Icon and text - horizontal layout
+            HStack(spacing: 14) {
+                // Green lightning icon in circle (left side)
                 ZStack {
                     Circle()
-                        .fill(Color.white)
-                        .frame(width: 44, height: 44)
-                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .fill(Color(hex: "#E8F5E9"))
+                        .frame(width: 48, height: 48)
                     Image(systemName: "bolt.fill")
-                        .foregroundColor(Color(hex: "#5B8A6B"))
                         .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(Color(hex: "#5B8A6B"))
                 }
 
-                // Text
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Text("Quick Add")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(Theme.primaryText)
-
-                        // Info button
-                        Button {
-                            showQuickAddInfo.toggle()
-                        } label: {
-                            Image(systemName: "info.circle")
-                                .font(.system(size: 14))
-                                .foregroundColor(Theme.secondaryText.opacity(0.7))
-                        }
-                        .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
-                            QuickAddInfoPopover()
-                                .presentationCompactAdaptation(.popover)
-                        }
-                    }
+                // Title and subtitle (left-aligned)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Quick Add")
+                        .font(.system(size: 19, weight: .bold))
+                        .foregroundColor(Theme.primaryText)
 
                     Text("Answer 3 Questions")
-                        .font(.system(size: 14, weight: .regular))
+                        .font(.system(size: 13, weight: .regular))
                         .foregroundColor(Theme.secondaryText)
                 }
-                .fixedSize(horizontal: true, vertical: false)
 
                 Spacer()
 
-                // Start Button - Only clickable element
+                // Info button
                 Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                        viewModel.startQuickAdd()
-                    }
-                    let generator = UIImpactFeedbackGenerator(style: .medium)
-                    generator.impactOccurred()
+                    showQuickAddInfo.toggle()
                 } label: {
-                    HStack(spacing: 6) {
-                        Text("Start")
-                            .font(.system(size: 15, weight: .semibold))
-                            .fixedSize()
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(width: 90, height: 36)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(hex: "#3D5A4A"))
-                    )
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 18))
+                        .foregroundColor(Theme.secondaryText.opacity(0.7))
                 }
-                .buttonStyle(ScaleButtonStyle(scale: 0.98))
+                .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
+                    QuickAddInfoPopover()
+                        .presentationCompactAdaptation(.popover)
+                }
             }
-            .padding(.leading, 32)
-            .padding(.trailing, 55)
-            .padding(.vertical, 16)
+
+            // Full-width button
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    viewModel.startQuickAdd()
+                }
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+            } label: {
+                HStack(spacing: 8) {
+                    Text("Start Quick Add")
+                        .font(.system(size: 16, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(hex: "#5B8A6B"))
+                )
+            }
+            .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
-        .offset(y: quickAddContentYOffset)
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+        )
+        .padding(.horizontal, 20)
     }
 
     // MARK: - In Progress Section (Horizontal scroll)
 
     private var inProgressSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Recent Uploads")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(Theme.primaryText)
+                // Clipboard icon
+                Image(systemName: "doc.on.clipboard")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color(hex: "#8B9A94"))
 
-                // Decorative dot
-                Circle()
-                    .fill(Color(hex: "#5B8A6B"))
-                    .frame(width: 8, height: 8)
+                Text("RECENT UPLOADS")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(Color(hex: "#8B9A94"))
+                    .tracking(0.5)
 
                 Spacer()
 
@@ -329,161 +281,126 @@ onSwitchToFullAnalysis: {
             .padding(.horizontal, Theme.horizontalPadding)
 
             if recentUploads.isEmpty {
-                // Single empty state card
+                // Show empty vault card when no uploads
                 EmptyUploadCard()
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 20)
             } else {
+                // Show uploaded bills and add cards in horizontal scroll
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
+                    HStack(spacing: 12) {
+                        // Show bill cards first
                         ForEach(recentUploads) { upload in
                             Button {
                                 viewModel.selectedUpload = upload
                             } label: {
-                                RecentUploadCard(upload: upload)
+                                CompactBillCard(upload: upload)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+
+                        // Show add cards to fill up to 4 total
+                        ForEach(0..<numberOfAddCards, id: \.self) { _ in
+                            NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
+                                AddBillCard()
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .padding(.horizontal, Theme.horizontalPadding)
+                    .padding(.horizontal, 20)
                 }
             }
         }
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: appeared)
     }
 
-    // MARK: - Full Analysis Card (4-Layer Z-Stack)
+    // MARK: - Full Analysis Card (Clean White Card Design)
 
     private var fullAnalysisCard: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 6) {
-                Text("Upload Bill")
-                    .font(.system(size: 18, weight: .bold))
+        VStack(spacing: 8) {
+            // Magnifying glass icon with triple circle background
+            ZStack {
+                // Outer largest light circle
+                Circle()
+                    .fill(Color(hex: "#E8F5E9").opacity(0.25))
+                    .frame(width: 80, height: 80)
+
+                // Middle circle
+                Circle()
+                    .fill(Color(hex: "#E8F5E9").opacity(0.4))
+                    .frame(width: 60, height: 60)
+
+                // Inner green circle
+                Circle()
+                    .fill(Color(hex: "#E8F5E9"))
+                    .frame(width: 45, height: 45)
+
+                Image(systemName: "doc.text.magnifyingglass")
+                    .font(.system(size: 28, weight: .regular))
+                    .foregroundColor(Color(hex: "#6B7280"))
+            }
+
+            // Title with info button
+            HStack(spacing: 8) {
+                Text("Analyze a New Bill")
+                    .font(.system(size: 19, weight: .bold))
                     .foregroundColor(Theme.primaryText)
 
-                // Info button
                 Button {
                     showFullAnalysisInfo.toggle()
                 } label: {
                     Image(systemName: "info.circle")
-                        .font(.system(size: 14))
-                        .foregroundColor(Theme.secondaryText)
+                        .font(.system(size: 16))
+                        .foregroundColor(Theme.secondaryText.opacity(0.7))
                 }
                 .popover(isPresented: $showFullAnalysisInfo, arrowEdge: .top) {
                     FullAnalysisInfoPopover()
                         .presentationCompactAdaptation(.popover)
                 }
             }
-            .padding(.horizontal, Theme.horizontalPadding)
 
-            HStack {
-                Spacer(minLength: 0)
-                ZStack(alignment: .center) {
-                    // LAYER 1 (Bottom): StartAnalysisCloud as background - Custom dimensions
-                    Image("NEWEST_AnalysisBlob")
-                        .resizable()
-                        .frame(width: fullAnalysisBlobWidth, height: fullAnalysisBlobHeight)
-                        .cornerRadius(Theme.fullAnalysisBlobCornerRadius)
+            // Description - full text, no truncation
+            Text("Upload a bill to find savings, track expenses, and get insights.")
+                .font(.system(size: 14, weight: .regular))
+                .foregroundColor(Theme.secondaryText)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 12)
 
-                    // LAYER 2: MagnifyGlass centered
-                    Image("NEWEST_MagnifyGlass")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: magnifyGlassWidth, height: magnifyGlassHeight)
-                        .offset(x: magnifyGlassXOffset, y: magnifyGlassYOffset)
-
-                    // LAYER 3: Floating pills around magnifying glass
-                    ZStack {
-                        // Top-left: Line items
-                        Text("Line items")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color(hex: "#6B7280"))
-                                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
-                            )
-                            .rotationEffect(.degrees(11))
-                            .offset(x: -99, y: -54)
-
-                        // Top-right: Surprises
-                        Text("Surprises")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color(hex: "#6B7280"))
-                                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
-                            )
-                            .rotationEffect(.degrees(-11))
-                            .offset(x: 99, y: -53)
-
-                        // Bottom-left: Rate compare
-                        Text("Rate compare")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color(hex: "#6B7280"))
-                                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
-                            )
-                            .rotationEffect(.degrees(-18))
-                            .offset(x: -99, y: 25)
-
-                        // Bottom-right: Savings with lightbulb
-                        HStack(spacing: 4) {
-                            Image(systemName: "lightbulb.fill")
-                                .font(.system(size: 10))
-                                .foregroundColor(.white)
-                            Text("Savings")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(Color(hex: "#6B7280"))
-                                .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
-                        )
-                        .rotationEffect(.degrees(10))
-                        .offset(x: 114, y: 10)
-                    }
-
-                    // LAYER 4: Start Analysis button at bottom edge - Only clickable element
-                    VStack {
-                        Spacer()
-
-                        NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
-                            Text("Start Analysis")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 180, height: 50)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(hex: "#3D5A4A"))
-                                )
-                        }
-                        .buttonStyle(ScaleButtonStyle(scale: 0.98))
-                        .offset(y: startAnalysisButtonYOffset)
-                    }
-                    .frame(width: fullAnalysisBlobWidth, height: fullAnalysisBlobHeight)
-                }
-                .offset(y: fullAnalysisBlobYOffset)
-                Spacer(minLength: 0)
+            // Inline pills with individual colors
+            HStack(spacing: 6) {
+                ColoredPillTag(text: "Line Items", backgroundColor: Color(hex: "#E9D5FF"))
+                ColoredPillTag(text: "Surprises", backgroundColor: Color(hex: "#DBEAFE"))
+                ColoredPillTag(text: "Rate compare", backgroundColor: Color(hex: "#FED7AA"))
+                ColoredPillTag(text: "Savings", backgroundColor: Color(hex: "#FED7AA"))
             }
-            .padding(.horizontal, -150)
+
+            // Full-width button
+            NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
+                HStack(spacing: 8) {
+                    Text("Start Analysis")
+                        .font(.system(size: 16, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(hex: "#5B8A6B"))
+                )
+            }
+            .buttonStyle(ScaleButtonStyle(scale: 0.98))
         }
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.4), value: appeared)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+        )
+        .padding(.horizontal, 20)
     }
 
 }
@@ -676,33 +593,173 @@ struct RecentUploadCard: View {
     }
 }
 
-// MARK: - Empty Upload Card (No Container - Direct on Background)
+// MARK: - Vault Icon Card (Scrollable card with just vault icon)
+
+struct VaultIconCard: View {
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
+
+            Image("VaultEmpty")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 80, height: 80)
+        }
+        .frame(width: 155, height: 130)
+    }
+}
+
+// MARK: - Compact Bill Card (Smaller card for container view)
+
+struct CompactBillCard: View {
+    let upload: RecentUpload
+
+    private var primaryText: Color { Color(hex: "#2D3B35") }
+    private var warningColor: Color { Color(hex: "#F59E0B") }
+
+    private var sourceAccentColor: Color {
+        upload.source == .quickAdd ? Color(hex: "#F59E0B") : Color(hex: "#3D8B7C")
+    }
+
+    var body: some View {
+        ZStack {
+            // White card base
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.white)
+
+            // Top accent bar (smaller)
+            VStack {
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(
+                        LinearGradient(
+                            colors: [sourceAccentColor.opacity(0.15), sourceAccentColor.opacity(0.05)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: 30)
+                Spacer()
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            VStack(alignment: .leading, spacing: 6) {
+                // Category badge (smaller)
+                HStack(spacing: 4) {
+                    if upload.source == .quickAdd {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 8, weight: .semibold))
+                            .foregroundColor(warningColor)
+                    }
+                    Text(upload.source.displayName)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(sourceAccentColor)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(Color.white)
+                        .shadow(color: sourceAccentColor.opacity(0.1), radius: 2, x: 0, y: 1)
+                )
+
+                // Provider name (compact)
+                Text(upload.provider)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(primaryText)
+                    .lineLimit(1)
+
+                Spacer()
+
+                // Amount only (no status icon to save space)
+                Text(upload.formattedAmount)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(primaryText)
+            }
+            .padding(10)
+        }
+        .frame(width: 115, height: 105)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+    }
+}
+
+// MARK: - Empty Upload Card (White Card Container)
 
 struct EmptyUploadCard: View {
     private let primaryText = Color(hex: "#2D3B35")
     private let secondaryText = Color(hex: "#8B9A94")
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 14) {
             // VaultEmpty PNG image - scaledToFit with fixed frame
             Image("VaultEmpty")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 100, height: 100)
+                .frame(width: 90, height: 90)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text("Your vault is empty.")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundColor(primaryText)
 
-                Text("Add a bill to start tracking.")
-                    .font(.system(size: 14, weight: .regular))
+                Text("Analyze a Bill to start tracking.")
+                    .font(.system(size: 13, weight: .regular))
                     .foregroundColor(secondaryText)
             }
 
             Spacer()
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+        )
         .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Add Bill Card (Dashed Border Placeholder)
+
+struct AddBillCard: View {
+    private let accentColor = Color(hex: "#5B8A6B") // Theme.accent
+
+    var body: some View {
+        ZStack {
+            // Dashed border background
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(
+                    accentColor.opacity(0.4),
+                    style: StrokeStyle(lineWidth: 2, dash: [8, 4])
+                )
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(accentColor.opacity(0.03))
+                )
+
+            // Plus icon centered
+            VStack(spacing: 6) {
+                // Circular background with plus icon
+                ZStack {
+                    Circle()
+                        .fill(accentColor.opacity(0.12))
+                        .frame(width: 36, height: 36)
+
+                    Image(systemName: "plus")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(accentColor)
+                }
+
+                // "Add Bill" text
+                Text("Add Bill")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(accentColor.opacity(0.8))
+            }
+        }
+        .frame(width: 115, height: 105)
     }
 }
 
@@ -820,6 +877,43 @@ struct FloatingLabel: View {
                 Capsule()
                     .fill(Color.white.opacity(0.9))
                     .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+            )
+    }
+}
+
+// MARK: - Pill Tag Component
+
+struct PillTag: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 12, weight: .medium))
+            .foregroundColor(Color(hex: "#6B7280"))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(Color(hex: "#F3F4F6"))
+            )
+    }
+}
+
+// MARK: - Colored Pill Tag Component
+
+struct ColoredPillTag: View {
+    let text: String
+    let backgroundColor: Color
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundColor(Color(hex: "#6B7280"))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(
+                Capsule()
+                    .fill(backgroundColor)
             )
     }
 }

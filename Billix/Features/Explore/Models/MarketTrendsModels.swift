@@ -20,6 +20,11 @@ struct MarketTrendsData: Identifiable {
     let highRent: Double              // $3,400
     let bedroomStats: [BedroomStats]
     let lastUpdated: Date
+
+    // Alias for clarity in fintech UI
+    var yearOverYearChange: Double {
+        rentChange12Month
+    }
 }
 
 // MARK: - Bedroom Statistics
@@ -121,6 +126,46 @@ enum TimeRange: String, CaseIterable, Identifiable {
         case .sixMonths: return 6
         case .oneYear: return 12
         case .allTime: return 24  // 2 years for mock data
+        }
+    }
+}
+
+// MARK: - Market Health
+
+enum MarketHealth {
+    case hot      // High demand, rising prices
+    case moderate // Stable market
+    case cool     // Lower demand, falling prices
+
+    var color: Color {
+        switch self {
+        case .hot: return .billixStreakOrange
+        case .moderate: return .billixGoldenAmber
+        case .cool: return .billixMoneyGreen
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .hot: return "flame.fill"
+        case .moderate: return "minus.circle.fill"
+        case .cool: return "snowflake"
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .hot: return "Hot Market"
+        case .moderate: return "Moderate Market"
+        case .cool: return "Cool Market"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .hot: return "High demand with rising rental prices"
+        case .moderate: return "Stable market with steady prices"
+        case .cool: return "Lower demand with declining prices"
         }
     }
 }

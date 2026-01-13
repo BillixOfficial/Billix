@@ -205,12 +205,17 @@
 		A6E5FFC22F0DC43D009F1277 /* AverageRentCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFB92F0DC43D009F1277 /* AverageRentCard.swift */; };
 		A6E5FFC32F0DC43D009F1277 /* RentHistoryChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFBC2F0DC43D009F1277 /* RentHistoryChart.swift */; };
 		A6E5FFC52F0DC44B009F1277 /* MarketTrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFC42F0DC44B009F1277 /* MarketTrendsView.swift */; };
-		A6E5FFC72F0E2144009F1277 /* ExploreLandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFC62F0E2144009F1277 /* ExploreLandingView.swift */; };
 		A6E5FFCE2F0E215C009F1277 /* EconomyAISection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFC82F0E215C009F1277 /* EconomyAISection.swift */; };
 		A6E5FFCF2F0E215C009F1277 /* NeighborsPaySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFCC2F0E215C009F1277 /* NeighborsPaySection.swift */; };
 		A6E5FFD02F0E215C009F1277 /* ExploreFeatureCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFC92F0E215C009F1277 /* ExploreFeatureCard.swift */; };
 		A6E5FFD12F0E215C009F1277 /* LargeExploreCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFCB2F0E215C009F1277 /* LargeExploreCard.swift */; };
 		A6E5FFD22F0E215C009F1277 /* ExploreSearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFCA2F0E215C009F1277 /* ExploreSearchBar.swift */; };
+		A6E5FFD42F0F5B91009F1277 /* BillsTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFD32F0F5B91009F1277 /* BillsTestView.swift */; };
+		A6E5FFD92F12A903009F1277 /* AnimatedExploreCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFD72F12A903009F1277 /* AnimatedExploreCard.swift */; };
+		A6E5FFDA2F12A903009F1277 /* AnimatedExploreCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFD82F12A903009F1277 /* AnimatedExploreCarousel.swift */; };
+		A6E5FFDC2F12AA32009F1277 /* AnimatedCarouselModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFDB2F12AA32009F1277 /* AnimatedCarouselModels.swift */; };
+		A6E5FFE02F12AA94009F1277 /* ComingSoonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFDF2F12AA94009F1277 /* ComingSoonView.swift */; };
+		A6E5FFE22F12AADE009F1277 /* ExploreLandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E5FFE12F12AADE009F1277 /* ExploreLandingView.swift */; };
 		A6F3C78C2EEF74C300264730 /* LocationMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF828B2EECA1C5008330C9 /* LocationMapView.swift */; };
 		A6F3C78D2EEF74CC00264730 /* LocationRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82872EECA1C5008330C9 /* LocationRow.swift */; };
 		A6FF810E2ECBBCD5008330C9 /* APIResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */; };
@@ -604,12 +609,17 @@
 		A6E5FFBC2F0DC43D009F1277 /* RentHistoryChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RentHistoryChart.swift; sourceTree = "<group>"; };
 		A6E5FFBD2F0DC43D009F1277 /* TimeRangeSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeRangeSelector.swift; sourceTree = "<group>"; };
 		A6E5FFC42F0DC44B009F1277 /* MarketTrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketTrendsView.swift; sourceTree = "<group>"; };
-		A6E5FFC62F0E2144009F1277 /* ExploreLandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreLandingView.swift; sourceTree = "<group>"; };
 		A6E5FFC82F0E215C009F1277 /* EconomyAISection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EconomyAISection.swift; sourceTree = "<group>"; };
 		A6E5FFC92F0E215C009F1277 /* ExploreFeatureCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreFeatureCard.swift; sourceTree = "<group>"; };
 		A6E5FFCA2F0E215C009F1277 /* ExploreSearchBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreSearchBar.swift; sourceTree = "<group>"; };
 		A6E5FFCB2F0E215C009F1277 /* LargeExploreCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeExploreCard.swift; sourceTree = "<group>"; };
 		A6E5FFCC2F0E215C009F1277 /* NeighborsPaySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeighborsPaySection.swift; sourceTree = "<group>"; };
+		A6E5FFD32F0F5B91009F1277 /* BillsTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillsTestView.swift; sourceTree = "<group>"; };
+		A6E5FFD72F12A903009F1277 /* AnimatedExploreCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedExploreCard.swift; sourceTree = "<group>"; };
+		A6E5FFD82F12A903009F1277 /* AnimatedExploreCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedExploreCarousel.swift; sourceTree = "<group>"; };
+		A6E5FFDB2F12AA32009F1277 /* AnimatedCarouselModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedCarouselModels.swift; sourceTree = "<group>"; };
+		A6E5FFDF2F12AA94009F1277 /* ComingSoonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComingSoonView.swift; sourceTree = "<group>"; };
+		A6E5FFE12F12AADE009F1277 /* ExploreLandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreLandingView.swift; sourceTree = "<group>"; };
 		A6FF810D2ECBBCD5008330C9 /* APIResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIResponse.swift; sourceTree = "<group>"; };
 		A6FF810F2ECBBCE3008330C9 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
 		A6FF811D2ECEB3BC008330C9 /* BillsExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillsExploreView.swift; sourceTree = "<group>"; };
@@ -1107,6 +1117,7 @@
 		9EXP10REM0DELSGR0UP12345 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A6E5FFDB2F12AA32009F1277 /* AnimatedCarouselModels.swift */,
 				A6E5FFB32F0DC418009F1277 /* MarketTrendsMockData.swift */,
 				A6E5FFB42F0DC418009F1277 /* MarketTrendsModels.swift */,
 				A6E5FFAC2F0C51B3009F1277 /* FairValue.swift */,
@@ -1371,6 +1382,8 @@
 		A6E5FFCD2F0E215C009F1277 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				A6E5FFD72F12A903009F1277 /* AnimatedExploreCard.swift */,
+				A6E5FFD82F12A903009F1277 /* AnimatedExploreCarousel.swift */,
 				A6E5FFC82F0E215C009F1277 /* EconomyAISection.swift */,
 				A6E5FFC92F0E215C009F1277 /* ExploreFeatureCard.swift */,
 				A6E5FFCA2F0E215C009F1277 /* ExploreSearchBar.swift */,
@@ -1383,8 +1396,9 @@
 		A6FF811F2ECEB3BC008330C9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				A6E5FFCD2F0E215C009F1277 /* Components */,
-				A6E5FFC62F0E2144009F1277 /* ExploreLandingView.swift */,
+				A6E5FFE12F12AADE009F1277 /* ExploreLandingView.swift */,
+				A6E5FFDF2F12AA94009F1277 /* ComingSoonView.swift */,
+				A6E5FFD32F0F5B91009F1277 /* BillsTestView.swift */,
 				A6E5FFC42F0DC44B009F1277 /* MarketTrendsView.swift */,
 				A6E5FF702F0B2EB9009F1277 /* HousingExploreView.swift */,
 				A6E5FF662F0B2456009F1277 /* ExploreMarketplaceView.swift */,
@@ -1394,6 +1408,7 @@
 				F9F1892D2F05F652007CF227 /* ExploreCarouselCard.swift */,
 				A6FF811D2ECEB3BC008330C9 /* BillsExploreView.swift */,
 				A6FF811E2ECEB3BC008330C9 /* ExploreTabView.swift */,
+				A6E5FFCD2F0E215C009F1277 /* Components */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -2108,6 +2123,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A6E5FFB02F0C6A7B009F1277 /* SwapPaymentSheet.swift in Sources */,
+				A6E5FFE02F12AA94009F1277 /* ComingSoonView.swift in Sources */,
 				A69E78262F05D42D004E63B4 /* UnlockCreditsService.swift in Sources */,
 				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
 				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
@@ -2154,12 +2170,13 @@
 				A6FF827E2EE6418A008330C9 /* UserSeasonProgress.swift in Sources */,
 				A69E782E2F05D4BC004E63B4 /* HomePageZones.swift in Sources */,
 				A6E5FF672F0B2456009F1277 /* ExploreMarketplaceView.swift in Sources */,
-				A6E5FFC72F0E2144009F1277 /* ExploreLandingView.swift in Sources */,
 				A69E78322F06E79B004E63B4 /* TaskTrackingService.swift in Sources */,
 				A6E5FF712F0B2EB9009F1277 /* HousingExploreView.swift in Sources */,
 				A69E782F2F05D4BC004E63B4 /* HomeSetupQuestionsView.swift in Sources */,
 				A69E78302F05D4BC004E63B4 /* QuickActionViews.swift in Sources */,
 				A602F2342EF886CF00856DEE /* TutorialManager.swift in Sources */,
+				A6E5FFD92F12A903009F1277 /* AnimatedExploreCard.swift in Sources */,
+				A6E5FFDA2F12A903009F1277 /* AnimatedExploreCarousel.swift in Sources */,
 				A6FF827F2EE6418A008330C9 /* SeasonLocation.swift in Sources */,
 				A6FF82802EE6418A008330C9 /* SeasonPart.swift in Sources */,
 				F90BBA6A2F078B500041159A /* SwapDetailViewModel.swift in Sources */,
@@ -2247,6 +2264,7 @@
 				A6FF82422EDE3AD4008330C9 /* WalletHeaderView.swift in Sources */,
 				A6FF82432EDE3AD4008330C9 /* GeoGameModels.swift in Sources */,
 				A6FF82442EDE3AD4008330C9 /* LeaderboardSection.swift in Sources */,
+				A6E5FFE22F12AADE009F1277 /* ExploreLandingView.swift in Sources */,
 				A6FF82452EDE3AD4008330C9 /* GeoGameMapView.swift in Sources */,
 				A6FF82462EDE3AD4008330C9 /* WeeklyGiveawayCard.swift in Sources */,
 				A6FF82472EDE3AD4008330C9 /* RewardsHowItWorksSheet.swift in Sources */,
@@ -2258,6 +2276,7 @@
 				A6FF824A2EDE3AD4008330C9 /* WelcomeRewardsSheet.swift in Sources */,
 				A6FF824B2EDE3AD4008330C9 /* GameBoostsGrid.swift in Sources */,
 				A602F23E2EF9AA3E00856DEE /* EmailVerificationView.swift in Sources */,
+				A6E5FFD42F0F5B91009F1277 /* BillsTestView.swift in Sources */,
 				A6FF824C2EDE3AD4008330C9 /* GeoGameResultView.swift in Sources */,
 				A6FF824D2EDE3AD4008330C9 /* GeoGameFloatingCard.swift in Sources */,
 				A6FF82862EE6420A008330C9 /* SeasonGameContainerView.swift in Sources */,
@@ -2420,6 +2439,7 @@
 				F90BBA632F078B500041159A /* PointsService.swift in Sources */,
 				A602F2762EFA002E00856DEE /* CustomDonationCard.swift in Sources */,
 				A6E5FF482F0880E5009F1277 /* PollView.swift in Sources */,
+				A6E5FFDC2F12AA32009F1277 /* AnimatedCarouselModels.swift in Sources */,
 				A6E5FF492F0880E5009F1277 /* QuizView.swift in Sources */,
 				A6E5FF4A2F0880E5009F1277 /* TipView.swift in Sources */,
 				A602F2772EFA002E00856DEE /* CustomDonationRequestSheet.swift in Sources */,
