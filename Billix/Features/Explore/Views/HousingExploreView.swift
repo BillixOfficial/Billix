@@ -175,9 +175,9 @@ struct HousingExploreView: View {
             .ignoresSafeArea()
         )
         .task {
-            // Auto-load NYC map with properties on first appear
+            // Auto-load Detroit map with properties on first appear (matches mock data location)
             if viewModel.isInitialLoad {
-                await viewModel.loadPopulatedArea(address: "New York, NY 10001")
+                await viewModel.loadPopulatedArea(address: "Detroit, MI 48226")
             }
         }
         .sheet(isPresented: $showMoreFilters) {

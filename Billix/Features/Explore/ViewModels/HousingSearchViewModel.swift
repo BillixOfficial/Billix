@@ -536,8 +536,8 @@ class HousingSearchViewModel: ObservableObject {
             lookbackDays: 30
         )
 
-        // Center map on NYC coordinates (Times Square)
-        let baseCoordinate = CLLocationCoordinate2D(latitude: 40.7580, longitude: -73.9855)
+        // Center map on Detroit coordinates (matches mock data location)
+        let baseCoordinate = CLLocationCoordinate2D(latitude: 42.3314, longitude: -83.0458)
 
         let estimate = HousingMockData.generateRentEstimate(params: params)
         let comps = HousingMockData.generateComparables(params: params, estimate: estimate)
