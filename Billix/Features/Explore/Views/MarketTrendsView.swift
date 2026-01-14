@@ -40,50 +40,27 @@ struct MarketTrendsView: View {
                     )
                     .padding(.horizontal, 20)
 
-                    // Chart with embedded time selector
-                    ZStack(alignment: .topTrailing) {
-                        RentHistoryChart(
-                            historyData: viewModel.selectedContentTab == .summary
-                                ? viewModel.averageOnlyHistoryData
-                                : viewModel.chartHistoryData,
-                            timeRange: viewModel.selectedTimeRange,
-                            chartMode: viewModel.selectedContentTab == .summary
-                                ? .averageOnly
-                                : .allTypes,
-                            selectedBedroomTypes: viewModel.selectedBedroomTypes,
-                            selectedDataPoint: $viewModel.selectedDataPoint,
-                            isScrubbing: $viewModel.isScrubbingChart,
-                            lineOnlyMode: true  // NEW: Clean line-only mode
-                        )
-
-                        // Time selector overlaid on chart (top-right)
-                        TimeRangeSelector(selectedRange: $viewModel.selectedTimeRange)
-                            .padding(12)
-                    }
+                    // Chart with inline time selector in header
+                    RentHistoryChart(
+                        historyData: viewModel.chartHistoryData,
+                        timeRange: $viewModel.selectedTimeRange,
+                        chartMode: .allTypes,
+                        selectedBedroomTypes: viewModel.selectedBedroomTypes,
+                        selectedDataPoint: $viewModel.selectedDataPoint,
+                        isScrubbing: $viewModel.isScrubbingChart,
+                        lineOnlyMode: true  // Clean line-only mode
+                    )
                     .padding(.horizontal, 20)
 
-                    // Tab Picker (Summary | Breakdown)
-                    MarketContentTabPicker(selectedTab: $viewModel.selectedContentTab)
-
-                    // Conditional Content based on selected tab
-                    if viewModel.selectedContentTab == .breakdown {
-                        // BREAKDOWN TAB - Interactive List View (replaces grid)
-                        BedroomListView(
-                            stats: data.bedroomStats,
-                            selectedBedroomTypes: viewModel.selectedBedroomTypes,
-                            onBedroomTap: { type in
-                                viewModel.toggleBedroomType(type)
-                            }
-                        )
-                        .padding(.horizontal, 20)
-                    } else {
-                        // SUMMARY TAB - Market Overview
-                        MarketSummaryView(
-                            marketData: data,
-                            marketHealth: calculateMarketHealth(changePercent: data.yearOverYearChange)
-                        )
-                        .padding(.horizontal, 20)
-                    }
+                    // Bedroom Breakdown List (always visible - no toggle)
+                    BedroomListView(
+                        stats: data.bedroomStats,
+                        selectedBedroomTypes: viewModel.selectedBedroomTypes,
+                        onBedroomTap: { type in
+                            viewModel.toggleBedroomType(type)
+                        }
+                    )
+                    .padding(.horizontal, 20)
                 } else {
                     emptyStateView
                 }

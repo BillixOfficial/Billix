@@ -17,25 +17,50 @@ enum ChartMode {
 
 struct RentHistoryChart: View {
     let historyData: [RentHistoryPoint]
-    let timeRange: TimeRange
+    @Binding var timeRange: TimeRange  // Changed to Binding for inline control
     let chartMode: ChartMode
     let selectedBedroomTypes: Set<BedroomType>
     @Binding var selectedDataPoint: RentHistoryPoint?
     @Binding var isScrubbing: Bool
-    var lineOnlyMode: Bool = true  // NEW: Default to line-only for cleaner charts
+    var lineOnlyMode: Bool = true  // Default to line-only for cleaner charts
 
     @State private var rawSelectedDate: Date?
     @State private var touchedRent: Double?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Title
-            Text("HISTORICAL PERFORMANCE")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(.secondary)
-                .tracking(0.5)
-                .padding(.top, 8)
-                .frame(maxWidth: .infinity, alignment: .center)
+            // Title + Time Range Pills (merged into one row)
+            HStack(alignment: .center, spacing: 12) {
+                Text("HISTORICAL PERFORMANCE")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.secondary)
+                    .tracking(0.5)
+
+                Spacer()
+
+                // Inline time range pills
+                HStack(spacing: 6) {
+                    ForEach(TimeRange.allCases) { range in
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                timeRange = range
+                            }
+                        } label: {
+                            Text(abbreviatedLabel(for: range))
+                                .font(.system(size: 11, weight: timeRange == range ? .bold : .medium))
+                                .foregroundColor(timeRange == range ? .white : .billixDarkTeal)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(timeRange == range ? Color.billixDarkTeal : Color.gray.opacity(0.1))
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(.top, 8)
 
             // Chart with scrubbing label overlay
             ZStack(alignment: .topLeading) {
@@ -186,7 +211,7 @@ struct RentHistoryChart: View {
                     }
                 }
             }
-            .frame(height: 280)
+            .frame(height: 220)  // Reduced from 280px for better density
             }
 
             // Legend (show in allTypes mode)
@@ -364,6 +389,14 @@ struct RentHistoryChart: View {
         return (minRent - padding)...(maxRent + padding)
     }
 
+    private func abbreviatedLabel(for range: TimeRange) -> String {
+        switch range {
+        case .sixMonths: return "6M"
+        case .oneYear: return "1Y"
+        case .allTime: return "All"
+        }
+    }
+
     private func findClosestDataPoint(to date: Date, rent: Double?) -> RentHistoryPoint? {
         // Filter by chart mode
         let relevantData: [RentHistoryPoint]
@@ -407,6 +440,7 @@ struct RentHistoryChart: View {
     struct PreviewWrapper: View {
         @State private var selectedDataPoint: RentHistoryPoint?
         @State private var isScrubbing: Bool = false
+        @State private var timeRange: TimeRange = .oneYear
         let mockData = MarketTrendsMockData.generateHistoryData(
             location: "New York, NY",
             monthsBack: 12
@@ -415,7 +449,7 @@ struct RentHistoryChart: View {
         var body: some View {
             RentHistoryChart(
                 historyData: mockData,
-                timeRange: .oneYear,
+                timeRange: $timeRange,
                 chartMode: .allTypes,
                 selectedBedroomTypes: [.studio, .oneBed],
                 selectedDataPoint: $selectedDataPoint,
@@ -433,6 +467,7 @@ struct RentHistoryChart: View {
     struct PreviewWrapper: View {
         @State private var selectedDataPoint: RentHistoryPoint?
         @State private var isScrubbing: Bool = false
+        @State private var timeRange: TimeRange = .oneYear
         let mockData = MarketTrendsMockData.generateHistoryData(
             location: "New York, NY",
             monthsBack: 12
@@ -441,7 +476,7 @@ struct RentHistoryChart: View {
         var body: some View {
             RentHistoryChart(
                 historyData: mockData,
-                timeRange: .oneYear,
+                timeRange: $timeRange,
                 chartMode: .averageOnly,
                 selectedBedroomTypes: [],
                 selectedDataPoint: $selectedDataPoint,
