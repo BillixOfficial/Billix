@@ -60,8 +60,8 @@ class MarketTrendsViewModel: ObservableObject {
 
     var chartHistoryData: [RentHistoryPoint] {
         if selectedBedroomTypes.isEmpty {
-            // No selection: show all types (excluding average)
-            return filteredHistoryData.filter { $0.bedroomType != .average }
+            // NEW: Show average line when nothing selected (cleaner default)
+            return filteredHistoryData.filter { $0.bedroomType == .average }
         } else {
             // Show only selected types
             return filteredHistoryData.filter { selectedBedroomTypes.contains($0.bedroomType) }

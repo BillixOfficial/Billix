@@ -16,34 +16,42 @@ struct TickerHeaderView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Large price + green/red pill badge
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
+            // Restructured layout: price on top, metadata below
+            VStack(alignment: .leading, spacing: 8) {
+                // Row 1: Price only (prevent wrapping with dynamic scaling)
                 Text("$\(Int(averageRent))")
                     .font(.system(size: 56, weight: .heavy))
                     .foregroundColor(.primary)
                     .monospacedDigit()
+                    .minimumScaleFactor(0.6)  // Allow shrinking to 60% if needed
+                    .lineLimit(1)  // Force single line
 
-                Text("/mo")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(.secondary)
+                // Row 2: /mo + Trend + Range
+                HStack(spacing: 12) {
+                    Text("/mo")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.secondary)
 
-                Spacer()
+                    // Percentage badge (Robinhood-style)
+                    HStack(spacing: 4) {
+                        Image(systemName: changePercent >= 0 ? "arrow.up.right" : "arrow.down.right")
+                            .font(.system(size: 11, weight: .bold))
 
-                // Percentage badge (Robinhood-style)
-                HStack(spacing: 4) {
-                    Image(systemName: changePercent >= 0 ? "arrow.up.right" : "arrow.down.right")
-                        .font(.system(size: 12, weight: .bold))
+                        Text("\(abs(changePercent), specifier: "%.1f")%")
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(changePercent >= 0 ? Color.billixMoneyGreen : Color.billixStreakOrange)
+                    )
 
-                    Text("\(abs(changePercent), specifier: "%.1f")%")
-                        .font(.system(size: 16, weight: .bold))
+                    Text("Range: $\(Int(lowRent)) - $\(Int(highRent / 1000))k")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.secondary)
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(changePercent >= 0 ? Color.billixMoneyGreen : Color.billixStreakOrange)
-                )
             }
 
             // Price range bar

@@ -22,6 +22,7 @@ struct RentHistoryChart: View {
     let selectedBedroomTypes: Set<BedroomType>
     @Binding var selectedDataPoint: RentHistoryPoint?
     @Binding var isScrubbing: Bool
+    var lineOnlyMode: Bool = true  // NEW: Default to line-only for cleaner charts
 
     @State private var rawSelectedDate: Date?
     @State private var touchedRent: Double?
@@ -284,24 +285,26 @@ struct RentHistoryChart: View {
                 .interpolationMethod(.catmullRom)
                 .lineStyle(StrokeStyle(lineWidth: 3))
 
-                // AreaMark for gradient fill
-                AreaMark(
-                    x: .value("Month", point.date),
-                    yStart: .value("Base", yAxisRange.lowerBound),
-                    yEnd: .value("Rent", point.rent)
-                )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [
-                            Color.billixDarkTeal.opacity(0.3),
-                            Color.billixDarkTeal.opacity(0.05),
-                            Color.clear
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                // AreaMark for gradient fill (only if NOT in line-only mode)
+                if !lineOnlyMode {
+                    AreaMark(
+                        x: .value("Month", point.date),
+                        yStart: .value("Base", yAxisRange.lowerBound),
+                        yEnd: .value("Rent", point.rent)
                     )
-                )
-                .interpolationMethod(.catmullRom)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                Color.billixDarkTeal.opacity(0.3),
+                                Color.billixDarkTeal.opacity(0.05),
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .interpolationMethod(.catmullRom)
+                }
             }
         } else {
             // Breakdown tab: Show selected bedroom types with gradient fills
@@ -312,29 +315,31 @@ struct RentHistoryChart: View {
             ForEach(typesToShow, id: \.self) { bedroomType in
                 let typeData = historyData.filter { $0.bedroomType == bedroomType }
 
-                // AreaMark for gradient fill (render first, behind line)
-                ForEach(typeData) { point in
-                    AreaMark(
-                        x: .value("Month", point.date),
-                        yStart: .value("Base", yAxisRange.lowerBound),
-                        yEnd: .value("Rent", point.rent),
-                        series: .value("Type", bedroomType.rawValue)
-                    )
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                bedroomType.chartColor.opacity(0.2),
-                                bedroomType.chartColor.opacity(0.05),
-                                Color.clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
+                // AreaMark for gradient fill (only if NOT in line-only mode)
+                if !lineOnlyMode {
+                    ForEach(typeData) { point in
+                        AreaMark(
+                            x: .value("Month", point.date),
+                            yStart: .value("Base", yAxisRange.lowerBound),
+                            yEnd: .value("Rent", point.rent),
+                            series: .value("Type", bedroomType.rawValue)
                         )
-                    )
-                    .interpolationMethod(.catmullRom)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    bedroomType.chartColor.opacity(0.2),
+                                    bedroomType.chartColor.opacity(0.05),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .interpolationMethod(.catmullRom)
+                    }
                 }
 
-                // LineMark for the line (render on top)
+                // LineMark for the line (always visible)
                 ForEach(typeData) { point in
                     LineMark(
                         x: .value("Month", point.date),

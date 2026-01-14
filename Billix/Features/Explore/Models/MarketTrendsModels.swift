@@ -29,12 +29,16 @@ struct MarketTrendsData: Identifiable {
 
 // MARK: - Bedroom Statistics
 
-struct BedroomStats: Identifiable {
+struct BedroomStats: Identifiable, Equatable {
     let id: String = UUID().uuidString
     let bedroomCount: Int             // 0 = Studio, 1-5 = bedrooms
     let averageRent: Double
     let rentChange: Double            // Percentage change
     let sampleSize: Int
+
+    static func == (lhs: BedroomStats, rhs: BedroomStats) -> Bool {
+        lhs.id == rhs.id
+    }
 
     var bedroomLabel: String {
         switch bedroomCount {
@@ -108,6 +112,18 @@ enum BedroomType: String, CaseIterable, Identifiable {
         case .threeBed: return .billixGoldenAmber
         case .fourBed: return .billixStreakOrange
         case .fiveBed: return Color(hex: "dc6b62")  // Pink
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .average: return "Average"
+        case .studio: return "Studio"
+        case .oneBed: return "1 Bedroom"
+        case .twoBed: return "2 Bedrooms"
+        case .threeBed: return "3 Bedrooms"
+        case .fourBed: return "4 Bedrooms"
+        case .fiveBed: return "5 Bedrooms"
         }
     }
 }

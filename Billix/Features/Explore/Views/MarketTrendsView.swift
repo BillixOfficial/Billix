@@ -27,11 +27,11 @@ struct MarketTrendsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {  // Reduced from 20 to 16 for more compact layout
                 if viewModel.isLoading {
                     loadingView
                 } else if let data = viewModel.marketData {
-                    // Ticker Header (replaces AverageRentCard)
+                    // Ticker Header (now more compact)
                     TickerHeaderView(
                         averageRent: data.averageRent,
                         changePercent: data.yearOverYearChange,
@@ -40,31 +40,35 @@ struct MarketTrendsView: View {
                     )
                     .padding(.horizontal, 20)
 
-                    // Time range selector
-                    TimeRangeSelector(selectedRange: $viewModel.selectedTimeRange)
-                        .padding(.horizontal, 20)
+                    // Chart with embedded time selector
+                    ZStack(alignment: .topTrailing) {
+                        RentHistoryChart(
+                            historyData: viewModel.selectedContentTab == .summary
+                                ? viewModel.averageOnlyHistoryData
+                                : viewModel.chartHistoryData,
+                            timeRange: viewModel.selectedTimeRange,
+                            chartMode: viewModel.selectedContentTab == .summary
+                                ? .averageOnly
+                                : .allTypes,
+                            selectedBedroomTypes: viewModel.selectedBedroomTypes,
+                            selectedDataPoint: $viewModel.selectedDataPoint,
+                            isScrubbing: $viewModel.isScrubbingChart,
+                            lineOnlyMode: true  // NEW: Clean line-only mode
+                        )
 
-                    // Chart (shown for both tabs)
-                    RentHistoryChart(
-                        historyData: viewModel.selectedContentTab == .summary
-                            ? viewModel.averageOnlyHistoryData
-                            : viewModel.chartHistoryData,
-                        timeRange: viewModel.selectedTimeRange,
-                        chartMode: viewModel.selectedContentTab == .summary
-                            ? .averageOnly
-                            : .allTypes,
-                        selectedBedroomTypes: viewModel.selectedBedroomTypes,
-                        selectedDataPoint: $viewModel.selectedDataPoint,
-                        isScrubbing: $viewModel.isScrubbingChart
-                    )
+                        // Time selector overlaid on chart (top-right)
+                        TimeRangeSelector(selectedRange: $viewModel.selectedTimeRange)
+                            .padding(12)
+                    }
+                    .padding(.horizontal, 20)
 
-                    // Tab Picker (Summary | Breakdown) - BELOW chart
+                    // Tab Picker (Summary | Breakdown)
                     MarketContentTabPicker(selectedTab: $viewModel.selectedContentTab)
 
                     // Conditional Content based on selected tab
                     if viewModel.selectedContentTab == .breakdown {
-                        // BREAKDOWN TAB - Bedroom Breakdown Grid
-                        BedroomBreakdownGrid(
+                        // BREAKDOWN TAB - Interactive List View (replaces grid)
+                        BedroomListView(
                             stats: data.bedroomStats,
                             selectedBedroomTypes: viewModel.selectedBedroomTypes,
                             onBedroomTap: { type in
