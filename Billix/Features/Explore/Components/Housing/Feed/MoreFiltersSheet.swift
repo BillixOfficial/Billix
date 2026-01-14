@@ -27,20 +27,87 @@ struct MoreFiltersSheet: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
+                    // Search Mode Selector (Rent/Buy)
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Mode toggle buttons
+                        HStack(spacing: 0) {
+                            ForEach(SearchMode.allCases) { mode in
+                                Button {
+                                    if mode.isAvailable {
+                                        viewModel.activeSearchMode = mode
+                                    }
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: mode.icon)
+                                            .font(.system(size: 15, weight: .medium))
+
+                                        Text(mode.rawValue)
+                                            .font(.system(size: 15, weight: .medium))
+                                    }
+                                    .foregroundColor(
+                                        mode.isAvailable
+                                            ? (viewModel.activeSearchMode == mode ? .white : .billixDarkTeal)
+                                            : .gray.opacity(0.4)
+                                    )
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(
+                                                viewModel.activeSearchMode == mode && mode.isAvailable
+                                                    ? Color.billixDarkTeal
+                                                    : Color.clear
+                                            )
+                                    )
+                                    .contentShape(Rectangle())
+                                    .overlay(
+                                        // "Coming Soon" badge overlay for disabled modes
+                                        Group {
+                                            if !mode.isAvailable {
+                                                Text("Soon")
+                                                    .font(.system(size: 9, weight: .semibold))
+                                                    .foregroundColor(.white)
+                                                    .padding(.horizontal, 5)
+                                                    .padding(.vertical, 2)
+                                                    .background(
+                                                        Capsule()
+                                                            .fill(Color.orange)
+                                                    )
+                                                    .offset(x: 8, y: -8)
+                                            }
+                                        },
+                                        alignment: .topTrailing
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(!mode.isAvailable)
+                            }
+                        }
+                        .padding(4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.gray.opacity(0.12))
+                        )
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+
+                    Divider()
+
                     // Price Range Section
                     VStack(alignment: .leading, spacing: 16) {
-                        sectionHeader("Price Range")
+                        sectionHeader(viewModel.activeSearchMode == .rent ? "Monthly Rent Range" : "Purchase Price Range")
 
                         VStack(spacing: 12) {
                             HStack {
-                                Text("$\(Int(minPrice))")
+                                Text(viewModel.activeSearchMode == .rent ? "$\(Int(minPrice))/mo" : "$\(Int(minPrice))")
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(.billixDarkTeal)
                                     .monospacedDigit()
 
                                 Spacer()
 
-                                Text("$\(Int(maxPrice))")
+                                Text(viewModel.activeSearchMode == .rent ? "$\(Int(maxPrice))/mo" : "$\(Int(maxPrice))")
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(.billixDarkTeal)
                                     .monospacedDigit()

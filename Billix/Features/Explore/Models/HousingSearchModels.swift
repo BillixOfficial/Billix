@@ -86,6 +86,33 @@ enum ListingStatus: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+// MARK: - Search Mode
+
+enum SearchMode: String, CaseIterable, Identifiable {
+    case rent = "Rent Cost"
+    case buy = "Property Cost"
+
+    var id: String { rawValue }
+
+    var isAvailable: Bool {
+        switch self {
+        case .rent:
+            return true
+        case .buy:
+            return false  // Coming soon
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .rent:
+            return "key.fill"
+        case .buy:
+            return "house.fill"
+        }
+    }
+}
+
 // MARK: - Property Search Parameters
 
 struct PropertySearchParams {

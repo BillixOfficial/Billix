@@ -51,6 +51,7 @@ class HousingSearchViewModel: ObservableObject {
     @Published var showSearchSheet: Bool = false
 
     // Active filters
+    @Published var activeSearchMode: SearchMode = .rent
     @Published var activePropertyType: PropertyType = .all
     @Published var activeBedrooms: Int? = nil
     @Published var activeBathrooms: Double? = nil
