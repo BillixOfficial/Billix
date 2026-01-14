@@ -359,8 +359,8 @@ struct RentHistoryChart: View {
         let minRent = allRents.min() ?? 800
         let maxRent = allRents.max() ?? 2000
 
-        // Add 10% padding
-        let padding = (maxRent - minRent) * 0.1
+        // Add 15% padding for breathing room (prevents line from hitting chart ceiling)
+        let padding = (maxRent - minRent) * 0.15
         return (minRent - padding)...(maxRent + padding)
     }
 
