@@ -15,23 +15,25 @@ struct TickerHeaderView: View {
     let highRent: Double
 
     var body: some View {
-        // Restructured layout: price on top, metadata below
+        // Restructured layout: price + /mo on top, trend + range below
         VStack(alignment: .leading, spacing: 8) {
-            // Row 1: Price only (prevent wrapping with dynamic scaling)
-            Text("$\(Int(averageRent))")
-                .font(.system(size: 56, weight: .heavy))
-                .foregroundColor(.primary)
-                .monospacedDigit()
-                .minimumScaleFactor(0.6)  // Allow shrinking to 60% if needed
-                .lineLimit(1)  // Force single line
+            // Row 1: Price + /mo side-by-side
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("$\(Int(averageRent))")
+                    .font(.system(size: 56, weight: .heavy))
+                    .foregroundColor(.primary)
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
 
-            // Row 2: /mo + Trend + Range (slider removed - range shown here)
-            HStack(spacing: 12) {
                 Text("/mo")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.secondary)
+            }
 
-                // Percentage badge (Robinhood-style)
+            // Row 2: Trend pill (far left) + Range text
+            HStack(spacing: 12) {
+                // Percentage badge (Robinhood-style) - far left
                 HStack(spacing: 4) {
                     Image(systemName: changePercent >= 0 ? "arrow.up.right" : "arrow.down.right")
                         .font(.system(size: 11, weight: .bold))

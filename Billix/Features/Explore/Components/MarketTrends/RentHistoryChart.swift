@@ -211,33 +211,10 @@ struct RentHistoryChart: View {
                     }
                 }
             }
-            .frame(height: 220)  // Reduced from 280px for better density
+            .frame(height: 154)  // 30% shorter for professional wide aspect ratio
             }
 
-            // Legend (show in allTypes mode)
-            if chartMode == .allTypes {
-                let legendTypes = selectedBedroomTypes.isEmpty
-                    ? Array(BedroomType.allCases.filter { $0 != .average })
-                    : Array(selectedBedroomTypes)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
-                        ForEach(legendTypes, id: \.self) { type in
-                            HStack(spacing: 6) {
-                                Circle()
-                                    .fill(type.chartColor)
-                                    .frame(width: 10, height: 10)
-
-                                Text(type.rawValue)
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.primary)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 8)
-                }
-                .padding(.top, 4)
-            }
+            // Legend removed - bedroom list below serves as legend
         }
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .padding(20)
