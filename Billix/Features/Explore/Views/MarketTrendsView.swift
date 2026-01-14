@@ -48,7 +48,7 @@ struct MarketTrendsView: View {
                         selectedBedroomTypes: viewModel.selectedBedroomTypes,
                         selectedDataPoint: $viewModel.selectedDataPoint,
                         isScrubbing: $viewModel.isScrubbingChart,
-                        lineOnlyMode: true  // Clean line-only mode
+                        lineOnlyMode: false  // Enable gradient shadow fill under lines
                     )
                     .padding(.horizontal, 20)
 
