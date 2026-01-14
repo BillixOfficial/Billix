@@ -540,7 +540,7 @@ class HousingSearchViewModel: ObservableObject {
         let baseCoordinate = CLLocationCoordinate2D(latitude: 40.7580, longitude: -73.9855)
 
         let estimate = HousingMockData.generateRentEstimate(params: params)
-        let comps = HousingMockData.generateComparables(params: params, estimate: estimate, baseCoordinate: baseCoordinate)
+        let comps = HousingMockData.generateComparables(params: params, estimate: estimate)
 
         // Store original unfiltered data
         allComparables = comps
