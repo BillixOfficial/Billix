@@ -15,6 +15,7 @@ struct HousingExploreView: View {
     @ObservedObject var viewModel: HousingSearchViewModel
     @State private var showMoreFilters = false
     @State private var sheetDetent: PresentationDetent = .fraction(0.12)
+    @State private var isKeyboardVisible = false
 
     private var isCollapsed: Bool {
         sheetDetent != .medium && sheetDetent != .large
@@ -141,8 +142,8 @@ struct HousingExploreView: View {
                 Spacer()
             }
 
-            // Bottom sheet overlay (doesn't cover tab bar)
-            if viewModel.showResultsSheet, let rentEstimate = viewModel.rentEstimate {
+            // Bottom sheet overlay (doesn't cover tab bar) - hide when keyboard is visible
+            if viewModel.showResultsSheet, let rentEstimate = viewModel.rentEstimate, !isKeyboardVisible {
                 VStack {
                     Spacer()
 
@@ -179,6 +180,24 @@ struct HousingExploreView: View {
             if viewModel.isInitialLoad {
                 await viewModel.loadPopulatedArea(address: "Detroit, MI 48226")
             }
+        }
+        .onAppear {
+            // Listen for keyboard show/hide notifications
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
+                withAnimation(.easeOut(duration: 0.25)) {
+                    isKeyboardVisible = true
+                }
+            }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                withAnimation(.easeOut(duration: 0.25)) {
+                    isKeyboardVisible = false
+                }
+            }
+        }
+        .onDisappear {
+            // Remove keyboard observers when view disappears
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         }
         .sheet(isPresented: $showMoreFilters) {
             MoreFiltersSheet(viewModel: viewModel)
