@@ -107,7 +107,7 @@ struct RentHistoryChart: View {
             .chartPlotStyle { plotArea in
                 plotArea
                     .padding(.leading, 8)
-                    .padding(.trailing, 32)  // Extra space to prevent Y-axis overlap
+                    .padding(.trailing, 0)  // Set to 0px per user request
                     .padding(.bottom, 20)
             }
             .chartYAxis {
@@ -120,6 +120,7 @@ struct RentHistoryChart: View {
                             Text("$\(Int(rent))")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
+                                .offset(x: 9)  // 9px spacing from chart edge
                         }
                     }
                 }
