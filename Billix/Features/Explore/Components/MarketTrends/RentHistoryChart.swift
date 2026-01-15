@@ -211,7 +211,7 @@ struct RentHistoryChart: View {
                     }
                 }
             }
-            .frame(height: 154)  // 30% shorter for professional wide aspect ratio
+            .frame(height: 200)  // Balanced height - readable but not too tall
             }
 
             // Legend removed - bedroom list below serves as legend
