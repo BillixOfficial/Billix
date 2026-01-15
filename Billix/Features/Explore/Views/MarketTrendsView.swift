@@ -27,7 +27,7 @@ struct MarketTrendsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {  // Reduced from 20 to 16 for more compact layout
+            VStack(spacing: 12) {  // Compact spacing to fit everything on one screen
                 if viewModel.isLoading {
                     loadingView
                 } else if let data = viewModel.marketData {
@@ -65,7 +65,7 @@ struct MarketTrendsView: View {
                     emptyStateView
                 }
             }
-            .padding(.bottom, 100)  // Extra padding for bottom nav bar
+            .padding(.bottom, 80)  // Padding for bottom nav bar
         }
         .background(Color(hex: "F8F9FA").ignoresSafeArea())
         .task {

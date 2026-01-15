@@ -21,7 +21,7 @@ struct BedroomListView: View {
     ]
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 16) {
+        LazyVGrid(columns: columns, spacing: 12) {
             ForEach(stats) { stat in
                 let bedroomType = mapBedroomCountToType(stat.bedroomCount)
                 let isSelected = selectedBedroomTypes.contains(bedroomType)
@@ -29,7 +29,7 @@ struct BedroomListView: View {
                 Button {
                     onBedroomTap(bedroomType)
                 } label: {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 4) {
                         // Label with color dot
                         HStack(spacing: 6) {
                             Circle()
@@ -37,26 +37,31 @@ struct BedroomListView: View {
                                 .frame(width: 8, height: 8)
 
                             Text(bedroomType.displayName)
-                                .font(.system(size: 13, weight: .medium))
+                                .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(.secondary)
+                                .lineLimit(1)
                         }
 
                         // Price (large)
                         Text("$\(Int(stat.averageRent))/mo")
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundColor(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
 
                         // Change indicator
                         HStack(spacing: 3) {
                             Image(systemName: stat.rentChange >= 0 ? "arrow.up" : "arrow.down")
-                                .font(.system(size: 10))
+                                .font(.system(size: 9))
                             Text("\(abs(stat.rentChange), specifier: "%.1f")%")
-                                .font(.system(size: 12, weight: .medium))
+                                .font(.system(size: 11, weight: .medium))
                         }
                         .foregroundColor(stat.rentChange >= 0 ? .billixMoneyGreen : .billixStreakOrange)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
+                    .frame(height: 72)  // Fixed height for all cards
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(isSelected ? bedroomType.chartColor.opacity(0.1) : Color(UIColor.secondarySystemBackground))
