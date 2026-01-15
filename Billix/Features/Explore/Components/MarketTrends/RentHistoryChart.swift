@@ -27,6 +27,22 @@ struct RentHistoryChart: View {
     @State private var rawSelectedDate: Date?
     @State private var touchedRent: Double?
 
+    /// Determines if the chart has no data to display based on current filters
+    private var isChartEmpty: Bool {
+        if chartMode == .averageOnly {
+            return historyData.filter { $0.bedroomType == .average }.isEmpty
+        } else {
+            let typesToShow = selectedBedroomTypes.isEmpty
+                ? Array(BedroomType.allCases.filter { $0 != .average })
+                : Array(selectedBedroomTypes)
+
+            let hasData = typesToShow.contains { bedroomType in
+                !historyData.filter { $0.bedroomType == bedroomType }.isEmpty
+            }
+            return !hasData
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Title + Time Range Pills (merged into one row)
@@ -214,6 +230,13 @@ struct RentHistoryChart: View {
                 }
             }
             .frame(height: 240)  // Larger for better visibility and impact
+
+            // Empty state overlay (shows when no data)
+            if isChartEmpty {
+                chartEmptyStateOverlay
+                    .transition(.opacity)
+                    .allowsHitTesting(false)  // Allow touches to pass through to time range pills
+            }
             }
 
             // Legend removed - bedroom list below serves as legend
@@ -225,6 +248,33 @@ struct RentHistoryChart: View {
                 .fill(Color.white)
                 .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
         )
+    }
+
+    // MARK: - Empty State Overlay
+
+    /// Displays instructional text when chart has no data to show
+    private var chartEmptyStateOverlay: some View {
+        VStack(spacing: 12) {
+            // Icon with subtle background circle
+            ZStack {
+                Circle()
+                    .fill(Color.billixDarkTeal.opacity(0.08))
+                    .frame(width: 60, height: 60)
+
+                Image(systemName: "hand.point.down.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(.billixDarkTeal.opacity(0.5))
+            }
+
+            // Instructional text
+            Text("Tap a bedroom type below to view trends")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.white.opacity(0.95))  // Slight transparency shows grid beneath
     }
 
     // MARK: - Scrubbing Label Overlay
