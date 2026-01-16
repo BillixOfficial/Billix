@@ -93,13 +93,26 @@ enum CacheKey {
         return parts.joined(separator: "_")
     }
 
-    static func rentEstimate(address: String?, latitude: Double?, longitude: Double?) -> String {
+    static func rentEstimate(address: String?, latitude: Double?, longitude: Double?, bedrooms: Int? = nil, bathrooms: Double? = nil) -> String {
+        var parts: [String] = ["rent_estimate"]
+
         if let address = address {
-            return "rent_estimate_\(address.replacingOccurrences(of: " ", with: "_"))"
+            parts.append(address.replacingOccurrences(of: " ", with: "_"))
         } else if let lat = latitude, let lon = longitude {
-            return "rent_estimate_\(lat)_\(lon)"
+            parts.append("\(lat)_\(lon)")
+        } else {
+            parts.append("unknown")
         }
-        return "rent_estimate_unknown"
+
+        // Include filter parameters in cache key
+        if let beds = bedrooms {
+            parts.append("beds_\(beds)")
+        }
+        if let baths = bathrooms {
+            parts.append("baths_\(Int(baths))")
+        }
+
+        return parts.joined(separator: "_")
     }
 
     static func marketTrends(zipCode: String, propertyType: String?, months: Int) -> String {

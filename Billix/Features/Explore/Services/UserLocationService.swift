@@ -124,12 +124,16 @@ extension UserLocationService: CLLocationManagerDelegate {
 
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         Task { @MainActor in
+            let previousStatus = self.authorizationStatus
             self.authorizationStatus = manager.authorizationStatus
-            print("📍 Authorization changed to: \(manager.authorizationStatus.rawValue)")
+            print("📍 Authorization changed from \(previousStatus.rawValue) to: \(manager.authorizationStatus.rawValue)")
 
-            // If user just granted permission, get location
-            if self.hasPermission && self.isLoading {
-                print("📍 Permission granted, now requesting location...")
+            // If user just granted permission (from denied/notDetermined), get location
+            let wasNotAuthorized = previousStatus == .denied || previousStatus == .notDetermined || previousStatus == .restricted
+            if self.hasPermission && wasNotAuthorized {
+                print("📍 Permission just granted, requesting location...")
+                self.isLoading = true
+                self.errorMessage = nil  // Clear any previous error
                 manager.requestLocation()
             }
         }

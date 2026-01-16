@@ -31,16 +31,31 @@ struct HousingExploreView: View {
                     region: $viewModel.mapRegion,
                     selectedPropertyId: $viewModel.selectedPropertyId,
                     onPinTap: { id in
-                        viewModel.selectPropertyFromMap(id: id)
-                        // Expand sheet to medium (half-expanded) to show property details
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            sheetDetent = .medium
+                        if id == "searched" {
+                            // Blue pin (searched location) tapped - show full listing view
+                            print("📍 [PIN TAP] Blue pin (searched location) tapped")
+                            print("   → Clearing selection, expanding to FULL view (.large)")
+                            viewModel.selectedPropertyId = nil  // Clear any selection
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                sheetDetent = .large  // Full expanded view
+                            }
+                        } else {
+                            // Comparable property pin tapped - show property details
+                            print("📍 [PIN TAP] Comparable pin tapped: \(id)")
+                            print("   → Selecting property, expanding to HALF view (.medium)")
+                            viewModel.selectPropertyFromMap(id: id)
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                sheetDetent = .medium  // Half-expanded to show selected property
+                            }
                         }
                     }
                 )
                 .ignoresSafeArea()
             } else if viewModel.isLoading {
                 loadingState
+            } else {
+                // Empty state - instructions before search
+                emptyStateView
             }
 
             // Search bar at top (overlaid on map)
@@ -194,7 +209,7 @@ struct HousingExploreView: View {
                     DraggableResultsSheet(
                         rentEstimate: rentEstimate,
                         comparables: viewModel.comparables,  // Use raw comparables (selected property is first)
-                        totalCount: viewModel.propertyMarkers.count,  // Total pins on map
+                        totalCount: viewModel.comparableMarkers.count,  // Total comparable rentals (excludes searched location pin)
                         selectedPropertyId: viewModel.selectedPropertyId,
                         onPropertyTap: { id in
                             // Card tap: only update selection (blue border), don't reorder
@@ -223,20 +238,21 @@ struct HousingExploreView: View {
         .task {
             // Auto-load user's location on first appear
             if viewModel.isInitialLoad {
+                print("📍 [HOUSING] Requesting user location...")
                 userLocation.getCurrentLocation()
 
                 // Fallback: If location takes too long (5 seconds), show empty state
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
                 if viewModel.isInitialLoad && userLocation.userZipCode == nil {
-                    print("📍 Location timeout - user can search manually")
+                    print("📍 [HOUSING] Location timeout - user can search manually")
                     viewModel.isInitialLoad = false
                 }
             }
         }
         .onChange(of: userLocation.userZipCode) { zipCode in
-            // Load properties when we get user's ZIP code
-            if let zipCode = zipCode, viewModel.isInitialLoad {
-                print("📍 Got ZIP code: \(zipCode), loading properties...")
+            // Load properties when we get user's ZIP code (even if permission was granted after denial)
+            if let zipCode = zipCode, !viewModel.hasSearched {
+                print("📍 [HOUSING] Got ZIP code: \(zipCode), loading properties...")
                 Task {
                     await viewModel.loadPopulatedArea(address: zipCode)
                 }
@@ -245,7 +261,7 @@ struct HousingExploreView: View {
         .onChange(of: userLocation.errorMessage) { error in
             // If location fails, let user search manually
             if error != nil && viewModel.isInitialLoad {
-                print("📍 Location error: \(error ?? "unknown"), user can search manually")
+                print("📍 [HOUSING] Location error: \(error ?? "unknown"), user can search manually")
                 viewModel.isInitialLoad = false
             }
         }
@@ -285,6 +301,47 @@ struct HousingExploreView: View {
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Empty State (Before Search)
+
+    private var emptyStateView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+                .frame(height: 60)  // Push content below search bar
+
+            // Icon
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 56, weight: .light))
+                .foregroundColor(.billixDarkTeal.opacity(0.6))
+                .padding(.bottom, 8)
+
+            // Title
+            Text("Search for Rentals")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.primary)
+
+            // Description
+            Text("Enter an address and select filters to find\ncomparable rental properties in your area.")
+                .font(.system(size: 16))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+
+            // Hint
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 12, weight: .semibold))
+                Text("Tap the search bar above to get started")
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundColor(.billixDarkTeal)
+            .padding(.top, 8)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 40)
     }
 }
 
@@ -507,7 +564,7 @@ struct DraggableResultsSheet: View {
                                 .monospacedDigit()
 
                             // Informational subtitle (like RentCast)
-                            Text("Based on rentals within a **0.5 mile** radius seen in the last **270 days**")
+                            Text("Based on rentals within a **1.5 mile** radius seen in the last **6 months**")
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -587,7 +644,7 @@ struct DraggableResultsSheet: View {
                                         .font(.system(size: 20, weight: .bold))
                                         .foregroundColor(.primary)
 
-                                    Text("Based on rentals within a **0.5 mile** radius seen in the last **270 days**")
+                                    Text("Based on rentals within a **1.5 mile** radius seen in the last **6 months**")
                                         .font(.system(size: 14))
                                         .foregroundColor(.secondary)
                                 }

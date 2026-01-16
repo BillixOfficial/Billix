@@ -62,15 +62,8 @@ class HousingSearchViewModel: ObservableObject {
     @Published var activeRadius: Double = 3.0  // Default 3 miles for feed
     @Published var activeLocation: String = ""  // City or state filter
 
-    // Additional filters for MoreFiltersSheet
-    @Published var activeSqftRange: ClosedRange<Double>? = nil
-    @Published var activeYearBuiltRange: ClosedRange<Int>? = nil
-    // NOTE: Amenities and keywords filters removed - not supported by RentCast API
-
-    // NEW: Rentcast-supported filters
-    @Published var activeLotSizeRange: ClosedRange<Double>? = nil  // sq ft
-    @Published var activeDaysOldRange: ClosedRange<Int>? = nil    // days since listed
-    @Published var activeListingStatus: ListingStatus = .active   // Active/Inactive
+    // Rentcast-supported filters (simplified - removed sqft, yearBuilt, lotSize, daysOld)
+    @Published var activeListingStatus: ListingStatus = .all   // Show all by default (Active + Inactive)
     @Published var activePropertyTypes: Set<PropertyType> = []    // Multiple types
 
     // Search input
@@ -145,14 +138,11 @@ class HousingSearchViewModel: ObservableObject {
         var count = 0
 
         if activePropertyType != .all { count += 1 }
+        if !activePropertyTypes.isEmpty { count += 1 }
         if activeBedrooms != nil { count += 1 }
         if activeBathrooms != nil { count += 1 }
         if activePriceRange != nil { count += 1 }
-        if activeSqftRange != nil { count += 1 }
-        if activeYearBuiltRange != nil { count += 1 }
-        if activeLotSizeRange != nil { count += 1 }
-        if activeDaysOldRange != nil { count += 1 }
-        // NOTE: Amenities and keywords removed - not supported by RentCast API
+        if activeListingStatus != .all { count += 1 }
 
         return count
     }
@@ -164,35 +154,28 @@ class HousingSearchViewModel: ObservableObject {
             pills.append(FilterPill(id: "type", label: activePropertyType.rawValue))
         }
 
+        // Show multi-select property types
+        if !activePropertyTypes.isEmpty {
+            let typeNames = activePropertyTypes.map { $0.rawValue }.joined(separator: ", ")
+            pills.append(FilterPill(id: "types", label: typeNames))
+        }
+
         if let beds = activeBedrooms {
-            pills.append(FilterPill(id: "beds", label: "\(beds)+ bed\(beds == 1 ? "" : "s")"))
+            pills.append(FilterPill(id: "beds", label: "\(beds) bed\(beds == 1 ? "" : "s")"))
         }
 
         if let baths = activeBathrooms {
-            pills.append(FilterPill(id: "baths", label: "\(Int(baths))+ bathroom\(baths == 1.0 ? "" : "s")"))
+            let bathLabel = baths.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(baths))" : "\(baths)"
+            pills.append(FilterPill(id: "baths", label: "\(bathLabel) bath\(baths == 1.0 ? "" : "s")"))
         }
 
         if let priceRange = activePriceRange {
             pills.append(FilterPill(id: "price", label: "$\(Int(priceRange.lowerBound))-\(Int(priceRange.upperBound))/mo"))
         }
 
-        if let sqftRange = activeSqftRange {
-            pills.append(FilterPill(id: "sqft", label: "\(Int(sqftRange.lowerBound))-\(Int(sqftRange.upperBound)) sq.ft."))
+        if activeListingStatus != .all {
+            pills.append(FilterPill(id: "status", label: activeListingStatus.rawValue))
         }
-
-        if let yearRange = activeYearBuiltRange {
-            pills.append(FilterPill(id: "year", label: "Built \(yearRange.lowerBound)-\(yearRange.upperBound)"))
-        }
-
-        if let lotRange = activeLotSizeRange {
-            pills.append(FilterPill(id: "lot", label: "\(Int(lotRange.lowerBound))-\(Int(lotRange.upperBound)) lot sq.ft."))
-        }
-
-        if let daysRange = activeDaysOldRange {
-            pills.append(FilterPill(id: "days", label: "Listed \(daysRange.lowerBound)-\(daysRange.upperBound) days ago"))
-        }
-
-        // NOTE: Amenities and keywords pills removed - not supported by RentCast API
 
         return pills
     }
@@ -200,16 +183,15 @@ class HousingSearchViewModel: ObservableObject {
     func removeFilter(id: String) {
         switch id {
         case "type": activePropertyType = .all
+        case "types": activePropertyTypes = []
         case "beds": activeBedrooms = nil
         case "baths": activeBathrooms = nil
         case "price": activePriceRange = nil
-        case "sqft": activeSqftRange = nil
-        case "year": activeYearBuiltRange = nil
-        case "lot": activeLotSizeRange = nil
-        case "days": activeDaysOldRange = nil
-        // NOTE: amenities and keywords cases removed - not supported by RentCast API
+        case "status": activeListingStatus = .all
         default: break
         }
+
+        print("🔍 [FILTER] Removed filter: \(id)")
 
         Task {
             await applyFilters()
@@ -262,14 +244,15 @@ class HousingSearchViewModel: ObservableObject {
             params.propertyType = types.isEmpty ? nil : types
         }
 
-        // Bedrooms (range or single)
+        // Bedrooms (exact value)
         if let beds = activeBedrooms {
-            params.bedrooms = "\(beds):*"  // Min bedrooms
+            params.bedrooms = "\(beds)"  // Exact bedroom count
         }
 
-        // Bathrooms (range or single)
+        // Bathrooms (exact value)
         if let baths = activeBathrooms {
-            params.bathrooms = "\(baths):*"  // Min bathrooms
+            let bathStr = baths.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(baths))" : "\(baths)"
+            params.bathrooms = bathStr  // Exact bathroom count
         }
 
         // Price range
@@ -277,30 +260,17 @@ class HousingSearchViewModel: ObservableObject {
             params.price = "\(Int(priceRange.lowerBound)):\(Int(priceRange.upperBound))"
         }
 
-        // Square footage range
-        if let sqftRange = activeSqftRange {
-            params.squareFootage = "\(Int(sqftRange.lowerBound)):\(Int(sqftRange.upperBound))"
-        }
-
-        // Year built range
-        if let yearRange = activeYearBuiltRange {
-            params.yearBuilt = "\(yearRange.lowerBound):\(yearRange.upperBound)"
-        }
-
-        // Lot size range
-        if let lotRange = activeLotSizeRange {
-            params.lotSize = "\(Int(lotRange.lowerBound)):\(Int(lotRange.upperBound))"
-        }
-
-        // Days old range
-        if let daysRange = activeDaysOldRange {
-            params.daysOld = "\(daysRange.lowerBound):\(daysRange.upperBound)"
-        }
-
         // Status
         if activeListingStatus != .all {
             params.status = activeListingStatus.rawValue
         }
+
+        print("🔍 [API QUERY] Building query with:")
+        print("   📍 Location: \(params.address ?? "nil")")
+        print("   🛏️ Bedrooms: \(params.bedrooms ?? "any")")
+        print("   🛁 Bathrooms: \(params.bathrooms ?? "any")")
+        print("   💵 Price: \(params.price ?? "any")")
+        print("   📊 Status: \(params.status ?? "any")")
 
         return params
     }
@@ -468,11 +438,20 @@ class HousingSearchViewModel: ObservableObject {
     }
 
     func applyFilters() async {
+        print("")
+        print("🔄 [APPLY FILTERS] Called")
+        print("   • searchAddress: '\(searchAddress)'")
+        print("   • activeBedrooms: \(activeBedrooms != nil ? "\(activeBedrooms!)" : "nil")")
+        print("   • activeBathrooms: \(activeBathrooms != nil ? "\(activeBathrooms!)" : "nil")")
+
         // If we have a search address, reload from API with new filters
         // This ensures filters are applied server-side for better results
         if !searchAddress.isEmpty {
+            print("   → Making NEW API call with filters (API-level filtering)")
             await loadPopulatedArea(address: searchAddress)
             return
+        } else {
+            print("   → No search address, applying client-side filters only")
         }
 
         // Fallback: Filter existing properties if no search has been done
@@ -506,13 +485,10 @@ class HousingSearchViewModel: ObservableObject {
         activePriceRange = nil
         activeRadius = 3.0
         activeLocation = ""
-        activeSqftRange = nil
-        activeYearBuiltRange = nil
-        activeLotSizeRange = nil
-        activeDaysOldRange = nil
-        activeListingStatus = .active
-        // NOTE: activeAmenities and activeKeywords removed - not supported by RentCast API
+        activeListingStatus = .all
         searchQuery = ""
+
+        print("🔍 [FILTERS] All filters reset")
 
         Task {
             await applyFilters()
@@ -569,17 +545,18 @@ class HousingSearchViewModel: ObservableObject {
     }
 
     /// Filter comparables based on active filters
+    /// NOTE: Bedroom/bathroom filtering is done at API level, not client-side
     private func filterComparables(_ comps: [RentalComparable]) -> [RentalComparable] {
         var filtered = comps
 
-        print("🔍 [FILTER] Starting with \(comps.count) properties")
-        print("🔍 [FILTER] Active filters:")
-        print("   - activeBedrooms: \(activeBedrooms?.description ?? "nil")")
-        print("   - activeBathrooms: \(activeBathrooms?.description ?? "nil")")
+        print("🔍 [FILTER] Starting with \(comps.count) properties (API-filtered)")
+        print("🔍 [FILTER] Refinement filters:")
         print("   - activePropertyType: \(activePropertyType)")
         print("   - activePropertyTypes: \(activePropertyTypes)")
         print("   - activePriceRange: \(activePriceRange?.description ?? "nil")")
-        print("   - activeRadius: \(activeRadius) miles")
+        print("   - activeListingStatus: \(activeListingStatus)")
+        print("   - activeRadius: \(activeRadius) mi")
+        print("   (beds/baths handled by API, not filtered here)")
 
         // Filter by property types (multi-select takes priority)
         if !activePropertyTypes.isEmpty {
@@ -591,24 +568,11 @@ class HousingSearchViewModel: ObservableObject {
             print("🔍 [FILTER] After property type (single): \(filtered.count)")
         }
 
-        // Filter by bedrooms (minimum)
-        if let minBeds = activeBedrooms {
-            let beforeCount = filtered.count
-            filtered = filtered.filter { $0.bedrooms >= minBeds }
-            print("🔍 [FILTER] After bedrooms >= \(minBeds): \(filtered.count) (removed \(beforeCount - filtered.count))")
+        // NOTE: Bedroom/bathroom filtering removed - API handles this
+        // When user selects "2 bedrooms", we re-fetch from API with bedrooms=2
+        // API returns ~15-20 two-bedroom properties directly
 
-            // Debug: Show some properties that were kept vs removed
-            let kept = filtered.prefix(3).map { "\($0.address): \($0.bedrooms) beds" }
-            print("   - Sample kept: \(kept)")
-        }
-
-        // Filter by bathrooms (minimum)
-        if let minBaths = activeBathrooms {
-            filtered = filtered.filter { $0.bathrooms >= minBaths }
-            print("🔍 [FILTER] After bathrooms >= \(minBaths): \(filtered.count)")
-        }
-
-        // Filter by price range
+        // Filter by price range (client-side refinement)
         if let priceRange = activePriceRange {
             filtered = filtered.filter {
                 guard let rent = $0.rent else { return false }
@@ -617,38 +581,11 @@ class HousingSearchViewModel: ObservableObject {
             print("🔍 [FILTER] After price range: \(filtered.count)")
         }
 
-        // Filter by square footage range
-        if let sqftRange = activeSqftRange {
-            filtered = filtered.filter {
-                guard let sqft = $0.sqft else { return true }  // Keep if no sqft data
-                return sqftRange.contains(Double(sqft))
-            }
-            print("🔍 [FILTER] After sqft range: \(filtered.count)")
-        }
-
-        // Filter by year built range
-        if let yearRange = activeYearBuiltRange {
-            filtered = filtered.filter {
-                guard let yearBuilt = $0.yearBuilt else { return true }  // Keep if no year data
-                return yearRange.contains(yearBuilt)
-            }
-            print("🔍 [FILTER] After year built range: \(filtered.count)")
-        }
-
-        // Filter by lot size range
-        if let lotRange = activeLotSizeRange {
-            filtered = filtered.filter {
-                guard let lotSize = $0.lotSize else { return true }  // Keep if no lot size data
-                return lotRange.contains(Double(lotSize))
-            }
-            print("🔍 [FILTER] After lot size range: \(filtered.count)")
-        }
-
-        // Filter by days on market
-        if let daysRange = activeDaysOldRange, daysRange.upperBound > 0 {
-            let cutoffDate = Calendar.current.date(byAdding: .day, value: -daysRange.upperBound, to: Date()) ?? Date()
-            filtered = filtered.filter { $0.lastSeen >= cutoffDate }
-            print("🔍 [FILTER] After days old range: \(filtered.count)")
+        // Filter by listing status (client-side refinement)
+        if activeListingStatus != .all {
+            let statusStr = activeListingStatus.rawValue
+            filtered = filtered.filter { $0.status == statusStr }
+            print("🔍 [FILTER] After status == \(statusStr): \(filtered.count)")
         }
 
         // Filter by radius (distance from search center)
@@ -688,22 +625,43 @@ class HousingSearchViewModel: ObservableObject {
 
     /// Load rent estimate and comparables for an address (RentCast-style)
     func loadPopulatedArea(address: String) async {
+        print("═══════════════════════════════════════════════════════════")
+        print("🏠 [SEARCH] Starting search for: \(address)")
+        print("═══════════════════════════════════════════════════════════")
+        print("📋 [FILTERS] Active filters:")
+        print("   • Bedrooms: \(activeBedrooms != nil ? "\(activeBedrooms!)" : "Any")")
+        print("   • Bathrooms: \(activeBathrooms != nil ? "\(activeBathrooms!)" : "Any")")
+        print("   • Property Type: \(activePropertyType.rawValue)")
+        print("   • Price Range: \(activePriceRange?.description ?? "Any")")
+        print("   • Status: \(activeListingStatus.rawValue)")
+        print("   • Radius: \(activeRadius) mi")
+        print("───────────────────────────────────────────────────────────")
+
         isLoading = true
         searchAddress = address
+        activeLocation = address  // Sync with Market Trends tab
 
         do {
-            // Step 1: Check cache first (by address)
-            let cacheKey = CacheKey.rentEstimate(address: address, latitude: nil, longitude: nil)
+            // Step 1: Check cache first (by address + filters)
+            let cacheKey = CacheKey.rentEstimate(address: address, latitude: nil, longitude: nil, bedrooms: activeBedrooms, bathrooms: activeBathrooms)
+            print("🔑 [CACHE KEY] \(cacheKey)")
+
             let cachedResponse: RentCastEstimateResponse? = await CacheManager.shared.get(cacheKey)
 
             var response: RentCastEstimateResponse
 
             if let cached = cachedResponse {
-                print("💾 [CACHE] Using cached rent estimate for '\(address)'")
+                print("💾 [CACHE HIT] Using cached data (no API call)")
                 response = cached
             } else {
                 // Step 2: Fetch from Rent Estimate API (provides similarity scores!)
-                print("📡 [API] Fetching rent estimate for '\(address)'...")
+                print("📡 [API CALL] Making NEW API request with:")
+                print("   • address: \(address)")
+                print("   • bedrooms: \(activeBedrooms != nil ? "\(activeBedrooms!)" : "nil (any)")")
+                print("   • bathrooms: \(activeBathrooms != nil ? "\(activeBathrooms!)" : "nil (any)")")
+                print("   • maxRadius: 1.5 mi")
+                print("   • daysOld: 365")
+                print("   • compCount: 20")
 
                 response = try await rentCastService.fetchRentEstimate(
                     address: address,
@@ -711,14 +669,14 @@ class HousingSearchViewModel: ObservableObject {
                     bedrooms: activeBedrooms,
                     bathrooms: activeBathrooms != nil ? activeBathrooms : nil,
                     squareFootage: nil,
-                    maxRadius: 0.5,   // 0.5 mile radius (like RentCast)
-                    daysOld: 270,     // Last 270 days (like RentCast)
-                    compCount: 15     // Get 15 comparables
+                    maxRadius: 1.5,   // 1.5 mile radius for more results
+                    daysOld: 180,     // Last 6 months of data
+                    compCount: 20     // Get 20 comparables
                 )
 
                 // Step 3: Store in cache
                 await CacheManager.shared.set(cacheKey, value: response)
-                print("💾 [CACHE] Stored rent estimate for '\(address)'")
+                print("💾 [CACHE STORED] Saved to cache with key: \(cacheKey)")
             }
 
             // Store search center from API response
@@ -729,7 +687,12 @@ class HousingSearchViewModel: ObservableObject {
 
             // Convert comparables to Billix models (already sorted by similarity from API)
             let comps = response.comparables.map { $0.toRentalComparable() }
-            print("📡 [API] Received \(comps.count) comparables with similarity scores")
+            print("───────────────────────────────────────────────────────────")
+            print("📊 [API RESPONSE] Received \(comps.count) comparables from API")
+
+            // Show bedroom breakdown of API results
+            let bedroomCounts = Dictionary(grouping: comps, by: { $0.bedrooms }).mapValues { $0.count }
+            print("   Bedroom breakdown: \(bedroomCounts.sorted(by: { $0.key < $1.key }).map { "\($0.key)bd: \($0.value)" }.joined(separator: ", "))")
 
             // Store all comparables
             allComparables = comps
@@ -775,7 +738,13 @@ class HousingSearchViewModel: ObservableObject {
             hasSearched = true
             showResultsSheet = true
 
-            print("✅ [DONE] Loaded \(filteredComps.count) of \(sortedComps.count) comparables (after filters), estimate: $\(Int(response.rent))/mo")
+            print("───────────────────────────────────────────────────────────")
+            print("✅ [SEARCH COMPLETE]")
+            print("   • API returned: \(sortedComps.count) comparables")
+            print("   • After client filters: \(filteredComps.count) shown")
+            print("   • Rent estimate: $\(Int(response.rent))/mo")
+            print("   • Map pins: 1 (searched) + \(compMarkers.count) (comparables)")
+            print("═══════════════════════════════════════════════════════════")
 
         } catch {
             print("❌ Error loading rent estimate: \(error)")

@@ -15,13 +15,6 @@ struct MoreFiltersSheet: View {
     // Local state for range sliders
     @State private var minPrice: Double = 0
     @State private var maxPrice: Double = 10000
-    @State private var minSqft: Double = 0
-    @State private var maxSqft: Double = 5000
-    @State private var minLotSize: Double = 0
-    @State private var maxLotSize: Double = 50000
-    @State private var minYearBuilt: Int = 1900
-    @State private var maxYearBuilt: Int = 2024
-    @State private var maxDaysOld: Int = 0
 
     var body: some View {
         NavigationView {
@@ -146,7 +139,7 @@ struct MoreFiltersSheet: View {
                         sectionHeader("Bedrooms & Bathrooms")
 
                         VStack(spacing: 20) {
-                            // Bedrooms
+                            // Bedrooms (exact values)
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Bedrooms")
                                     .font(.system(size: 15, weight: .medium))
@@ -157,21 +150,48 @@ struct MoreFiltersSheet: View {
                                         BedroomBathroomButton(
                                             label: "Any",
                                             isSelected: viewModel.activeBedrooms == nil,
-                                            onTap: { viewModel.activeBedrooms = nil }
+                                            onTap: {
+                                                viewModel.activeBedrooms = nil
+                                                print("🔍 [FILTER UI] Bedrooms: Any")
+                                            }
                                         )
 
-                                        ForEach([1, 2, 3, 4, 5], id: \.self) { count in
+                                        // Studio = 0 bedrooms
+                                        BedroomBathroomButton(
+                                            label: "Studio",
+                                            isSelected: viewModel.activeBedrooms == 0,
+                                            onTap: {
+                                                viewModel.activeBedrooms = 0
+                                                print("🔍 [FILTER UI] Bedrooms: Studio (0)")
+                                            }
+                                        )
+
+                                        // Exact bedroom counts: 1, 2, 3, 4, 5+
+                                        ForEach([1, 2, 3, 4], id: \.self) { count in
                                             BedroomBathroomButton(
-                                                label: "\(count)+",
+                                                label: "\(count)",
                                                 isSelected: viewModel.activeBedrooms == count,
-                                                onTap: { viewModel.activeBedrooms = count }
+                                                onTap: {
+                                                    viewModel.activeBedrooms = count
+                                                    print("🔍 [FILTER UI] Bedrooms: \(count)")
+                                                }
                                             )
                                         }
+
+                                        // 5+ (treated as 5)
+                                        BedroomBathroomButton(
+                                            label: "5+",
+                                            isSelected: viewModel.activeBedrooms == 5,
+                                            onTap: {
+                                                viewModel.activeBedrooms = 5
+                                                print("🔍 [FILTER UI] Bedrooms: 5+")
+                                            }
+                                        )
                                     }
                                 }
                             }
 
-                            // Bathrooms
+                            // Bathrooms (simplified exact values)
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Bathrooms")
                                     .font(.system(size: 15, weight: .medium))
@@ -182,187 +202,37 @@ struct MoreFiltersSheet: View {
                                         BedroomBathroomButton(
                                             label: "Any",
                                             isSelected: viewModel.activeBathrooms == nil,
-                                            onTap: { viewModel.activeBathrooms = nil }
+                                            onTap: {
+                                                viewModel.activeBathrooms = nil
+                                                print("🔍 [FILTER UI] Bathrooms: Any")
+                                            }
                                         )
 
-                                        ForEach([1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0], id: \.self) { count in
+                                        // Exact bathroom counts: 1, 2, 3+
+                                        ForEach([1.0, 2.0], id: \.self) { count in
                                             BedroomBathroomButton(
-                                                label: count.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(count))+" : "\(String(format: "%.1f", count))+",
+                                                label: "\(Int(count))",
                                                 isSelected: viewModel.activeBathrooms == count,
-                                                onTap: { viewModel.activeBathrooms = count }
+                                                onTap: {
+                                                    viewModel.activeBathrooms = count
+                                                    print("🔍 [FILTER UI] Bathrooms: \(Int(count))")
+                                                }
                                             )
                                         }
+
+                                        // 3+ (treated as 3)
+                                        BedroomBathroomButton(
+                                            label: "3+",
+                                            isSelected: viewModel.activeBathrooms == 3.0,
+                                            onTap: {
+                                                viewModel.activeBathrooms = 3.0
+                                                print("🔍 [FILTER UI] Bathrooms: 3+")
+                                            }
+                                        )
                                     }
                                 }
                             }
                         }
-                    }
-                    .padding(.horizontal, 20)
-
-                    Divider()
-
-                    // Square Footage Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        sectionHeader("Square Footage")
-
-                        VStack(spacing: 12) {
-                            HStack {
-                                Text("\(Int(minSqft)) sq ft")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.billixDarkTeal)
-                                    .monospacedDigit()
-
-                                Spacer()
-
-                                Text("\(Int(maxSqft)) sq ft")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.billixDarkTeal)
-                                    .monospacedDigit()
-                            }
-
-                            VStack(spacing: 8) {
-                                HStack(spacing: 12) {
-                                    Text("Min")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.secondary)
-                                        .frame(width: 40, alignment: .leading)
-
-                                    Slider(value: $minSqft, in: 0...5000, step: 100)
-                                        .tint(.billixDarkTeal)
-                                }
-
-                                HStack(spacing: 12) {
-                                    Text("Max")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.secondary)
-                                        .frame(width: 40, alignment: .leading)
-
-                                    Slider(value: $maxSqft, in: 0...5000, step: 100)
-                                        .tint(.billixDarkTeal)
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
-
-                    Divider()
-
-                    // Year Built Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        sectionHeader("Year Built")
-
-                        HStack(spacing: 16) {
-                            // Min Year
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("From")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.secondary)
-
-                                Picker("Min Year", selection: $minYearBuilt) {
-                                    ForEach(Array(stride(from: 1900, through: 2024, by: 10)), id: \.self) { year in
-                                        Text("\(year)").tag(year)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .frame(maxWidth: .infinity)
-                                .padding(12)
-                                .background(Color.gray.opacity(0.1))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-
-                            // Max Year
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("To")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.secondary)
-
-                                Picker("Max Year", selection: $maxYearBuilt) {
-                                    ForEach(Array(stride(from: 1900, through: 2024, by: 10)), id: \.self) { year in
-                                        Text("\(year)").tag(year)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .frame(maxWidth: .infinity)
-                                .padding(12)
-                                .background(Color.gray.opacity(0.1))
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
-
-                    Divider()
-
-                    // Lot Size Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        sectionHeader("Lot Size")
-
-                        VStack(spacing: 12) {
-                            HStack {
-                                Text("\(Int(minLotSize)) sq ft")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.billixDarkTeal)
-                                    .monospacedDigit()
-
-                                Spacer()
-
-                                Text("\(Int(maxLotSize)) sq ft")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.billixDarkTeal)
-                                    .monospacedDigit()
-                            }
-
-                            VStack(spacing: 8) {
-                                HStack(spacing: 12) {
-                                    Text("Min")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.secondary)
-                                        .frame(width: 40, alignment: .leading)
-
-                                    Slider(value: $minLotSize, in: 0...50000, step: 1000)
-                                        .tint(.billixDarkTeal)
-                                }
-
-                                HStack(spacing: 12) {
-                                    Text("Max")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.secondary)
-                                        .frame(width: 40, alignment: .leading)
-
-                                    Slider(value: $maxLotSize, in: 0...50000, step: 1000)
-                                        .tint(.billixDarkTeal)
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
-
-                    Divider()
-
-                    // Days on Market Section
-                    VStack(alignment: .leading, spacing: 16) {
-                        sectionHeader("Days on Market")
-
-                        HStack {
-                            Text("Show listings from")
-                                .font(.system(size: 15))
-                                .foregroundColor(.primary)
-
-                            Spacer()
-
-                            Picker("Days", selection: $maxDaysOld) {
-                                Text("Any time").tag(0)
-                                Text("Last 7 days").tag(7)
-                                Text("Last 14 days").tag(14)
-                                Text("Last 30 days").tag(30)
-                                Text("Last 60 days").tag(60)
-                                Text("Last 90 days").tag(90)
-                            }
-                            .pickerStyle(.menu)
-                        }
-                        .padding(16)
-                        .background(Color.gray.opacity(0.05))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     .padding(.horizontal, 20)
 
@@ -483,25 +353,6 @@ struct MoreFiltersSheet: View {
             minPrice = priceRange.lowerBound
             maxPrice = priceRange.upperBound
         }
-
-        if let sqftRange = viewModel.activeSqftRange {
-            minSqft = sqftRange.lowerBound
-            maxSqft = sqftRange.upperBound
-        }
-
-        if let lotRange = viewModel.activeLotSizeRange {
-            minLotSize = lotRange.lowerBound
-            maxLotSize = lotRange.upperBound
-        }
-
-        if let yearRange = viewModel.activeYearBuiltRange {
-            minYearBuilt = yearRange.lowerBound
-            maxYearBuilt = yearRange.upperBound
-        }
-
-        if let daysRange = viewModel.activeDaysOldRange {
-            maxDaysOld = daysRange.upperBound
-        }
     }
 
     private func applyFiltersAndDismiss() {
@@ -512,29 +363,12 @@ struct MoreFiltersSheet: View {
             viewModel.activePriceRange = nil
         }
 
-        if minSqft > 0 || maxSqft < 5000 {
-            viewModel.activeSqftRange = minSqft...maxSqft
-        } else {
-            viewModel.activeSqftRange = nil
-        }
-
-        if minLotSize > 0 || maxLotSize < 50000 {
-            viewModel.activeLotSizeRange = minLotSize...maxLotSize
-        } else {
-            viewModel.activeLotSizeRange = nil
-        }
-
-        if minYearBuilt > 1900 || maxYearBuilt < 2024 {
-            viewModel.activeYearBuiltRange = minYearBuilt...maxYearBuilt
-        } else {
-            viewModel.activeYearBuiltRange = nil
-        }
-
-        if maxDaysOld > 0 {
-            viewModel.activeDaysOldRange = 0...maxDaysOld
-        } else {
-            viewModel.activeDaysOldRange = nil
-        }
+        print("🔍 [FILTERS] Applying filters:")
+        print("   💵 Price: \(viewModel.activePriceRange != nil ? "$\(Int(minPrice))-$\(Int(maxPrice))" : "Any")")
+        print("   🛏️ Beds: \(viewModel.activeBedrooms != nil ? "\(viewModel.activeBedrooms!)" : "Any")")
+        print("   🛁 Baths: \(viewModel.activeBathrooms != nil ? "\(viewModel.activeBathrooms!)" : "Any")")
+        print("   🏠 Types: \(viewModel.activePropertyTypes.isEmpty ? "Any" : viewModel.activePropertyTypes.map { $0.rawValue }.joined(separator: ", "))")
+        print("   📊 Status: \(viewModel.activeListingStatus.rawValue)")
 
         Task {
             await viewModel.applyFilters()
@@ -548,13 +382,8 @@ struct MoreFiltersSheet: View {
         // Reset local state
         minPrice = 0
         maxPrice = 10000
-        minSqft = 0
-        maxSqft = 5000
-        minLotSize = 0
-        maxLotSize = 50000
-        minYearBuilt = 1900
-        maxYearBuilt = 2024
-        maxDaysOld = 0
+
+        print("🔍 [FILTERS] All filters reset")
     }
 }
 

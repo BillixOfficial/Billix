@@ -76,9 +76,6 @@ struct PropertyListCard: View {
                     }
 
                     Spacer()
-
-                    // Match Quality Badge
-                    matchBadge
                 }
 
                 // Secondary Details
@@ -117,33 +114,6 @@ struct PropertyListCard: View {
             )
         }
         .buttonStyle(.plain)
-    }
-
-    // MARK: - Status Badge
-
-    private var matchBadge: some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(statusColor)
-                .frame(width: 8, height: 8)
-
-            Text(statusLabel)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(statusColor)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(statusColor.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-
-    private var statusLabel: String {
-        property.isActive ? "Active" : "Inactive"
-    }
-
-    private var statusColor: Color {
-        // Active = green, Inactive = coral for visibility
-        property.isActive ? .billixMoneyGreen : Color(red: 0.85, green: 0.45, blue: 0.45)
     }
 }
 

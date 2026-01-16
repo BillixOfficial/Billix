@@ -70,22 +70,24 @@ struct MarketTrendsView: View {
         }
         .background(Color(hex: "F8F9FA").ignoresSafeArea())
         .task {
-            // Auto-load market trends for current location on first appear
-            if viewModel.marketData == nil {
-                // Use Housing tab's location if available, otherwise fall back to default
+            // Only load market trends if user has searched in Housing tab
+            // No default location - user must search first
+            if viewModel.marketData == nil && housingViewModel.hasSearched {
                 let location = housingViewModel.activeLocation.isEmpty
-                    ? housingViewModel.searchAddress.isEmpty
-                        ? "New York, NY 10001"  // Default only if no location set anywhere
-                        : housingViewModel.searchAddress
+                    ? housingViewModel.searchAddress
                     : housingViewModel.activeLocation
-                await viewModel.loadMarketTrends(for: location)
+                if !location.isEmpty {
+                    print("🔍 [MARKET TRENDS] Loading data for: \(location)")
+                    await viewModel.loadMarketTrends(for: location)
+                }
             }
         }
-        .onChange(of: housingViewModel.searchAddress) { newAddress in
-            // Also sync when search address changes (e.g., from user location detection)
-            if !newAddress.isEmpty && newAddress != viewModel.currentLocation && housingViewModel.activeLocation.isEmpty {
+        .onChange(of: housingViewModel.activeLocation) { newLocation in
+            // Sync when user searches a new location in Housing tab
+            if !newLocation.isEmpty && newLocation != viewModel.currentLocation {
+                print("🔍 [MARKET TRENDS] Location changed to: \(newLocation)")
                 Task {
-                    await viewModel.loadMarketTrends(for: newAddress)
+                    await viewModel.loadMarketTrends(for: newLocation)
                 }
             }
         }
@@ -108,20 +110,47 @@ struct MarketTrendsView: View {
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 24) {
+            // Icon
             Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 60))
-                .foregroundColor(.billixDarkTeal.opacity(0.3))
+                .font(.system(size: 56, weight: .light))
+                .foregroundColor(.billixDarkTeal.opacity(0.6))
+                .padding(.bottom, 8)
 
-            Text("No Market Data Available")
-                .font(.system(size: 20, weight: .semibold))
+            // Title
+            Text("Explore Market Trends")
+                .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.primary)
 
-            Text("Select a location to view market trends")
-                .font(.system(size: 15))
+            // Description
+            Text("Search for an address to view rental market\nstatistics, historical prices, and trends.")
+                .font(.system(size: 16))
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+
+            // Action button to switch to Housing tab
+            Button {
+                onSwitchToHousing()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Search in Housing tab")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.billixDarkTeal)
+                )
+            }
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
+        .padding(.horizontal, 40)
         .padding(.top, 100)
     }
 
