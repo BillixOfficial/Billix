@@ -398,24 +398,6 @@ struct MoreFiltersSheet: View {
 
                             Divider()
 
-                            // Search Radius
-                            HStack {
-                                Text("Search Radius")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.primary)
-
-                                Spacer()
-
-                                Picker("Search Radius", selection: $viewModel.activeRadius) {
-                                    ForEach([1, 2, 3, 5, 10, 15], id: \.self) { miles in
-                                        Text("\(miles) mi").tag(Double(miles))
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                            }
-
-                            Divider()
-
                             // Listing Status
                             HStack {
                                 Text("Listing Status")

@@ -11,13 +11,33 @@ import SwiftUI
 struct PropertyListCard: View {
     let property: RentalComparable
     let isSelected: Bool
+    let index: Int?  // 1, 2, 3... for numbered badge (like RentCast)
     let onTap: () -> Void
+
+    init(property: RentalComparable, isSelected: Bool, index: Int? = nil, onTap: @escaping () -> Void) {
+        self.property = property
+        self.isSelected = isSelected
+        self.index = index
+        self.onTap = onTap
+    }
 
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 12) {
-                // Header: Address and Rent
-                HStack(alignment: .top) {
+                // Header: Index badge, Address and Rent
+                HStack(alignment: .top, spacing: 12) {
+                    // Numbered badge (like RentCast)
+                    if let index = index {
+                        ZStack {
+                            Circle()
+                                .fill(Color.billixDarkTeal)
+                                .frame(width: 28, height: 28)
+                            Text("\(index)")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text(property.address)
                             .font(.system(size: 15, weight: .semibold))
@@ -99,47 +119,31 @@ struct PropertyListCard: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Match Badge
+    // MARK: - Status Badge
 
     private var matchBadge: some View {
         HStack(spacing: 4) {
-            Image(systemName: matchIcon)
-                .font(.system(size: 11))
-                .foregroundColor(matchColor)
+            Circle()
+                .fill(statusColor)
+                .frame(width: 8, height: 8)
 
-            Text(matchLabel)
+            Text(statusLabel)
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(matchColor)
+                .foregroundColor(statusColor)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(matchColor.opacity(0.12))
+        .background(statusColor.opacity(0.12))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
-    private var matchLabel: String {
-        let similarity = property.similarity
-        if similarity >= 95 { return "Excellent Match" }
-        if similarity >= 85 { return "Great Match" }
-        if similarity >= 75 { return "Good Match" }
-        if similarity >= 60 { return "Fair Match" }
-        return "Weak Match"
+    private var statusLabel: String {
+        property.isActive ? "Active" : "Inactive"
     }
 
-    private var matchColor: Color {
-        let similarity = property.similarity
-        if similarity >= 85 { return .billixMoneyGreen }
-        if similarity >= 75 { return .blue }
-        if similarity >= 60 { return .orange }
-        return .gray
-    }
-
-    private var matchIcon: String {
-        let similarity = property.similarity
-        if similarity >= 95 { return "star.fill" }
-        if similarity >= 85 { return "checkmark.circle.fill" }
-        if similarity >= 75 { return "checkmark.circle" }
-        return "circle"
+    private var statusColor: Color {
+        // Active = green, Inactive = coral for visibility
+        property.isActive ? .billixMoneyGreen : Color(red: 0.85, green: 0.45, blue: 0.45)
     }
 }
 
@@ -197,7 +201,10 @@ struct SecondaryDetail: View {
                     bathrooms: 1.5,
                     sqft: 950,
                     propertyType: .apartment,
-                    coordinate: .init(latitude: 42.3314, longitude: -83.0458)
+                    coordinate: .init(latitude: 42.3314, longitude: -83.0458),
+                    yearBuilt: nil,
+                    lotSize: nil,
+                    status: "Active"
                 ),
                 isSelected: true,
                 onTap: {}
@@ -215,7 +222,10 @@ struct SecondaryDetail: View {
                     bathrooms: 1.0,
                     sqft: 850,
                     propertyType: .apartment,
-                    coordinate: .init(latitude: 42.3314, longitude: -83.0458)
+                    coordinate: .init(latitude: 42.3314, longitude: -83.0458),
+                    yearBuilt: nil,
+                    lotSize: nil,
+                    status: "Inactive"
                 ),
                 isSelected: false,
                 onTap: {}

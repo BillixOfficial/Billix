@@ -13,6 +13,7 @@ import MapKit
 struct HousingExploreView: View {
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var viewModel: HousingSearchViewModel
+    @StateObject private var userLocation = UserLocationService()
     @State private var showMoreFilters = false
     @State private var sheetDetent: PresentationDetent = .fraction(0.12)
     @State private var isKeyboardVisible = false
@@ -47,34 +48,77 @@ struct HousingExploreView: View {
                 if !viewModel.isLoading {
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {
-                            // Address/Zip Search Field
-                            HStack {
-                                Image(systemName: "magnifyingglass")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 16))
+                            // Address Search Field with Autocomplete
+                            VStack(alignment: .leading, spacing: 0) {
+                                HStack {
+                                    Image(systemName: "magnifyingglass")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 16))
 
-                                TextField("Enter address or zip code", text: $viewModel.searchQuery)
-                                    .textFieldStyle(.plain)
-                                    .submitLabel(.search)
-                                    .onSubmit {
-                                        Task {
-                                            await viewModel.performAddressSearch()
+                                    TextField("Enter full address", text: $viewModel.searchQuery)
+                                        .textFieldStyle(.plain)
+                                        .submitLabel(.search)
+                                        .onChange(of: viewModel.searchQuery) { _, _ in
+                                            viewModel.updateAutocompleteSuggestions()
+                                        }
+                                        .onSubmit {
+                                            Task {
+                                                await viewModel.performAddressSearch()
+                                            }
+                                        }
+
+                                    if !viewModel.searchQuery.isEmpty {
+                                        Button {
+                                            viewModel.searchQuery = ""
+                                            viewModel.hideAutocompleteSuggestions()
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 16))
                                         }
                                     }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color.white.opacity(0.95))
+                                .clipShape(RoundedRectangle(cornerRadius: viewModel.showAutocompleteSuggestions ? 12 : 12))
 
-                                if !viewModel.searchQuery.isEmpty {
-                                    Button {
-                                        viewModel.searchQuery = ""
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.gray)
-                                            .font(.system(size: 16))
+                                // Autocomplete Suggestions Dropdown
+                                if viewModel.showAutocompleteSuggestions && !viewModel.autocompleteService.suggestions.isEmpty {
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        Divider()
+                                            .padding(.horizontal, 12)
+
+                                        ForEach(viewModel.autocompleteService.suggestions) { suggestion in
+                                            Button {
+                                                Task {
+                                                    await viewModel.selectAddressSuggestion(suggestion)
+                                                }
+                                            } label: {
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(suggestion.title)
+                                                        .font(.system(size: 14, weight: .medium))
+                                                        .foregroundColor(.primary)
+                                                    if !suggestion.subtitle.isEmpty {
+                                                        Text(suggestion.subtitle)
+                                                            .font(.system(size: 12))
+                                                            .foregroundColor(.secondary)
+                                                    }
+                                                }
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 10)
+                                            }
+
+                                            if suggestion.id != viewModel.autocompleteService.suggestions.last?.id {
+                                                Divider()
+                                                    .padding(.horizontal, 12)
+                                            }
+                                        }
                                     }
+                                    .background(Color.white.opacity(0.95))
                                 }
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(Color.white.opacity(0.95))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
 
@@ -150,6 +194,7 @@ struct HousingExploreView: View {
                     DraggableResultsSheet(
                         rentEstimate: rentEstimate,
                         comparables: viewModel.comparables,  // Use raw comparables (selected property is first)
+                        totalCount: viewModel.propertyMarkers.count,  // Total pins on map
                         selectedPropertyId: viewModel.selectedPropertyId,
                         onPropertyTap: { id in
                             // Card tap: only update selection (blue border), don't reorder
@@ -176,9 +221,32 @@ struct HousingExploreView: View {
             .ignoresSafeArea()
         )
         .task {
-            // Auto-load Detroit map with properties on first appear (matches mock data location)
+            // Auto-load user's location on first appear
             if viewModel.isInitialLoad {
-                await viewModel.loadPopulatedArea(address: "Detroit, MI 48226")
+                userLocation.getCurrentLocation()
+
+                // Fallback: If location takes too long (5 seconds), show empty state
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                if viewModel.isInitialLoad && userLocation.userZipCode == nil {
+                    print("📍 Location timeout - user can search manually")
+                    viewModel.isInitialLoad = false
+                }
+            }
+        }
+        .onChange(of: userLocation.userZipCode) { zipCode in
+            // Load properties when we get user's ZIP code
+            if let zipCode = zipCode, viewModel.isInitialLoad {
+                print("📍 Got ZIP code: \(zipCode), loading properties...")
+                Task {
+                    await viewModel.loadPopulatedArea(address: zipCode)
+                }
+            }
+        }
+        .onChange(of: userLocation.errorMessage) { error in
+            // If location fails, let user search manually
+            if error != nil && viewModel.isInitialLoad {
+                print("📍 Location error: \(error ?? "unknown"), user can search manually")
+                viewModel.isInitialLoad = false
             }
         }
         .onAppear {
@@ -245,12 +313,14 @@ struct CompactMapView: View {
 
     var body: some View {
         Map(position: $position) {
-            // Comparable properties (green pins) - tappable
+            // Property markers with numbered pins
             ForEach(comparables) { comp in
                 Annotation("", coordinate: comp.coordinate) {
                     PropertyPin(
                         isSelected: comp.id == selectedPropertyId,
-                        isMain: false
+                        isMain: comp.isSearchedProperty,
+                        isActive: comp.isActive,
+                        index: comp.index
                     )
                     .onTapGesture {
                         withAnimation(.spring(response: 0.3)) {
@@ -367,6 +437,7 @@ struct CompactStatPill: View {
 struct DraggableResultsSheet: View {
     let rentEstimate: RentEstimateResult
     let comparables: [RentalComparable]
+    let totalCount: Int  // Total rentals (not filtered by pin selection)
     let selectedPropertyId: String?
     let onPropertyTap: (String) -> Void
     @Binding var sheetDetent: PresentationDetent
@@ -412,8 +483,8 @@ struct DraggableResultsSheet: View {
                 .padding(.bottom, 6)
 
             if isCollapsed {
-                // Collapsed state: Just count
-                Text("\(comparables.count) rental\(comparables.count == 1 ? "" : "s") available")
+                // Collapsed state: Just count (show total, not filtered)
+                Text("\(totalCount) rental\(totalCount == 1 ? "" : "s") available")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity)
@@ -426,7 +497,7 @@ struct DraggableResultsSheet: View {
                     VStack(spacing: 12) {
                         // Compact Rent Estimate
                         VStack(spacing: 8) {
-                            Text("Estimated Monthly Rent")
+                            Text("Rent Estimate")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.secondary)
 
@@ -434,6 +505,12 @@ struct DraggableResultsSheet: View {
                                 .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(.billixDarkTeal)
                                 .monospacedDigit()
+
+                            // Informational subtitle (like RentCast)
+                            Text("Based on rentals within a **0.5 mile** radius seen in the last **270 days**")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
 
                             HStack(spacing: 8) {
                                 CompactStatPill(
@@ -452,9 +529,9 @@ struct DraggableResultsSheet: View {
                         Divider()
                             .padding(.horizontal, 20)
 
-                        // Compact Comparable Listings
+                        // Selected Property (currently viewing)
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Comparable Listings")
+                            Text("Selected Property")
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundColor(.primary)
                                 .padding(.horizontal, 20)
@@ -463,6 +540,7 @@ struct DraggableResultsSheet: View {
                                 PropertyListCard(
                                     property: firstProperty,
                                     isSelected: firstProperty.id == selectedPropertyId,
+                                    index: 1,  // First property is always #1
                                     onTap: {
                                         onPropertyTap(firstProperty.id)
                                     }
@@ -485,7 +563,7 @@ struct DraggableResultsSheet: View {
                                 .padding(.top, 4)
                             }
                         }
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 50)  // Extra padding to clear tab bar
                     }
                 } else {
                     // Large state: Fixed rent estimate + scrollable listings
@@ -501,15 +579,15 @@ struct DraggableResultsSheet: View {
                         }
                         .background(Color.white)
 
-                        // Scrollable Comparable Listings
+                        // Scrollable Nearby Listings
                         ScrollView {
                             VStack(alignment: .leading, spacing: 16) {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text("Comparable Listings")
+                                    Text("Nearby Listings")
                                         .font(.system(size: 20, weight: .bold))
                                         .foregroundColor(.primary)
 
-                                    Text("Based on \(rentEstimate.comparablesCount) rental\(rentEstimate.comparablesCount == 1 ? "" : "s") in this area")
+                                    Text("Based on rentals within a **0.5 mile** radius seen in the last **270 days**")
                                         .font(.system(size: 14))
                                         .foregroundColor(.secondary)
                                 }
@@ -517,10 +595,11 @@ struct DraggableResultsSheet: View {
                                 .padding(.top, 16)
 
                                 VStack(spacing: 12) {
-                                    ForEach(comparables) { property in
+                                    ForEach(Array(comparables.enumerated()), id: \.element.id) { index, property in
                                         PropertyListCard(
                                             property: property,
                                             isSelected: property.id == selectedPropertyId,
+                                            index: index + 1,  // 1, 2, 3...
                                             onTap: {
                                                 onPropertyTap(property.id)
                                             }

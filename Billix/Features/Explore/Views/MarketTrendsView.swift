@@ -36,7 +36,8 @@ struct MarketTrendsView: View {
                         averageRent: data.averageRent,
                         changePercent: data.yearOverYearChange,
                         lowRent: data.lowRent,
-                        highRent: data.highRent
+                        highRent: data.highRent,
+                        location: viewModel.currentLocation
                     )
                     .padding(.horizontal, 20)
 
@@ -69,9 +70,23 @@ struct MarketTrendsView: View {
         }
         .background(Color(hex: "F8F9FA").ignoresSafeArea())
         .task {
-            // Auto-load NYC on first appear
+            // Auto-load market trends for current location on first appear
             if viewModel.marketData == nil {
-                await viewModel.loadMarketTrends(for: "New York, NY 10001")
+                // Use Housing tab's location if available, otherwise fall back to default
+                let location = housingViewModel.activeLocation.isEmpty
+                    ? housingViewModel.searchAddress.isEmpty
+                        ? "New York, NY 10001"  // Default only if no location set anywhere
+                        : housingViewModel.searchAddress
+                    : housingViewModel.activeLocation
+                await viewModel.loadMarketTrends(for: location)
+            }
+        }
+        .onChange(of: housingViewModel.searchAddress) { newAddress in
+            // Also sync when search address changes (e.g., from user location detection)
+            if !newAddress.isEmpty && newAddress != viewModel.currentLocation && housingViewModel.activeLocation.isEmpty {
+                Task {
+                    await viewModel.loadMarketTrends(for: newAddress)
+                }
             }
         }
     }

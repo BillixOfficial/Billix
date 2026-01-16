@@ -161,6 +161,14 @@ struct RentalComparable: Identifiable {
     let sqft: Int?
     let propertyType: PropertyType
     let coordinate: CLLocationCoordinate2D
+    let yearBuilt: Int?              // Year property was built
+    let lotSize: Int?                // Lot size in square feet
+    let status: String?              // "Active" or "Inactive"
+
+    /// Whether this listing is currently active
+    var isActive: Bool {
+        status?.lowercased() == "active"
+    }
 
     var lastSeenFormatted: String {
         let formatter = RelativeDateTimeFormatter()
@@ -238,5 +246,15 @@ enum ComparableColumn: String, CaseIterable {
 struct PropertyMarker: Identifiable {
     let id: String
     let coordinate: CLLocationCoordinate2D
-    let isSearchedProperty: Bool  // true = blue pin, false = green pin
+    let isSearchedProperty: Bool  // true = blue pin, false = comparable pin
+    let isActive: Bool            // true = green pin, false = gray pin (for comparables)
+    let index: Int?               // 1, 2, 3... for numbered pins (nil for searched property)
+
+    init(id: String, coordinate: CLLocationCoordinate2D, isSearchedProperty: Bool, isActive: Bool, index: Int? = nil) {
+        self.id = id
+        self.coordinate = coordinate
+        self.isSearchedProperty = isSearchedProperty
+        self.isActive = isActive
+        self.index = index
+    }
 }

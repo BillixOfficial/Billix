@@ -13,10 +13,18 @@ struct TickerHeaderView: View {
     let changePercent: Double
     let lowRent: Double
     let highRent: Double
+    var location: String = ""  // ZIP code or location name
 
     var body: some View {
         // Restructured layout: price + /mo on top, trend + range below
         VStack(alignment: .leading, spacing: 8) {
+            // Location context (if provided)
+            if !location.isEmpty {
+                Text("Market Average in \(location)")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
+
             // Row 1: Price + /mo side-by-side
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text("$\(Int(averageRent))")

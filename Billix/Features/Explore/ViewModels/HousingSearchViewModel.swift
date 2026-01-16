@@ -28,8 +28,11 @@ class HousingSearchViewModel: ObservableObject {
     @Published var hasSearched: Bool = false
     @Published var isLoading: Bool = false
     @Published var rentEstimate: RentEstimateResult? = nil
-    @Published var comparables: [RentalComparable] = []
+    @Published var comparables: [RentalComparable] = []  // Filtered list for display
     @Published var showResultsSheet: Bool = false
+
+    // Full list of all comparables (not filtered by pin selection)
+    private var allComparables: [RentalComparable] = []
 
     // MARK: - Table Sorting
 
@@ -62,8 +65,7 @@ class HousingSearchViewModel: ObservableObject {
     // Additional filters for MoreFiltersSheet
     @Published var activeSqftRange: ClosedRange<Double>? = nil
     @Published var activeYearBuiltRange: ClosedRange<Int>? = nil
-    @Published var activeAmenities: Set<PropertyAmenity> = []
-    @Published var activeKeywords: String = ""
+    // NOTE: Amenities and keywords filters removed - not supported by RentCast API
 
     // NEW: Rentcast-supported filters
     @Published var activeLotSizeRange: ClosedRange<Double>? = nil  // sq ft
@@ -74,13 +76,25 @@ class HousingSearchViewModel: ObservableObject {
     // Search input
     @Published var searchQuery: String = ""
 
-    // Store original unfiltered data
-    private var allComparables: [RentalComparable] = []
-
     // MARK: - Map-First Interactive State
 
     @Published var selectedPropertyId: String? = nil
     @Published var isInitialLoad: Bool = true
+
+    // MARK: - Market Statistics (for header average)
+
+    @Published var marketResponse: RentCastMarketResponse?
+    private var currentZipCode: String?
+    private var searchCenterCoordinate: CLLocationCoordinate2D?
+
+    // MARK: - RentCast Service
+
+    private let rentCastService = RentCastEdgeFunctionService.shared
+
+    // MARK: - Address Autocomplete
+
+    let autocompleteService = AddressAutocompleteService()
+    @Published var showAutocompleteSuggestions: Bool = false
 
     // MARK: - Computed Properties
 
@@ -138,8 +152,7 @@ class HousingSearchViewModel: ObservableObject {
         if activeYearBuiltRange != nil { count += 1 }
         if activeLotSizeRange != nil { count += 1 }
         if activeDaysOldRange != nil { count += 1 }
-        if !activeAmenities.isEmpty { count += 1 }
-        if !activeKeywords.isEmpty { count += 1 }
+        // NOTE: Amenities and keywords removed - not supported by RentCast API
 
         return count
     }
@@ -179,13 +192,7 @@ class HousingSearchViewModel: ObservableObject {
             pills.append(FilterPill(id: "days", label: "Listed \(daysRange.lowerBound)-\(daysRange.upperBound) days ago"))
         }
 
-        if !activeAmenities.isEmpty {
-            pills.append(FilterPill(id: "amenities", label: "\(activeAmenities.count) amenity filter\(activeAmenities.count == 1 ? "" : "s")"))
-        }
-
-        if !activeKeywords.isEmpty {
-            pills.append(FilterPill(id: "keywords", label: "Keywords: \(activeKeywords)"))
-        }
+        // NOTE: Amenities and keywords pills removed - not supported by RentCast API
 
         return pills
     }
@@ -200,8 +207,7 @@ class HousingSearchViewModel: ObservableObject {
         case "year": activeYearBuiltRange = nil
         case "lot": activeLotSizeRange = nil
         case "days": activeDaysOldRange = nil
-        case "amenities": activeAmenities = []
-        case "keywords": activeKeywords = ""
+        // NOTE: amenities and keywords cases removed - not supported by RentCast API
         default: break
         }
 
@@ -306,45 +312,72 @@ class HousingSearchViewModel: ObservableObject {
 
         isLoading = true
 
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 800_000_000)  // 0.8 seconds
+        do {
+            let sqftValue = Int(squareFeet.trimmingCharacters(in: .whitespacesAndNewlines))
 
-        // Build search params
-        let sqftValue = Int(squareFeet.trimmingCharacters(in: .whitespacesAndNewlines))
-        let params = PropertySearchParams(
-            address: searchAddress,
-            propertyType: selectedPropertyType,
-            bedrooms: selectedBedrooms,
-            bathrooms: selectedBathrooms,
-            squareFeet: sqftValue,
-            searchRadius: searchRadius,
-            lookbackDays: lookbackDays
-        )
-
-        // Generate mock data
-        let estimate = HousingMockData.generateRentEstimate(params: params)
-        let comps = HousingMockData.generateComparables(params: params, estimate: estimate)
-
-        // Generate map markers
-        let searchedMarker = HousingMockData.generateSearchedPropertyMarker(params: params)
-        let compMarkers = HousingMockData.generateComparableMarkers(comparables: comps)
-
-        // Update map region to center on searched property
-        let region = MKCoordinateRegion(
-            center: searchedMarker.coordinate,
-            span: MKCoordinateSpan(
-                latitudeDelta: searchRadius * 0.03,  // Adjust zoom based on radius
-                longitudeDelta: searchRadius * 0.03
+            // Fetch from RentCast via Edge Function
+            let response = try await rentCastService.fetchRentEstimate(
+                address: searchAddress,
+                propertyType: selectedPropertyType == .all ? nil : selectedPropertyType.rentcastValue,
+                bedrooms: selectedBedrooms,
+                bathrooms: selectedBathrooms,
+                squareFootage: sqftValue,
+                maxRadius: searchRadius,
+                daysOld: lookbackDays,
+                compCount: 15
             )
-        )
 
-        // Update state
-        rentEstimate = estimate
-        comparables = comps
-        propertyMarkers = [searchedMarker] + compMarkers
-        mapRegion = region
-        hasSearched = true
-        showResultsSheet = true
+            // Convert to Billix models
+            let estimate = response.toRentEstimateResult()
+            let comps = response.comparables.map { $0.toRentalComparable() }
+
+            // Generate map markers
+            let searchedMarker = PropertyMarker(
+                id: "searched",
+                coordinate: CLLocationCoordinate2D(
+                    latitude: response.latitude,
+                    longitude: response.longitude
+                ),
+                isSearchedProperty: true,
+                isActive: true
+            )
+
+            let compMarkers = comps.map { comp in
+                PropertyMarker(
+                    id: comp.id,
+                    coordinate: comp.coordinate,
+                    isSearchedProperty: false,
+                    isActive: comp.isActive
+                )
+            }
+
+            // Update map region to center on searched property
+            let region = MKCoordinateRegion(
+                center: searchedMarker.coordinate,
+                span: MKCoordinateSpan(
+                    latitudeDelta: searchRadius * 0.03,
+                    longitudeDelta: searchRadius * 0.03
+                )
+            )
+
+            // Update state
+            rentEstimate = estimate
+            allComparables = comps
+            comparables = comps
+            propertyMarkers = [searchedMarker] + compMarkers
+            mapRegion = region
+            hasSearched = true
+            showResultsSheet = true
+
+        } catch {
+            // Show error - NO FALLBACK to mock data
+            print("❌ Error performing search: \(error)")
+            rentEstimate = nil
+            allComparables = []
+            comparables = []
+            propertyMarkers = []
+        }
+
         isLoading = false
     }
 
@@ -361,6 +394,7 @@ class HousingSearchViewModel: ObservableObject {
         showResultsSheet = false
         isLoading = false
         rentEstimate = nil
+        allComparables = []
         comparables = []
         propertyMarkers = []
 
@@ -390,29 +424,58 @@ class HousingSearchViewModel: ObservableObject {
     func loadFeaturedFeed() async {
         isLoadingFeed = true
 
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
+        do {
+            // Build filters for RentCast API
+            let bedroomsStr = activeBedrooms.map { "\($0):*" }  // Min bedrooms
+            let bathroomsStr = activeBathrooms.map { "\($0):*" }  // Min bathrooms
+            var priceStr: String? = nil
+            if let priceRange = activePriceRange {
+                priceStr = "\(Int(priceRange.lowerBound)):\(Int(priceRange.upperBound))"
+            }
 
-        // Generate default featured feed (2BR apartments within 3 miles)
-        let params = PropertySearchParams(
-            address: "Royal Oak, MI 48067",
-            propertyType: activePropertyType,
-            bedrooms: activeBedrooms,
-            bathrooms: activeBathrooms,
-            squareFeet: nil,
-            searchRadius: activeRadius,
-            lookbackDays: 30
-        )
+            // Fetch listings from RentCast via Edge Function
+            let listings = try await rentCastService.fetchRentalListings(
+                city: activeLocation.isEmpty ? "Royal Oak" : nil,
+                state: activeLocation.isEmpty ? "MI" : nil,
+                zipCode: activeLocation.isEmpty ? nil : extractZipCode(from: activeLocation),
+                radius: activeRadius,
+                propertyType: activePropertyType == .all ? nil : activePropertyType.rentcastValue,
+                bedrooms: bedroomsStr,
+                bathrooms: bathroomsStr,
+                price: priceStr,
+                status: "Active",
+                limit: 50
+            )
 
-        let estimate = HousingMockData.generateRentEstimate(params: params)
-        let listings = HousingMockData.generateComparables(params: params, estimate: estimate)
+            // Convert to Billix models
+            featuredListings = listings.map { $0.toRentalComparable() }
 
-        featuredListings = listings
+        } catch {
+            // Show error - NO FALLBACK to mock data
+            print("❌ Error loading featured feed: \(error)")
+            featuredListings = []
+        }
+
         isLoadingFeed = false
     }
 
+    private func extractZipCode(from location: String) -> String? {
+        let pattern = "\\d{5}"
+        if let range = location.range(of: pattern, options: .regularExpression) {
+            return String(location[range])
+        }
+        return nil
+    }
+
     func applyFilters() async {
-        // Filter the existing properties
+        // If we have a search address, reload from API with new filters
+        // This ensures filters are applied server-side for better results
+        if !searchAddress.isEmpty {
+            await loadPopulatedArea(address: searchAddress)
+            return
+        }
+
+        // Fallback: Filter existing properties if no search has been done
         let filteredComps = filterComparables(allComparables)
 
         // Update markers
@@ -420,7 +483,8 @@ class HousingSearchViewModel: ObservableObject {
             PropertyMarker(
                 id: comp.id,
                 coordinate: comp.coordinate,
-                isSearchedProperty: false
+                isSearchedProperty: false,
+                isActive: comp.isActive
             )
         }
 
@@ -447,8 +511,7 @@ class HousingSearchViewModel: ObservableObject {
         activeLotSizeRange = nil
         activeDaysOldRange = nil
         activeListingStatus = .active
-        activeAmenities = []
-        activeKeywords = ""
+        // NOTE: activeAmenities and activeKeywords removed - not supported by RentCast API
         searchQuery = ""
 
         Task {
@@ -461,27 +524,88 @@ class HousingSearchViewModel: ObservableObject {
             return
         }
 
+        // Hide suggestions when searching
+        showAutocompleteSuggestions = false
+        autocompleteService.clear()
+
         // Load properties for the searched address
         await loadPopulatedArea(address: searchQuery)
+    }
+
+    /// Update autocomplete suggestions as user types
+    func updateAutocompleteSuggestions() {
+        let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if query.count >= 3 {
+            showAutocompleteSuggestions = true
+            autocompleteService.search(query: query)
+        } else {
+            showAutocompleteSuggestions = false
+            autocompleteService.clear()
+        }
+    }
+
+    /// Handle selection of an autocomplete suggestion
+    func selectAddressSuggestion(_ suggestion: AddressSuggestion) async {
+        // Get full formatted address
+        if let fullAddress = await autocompleteService.getFullAddress(for: suggestion) {
+            searchQuery = fullAddress
+        } else {
+            // Fallback to display text
+            searchQuery = suggestion.displayText
+        }
+
+        // Hide suggestions and search
+        showAutocompleteSuggestions = false
+        autocompleteService.clear()
+
+        // Perform the search
+        await loadPopulatedArea(address: searchQuery)
+    }
+
+    /// Hide autocomplete suggestions
+    func hideAutocompleteSuggestions() {
+        showAutocompleteSuggestions = false
     }
 
     /// Filter comparables based on active filters
     private func filterComparables(_ comps: [RentalComparable]) -> [RentalComparable] {
         var filtered = comps
 
-        // Filter by property type
-        if activePropertyType != .all {
+        print("🔍 [FILTER] Starting with \(comps.count) properties")
+        print("🔍 [FILTER] Active filters:")
+        print("   - activeBedrooms: \(activeBedrooms?.description ?? "nil")")
+        print("   - activeBathrooms: \(activeBathrooms?.description ?? "nil")")
+        print("   - activePropertyType: \(activePropertyType)")
+        print("   - activePropertyTypes: \(activePropertyTypes)")
+        print("   - activePriceRange: \(activePriceRange?.description ?? "nil")")
+        print("   - activeRadius: \(activeRadius) miles")
+
+        // Filter by property types (multi-select takes priority)
+        if !activePropertyTypes.isEmpty {
+            filtered = filtered.filter { activePropertyTypes.contains($0.propertyType) }
+            print("🔍 [FILTER] After property types (multi): \(filtered.count)")
+        } else if activePropertyType != .all {
+            // Fallback to single selection if multi-select is empty
             filtered = filtered.filter { $0.propertyType == activePropertyType }
+            print("🔍 [FILTER] After property type (single): \(filtered.count)")
         }
 
         // Filter by bedrooms (minimum)
         if let minBeds = activeBedrooms {
+            let beforeCount = filtered.count
             filtered = filtered.filter { $0.bedrooms >= minBeds }
+            print("🔍 [FILTER] After bedrooms >= \(minBeds): \(filtered.count) (removed \(beforeCount - filtered.count))")
+
+            // Debug: Show some properties that were kept vs removed
+            let kept = filtered.prefix(3).map { "\($0.address): \($0.bedrooms) beds" }
+            print("   - Sample kept: \(kept)")
         }
 
         // Filter by bathrooms (minimum)
         if let minBaths = activeBathrooms {
             filtered = filtered.filter { $0.bathrooms >= minBaths }
+            print("🔍 [FILTER] After bathrooms >= \(minBaths): \(filtered.count)")
         }
 
         // Filter by price range
@@ -490,11 +614,54 @@ class HousingSearchViewModel: ObservableObject {
                 guard let rent = $0.rent else { return false }
                 return priceRange.contains(rent)
             }
+            print("🔍 [FILTER] After price range: \(filtered.count)")
         }
 
-        // Filter by radius (approximate - would need real distance calc in production)
-        // For mock data, we'll keep all since they're already within radius
+        // Filter by square footage range
+        if let sqftRange = activeSqftRange {
+            filtered = filtered.filter {
+                guard let sqft = $0.sqft else { return true }  // Keep if no sqft data
+                return sqftRange.contains(Double(sqft))
+            }
+            print("🔍 [FILTER] After sqft range: \(filtered.count)")
+        }
 
+        // Filter by year built range
+        if let yearRange = activeYearBuiltRange {
+            filtered = filtered.filter {
+                guard let yearBuilt = $0.yearBuilt else { return true }  // Keep if no year data
+                return yearRange.contains(yearBuilt)
+            }
+            print("🔍 [FILTER] After year built range: \(filtered.count)")
+        }
+
+        // Filter by lot size range
+        if let lotRange = activeLotSizeRange {
+            filtered = filtered.filter {
+                guard let lotSize = $0.lotSize else { return true }  // Keep if no lot size data
+                return lotRange.contains(Double(lotSize))
+            }
+            print("🔍 [FILTER] After lot size range: \(filtered.count)")
+        }
+
+        // Filter by days on market
+        if let daysRange = activeDaysOldRange, daysRange.upperBound > 0 {
+            let cutoffDate = Calendar.current.date(byAdding: .day, value: -daysRange.upperBound, to: Date()) ?? Date()
+            filtered = filtered.filter { $0.lastSeen >= cutoffDate }
+            print("🔍 [FILTER] After days old range: \(filtered.count)")
+        }
+
+        // Filter by radius (distance from search center)
+        let beforeRadiusCount = filtered.count
+        filtered = filtered.filter { comp in
+            guard let distance = comp.distance else { return true }  // Keep if no distance data
+            return distance <= activeRadius
+        }
+        if beforeRadiusCount != filtered.count {
+            print("🔍 [FILTER] After radius <= \(activeRadius) mi: \(filtered.count) (removed \(beforeRadiusCount - filtered.count))")
+        }
+
+        print("🔍 [FILTER] Final result: \(filtered.count) properties")
         return filtered
     }
 
@@ -519,112 +686,236 @@ class HousingSearchViewModel: ObservableObject {
 
     // MARK: - Map-First Methods
 
-    /// Load populated area (NYC by default) with properties for map-first view
+    /// Load rent estimate and comparables for an address (RentCast-style)
     func loadPopulatedArea(address: String) async {
         isLoading = true
         searchAddress = address
 
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
+        do {
+            // Step 1: Check cache first (by address)
+            let cacheKey = CacheKey.rentEstimate(address: address, latitude: nil, longitude: nil)
+            let cachedResponse: RentCastEstimateResponse? = await CacheManager.shared.get(cacheKey)
 
-        let params = PropertySearchParams(
-            address: address,
-            propertyType: .all,  // Load all initially, filter later
-            bedrooms: nil,
-            bathrooms: nil,
-            squareFeet: nil,
-            searchRadius: 2.0,  // 2 miles for dense clustering
-            lookbackDays: 30
-        )
+            var response: RentCastEstimateResponse
 
-        // Center map on Detroit coordinates (matches mock data location)
-        let baseCoordinate = CLLocationCoordinate2D(latitude: 42.3314, longitude: -83.0458)
+            if let cached = cachedResponse {
+                print("💾 [CACHE] Using cached rent estimate for '\(address)'")
+                response = cached
+            } else {
+                // Step 2: Fetch from Rent Estimate API (provides similarity scores!)
+                print("📡 [API] Fetching rent estimate for '\(address)'...")
 
-        let estimate = HousingMockData.generateRentEstimate(params: params)
-        let comps = HousingMockData.generateComparables(params: params, estimate: estimate)
+                response = try await rentCastService.fetchRentEstimate(
+                    address: address,
+                    propertyType: activePropertyType == .all ? nil : activePropertyType.rentcastValue,
+                    bedrooms: activeBedrooms,
+                    bathrooms: activeBathrooms != nil ? activeBathrooms : nil,
+                    squareFootage: nil,
+                    maxRadius: 0.5,   // 0.5 mile radius (like RentCast)
+                    daysOld: 270,     // Last 270 days (like RentCast)
+                    compCount: 15     // Get 15 comparables
+                )
 
-        // Store original unfiltered data
-        allComparables = comps
+                // Step 3: Store in cache
+                await CacheManager.shared.set(cacheKey, value: response)
+                print("💾 [CACHE] Stored rent estimate for '\(address)'")
+            }
 
-        // Apply current filters
-        let filteredComps = filterComparables(comps)
-
-        // Generate map markers for filtered properties
-        let markers = filteredComps.map { comp in
-            PropertyMarker(
-                id: comp.id,
-                coordinate: comp.coordinate,
-                isSearchedProperty: false
+            // Store search center from API response
+            searchCenterCoordinate = CLLocationCoordinate2D(
+                latitude: response.latitude,
+                longitude: response.longitude
             )
+
+            // Convert comparables to Billix models (already sorted by similarity from API)
+            let comps = response.comparables.map { $0.toRentalComparable() }
+            print("📡 [API] Received \(comps.count) comparables with similarity scores")
+
+            // Store all comparables
+            allComparables = comps
+
+            // Sort by similarity (highest first) - API usually does this but let's ensure
+            let sortedComps = comps.sorted { $0.similarity > $1.similarity }
+
+            // Apply client-side filters (beds, baths, price, status, etc.)
+            let filteredComps = filterComparables(sortedComps)
+
+            // Create numbered markers (1, 2, 3...) for filtered comparables only
+            let searchedMarker = PropertyMarker(
+                id: "searched",
+                coordinate: CLLocationCoordinate2D(latitude: response.latitude, longitude: response.longitude),
+                isSearchedProperty: true,
+                isActive: true,
+                index: nil  // No number for searched property
+            )
+
+            let compMarkers = filteredComps.enumerated().map { (index, comp) in
+                PropertyMarker(
+                    id: comp.id,
+                    coordinate: comp.coordinate,
+                    isSearchedProperty: false,
+                    isActive: comp.isActive,
+                    index: index + 1  // 1, 2, 3, ... (based on filtered results)
+                )
+            }
+
+            // Calculate map region to fit all pins
+            let allCoords = [searchedMarker.coordinate] + compMarkers.map { $0.coordinate }
+            let mapSpan = calculateSpanToFit(coordinates: allCoords)
+
+            mapRegion = MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: response.latitude, longitude: response.longitude),
+                span: mapSpan
+            )
+
+            // Create rent estimate result from API response
+            rentEstimate = response.toRentEstimateResult()
+            comparables = filteredComps
+            propertyMarkers = [searchedMarker] + compMarkers
+            hasSearched = true
+            showResultsSheet = true
+
+            print("✅ [DONE] Loaded \(filteredComps.count) of \(sortedComps.count) comparables (after filters), estimate: $\(Int(response.rent))/mo")
+
+        } catch {
+            print("❌ Error loading rent estimate: \(error)")
+            allComparables = []
+            comparables = []
+            propertyMarkers = []
+            rentEstimate = nil
         }
 
-        mapRegion = MKCoordinateRegion(
-            center: baseCoordinate,
-            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-        )
-
-        rentEstimate = estimate
-        comparables = filteredComps
-        propertyMarkers = markers
-        hasSearched = true
-        showResultsSheet = true
         isLoading = false
         isInitialLoad = false
     }
 
+    /// Calculate map span to fit all coordinates with padding
+    private func calculateSpanToFit(coordinates: [CLLocationCoordinate2D]) -> MKCoordinateSpan {
+        guard !coordinates.isEmpty else {
+            return MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+        }
+
+        let lats = coordinates.map { $0.latitude }
+        let lons = coordinates.map { $0.longitude }
+
+        let latDelta = (lats.max()! - lats.min()!) * 1.4  // 40% padding
+        let lonDelta = (lons.max()! - lons.min()!) * 1.4
+
+        // Minimum span to ensure pins are visible
+        return MKCoordinateSpan(
+            latitudeDelta: max(latDelta, 0.01),
+            longitudeDelta: max(lonDelta, 0.01)
+        )
+    }
+
     /// Handle pin selection from map
     func selectPropertyFromMap(id: String) {
+        print("📌 [PIN TAP] Selected property ID: \(id)")
         selectedPropertyId = id
 
-        // Find clicked property
-        guard let selected = comparables.first(where: { $0.id == id }) else { return }
+        // Find clicked property from FULL list
+        guard let selected = allComparables.first(where: { $0.id == id }) else {
+            print("📌 [PIN TAP] ❌ Property not found in allComparables!")
+            return
+        }
 
-        // Get 5 nearest comparables
-        let nearbyComparables = comparables
+        print("📌 [PIN TAP] Selected: \(selected.address) - \(selected.bedrooms) beds")
+        print("📌 [PIN TAP] allComparables count: \(allComparables.count)")
+        print("📌 [PIN TAP] propertyMarkers count: \(propertyMarkers.count)")
+
+        // Apply current filters to get valid nearby comparables
+        let filteredList = filterComparables(allComparables)
+        print("📌 [PIN TAP] filteredList count: \(filteredList.count)")
+
+        // Check if selected property passes the filter
+        let selectedPassesFilter = filteredList.contains { $0.id == id }
+        print("📌 [PIN TAP] Selected property passes filter: \(selectedPassesFilter)")
+
+        // Get ALL filtered comparables (sorted by distance) - removed prefix(5) limit
+        let otherComparables = filteredList
             .filter { $0.id != id }
             .sorted { ($0.distance ?? 0) < ($1.distance ?? 0) }
-            .prefix(5)
 
-        // Update table to show selected + nearby
-        comparables = [selected] + Array(nearbyComparables)
+        print("📌 [PIN TAP] Other comparables: \(otherComparables.count)")
+
+        // Update display list (selected first, then all others sorted by distance)
+        comparables = [selected] + otherComparables
+        print("📌 [PIN TAP] Final comparables count: \(comparables.count)")
 
         // Update estimate for selected property
         updateEstimateForProperty(id: id)
     }
 
-    /// Update estimate panel for selected property
+    /// Update estimate panel for selected property - shows market estimate from all comparables
     func updateEstimateForProperty(id: String) {
-        guard let property = comparables.first(where: { $0.id == id }) else { return }
+        guard comparables.first(where: { $0.id == id }) != nil else { return }
 
-        // Generate estimate for this specific property
-        let params = PropertySearchParams(
-            address: property.address,
-            propertyType: property.propertyType,
-            bedrooms: property.bedrooms,
-            bathrooms: property.bathrooms,
-            squareFeet: property.sqft,
-            searchRadius: 0.5,
-            lookbackDays: 30
-        )
-
-        rentEstimate = HousingMockData.generateRentEstimate(params: params)
+        // Show market estimate based on all comparables, not just selected property's price
+        // The selected property's actual price is visible in the listings below
+        rentEstimate = aggregateEstimate()
     }
 
-    /// Compute aggregate median rent for initial state (before pin selected)
+    /// Compute aggregate rent estimate - uses market stats if available (historical average)
     func aggregateEstimate() -> RentEstimateResult {
-        let rents = comparables.compactMap { $0.rent }.sorted()
+        // Use market statistics if available (historical market average from RentCast)
+        if let response = marketResponse, let rentalData = response.rentalData {
+            let avgRent = rentalData.averageRent
+            let perSqft = rentalData.averageRentPerSquareFoot ?? (avgRent / (rentalData.averageSquareFootage ?? 1000))
+
+            // Calculate per-bedroom from market stats
+            let avgBeds: Double
+            if let firstBedroom = rentalData.dataByBedrooms.first(where: { $0.bedrooms == 2 }) {
+                avgBeds = avgRent / firstBedroom.averageRent * 2  // Estimate based on 2BR
+            } else if !rentalData.dataByBedrooms.isEmpty {
+                avgBeds = Double(rentalData.dataByBedrooms.map { $0.bedrooms }.reduce(0, +)) / Double(rentalData.dataByBedrooms.count)
+            } else {
+                avgBeds = 2.0
+            }
+
+            return RentEstimateResult(
+                estimatedRent: avgRent,
+                lowEstimate: rentalData.minRent,
+                highEstimate: rentalData.maxRent,
+                perSqft: perSqft,
+                perBedroom: avgRent / max(avgBeds, 1),
+                confidence: "High",
+                comparablesCount: comparables.count
+            )
+        }
+
+        // Fallback: Calculate from listings if no market stats available
+        let sourceData = allComparables.isEmpty ? comparables : allComparables
+
+        let rents = sourceData.compactMap { $0.rent }.sorted()
         let median = rents.isEmpty ? 2000 : rents[rents.count / 2]
         let low = rents.isEmpty ? 1500 : rents.first!
         let high = rents.isEmpty ? 3000 : rents.last!
+
+        // Calculate averages from actual data
+        let sqftValues = sourceData.compactMap { $0.sqft }
+        let avgSqft = sqftValues.isEmpty ? 1000 : sqftValues.reduce(0, +) / sqftValues.count
+        let bedsValues = sourceData.map { $0.bedrooms }
+        let avgBeds = bedsValues.isEmpty ? 2 : max(bedsValues.reduce(0, +) / bedsValues.count, 1)
 
         return RentEstimateResult(
             estimatedRent: median,
             lowEstimate: low,
             highEstimate: high,
-            perSqft: median / 1000,
-            perBedroom: median / 2,
-            confidence: "Medium",
-            comparablesCount: comparables.count
+            perSqft: median / Double(avgSqft),
+            perBedroom: median / Double(avgBeds),
+            confidence: sourceData.count >= 10 ? "High" : "Medium",
+            comparablesCount: sourceData.count
         )
+    }
+
+    // MARK: - Distance Calculation
+
+    /// Calculate distance between two coordinates in miles
+    private func calculateDistance(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D) -> Double {
+        let fromLocation = CLLocation(latitude: from.latitude, longitude: from.longitude)
+        let toLocation = CLLocation(latitude: to.latitude, longitude: to.longitude)
+        let distanceMeters = fromLocation.distance(from: toLocation)
+        let distanceMiles = distanceMeters / 1609.34  // Convert meters to miles
+        return distanceMiles
     }
 }

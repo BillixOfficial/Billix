@@ -109,13 +109,13 @@ struct RentHistoryChart: View {
                     }
 
                 case .allTime:
-                    // Show years with proper stride
+                    // Show yearly marks for multi-year data
                     AxisMarks(values: .stride(by: .year)) { value in
                         AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                             .foregroundStyle(Color.gray.opacity(0.2))
 
-                        AxisValueLabel(format: .dateTime.year())
-                            .font(.system(size: 10, weight: .semibold))
+                        AxisValueLabel(format: .dateTime.year(.twoDigits))
+                            .font(.system(size: 10))
                             .foregroundStyle(Color.secondary)
                     }
                 }
@@ -123,8 +123,8 @@ struct RentHistoryChart: View {
             .chartPlotStyle { plotArea in
                 plotArea
                     .padding(.leading, 8)
-                    .padding(.trailing, 0)  // Set to 0px per user request
-                    .padding(.bottom, 20)
+                    .padding(.trailing, 12)  // Give space for content and labels
+                    .padding(.bottom, 28)  // Extra padding for x-axis labels on Max view
             }
             .chartYAxis {
                 AxisMarks(position: .trailing) { value in
@@ -241,7 +241,6 @@ struct RentHistoryChart: View {
 
             // Legend removed - bedroom list below serves as legend
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16))
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
@@ -409,7 +408,18 @@ struct RentHistoryChart: View {
     }
 
     private var yAxisRange: ClosedRange<Double> {
-        let allRents = historyData.map { $0.rent }
+        // Filter to only the data being displayed (based on chart mode and selected types)
+        let visibleData: [RentHistoryPoint]
+        if chartMode == .averageOnly {
+            visibleData = historyData.filter { $0.bedroomType == .average }
+        } else {
+            let typesToShow = selectedBedroomTypes.isEmpty
+                ? Array(BedroomType.allCases.filter { $0 != .average })
+                : Array(selectedBedroomTypes)
+            visibleData = historyData.filter { typesToShow.contains($0.bedroomType) }
+        }
+
+        let allRents = visibleData.map { $0.rent }
         let minRent = allRents.min() ?? 800
         let maxRent = allRents.max() ?? 2000
 
@@ -422,7 +432,7 @@ struct RentHistoryChart: View {
         switch range {
         case .sixMonths: return "6M"
         case .oneYear: return "1Y"
-        case .allTime: return "All"
+        case .allTime: return "Max"
         }
     }
 

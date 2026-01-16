@@ -206,7 +206,10 @@ struct PropertyFeedCard: View {
             bathrooms: 1.5,
             sqft: 950,
             propertyType: .apartment,
-            coordinate: .init(latitude: 42.3314, longitude: -83.0458)
+            coordinate: .init(latitude: 42.3314, longitude: -83.0458),
+            yearBuilt: nil,
+            lotSize: nil,
+            status: "Active"
         ),
         fairValue: .greatDeal
     )

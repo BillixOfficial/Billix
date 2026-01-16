@@ -133,7 +133,7 @@ enum BedroomType: String, CaseIterable, Identifiable {
 enum TimeRange: String, CaseIterable, Identifiable {
     case sixMonths = "6 Months"
     case oneYear = "1 Year"
-    case allTime = "All Time"
+    case allTime = "Max"  // Maximum available (typically 2 years from RentCast)
 
     var id: String { rawValue }
 
@@ -141,7 +141,7 @@ enum TimeRange: String, CaseIterable, Identifiable {
         switch self {
         case .sixMonths: return 6
         case .oneYear: return 12
-        case .allTime: return 24  // 2 years for mock data
+        case .allTime: return 60  // Show all available data (up to 5 years)
         }
     }
 }

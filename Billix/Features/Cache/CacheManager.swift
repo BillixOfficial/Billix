@@ -111,4 +111,13 @@ enum CacheKey {
     static func comparables(zipCode: String) -> String {
         "comparables_\(zipCode)"
     }
+
+    // RentCast API Cache Keys
+    static func rentCastListings(zipCode: String) -> String {
+        "rentcast_listings_\(zipCode)"
+    }
+
+    static func rentCastMarketStats(zipCode: String) -> String {
+        "rentcast_market_stats_\(zipCode)"
+    }
 }
