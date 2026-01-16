@@ -126,25 +126,21 @@ class BillSwapViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
+        // Load critical data first (profile) - continue even if fails
         do {
-            // Load all data in parallel
-            async let profileTask = trustService.fetchCurrentUserProfile()
-            async let balanceTask = pointsService.fetchCurrentBalance()
+            trustProfile = try await trustService.fetchCurrentUserProfile()
+            print("✅ Loaded trust profile: \(trustProfile?.tier.displayName ?? "nil")")
+        } catch {
+            print("⚠️ Failed to load trust profile: \(error)")
+            // Continue anyway - we can still show available bills
+        }
+
+        // Load bills independently - these should always work
+        do {
             async let myBillsTask = billSwapService.fetchMyBills()
             async let availableBillsTask = billSwapService.fetchAvailableBills()
-            async let activeSwapsTask = billSwapService.fetchActiveSwaps()
-            async let historyTask = billSwapService.fetchSwapHistory()
-            async let activityFeedTask = billSwapService.fetchActivityFeed()
-            async let activityStatsTask = billSwapService.fetchActivityStats()
-
-            trustProfile = try await profileTask
-            pointsBalance = try await balanceTask
             myBills = try await myBillsTask
             availableBills = try await availableBillsTask
-            activeSwaps = try await activeSwapsTask
-            swapHistory = try await historyTask
-            activityFeed = try await activityFeedTask
-            activityStats = try? await activityStatsTask
 
             // Debug logging for bills visibility
             print("📋 BillSwap Debug:")
@@ -154,17 +150,40 @@ class BillSwapViewModel: ObservableObject {
             for bill in availableBills {
                 print("   - Available bill: \(bill.title) | owner: \(bill.ownerUserId) | status: \(bill.status.rawValue)")
             }
-
-            // Load payment products
-            await paymentService.loadProducts()
-
-            // Auto-find matches for available bills
-            if let profile = trustProfile {
-                await findMatchesForMyBills(profile: profile)
-            }
         } catch {
+            print("❌ Failed to load bills: \(error)")
             self.error = error
-            print("❌ Failed to load bill swap data: \(error)")
+        }
+
+        // Load points balance independently - default to 0 if fails
+        do {
+            pointsBalance = try await pointsService.fetchCurrentBalance()
+        } catch {
+            print("⚠️ Failed to load points balance: \(error)")
+            pointsBalance = 0  // Default to 0 for new users
+        }
+
+        // Load swaps and activity independently
+        do {
+            async let activeSwapsTask = billSwapService.fetchActiveSwaps()
+            async let historyTask = billSwapService.fetchSwapHistory()
+            async let activityFeedTask = billSwapService.fetchActivityFeed()
+
+            activeSwaps = try await activeSwapsTask
+            swapHistory = try await historyTask
+            activityFeed = try await activityFeedTask
+            activityStats = try? await billSwapService.fetchActivityStats()
+        } catch {
+            print("⚠️ Failed to load swaps/activity: \(error)")
+            // Not critical - user can still browse marketplace
+        }
+
+        // Load payment products
+        await paymentService.loadProducts()
+
+        // Auto-find matches for available bills
+        if let profile = trustProfile {
+            await findMatchesForMyBills(profile: profile)
         }
     }
 
