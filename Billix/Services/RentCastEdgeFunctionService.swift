@@ -9,6 +9,25 @@
 import Foundation
 import Supabase
 
+// MARK: - RentCast Errors
+
+enum RentCastError: Error, LocalizedError {
+    case rateLimitExceeded(remaining: Int, limit: Int)
+    case apiError(String)
+    case networkError(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .rateLimitExceeded(_, let limit):
+            return "Weekly limit reached (\(limit) points)"
+        case .apiError(let message):
+            return message
+        case .networkError(let error):
+            return "Network error: \(error.localizedDescription)"
+        }
+    }
+}
+
 // MARK: - Request Structs (Encodable)
 
 private struct MarketStatisticsRequest: Encodable {
