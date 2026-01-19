@@ -9,11 +9,23 @@
 import SwiftUI
 import MapKit
 
+// MARK: - MKCoordinateRegion Equatable Extension
+
+extension MKCoordinateRegion: @retroactive Equatable {
+    public static func == (lhs: MKCoordinateRegion, rhs: MKCoordinateRegion) -> Bool {
+        lhs.center.latitude == rhs.center.latitude &&
+        lhs.center.longitude == rhs.center.longitude &&
+        lhs.span.latitudeDelta == rhs.span.latitudeDelta &&
+        lhs.span.longitudeDelta == rhs.span.longitudeDelta
+    }
+}
+
 /// Map-first property explorer: Filters → Estimate Panel + Map → Comparable Listings
 struct HousingExploreView: View {
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var viewModel: HousingSearchViewModel
     @StateObject private var userLocation = UserLocationService()
+    @ObservedObject private var rateLimitService = RateLimitService.shared
     @State private var showMoreFilters = false
     @State private var sheetDetent: PresentationDetent = .fraction(0.12)
     @State private var isKeyboardVisible = false
@@ -173,21 +185,23 @@ struct HousingExploreView: View {
                         }
                         .padding(.horizontal, 20)
 
-                        // Filter Pills (Horizontal Scrollable)
-                        if !viewModel.activeFilterPills.isEmpty {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(viewModel.activeFilterPills) { pill in
-                                        FilterPillView(
-                                            label: pill.label,
-                                            onRemove: {
-                                                viewModel.removeFilter(id: pill.id)
-                                            }
-                                        )
-                                    }
+                        // Filter Pills and Rate Limit Indicator (Horizontal Scrollable)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                // Rate limit indicator (always show when user is authenticated)
+                                RateLimitIndicator(rateLimitService: rateLimitService)
+
+                                // Filter pills
+                                ForEach(viewModel.activeFilterPills) { pill in
+                                    FilterPillView(
+                                        label: pill.label,
+                                        onRemove: {
+                                            viewModel.removeFilter(id: pill.id)
+                                        }
+                                    )
                                 }
-                                .padding(.horizontal, 20)
                             }
+                            .padding(.horizontal, 20)
                         }
                     }
                     .padding(.vertical, 12)
@@ -209,11 +223,12 @@ struct HousingExploreView: View {
                     DraggableResultsSheet(
                         rentEstimate: rentEstimate,
                         comparables: viewModel.comparables,  // Use raw comparables (selected property is first)
+                        propertyMarkers: viewModel.propertyMarkers,  // For looking up actual pin numbers
                         totalCount: viewModel.comparableMarkers.count,  // Total comparable rentals (excludes searched location pin)
                         selectedPropertyId: viewModel.selectedPropertyId,
                         onPropertyTap: { id in
-                            // Card tap: only update selection (blue border), don't reorder
-                            viewModel.selectedPropertyId = id
+                            // Card tap: select property and center map on it
+                            viewModel.selectAndCenterOnProperty(id: id)
                         },
                         sheetDetent: $sheetDetent,
                         topPadding: 5,
@@ -286,6 +301,29 @@ struct HousingExploreView: View {
         .sheet(isPresented: $showMoreFilters) {
             MoreFiltersSheet(viewModel: viewModel)
         }
+        .fullScreenCover(isPresented: $viewModel.showRateLimitExceeded) {
+            RateLimitExceededView(
+                rateLimitService: rateLimitService,
+                onUpgrade: {
+                    // TODO: Navigate to premium subscription screen
+                    print("Navigate to premium subscription")
+                }
+            )
+            .overlay(alignment: .topTrailing) {
+                Button {
+                    viewModel.dismissRateLimitExceeded()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(.secondary)
+                        .padding(20)
+                }
+            }
+        }
+        .task {
+            // Refresh rate limit status when view appears
+            await viewModel.refreshRateLimitStatus()
+        }
     }
 
     // MARK: - Loading State
@@ -339,6 +377,28 @@ struct HousingExploreView: View {
             .padding(.top, 8)
 
             Spacer()
+
+            // Points education hint
+            VStack(spacing: 8) {
+                HStack(spacing: 6) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 14))
+                    Text("You have \(rateLimitService.weeklyLimit) points/week")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(.billixDarkTeal)
+
+                Text("New search: 2 pts  •  Filter change: 1 pt")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.billixDarkTeal.opacity(0.08))
+            )
+            .padding(.bottom, 100)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 40)
@@ -369,28 +429,46 @@ struct CompactMapView: View {
     }
 
     var body: some View {
+        mapContent
+            .mapStyle(.standard(pointsOfInterest: .excludingAll))
+            .mapControls {
+                MapUserLocationButton()
+                MapCompass()
+            }
+            .onChange(of: region) { oldValue, newValue in
+                centerMap(on: newValue)
+            }
+    }
+
+    @ViewBuilder
+    private var mapContent: some View {
         Map(position: $position) {
-            // Property markers with numbered pins
             ForEach(comparables) { comp in
                 Annotation("", coordinate: comp.coordinate) {
-                    PropertyPin(
-                        isSelected: comp.id == selectedPropertyId,
-                        isMain: comp.isSearchedProperty,
-                        isActive: comp.isActive,
-                        index: comp.index
-                    )
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.3)) {
-                            onPinTap(comp.id)
-                        }
-                    }
+                    pinView(for: comp)
                 }
             }
         }
-        .mapStyle(.standard(pointsOfInterest: .excludingAll))
-        .mapControls {
-            MapUserLocationButton()
-            MapCompass()
+    }
+
+    @ViewBuilder
+    private func pinView(for comp: PropertyMarker) -> some View {
+        PropertyPin(
+            isSelected: comp.id == selectedPropertyId,
+            isMain: comp.isSearchedProperty,
+            isActive: comp.isActive,
+            index: comp.index
+        )
+        .onTapGesture {
+            withAnimation(.spring(response: 0.3)) {
+                onPinTap(comp.id)
+            }
+        }
+    }
+
+    private func centerMap(on newRegion: MKCoordinateRegion) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            position = .region(newRegion)
         }
     }
 }
@@ -494,6 +572,7 @@ struct CompactStatPill: View {
 struct DraggableResultsSheet: View {
     let rentEstimate: RentEstimateResult
     let comparables: [RentalComparable]
+    let propertyMarkers: [PropertyMarker]  // For looking up actual pin numbers
     let totalCount: Int  // Total rentals (not filtered by pin selection)
     let selectedPropertyId: String?
     let onPropertyTap: (String) -> Void
@@ -508,6 +587,11 @@ struct DraggableResultsSheet: View {
 
     private let midHeight: CGFloat = 480
     private let expandedHeight: CGFloat = 600
+
+    /// Look up the actual pin number for a property ID
+    private func pinIndex(for propertyId: String) -> Int? {
+        propertyMarkers.first(where: { $0.id == propertyId })?.index
+    }
 
     private var collapsedHeight: CGFloat {
         // Calculate based on padding
@@ -597,7 +681,7 @@ struct DraggableResultsSheet: View {
                                 PropertyListCard(
                                     property: firstProperty,
                                     isSelected: firstProperty.id == selectedPropertyId,
-                                    index: 1,  // First property is always #1
+                                    index: pinIndex(for: firstProperty.id) ?? 1,  // Actual pin number
                                     onTap: {
                                         onPropertyTap(firstProperty.id)
                                     }
@@ -652,11 +736,11 @@ struct DraggableResultsSheet: View {
                                 .padding(.top, 16)
 
                                 VStack(spacing: 12) {
-                                    ForEach(Array(comparables.enumerated()), id: \.element.id) { index, property in
+                                    ForEach(comparables, id: \.id) { property in
                                         PropertyListCard(
                                             property: property,
                                             isSelected: property.id == selectedPropertyId,
-                                            index: index + 1,  // 1, 2, 3...
+                                            index: pinIndex(for: property.id) ?? 0,  // Actual pin number
                                             onTap: {
                                                 onPropertyTap(property.id)
                                             }

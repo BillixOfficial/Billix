@@ -31,6 +31,22 @@ class HousingSearchViewModel: ObservableObject {
     @Published var comparables: [RentalComparable] = []  // Filtered list for display
     @Published var showResultsSheet: Bool = false
 
+    // MARK: - Rate Limiting
+
+    @Published var showRateLimitExceeded: Bool = false
+    @Published var rateLimitErrorMessage: String? = nil
+
+    /// Dismiss the rate limit exceeded view
+    func dismissRateLimitExceeded() {
+        showRateLimitExceeded = false
+        rateLimitErrorMessage = nil
+    }
+
+    /// Refresh rate limit status from server
+    func refreshRateLimitStatus() async {
+        await RateLimitService.shared.refreshUsage()
+    }
+
     // Full list of all comparables (not filtered by pin selection)
     private var allComparables: [RentalComparable] = []
 
@@ -339,9 +355,28 @@ class HousingSearchViewModel: ObservableObject {
             hasSearched = true
             showResultsSheet = true
 
+        } catch let error as RentCastError {
+            // Handle rate limit exceeded specifically
+            if case .rateLimitExceeded(let remaining, let limit) = error {
+                print("")
+                print("🛑 [HOUSING VM] ═══════════════════════════════════════════")
+                print("🛑 [HOUSING VM] RATE LIMIT EXCEEDED IN performSearch()")
+                print("🛑 [HOUSING VM] Limit: \(limit)/week, Remaining: \(remaining)")
+                print("🛑 [HOUSING VM] Showing RateLimitExceededView...")
+                print("🛑 [HOUSING VM] ═══════════════════════════════════════════")
+                print("")
+                showRateLimitExceeded = true
+                rateLimitErrorMessage = error.localizedDescription
+            } else {
+                print("❌ [HOUSING VM] RentCast error: \(error)")
+            }
+            rentEstimate = nil
+            allComparables = []
+            comparables = []
+            propertyMarkers = []
         } catch {
             // Show error - NO FALLBACK to mock data
-            print("❌ Error performing search: \(error)")
+            print("❌ [HOUSING VM] Error performing search: \(error)")
             rentEstimate = nil
             allComparables = []
             comparables = []
@@ -420,9 +455,25 @@ class HousingSearchViewModel: ObservableObject {
             // Convert to Billix models
             featuredListings = listings.map { $0.toRentalComparable() }
 
+        } catch let error as RentCastError {
+            // Handle rate limit exceeded specifically
+            if case .rateLimitExceeded(let remaining, let limit) = error {
+                print("")
+                print("🛑 [HOUSING VM] ═══════════════════════════════════════════")
+                print("🛑 [HOUSING VM] RATE LIMIT EXCEEDED IN loadFeaturedFeed()")
+                print("🛑 [HOUSING VM] Limit: \(limit)/week, Remaining: \(remaining)")
+                print("🛑 [HOUSING VM] Showing RateLimitExceededView...")
+                print("🛑 [HOUSING VM] ═══════════════════════════════════════════")
+                print("")
+                showRateLimitExceeded = true
+                rateLimitErrorMessage = error.localizedDescription
+            } else {
+                print("❌ [HOUSING VM] RentCast error: \(error)")
+            }
+            featuredListings = []
         } catch {
             // Show error - NO FALLBACK to mock data
-            print("❌ Error loading featured feed: \(error)")
+            print("❌ [HOUSING VM] Error loading featured feed: \(error)")
             featuredListings = []
         }
 
@@ -746,8 +797,27 @@ class HousingSearchViewModel: ObservableObject {
             print("   • Map pins: 1 (searched) + \(compMarkers.count) (comparables)")
             print("═══════════════════════════════════════════════════════════")
 
+        } catch let error as RentCastError {
+            // Handle rate limit exceeded specifically
+            if case .rateLimitExceeded(let remaining, let limit) = error {
+                print("")
+                print("🛑 [HOUSING VM] ═══════════════════════════════════════════")
+                print("🛑 [HOUSING VM] RATE LIMIT EXCEEDED IN loadPopulatedArea()")
+                print("🛑 [HOUSING VM] Limit: \(limit)/week, Remaining: \(remaining)")
+                print("🛑 [HOUSING VM] Showing RateLimitExceededView...")
+                print("🛑 [HOUSING VM] ═══════════════════════════════════════════")
+                print("")
+                showRateLimitExceeded = true
+                rateLimitErrorMessage = error.localizedDescription
+            } else {
+                print("❌ [HOUSING VM] RentCast error: \(error)")
+            }
+            allComparables = []
+            comparables = []
+            propertyMarkers = []
+            rentEstimate = nil
         } catch {
-            print("❌ Error loading rent estimate: \(error)")
+            print("❌ [HOUSING VM] Error loading rent estimate: \(error)")
             allComparables = []
             comparables = []
             propertyMarkers = []
@@ -775,6 +845,19 @@ class HousingSearchViewModel: ObservableObject {
             latitudeDelta: max(latDelta, 0.01),
             longitudeDelta: max(lonDelta, 0.01)
         )
+    }
+
+    /// Select property and center map on it (called from card tap)
+    func selectAndCenterOnProperty(id: String) {
+        selectedPropertyId = id
+
+        // Find the property's coordinate and center map on it
+        if let marker = propertyMarkers.first(where: { $0.id == id }) {
+            mapRegion = MKCoordinateRegion(
+                center: marker.coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )
+        }
     }
 
     /// Handle pin selection from map
