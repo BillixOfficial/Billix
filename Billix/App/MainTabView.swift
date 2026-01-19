@@ -2,27 +2,30 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
-    @State private var exploreResetId = UUID()
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Content
-            Group {
-                switch selectedTab {
-                case 0:
-                    HomeView()
-                case 1:
-                    ExploreLandingView()
-                        .id(exploreResetId)  // Reset state when returning to Explore tab
-                case 2:
-                    UploadHubView()
-                case 3:
-                    RewardsHubView()
-                case 4:
-                    ProfileView()
-                default:
-                    HomeView()
-                }
+            // Content - All tabs stay in memory to preserve navigation state
+            ZStack {
+                HomeView()
+                    .opacity(selectedTab == 0 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 0)
+
+                ExploreLandingView()
+                    .opacity(selectedTab == 1 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 1)
+
+                UploadHubView()
+                    .opacity(selectedTab == 2 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 2)
+
+                RewardsHubView()
+                    .opacity(selectedTab == 3 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 3)
+
+                ProfileView()
+                    .opacity(selectedTab == 4 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea()
@@ -32,12 +35,6 @@ struct MainTabView: View {
                 .edgesIgnoringSafeArea(.bottom)
         }
         .ignoresSafeArea(.keyboard)
-        .onChange(of: selectedTab) { oldValue, newValue in
-            // Reset Explore view state when returning to Explore tab from another tab
-            if oldValue != 1 && newValue == 1 {
-                exploreResetId = UUID()
-            }
-        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToUpload"))) { _ in
             withAnimation {
                 selectedTab = 2  // Switch to Upload tab
