@@ -19,6 +19,7 @@ struct MarketContentTabPicker: View {
         }
         .pickerStyle(.segmented)
         .padding(.horizontal, 20)
+        .padding(.vertical, -4)  // Reduce vertical height by ~30-40%
     }
 }
 

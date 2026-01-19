@@ -14,7 +14,7 @@ struct RentEstimatePanel: View {
     var body: some View {
         VStack(spacing: 20) {
             // Title
-            Text("Estimated Monthly Rent")
+            Text("Average Rent")
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(.secondary)
 

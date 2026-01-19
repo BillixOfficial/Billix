@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
+    @State private var exploreResetId = UUID()
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -12,6 +13,7 @@ struct MainTabView: View {
                     HomeView()
                 case 1:
                     ExploreLandingView()
+                        .id(exploreResetId)  // Reset state when returning to Explore tab
                 case 2:
                     UploadHubView()
                 case 3:
@@ -30,6 +32,12 @@ struct MainTabView: View {
                 .edgesIgnoringSafeArea(.bottom)
         }
         .ignoresSafeArea(.keyboard)
+        .onChange(of: selectedTab) { oldValue, newValue in
+            // Reset Explore view state when returning to Explore tab from another tab
+            if oldValue != 1 && newValue == 1 {
+                exploreResetId = UUID()
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToUpload"))) { _ in
             withAnimation {
                 selectedTab = 2  // Switch to Upload tab

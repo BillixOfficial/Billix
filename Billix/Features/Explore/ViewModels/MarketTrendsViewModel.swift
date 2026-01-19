@@ -60,8 +60,8 @@ class MarketTrendsViewModel: ObservableObject {
 
     var chartHistoryData: [RentHistoryPoint] {
         if selectedBedroomTypes.isEmpty {
-            // No selection: show all types (excluding average)
-            return filteredHistoryData.filter { $0.bedroomType != .average }
+            // NEW: Show average line when nothing selected (cleaner default)
+            return filteredHistoryData.filter { $0.bedroomType == .average }
         } else {
             // Show only selected types
             return filteredHistoryData.filter { selectedBedroomTypes.contains($0.bedroomType) }
@@ -72,28 +72,12 @@ class MarketTrendsViewModel: ObservableObject {
 
     init(housingViewModel: HousingSearchViewModel? = nil) {
         self.housingViewModel = housingViewModel
-
-        // Subscribe to location changes from Housing tab
-        if let housingVM = housingViewModel {
-            housingVM.$activeLocation
-                .sink { [weak self] newLocation in
-                    guard let self = self else { return }
-                    if !newLocation.isEmpty {
-                        self.updateLocation(newLocation)
-                    }
-                }
-                .store(in: &cancellables)
-
-            housingVM.$searchQuery
-                .sink { [weak self] query in
-                    guard let self = self else { return }
-                    if !query.isEmpty && query != self.currentLocation {
-                        self.updateLocation(query)
-                    }
-                }
-                .store(in: &cancellables)
-        }
+        // Location sync is handled by the View's .task modifier to avoid duplicate API calls
     }
+
+    // MARK: - RentCast Service
+
+    private let rentCastService = RentCastEdgeFunctionService.shared
 
     // MARK: - Data Loading
 
@@ -103,17 +87,64 @@ class MarketTrendsViewModel: ObservableObject {
         isLoading = true
         currentLocation = location
 
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
+        do {
+            // Step 1: Get zip code (from string or via geocoding)
+            var zipCode: String? = extractZipCode(from: location)
 
-        // Generate mock data
-        marketData = MarketTrendsMockData.generateMarketData(location: location)
-        historyData = MarketTrendsMockData.generateHistoryData(
-            location: location,
-            monthsBack: 24
-        )
+            if zipCode == nil {
+                // Use Apple geocoding to find zip code (free)
+                print("🗺️ [MARKET TRENDS] No zip found, using geocoding...")
+                zipCode = await GeocodingService.shared.getZipCode(from: location)
+            }
+
+            guard let resolvedZipCode = zipCode else {
+                print("❌ Could not resolve zip code for location: \(location)")
+                isLoading = false
+                return
+            }
+
+            // Step 2: Check shared cache first (same cache as Housing tab)
+            let cacheKey = CacheKey.rentCastMarketStats(zipCode: resolvedZipCode)
+            if let cachedResponse: RentCastMarketResponse = await CacheManager.shared.get(cacheKey) {
+                print("💾 [MARKET TRENDS] Using cached data for zip \(resolvedZipCode)")
+                marketData = cachedResponse.toMarketTrendsData(location: location)
+                historyData = cachedResponse.toHistoryData()
+                isLoading = false
+                return
+            }
+
+            // Step 3: Fetch from RentCast via Edge Function
+            print("📡 [MARKET TRENDS] Fetching fresh data for zip \(resolvedZipCode)...")
+            let response = try await rentCastService.fetchMarketStatistics(
+                zipCode: resolvedZipCode,
+                historyRange: 60
+            )
+
+            // Step 4: Store in shared cache
+            await CacheManager.shared.set(cacheKey, value: response)
+            print("💾 [MARKET TRENDS] Stored data for zip \(resolvedZipCode)")
+
+            // Convert to Billix models
+            marketData = response.toMarketTrendsData(location: location)
+            historyData = response.toHistoryData()
+
+        } catch {
+            // Show error - NO FALLBACK to mock data
+            print("❌ Error loading market trends: \(error)")
+            marketData = nil
+            historyData = []
+        }
 
         isLoading = false
+    }
+
+    private func extractZipCode(from location: String) -> String? {
+        // Try to find a 5-digit zip code in the string
+        let pattern = "\\d{5}"
+        if let range = location.range(of: pattern, options: .regularExpression) {
+            return String(location[range])
+        }
+        return nil
     }
 
     func updateLocation(_ location: String) {

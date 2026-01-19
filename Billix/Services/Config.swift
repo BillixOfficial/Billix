@@ -21,4 +21,21 @@ struct Config {
     static var housingMarketEndpoint: String {
         "\(apiBaseURL)/api/\(apiVersion)/housing-market"
     }
+
+    // RentCast API Configuration
+    static let rentcastAPIURL = "https://api.rentcast.io/v1"
+    static let rentcastAPIKey = "YOUR_API_KEY_HERE"  // TODO: Replace with real API key
+
+    // RentCast Endpoints
+    static var rentcastMarketsEndpoint: String {
+        "\(rentcastAPIURL)/markets"
+    }
+
+    static var rentcastRentEstimateEndpoint: String {
+        "\(rentcastAPIURL)/avm/rent/long-term"
+    }
+
+    static var rentcastListingsEndpoint: String {
+        "\(rentcastAPIURL)/listings/rental/long-term"
+    }
 }

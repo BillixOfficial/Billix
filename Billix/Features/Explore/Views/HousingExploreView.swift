@@ -9,12 +9,26 @@
 import SwiftUI
 import MapKit
 
+// MARK: - MKCoordinateRegion Equatable Extension
+
+extension MKCoordinateRegion: @retroactive Equatable {
+    public static func == (lhs: MKCoordinateRegion, rhs: MKCoordinateRegion) -> Bool {
+        lhs.center.latitude == rhs.center.latitude &&
+        lhs.center.longitude == rhs.center.longitude &&
+        lhs.span.latitudeDelta == rhs.span.latitudeDelta &&
+        lhs.span.longitudeDelta == rhs.span.longitudeDelta
+    }
+}
+
 /// Map-first property explorer: Filters → Estimate Panel + Map → Comparable Listings
 struct HousingExploreView: View {
     @ObservedObject var locationManager: LocationManager
     @ObservedObject var viewModel: HousingSearchViewModel
+    @StateObject private var userLocation = UserLocationService()
+    @ObservedObject private var rateLimitService = RateLimitService.shared
     @State private var showMoreFilters = false
     @State private var sheetDetent: PresentationDetent = .fraction(0.12)
+    @State private var isKeyboardVisible = false
 
     private var isCollapsed: Bool {
         sheetDetent != .medium && sheetDetent != .large
@@ -29,16 +43,31 @@ struct HousingExploreView: View {
                     region: $viewModel.mapRegion,
                     selectedPropertyId: $viewModel.selectedPropertyId,
                     onPinTap: { id in
-                        viewModel.selectPropertyFromMap(id: id)
-                        // Expand sheet to medium (half-expanded) to show property details
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            sheetDetent = .medium
+                        if id == "searched" {
+                            // Blue pin (searched location) tapped - show full listing view
+                            print("📍 [PIN TAP] Blue pin (searched location) tapped")
+                            print("   → Clearing selection, expanding to FULL view (.large)")
+                            viewModel.selectedPropertyId = nil  // Clear any selection
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                sheetDetent = .large  // Full expanded view
+                            }
+                        } else {
+                            // Comparable property pin tapped - show property details
+                            print("📍 [PIN TAP] Comparable pin tapped: \(id)")
+                            print("   → Selecting property, expanding to HALF view (.medium)")
+                            viewModel.selectPropertyFromMap(id: id)
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                sheetDetent = .medium  // Half-expanded to show selected property
+                            }
                         }
                     }
                 )
                 .ignoresSafeArea()
             } else if viewModel.isLoading {
                 loadingState
+            } else {
+                // Empty state - instructions before search
+                emptyStateView
             }
 
             // Search bar at top (overlaid on map)
@@ -46,34 +75,77 @@ struct HousingExploreView: View {
                 if !viewModel.isLoading {
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {
-                            // Address/Zip Search Field
-                            HStack {
-                                Image(systemName: "magnifyingglass")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 16))
+                            // Address Search Field with Autocomplete
+                            VStack(alignment: .leading, spacing: 0) {
+                                HStack {
+                                    Image(systemName: "magnifyingglass")
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 16))
 
-                                TextField("Enter address or zip code", text: $viewModel.searchQuery)
-                                    .textFieldStyle(.plain)
-                                    .submitLabel(.search)
-                                    .onSubmit {
-                                        Task {
-                                            await viewModel.performAddressSearch()
+                                    TextField("Enter full address", text: $viewModel.searchQuery)
+                                        .textFieldStyle(.plain)
+                                        .submitLabel(.search)
+                                        .onChange(of: viewModel.searchQuery) { _, _ in
+                                            viewModel.updateAutocompleteSuggestions()
+                                        }
+                                        .onSubmit {
+                                            Task {
+                                                await viewModel.performAddressSearch()
+                                            }
+                                        }
+
+                                    if !viewModel.searchQuery.isEmpty {
+                                        Button {
+                                            viewModel.searchQuery = ""
+                                            viewModel.hideAutocompleteSuggestions()
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 16))
                                         }
                                     }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color.white.opacity(0.95))
+                                .clipShape(RoundedRectangle(cornerRadius: viewModel.showAutocompleteSuggestions ? 12 : 12))
 
-                                if !viewModel.searchQuery.isEmpty {
-                                    Button {
-                                        viewModel.searchQuery = ""
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.gray)
-                                            .font(.system(size: 16))
+                                // Autocomplete Suggestions Dropdown
+                                if viewModel.showAutocompleteSuggestions && !viewModel.autocompleteService.suggestions.isEmpty {
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        Divider()
+                                            .padding(.horizontal, 12)
+
+                                        ForEach(viewModel.autocompleteService.suggestions) { suggestion in
+                                            Button {
+                                                Task {
+                                                    await viewModel.selectAddressSuggestion(suggestion)
+                                                }
+                                            } label: {
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(suggestion.title)
+                                                        .font(.system(size: 14, weight: .medium))
+                                                        .foregroundColor(.primary)
+                                                    if !suggestion.subtitle.isEmpty {
+                                                        Text(suggestion.subtitle)
+                                                            .font(.system(size: 12))
+                                                            .foregroundColor(.secondary)
+                                                    }
+                                                }
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 10)
+                                            }
+
+                                            if suggestion.id != viewModel.autocompleteService.suggestions.last?.id {
+                                                Divider()
+                                                    .padding(.horizontal, 12)
+                                            }
+                                        }
                                     }
+                                    .background(Color.white.opacity(0.95))
                                 }
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .background(Color.white.opacity(0.95))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
 
@@ -113,21 +185,23 @@ struct HousingExploreView: View {
                         }
                         .padding(.horizontal, 20)
 
-                        // Filter Pills (Horizontal Scrollable)
-                        if !viewModel.activeFilterPills.isEmpty {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(viewModel.activeFilterPills) { pill in
-                                        FilterPillView(
-                                            label: pill.label,
-                                            onRemove: {
-                                                viewModel.removeFilter(id: pill.id)
-                                            }
-                                        )
-                                    }
+                        // Filter Pills and Rate Limit Indicator (Horizontal Scrollable)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                // Rate limit indicator (always show when user is authenticated)
+                                RateLimitIndicator(rateLimitService: rateLimitService)
+
+                                // Filter pills
+                                ForEach(viewModel.activeFilterPills) { pill in
+                                    FilterPillView(
+                                        label: pill.label,
+                                        onRemove: {
+                                            viewModel.removeFilter(id: pill.id)
+                                        }
+                                    )
                                 }
-                                .padding(.horizontal, 20)
                             }
+                            .padding(.horizontal, 20)
                         }
                     }
                     .padding(.vertical, 12)
@@ -141,18 +215,20 @@ struct HousingExploreView: View {
                 Spacer()
             }
 
-            // Bottom sheet overlay (doesn't cover tab bar)
-            if viewModel.showResultsSheet, let rentEstimate = viewModel.rentEstimate {
+            // Bottom sheet overlay (doesn't cover tab bar) - hide when keyboard is visible
+            if viewModel.showResultsSheet, let rentEstimate = viewModel.rentEstimate, !isKeyboardVisible {
                 VStack {
                     Spacer()
 
                     DraggableResultsSheet(
                         rentEstimate: rentEstimate,
                         comparables: viewModel.comparables,  // Use raw comparables (selected property is first)
+                        propertyMarkers: viewModel.propertyMarkers,  // For looking up actual pin numbers
+                        totalCount: viewModel.comparableMarkers.count,  // Total comparable rentals (excludes searched location pin)
                         selectedPropertyId: viewModel.selectedPropertyId,
                         onPropertyTap: { id in
-                            // Card tap: only update selection (blue border), don't reorder
-                            viewModel.selectedPropertyId = id
+                            // Card tap: select property and center map on it
+                            viewModel.selectAndCenterOnProperty(id: id)
                         },
                         sheetDetent: $sheetDetent,
                         topPadding: 5,
@@ -175,13 +251,78 @@ struct HousingExploreView: View {
             .ignoresSafeArea()
         )
         .task {
-            // Auto-load Detroit map with properties on first appear (matches mock data location)
+            // Auto-load user's location on first appear
             if viewModel.isInitialLoad {
-                await viewModel.loadPopulatedArea(address: "Detroit, MI 48226")
+                print("📍 [HOUSING] Requesting user location...")
+                userLocation.getCurrentLocation()
+
+                // Fallback: If location takes too long (5 seconds), show empty state
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                if viewModel.isInitialLoad && userLocation.userZipCode == nil {
+                    print("📍 [HOUSING] Location timeout - user can search manually")
+                    viewModel.isInitialLoad = false
+                }
             }
+        }
+        .onChange(of: userLocation.userZipCode) { zipCode in
+            // Load properties when we get user's ZIP code (even if permission was granted after denial)
+            if let zipCode = zipCode, !viewModel.hasSearched {
+                print("📍 [HOUSING] Got ZIP code: \(zipCode), loading properties...")
+                Task {
+                    await viewModel.loadPopulatedArea(address: zipCode)
+                }
+            }
+        }
+        .onChange(of: userLocation.errorMessage) { error in
+            // If location fails, let user search manually
+            if error != nil && viewModel.isInitialLoad {
+                print("📍 [HOUSING] Location error: \(error ?? "unknown"), user can search manually")
+                viewModel.isInitialLoad = false
+            }
+        }
+        .onAppear {
+            // Listen for keyboard show/hide notifications
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
+                withAnimation(.easeOut(duration: 0.25)) {
+                    isKeyboardVisible = true
+                }
+            }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                withAnimation(.easeOut(duration: 0.25)) {
+                    isKeyboardVisible = false
+                }
+            }
+        }
+        .onDisappear {
+            // Remove keyboard observers when view disappears
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         }
         .sheet(isPresented: $showMoreFilters) {
             MoreFiltersSheet(viewModel: viewModel)
+        }
+        .fullScreenCover(isPresented: $viewModel.showRateLimitExceeded) {
+            RateLimitExceededView(
+                rateLimitService: rateLimitService,
+                onUpgrade: {
+                    // TODO: Navigate to premium subscription screen
+                    print("Navigate to premium subscription")
+                }
+            )
+            .overlay(alignment: .topTrailing) {
+                Button {
+                    viewModel.dismissRateLimitExceeded()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(.secondary)
+                        .padding(20)
+                }
+            }
+        }
+        .task {
+            // Refresh rate limit status when view appears
+            await viewModel.refreshRateLimitStatus()
         }
     }
 
@@ -198,6 +339,69 @@ struct HousingExploreView: View {
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Empty State (Before Search)
+
+    private var emptyStateView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+                .frame(height: 60)  // Push content below search bar
+
+            // Icon
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 56, weight: .light))
+                .foregroundColor(.billixDarkTeal.opacity(0.6))
+                .padding(.bottom, 8)
+
+            // Title
+            Text("Search for Rentals")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.primary)
+
+            // Description
+            Text("Enter an address and select filters to find\ncomparable rental properties in your area.")
+                .font(.system(size: 16))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+
+            // Hint
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 12, weight: .semibold))
+                Text("Tap the search bar above to get started")
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundColor(.billixDarkTeal)
+            .padding(.top, 8)
+
+            Spacer()
+
+            // Points education hint
+            VStack(spacing: 8) {
+                HStack(spacing: 6) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 14))
+                    Text("You have \(rateLimitService.weeklyLimit) points/week")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(.billixDarkTeal)
+
+                Text("New search: 2 pts  •  Filter change: 1 pt")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.billixDarkTeal.opacity(0.08))
+            )
+            .padding(.bottom, 100)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 40)
     }
 }
 
@@ -225,26 +429,46 @@ struct CompactMapView: View {
     }
 
     var body: some View {
+        mapContent
+            .mapStyle(.standard(pointsOfInterest: .excludingAll))
+            .mapControls {
+                MapUserLocationButton()
+                MapCompass()
+            }
+            .onChange(of: region) { oldValue, newValue in
+                centerMap(on: newValue)
+            }
+    }
+
+    @ViewBuilder
+    private var mapContent: some View {
         Map(position: $position) {
-            // Comparable properties (green pins) - tappable
             ForEach(comparables) { comp in
                 Annotation("", coordinate: comp.coordinate) {
-                    PropertyPin(
-                        isSelected: comp.id == selectedPropertyId,
-                        isMain: false
-                    )
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.3)) {
-                            onPinTap(comp.id)
-                        }
-                    }
+                    pinView(for: comp)
                 }
             }
         }
-        .mapStyle(.standard(pointsOfInterest: .excludingAll))
-        .mapControls {
-            MapUserLocationButton()
-            MapCompass()
+    }
+
+    @ViewBuilder
+    private func pinView(for comp: PropertyMarker) -> some View {
+        PropertyPin(
+            isSelected: comp.id == selectedPropertyId,
+            isMain: comp.isSearchedProperty,
+            isActive: comp.isActive,
+            index: comp.index
+        )
+        .onTapGesture {
+            withAnimation(.spring(response: 0.3)) {
+                onPinTap(comp.id)
+            }
+        }
+    }
+
+    private func centerMap(on newRegion: MKCoordinateRegion) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            position = .region(newRegion)
         }
     }
 }
@@ -348,6 +572,8 @@ struct CompactStatPill: View {
 struct DraggableResultsSheet: View {
     let rentEstimate: RentEstimateResult
     let comparables: [RentalComparable]
+    let propertyMarkers: [PropertyMarker]  // For looking up actual pin numbers
+    let totalCount: Int  // Total rentals (not filtered by pin selection)
     let selectedPropertyId: String?
     let onPropertyTap: (String) -> Void
     @Binding var sheetDetent: PresentationDetent
@@ -361,6 +587,11 @@ struct DraggableResultsSheet: View {
 
     private let midHeight: CGFloat = 480
     private let expandedHeight: CGFloat = 600
+
+    /// Look up the actual pin number for a property ID
+    private func pinIndex(for propertyId: String) -> Int? {
+        propertyMarkers.first(where: { $0.id == propertyId })?.index
+    }
 
     private var collapsedHeight: CGFloat {
         // Calculate based on padding
@@ -393,8 +624,8 @@ struct DraggableResultsSheet: View {
                 .padding(.bottom, 6)
 
             if isCollapsed {
-                // Collapsed state: Just count
-                Text("\(comparables.count) rental\(comparables.count == 1 ? "" : "s") available")
+                // Collapsed state: Just count (show total, not filtered)
+                Text("\(totalCount) rental\(totalCount == 1 ? "" : "s") available")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.primary)
                     .frame(maxWidth: .infinity)
@@ -407,7 +638,7 @@ struct DraggableResultsSheet: View {
                     VStack(spacing: 12) {
                         // Compact Rent Estimate
                         VStack(spacing: 8) {
-                            Text("Estimated Monthly Rent")
+                            Text("Rent Estimate")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.secondary)
 
@@ -415,6 +646,12 @@ struct DraggableResultsSheet: View {
                                 .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(.billixDarkTeal)
                                 .monospacedDigit()
+
+                            // Informational subtitle (like RentCast)
+                            Text("Based on rentals within a **1.5 mile** radius seen in the last **6 months**")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
 
                             HStack(spacing: 8) {
                                 CompactStatPill(
@@ -433,9 +670,9 @@ struct DraggableResultsSheet: View {
                         Divider()
                             .padding(.horizontal, 20)
 
-                        // Compact Comparable Listings
+                        // Selected Property (currently viewing)
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Comparable Listings")
+                            Text("Selected Property")
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundColor(.primary)
                                 .padding(.horizontal, 20)
@@ -444,6 +681,7 @@ struct DraggableResultsSheet: View {
                                 PropertyListCard(
                                     property: firstProperty,
                                     isSelected: firstProperty.id == selectedPropertyId,
+                                    index: pinIndex(for: firstProperty.id) ?? 1,  // Actual pin number
                                     onTap: {
                                         onPropertyTap(firstProperty.id)
                                     }
@@ -466,7 +704,7 @@ struct DraggableResultsSheet: View {
                                 .padding(.top, 4)
                             }
                         }
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 50)  // Extra padding to clear tab bar
                     }
                 } else {
                     // Large state: Fixed rent estimate + scrollable listings
@@ -482,15 +720,15 @@ struct DraggableResultsSheet: View {
                         }
                         .background(Color.white)
 
-                        // Scrollable Comparable Listings
+                        // Scrollable Nearby Listings
                         ScrollView {
                             VStack(alignment: .leading, spacing: 16) {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text("Comparable Listings")
+                                    Text("Nearby Listings")
                                         .font(.system(size: 20, weight: .bold))
                                         .foregroundColor(.primary)
 
-                                    Text("Based on \(rentEstimate.comparablesCount) rental\(rentEstimate.comparablesCount == 1 ? "" : "s") in this area")
+                                    Text("Based on rentals within a **1.5 mile** radius seen in the last **6 months**")
                                         .font(.system(size: 14))
                                         .foregroundColor(.secondary)
                                 }
@@ -498,10 +736,11 @@ struct DraggableResultsSheet: View {
                                 .padding(.top, 16)
 
                                 VStack(spacing: 12) {
-                                    ForEach(comparables) { property in
+                                    ForEach(comparables, id: \.id) { property in
                                         PropertyListCard(
                                             property: property,
                                             isSelected: property.id == selectedPropertyId,
+                                            index: pinIndex(for: property.id) ?? 0,  // Actual pin number
                                             onTap: {
                                                 onPropertyTap(property.id)
                                             }

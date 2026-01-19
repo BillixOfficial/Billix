@@ -27,70 +27,68 @@ struct MarketTrendsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 12) {  // Compact spacing to fit everything on one screen
                 if viewModel.isLoading {
                     loadingView
                 } else if let data = viewModel.marketData {
-                    // Ticker Header (replaces AverageRentCard)
+                    // Ticker Header (now more compact)
                     TickerHeaderView(
                         averageRent: data.averageRent,
                         changePercent: data.yearOverYearChange,
                         lowRent: data.lowRent,
-                        highRent: data.highRent
+                        highRent: data.highRent,
+                        location: viewModel.currentLocation
                     )
                     .padding(.horizontal, 20)
 
-                    // Time range selector
-                    TimeRangeSelector(selectedRange: $viewModel.selectedTimeRange)
-                        .padding(.horizontal, 20)
-
-                    // Chart (shown for both tabs)
+                    // Chart with inline time selector in header
                     RentHistoryChart(
-                        historyData: viewModel.selectedContentTab == .summary
-                            ? viewModel.averageOnlyHistoryData
-                            : viewModel.chartHistoryData,
-                        timeRange: viewModel.selectedTimeRange,
-                        chartMode: viewModel.selectedContentTab == .summary
-                            ? .averageOnly
-                            : .allTypes,
+                        historyData: viewModel.chartHistoryData,
+                        timeRange: $viewModel.selectedTimeRange,
+                        chartMode: .allTypes,
                         selectedBedroomTypes: viewModel.selectedBedroomTypes,
                         selectedDataPoint: $viewModel.selectedDataPoint,
-                        isScrubbing: $viewModel.isScrubbingChart
+                        isScrubbing: $viewModel.isScrubbingChart,
+                        lineOnlyMode: false  // Enable gradient shadow fill under lines
                     )
+                    .padding(.horizontal, 20)
 
-                    // Tab Picker (Summary | Breakdown) - BELOW chart
-                    MarketContentTabPicker(selectedTab: $viewModel.selectedContentTab)
-
-                    // Conditional Content based on selected tab
-                    if viewModel.selectedContentTab == .breakdown {
-                        // BREAKDOWN TAB - Bedroom Breakdown Grid
-                        BedroomBreakdownGrid(
-                            stats: data.bedroomStats,
-                            selectedBedroomTypes: viewModel.selectedBedroomTypes,
-                            onBedroomTap: { type in
-                                viewModel.toggleBedroomType(type)
-                            }
-                        )
-                        .padding(.horizontal, 20)
-                    } else {
-                        // SUMMARY TAB - Market Overview
-                        MarketSummaryView(
-                            marketData: data,
-                            marketHealth: calculateMarketHealth(changePercent: data.yearOverYearChange)
-                        )
-                        .padding(.horizontal, 20)
-                    }
+                    // Bedroom Breakdown List (always visible - no toggle)
+                    BedroomListView(
+                        stats: data.bedroomStats,
+                        selectedBedroomTypes: viewModel.selectedBedroomTypes,
+                        onBedroomTap: { type in
+                            viewModel.toggleBedroomType(type)
+                        }
+                    )
+                    .padding(.horizontal, 20)
                 } else {
                     emptyStateView
                 }
             }
-            .padding(.bottom, 100)  // Extra padding for bottom nav bar
+            .padding(.bottom, 80)  // Padding for bottom nav bar
         }
         .background(Color(hex: "F8F9FA").ignoresSafeArea())
         .task {
-            // Auto-load NYC on first appear
-            if viewModel.marketData == nil {
-                await viewModel.loadMarketTrends(for: "New York, NY 10001")
+            // Only load market trends if user has searched in Housing tab
+            // No default location - user must search first
+            if viewModel.marketData == nil && housingViewModel.hasSearched {
+                let location = housingViewModel.activeLocation.isEmpty
+                    ? housingViewModel.searchAddress
+                    : housingViewModel.activeLocation
+                if !location.isEmpty {
+                    print("🔍 [MARKET TRENDS] Loading data for: \(location)")
+                    await viewModel.loadMarketTrends(for: location)
+                }
+            }
+        }
+        .onChange(of: housingViewModel.activeLocation) { newLocation in
+            // Sync when user searches a new location in Housing tab
+            if !newLocation.isEmpty && newLocation != viewModel.currentLocation {
+                print("🔍 [MARKET TRENDS] Location changed to: \(newLocation)")
+                Task {
+                    await viewModel.loadMarketTrends(for: newLocation)
+                }
             }
         }
     }
@@ -112,20 +110,47 @@ struct MarketTrendsView: View {
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 24) {
+            // Icon
             Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 60))
-                .foregroundColor(.billixDarkTeal.opacity(0.3))
+                .font(.system(size: 56, weight: .light))
+                .foregroundColor(.billixDarkTeal.opacity(0.6))
+                .padding(.bottom, 8)
 
-            Text("No Market Data Available")
-                .font(.system(size: 20, weight: .semibold))
+            // Title
+            Text("Explore Market Trends")
+                .font(.system(size: 24, weight: .bold))
                 .foregroundColor(.primary)
 
-            Text("Select a location to view market trends")
-                .font(.system(size: 15))
+            // Description
+            Text("Search for an address to view rental market\nstatistics, historical prices, and trends.")
+                .font(.system(size: 16))
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+
+            // Action button to switch to Housing tab
+            Button {
+                onSwitchToHousing()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Search in Housing tab")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.billixDarkTeal)
+                )
+            }
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
+        .padding(.horizontal, 40)
         .padding(.top, 100)
     }
 

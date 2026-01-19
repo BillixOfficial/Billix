@@ -29,12 +29,16 @@ struct MarketTrendsData: Identifiable {
 
 // MARK: - Bedroom Statistics
 
-struct BedroomStats: Identifiable {
+struct BedroomStats: Identifiable, Equatable {
     let id: String = UUID().uuidString
     let bedroomCount: Int             // 0 = Studio, 1-5 = bedrooms
     let averageRent: Double
     let rentChange: Double            // Percentage change
     let sampleSize: Int
+
+    static func == (lhs: BedroomStats, rhs: BedroomStats) -> Bool {
+        lhs.id == rhs.id
+    }
 
     var bedroomLabel: String {
         switch bedroomCount {
@@ -110,6 +114,18 @@ enum BedroomType: String, CaseIterable, Identifiable {
         case .fiveBed: return Color(hex: "dc6b62")  // Pink
         }
     }
+
+    var displayName: String {
+        switch self {
+        case .average: return "Average"
+        case .studio: return "Studio"
+        case .oneBed: return "1 Bedroom"
+        case .twoBed: return "2 Bedrooms"
+        case .threeBed: return "3 Bedrooms"
+        case .fourBed: return "4 Bedrooms"
+        case .fiveBed: return "5 Bedrooms"
+        }
+    }
 }
 
 // MARK: - Time Range
@@ -117,7 +133,7 @@ enum BedroomType: String, CaseIterable, Identifiable {
 enum TimeRange: String, CaseIterable, Identifiable {
     case sixMonths = "6 Months"
     case oneYear = "1 Year"
-    case allTime = "All Time"
+    case allTime = "Max"  // Maximum available (typically 2 years from RentCast)
 
     var id: String { rawValue }
 
@@ -125,7 +141,7 @@ enum TimeRange: String, CaseIterable, Identifiable {
         switch self {
         case .sixMonths: return 6
         case .oneYear: return 12
-        case .allTime: return 24  // 2 years for mock data
+        case .allTime: return 60  // Show all available data (up to 5 years)
         }
     }
 }

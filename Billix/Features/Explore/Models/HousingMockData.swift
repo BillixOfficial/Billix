@@ -157,7 +157,10 @@ struct HousingMockData {
                 bathrooms: bathrooms,
                 sqft: sqft,
                 propertyType: propertyType,
-                coordinate: coordinate
+                coordinate: coordinate,
+                yearBuilt: Int.random(in: 1960...2023),
+                lotSize: Int.random(in: 2000...10000),
+                status: Bool.random() ? "Active" : "Inactive"
             )
 
             comparables.append(comparable)
@@ -190,7 +193,8 @@ struct HousingMockData {
         return PropertyMarker(
             id: "searched_property",
             coordinate: CLLocationCoordinate2D(latitude: 42.3314, longitude: -83.0458),
-            isSearchedProperty: true
+            isSearchedProperty: true,
+            isActive: true
         )
     }
 
@@ -201,7 +205,8 @@ struct HousingMockData {
             PropertyMarker(
                 id: comp.id,
                 coordinate: comp.coordinate,
-                isSearchedProperty: false
+                isSearchedProperty: false,
+                isActive: comp.isActive
             )
         }
     }
