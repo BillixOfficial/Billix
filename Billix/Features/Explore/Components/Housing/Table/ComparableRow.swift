@@ -133,7 +133,10 @@ struct ComparableRow: View {
                         bathrooms: 1.5,
                         sqft: 950,
                         propertyType: .apartment,
-                        coordinate: .init(latitude: 42.3314, longitude: -83.0458)
+                        coordinate: .init(latitude: 42.3314, longitude: -83.0458),
+                        yearBuilt: 2010,
+                        lotSize: 5000,
+                        status: index % 2 == 0 ? "Active" : "Inactive"
                     ),
                     rowNumber: index,
                     isSelected: index == 1  // First row selected

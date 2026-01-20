@@ -35,7 +35,6 @@ struct ExploreTabView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
         }
-        .navigationBarHidden(true)
         .background(Color(hex: "#F3F4F6"))
     }
 }

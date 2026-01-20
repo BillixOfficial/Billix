@@ -86,6 +86,33 @@ enum ListingStatus: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+// MARK: - Search Mode
+
+enum SearchMode: String, CaseIterable, Identifiable {
+    case rent = "Rent Cost"
+    case buy = "Property Cost"
+
+    var id: String { rawValue }
+
+    var isAvailable: Bool {
+        switch self {
+        case .rent:
+            return true
+        case .buy:
+            return false  // Coming soon
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .rent:
+            return "key.fill"
+        case .buy:
+            return "house.fill"
+        }
+    }
+}
+
 // MARK: - Property Search Parameters
 
 struct PropertySearchParams {
@@ -134,6 +161,14 @@ struct RentalComparable: Identifiable {
     let sqft: Int?
     let propertyType: PropertyType
     let coordinate: CLLocationCoordinate2D
+    let yearBuilt: Int?              // Year property was built
+    let lotSize: Int?                // Lot size in square feet
+    let status: String?              // "Active" or "Inactive"
+
+    /// Whether this listing is currently active
+    var isActive: Bool {
+        status?.lowercased() == "active"
+    }
 
     var lastSeenFormatted: String {
         let formatter = RelativeDateTimeFormatter()
@@ -211,5 +246,15 @@ enum ComparableColumn: String, CaseIterable {
 struct PropertyMarker: Identifiable {
     let id: String
     let coordinate: CLLocationCoordinate2D
-    let isSearchedProperty: Bool  // true = blue pin, false = green pin
+    let isSearchedProperty: Bool  // true = blue pin, false = comparable pin
+    let isActive: Bool            // true = green pin, false = gray pin (for comparables)
+    let index: Int?               // 1, 2, 3... for numbered pins (nil for searched property)
+
+    init(id: String, coordinate: CLLocationCoordinate2D, isSearchedProperty: Bool, isActive: Bool, index: Int? = nil) {
+        self.id = id
+        self.coordinate = coordinate
+        self.isSearchedProperty = isSearchedProperty
+        self.isActive = isActive
+        self.index = index
+    }
 }

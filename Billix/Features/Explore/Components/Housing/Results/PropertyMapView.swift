@@ -126,23 +126,27 @@ struct LegendItem: View {
         searchedProperty: PropertyMarker(
             id: "searched",
             coordinate: CLLocationCoordinate2D(latitude: 42.3314, longitude: -83.0458),
-            isSearchedProperty: true
+            isSearchedProperty: true,
+            isActive: true
         ),
         comparables: [
             PropertyMarker(
                 id: "comp1",
                 coordinate: CLLocationCoordinate2D(latitude: 42.3354, longitude: -83.0498),
-                isSearchedProperty: false
+                isSearchedProperty: false,
+                isActive: true
             ),
             PropertyMarker(
                 id: "comp2",
                 coordinate: CLLocationCoordinate2D(latitude: 42.3274, longitude: -83.0418),
-                isSearchedProperty: false
+                isSearchedProperty: false,
+                isActive: false
             ),
             PropertyMarker(
                 id: "comp3",
                 coordinate: CLLocationCoordinate2D(latitude: 42.3344, longitude: -83.0428),
-                isSearchedProperty: false
+                isSearchedProperty: false,
+                isActive: true
             )
         ],
         region: .constant(MKCoordinateRegion(

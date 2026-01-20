@@ -17,24 +17,66 @@ enum ChartMode {
 
 struct RentHistoryChart: View {
     let historyData: [RentHistoryPoint]
-    let timeRange: TimeRange
+    @Binding var timeRange: TimeRange  // Changed to Binding for inline control
     let chartMode: ChartMode
     let selectedBedroomTypes: Set<BedroomType>
     @Binding var selectedDataPoint: RentHistoryPoint?
     @Binding var isScrubbing: Bool
+    var lineOnlyMode: Bool = true  // Default to line-only for cleaner charts
 
     @State private var rawSelectedDate: Date?
     @State private var touchedRent: Double?
 
+    /// Determines if the chart has no data to display based on current filters
+    private var isChartEmpty: Bool {
+        if chartMode == .averageOnly {
+            return historyData.filter { $0.bedroomType == .average }.isEmpty
+        } else {
+            let typesToShow = selectedBedroomTypes.isEmpty
+                ? Array(BedroomType.allCases.filter { $0 != .average })
+                : Array(selectedBedroomTypes)
+
+            let hasData = typesToShow.contains { bedroomType in
+                !historyData.filter { $0.bedroomType == bedroomType }.isEmpty
+            }
+            return !hasData
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Title
-            Text("HISTORICAL PERFORMANCE")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(.secondary)
-                .tracking(0.5)
-                .padding(.top, 8)
-                .frame(maxWidth: .infinity, alignment: .center)
+            // Title + Time Range Pills (merged into one row)
+            HStack(alignment: .center, spacing: 12) {
+                Text("HISTORICAL PERFORMANCE")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.secondary)
+                    .tracking(0.5)
+
+                Spacer()
+
+                // Inline time range pills
+                HStack(spacing: 6) {
+                    ForEach(TimeRange.allCases) { range in
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                timeRange = range
+                            }
+                        } label: {
+                            Text(abbreviatedLabel(for: range))
+                                .font(.system(size: 11, weight: timeRange == range ? .bold : .medium))
+                                .foregroundColor(timeRange == range ? .white : .billixDarkTeal)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(timeRange == range ? Color.billixDarkTeal : Color.gray.opacity(0.1))
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(.top, 8)
 
             // Chart with scrubbing label overlay
             ZStack(alignment: .topLeading) {
@@ -67,21 +109,22 @@ struct RentHistoryChart: View {
                     }
 
                 case .allTime:
-                    // Show years with proper stride
+                    // Show yearly marks for multi-year data
                     AxisMarks(values: .stride(by: .year)) { value in
                         AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
                             .foregroundStyle(Color.gray.opacity(0.2))
 
-                        AxisValueLabel(format: .dateTime.year())
-                            .font(.system(size: 10, weight: .semibold))
+                        AxisValueLabel(format: .dateTime.year(.twoDigits))
+                            .font(.system(size: 10))
                             .foregroundStyle(Color.secondary)
                     }
                 }
             }
             .chartPlotStyle { plotArea in
                 plotArea
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 20)
+                    .padding(.leading, 8)
+                    .padding(.trailing, 12)  // Give space for content and labels
+                    .padding(.bottom, 28)  // Extra padding for x-axis labels on Max view
             }
             .chartYAxis {
                 AxisMarks(position: .trailing) { value in
@@ -93,6 +136,7 @@ struct RentHistoryChart: View {
                             Text("$\(Int(rent))")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
+                                .offset(x: 9)  // 9px spacing from chart edge
                         }
                     }
                 }
@@ -185,41 +229,51 @@ struct RentHistoryChart: View {
                     }
                 }
             }
-            .frame(height: 280)
+            .frame(height: 240)  // Larger for better visibility and impact
+
+            // Empty state overlay (shows when no data)
+            if isChartEmpty {
+                chartEmptyStateOverlay
+                    .transition(.opacity)
+                    .allowsHitTesting(false)  // Allow touches to pass through to time range pills
+            }
             }
 
-            // Legend (show in allTypes mode)
-            if chartMode == .allTypes {
-                let legendTypes = selectedBedroomTypes.isEmpty
-                    ? Array(BedroomType.allCases.filter { $0 != .average })
-                    : Array(selectedBedroomTypes)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
-                        ForEach(legendTypes, id: \.self) { type in
-                            HStack(spacing: 6) {
-                                Circle()
-                                    .fill(type.chartColor)
-                                    .frame(width: 10, height: 10)
-
-                                Text(type.rawValue)
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.primary)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 8)
-                }
-                .padding(.top, 4)
-            }
+            // Legend removed - bedroom list below serves as legend
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16))
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white)
                 .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
         )
+    }
+
+    // MARK: - Empty State Overlay
+
+    /// Displays instructional text when chart has no data to show
+    private var chartEmptyStateOverlay: some View {
+        VStack(spacing: 12) {
+            // Icon with subtle background circle
+            ZStack {
+                Circle()
+                    .fill(Color.billixDarkTeal.opacity(0.08))
+                    .frame(width: 60, height: 60)
+
+                Image(systemName: "hand.point.down.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(.billixDarkTeal.opacity(0.5))
+            }
+
+            // Instructional text
+            Text("Tap a bedroom type below to view trends")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.white.opacity(0.95))  // Slight transparency shows grid beneath
     }
 
     // MARK: - Scrubbing Label Overlay
@@ -284,24 +338,26 @@ struct RentHistoryChart: View {
                 .interpolationMethod(.catmullRom)
                 .lineStyle(StrokeStyle(lineWidth: 3))
 
-                // AreaMark for gradient fill
-                AreaMark(
-                    x: .value("Month", point.date),
-                    yStart: .value("Base", yAxisRange.lowerBound),
-                    yEnd: .value("Rent", point.rent)
-                )
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [
-                            Color.billixDarkTeal.opacity(0.3),
-                            Color.billixDarkTeal.opacity(0.05),
-                            Color.clear
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                // AreaMark for gradient fill (only if NOT in line-only mode)
+                if !lineOnlyMode {
+                    AreaMark(
+                        x: .value("Month", point.date),
+                        yStart: .value("Base", yAxisRange.lowerBound),
+                        yEnd: .value("Rent", point.rent)
                     )
-                )
-                .interpolationMethod(.catmullRom)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                Color.billixDarkTeal.opacity(0.3),
+                                Color.billixDarkTeal.opacity(0.05),
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .interpolationMethod(.catmullRom)
+                }
             }
         } else {
             // Breakdown tab: Show selected bedroom types with gradient fills
@@ -312,29 +368,31 @@ struct RentHistoryChart: View {
             ForEach(typesToShow, id: \.self) { bedroomType in
                 let typeData = historyData.filter { $0.bedroomType == bedroomType }
 
-                // AreaMark for gradient fill (render first, behind line)
-                ForEach(typeData) { point in
-                    AreaMark(
-                        x: .value("Month", point.date),
-                        yStart: .value("Base", yAxisRange.lowerBound),
-                        yEnd: .value("Rent", point.rent),
-                        series: .value("Type", bedroomType.rawValue)
-                    )
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                bedroomType.chartColor.opacity(0.2),
-                                bedroomType.chartColor.opacity(0.05),
-                                Color.clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
+                // AreaMark for gradient fill (only if NOT in line-only mode)
+                if !lineOnlyMode {
+                    ForEach(typeData) { point in
+                        AreaMark(
+                            x: .value("Month", point.date),
+                            yStart: .value("Base", yAxisRange.lowerBound),
+                            yEnd: .value("Rent", point.rent),
+                            series: .value("Type", bedroomType.rawValue)
                         )
-                    )
-                    .interpolationMethod(.catmullRom)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    bedroomType.chartColor.opacity(0.2),
+                                    bedroomType.chartColor.opacity(0.05),
+                                    Color.clear
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .interpolationMethod(.catmullRom)
+                    }
                 }
 
-                // LineMark for the line (render on top)
+                // LineMark for the line (always visible)
                 ForEach(typeData) { point in
                     LineMark(
                         x: .value("Month", point.date),
@@ -350,13 +408,32 @@ struct RentHistoryChart: View {
     }
 
     private var yAxisRange: ClosedRange<Double> {
-        let allRents = historyData.map { $0.rent }
+        // Filter to only the data being displayed (based on chart mode and selected types)
+        let visibleData: [RentHistoryPoint]
+        if chartMode == .averageOnly {
+            visibleData = historyData.filter { $0.bedroomType == .average }
+        } else {
+            let typesToShow = selectedBedroomTypes.isEmpty
+                ? Array(BedroomType.allCases.filter { $0 != .average })
+                : Array(selectedBedroomTypes)
+            visibleData = historyData.filter { typesToShow.contains($0.bedroomType) }
+        }
+
+        let allRents = visibleData.map { $0.rent }
         let minRent = allRents.min() ?? 800
         let maxRent = allRents.max() ?? 2000
 
-        // Add 10% padding
-        let padding = (maxRent - minRent) * 0.1
+        // Add 15% padding for breathing room (prevents line from hitting chart ceiling)
+        let padding = (maxRent - minRent) * 0.15
         return (minRent - padding)...(maxRent + padding)
+    }
+
+    private func abbreviatedLabel(for range: TimeRange) -> String {
+        switch range {
+        case .sixMonths: return "6M"
+        case .oneYear: return "1Y"
+        case .allTime: return "Max"
+        }
     }
 
     private func findClosestDataPoint(to date: Date, rent: Double?) -> RentHistoryPoint? {
@@ -402,6 +479,7 @@ struct RentHistoryChart: View {
     struct PreviewWrapper: View {
         @State private var selectedDataPoint: RentHistoryPoint?
         @State private var isScrubbing: Bool = false
+        @State private var timeRange: TimeRange = .oneYear
         let mockData = MarketTrendsMockData.generateHistoryData(
             location: "New York, NY",
             monthsBack: 12
@@ -410,7 +488,7 @@ struct RentHistoryChart: View {
         var body: some View {
             RentHistoryChart(
                 historyData: mockData,
-                timeRange: .oneYear,
+                timeRange: $timeRange,
                 chartMode: .allTypes,
                 selectedBedroomTypes: [.studio, .oneBed],
                 selectedDataPoint: $selectedDataPoint,
@@ -428,6 +506,7 @@ struct RentHistoryChart: View {
     struct PreviewWrapper: View {
         @State private var selectedDataPoint: RentHistoryPoint?
         @State private var isScrubbing: Bool = false
+        @State private var timeRange: TimeRange = .oneYear
         let mockData = MarketTrendsMockData.generateHistoryData(
             location: "New York, NY",
             monthsBack: 12
@@ -436,7 +515,7 @@ struct RentHistoryChart: View {
         var body: some View {
             RentHistoryChart(
                 historyData: mockData,
-                timeRange: .oneYear,
+                timeRange: $timeRange,
                 chartMode: .averageOnly,
                 selectedBedroomTypes: [],
                 selectedDataPoint: $selectedDataPoint,
