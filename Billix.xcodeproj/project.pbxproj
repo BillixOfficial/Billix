@@ -1701,13 +1701,6 @@
 			path = Features/Chat/Views;
 			sourceTree = "<group>";
 		};
-		F05837E7AD1A1023F1C22E72 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
 		F45F28B4148FDF9DB793184A /* Components */ = {
 			isa = PBXGroup;
 			children = (

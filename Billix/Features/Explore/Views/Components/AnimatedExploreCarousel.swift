@@ -246,23 +246,22 @@ struct PressableButtonStyle: ButtonStyle {
     }
 }
 
-// Preview requires iOS 18+ for @Previewable
-// #Preview("Animated Carousel") {
-//     @Previewable @State var destination: ExploreDestination?
-//     @Previewable @State var activeIndex = 0
-//     @Previewable @Namespace var namespace
-//
-//     VStack {
-//         AnimatedExploreCarousel(
-//             navigationDestination: $destination,
-//             activeCardIndex: $activeIndex,
-//             namespace: namespace
-//         )
-//
-//         if let dest = destination {
-//             Text("Selected: \(String(describing: dest))")
-//                 .padding()
-//         }
-//     }
-//     .background(Color(hex: "#90EE90").opacity(0.4))
-// }
+#Preview("Animated Carousel") {
+    @Previewable @State var destination: ExploreDestination?
+    @Previewable @State var activeIndex = 0
+    @Previewable @Namespace var namespace
+
+    VStack {
+        AnimatedExploreCarousel(
+            navigationDestination: $destination,
+            activeCardIndex: $activeIndex,
+            namespace: namespace
+        )
+
+        if let dest = destination {
+            Text("Selected: \(String(describing: dest))")
+                .padding()
+        }
+    }
+    .background(Color(hex: "#90EE90").opacity(0.4))
+}
