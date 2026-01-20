@@ -760,7 +760,7 @@ private enum QuickActionType: String, Identifiable {
 }
 
 private struct QuickActionsZone: View {
-    @State private var showSwapHub = false
+    // showSwapHub removed - BillSwap feature deleted
     @State private var showAddBill = false
     @State private var showChat = false
     @State private var showBudget = false
@@ -807,9 +807,7 @@ private struct QuickActionsZone: View {
         .cornerRadius(Theme.cornerRadius)
         .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
         .padding(.horizontal, Theme.horizontalPadding)
-        .fullScreenCover(isPresented: $showSwapHub) {
-            BillSwapView()
-        }
+        // BillSwap feature removed - button kept for future rebuild
         .sheet(isPresented: $showAddBill) {
             AddBillActionSheet()
         }
@@ -824,7 +822,7 @@ private struct QuickActionsZone: View {
     private func handleAction(_ action: QuickActionType) {
         switch action {
         case .compare:
-            showSwapHub = true
+            break // BillSwap feature removed - button kept for future rebuild
         case .addBill:
             showAddBill = true
         case .chat:

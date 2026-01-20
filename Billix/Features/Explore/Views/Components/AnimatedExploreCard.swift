@@ -109,15 +109,16 @@ struct AnimatedExploreCard: View {
     }
 }
 
-#Preview("Animated Explore Card") {
-    @Previewable @Namespace var namespace
-
-    AnimatedExploreCard(
-        card: AnimatedExploreCardModel.mockCards[0],
-        cardWidth: UIScreen.main.bounds.width * 0.72,
-        cardHeight: UIScreen.main.bounds.height * 0.65,
-        namespace: namespace
-    )
-    .padding()
-    .background(Color.billixCreamBeige.opacity(0.3))
-}
+// Preview requires iOS 18+ for @Previewable
+// #Preview("Animated Explore Card") {
+//     @Previewable @Namespace var namespace
+//
+//     AnimatedExploreCard(
+//         card: AnimatedExploreCardModel.mockCards[0],
+//         cardWidth: UIScreen.main.bounds.width * 0.72,
+//         cardHeight: UIScreen.main.bounds.height * 0.65,
+//         namespace: namespace
+//     )
+//     .padding()
+//     .background(Color.billixCreamBeige.opacity(0.3))
+// }
