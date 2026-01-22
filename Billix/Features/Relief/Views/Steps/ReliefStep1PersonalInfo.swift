@@ -108,6 +108,7 @@ struct ReliefFormField: View {
 
                 TextField(placeholder, text: $text)
                     .font(.system(size: 16))
+                    .foregroundColor(Color(hex: "#2D3B35"))
                     .keyboardType(keyboardType)
                     .autocapitalization(keyboardType == .emailAddress ? .none : .words)
             }

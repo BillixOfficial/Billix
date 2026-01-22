@@ -78,6 +78,7 @@ struct ReliefStep2BillInfo: View {
 
                         TextField("0.00", text: $viewModel.amountOwed)
                             .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(Color(hex: "#2D3B35"))
                             .keyboardType(.decimalPad)
                     }
                     .padding(.horizontal, 16)
@@ -98,6 +99,8 @@ struct ReliefStep2BillInfo: View {
 
                     TextEditor(text: $viewModel.description)
                         .font(.system(size: 16))
+                        .foregroundColor(Color(hex: "#2D3B35"))
+                        .scrollContentBackground(.hidden)
                         .frame(minHeight: 100)
                         .padding(12)
                         .background(Color.white)
