@@ -729,7 +729,7 @@ private enum QuickActionType: String, Identifiable {
     case addBill = "Add Bill"
     case chat = "Chat"
     case compare = "Swap"
-    case budget = "Budget"
+    case relief = "Relief"
 
     var id: String { rawValue }
 
@@ -738,7 +738,7 @@ private enum QuickActionType: String, Identifiable {
         case .addBill: return "plus.circle.fill"
         case .chat: return "message.fill"
         case .compare: return "arrow.left.arrow.right.circle.fill"
-        case .budget: return "chart.pie.fill"
+        case .relief: return "heart.circle.fill"
         }
     }
 
@@ -747,88 +747,104 @@ private enum QuickActionType: String, Identifiable {
         case .addBill: return Theme.accent
         case .chat: return Theme.info
         case .compare: return Theme.purple
-        case .budget: return Theme.warning
+        case .relief: return Theme.danger
         }
     }
 
     var subtitle: String? {
         switch self {
         case .compare: return "Bill Swap"
+        case .relief: return "Get Help"
         default: return nil
         }
     }
 }
 
 private struct QuickActionsZone: View {
-    // showSwapHub removed - BillSwap feature deleted
+    @State private var showSwapHub = false
     @State private var showAddBill = false
     @State private var showChat = false
-    @State private var showBudget = false
+    @State private var showRelief = false
 
-    private let actions: [QuickActionType] = [.addBill, .chat, .compare, .budget]
+    private let actions: [QuickActionType] = [.addBill, .chat, .compare, .relief]
 
     var body: some View {
-        HStack(spacing: 10) {
-            ForEach(actions) { action in
-                Button {
-                    haptic()
-                    handleAction(action)
-                } label: {
-                    VStack(spacing: 6) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(action.color.opacity(0.12))
-                                .frame(width: 52, height: 52)
+        GeometryReader { geometry in
+            let availableWidth = geometry.size.width - 28 - 30 // Subtract padding (14*2) and spacing (10*3)
+            let buttonWidth = availableWidth / 4
+            let iconSize = min(buttonWidth * 0.75, 52.0)
+            let iconFontSize = min(buttonWidth * 0.35, 22.0)
+            let labelFontSize = min(buttonWidth * 0.18, 12.0)
+            let subtitleFontSize = min(buttonWidth * 0.14, 9.0)
 
-                            Image(systemName: action.icon)
-                                .font(.system(size: 22))
-                                .foregroundColor(action.color)
-                        }
+            HStack(spacing: 10) {
+                ForEach(actions) { action in
+                    Button {
+                        haptic()
+                        handleAction(action)
+                    } label: {
+                        VStack(spacing: 6) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(action.color.opacity(0.12))
+                                    .frame(width: iconSize, height: iconSize)
 
-                        VStack(spacing: 2) {
-                            Text(action.rawValue)
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(Theme.primaryText)
-
-                            if let subtitle = action.subtitle {
-                                Text(subtitle)
-                                    .font(.system(size: 9, weight: .medium))
+                                Image(systemName: action.icon)
+                                    .font(.system(size: iconFontSize))
                                     .foregroundColor(action.color)
                             }
+
+                            VStack(spacing: 2) {
+                                Text(action.rawValue)
+                                    .font(.system(size: labelFontSize, weight: .semibold))
+                                    .foregroundColor(Theme.primaryText)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+
+                                if let subtitle = action.subtitle {
+                                    Text(subtitle)
+                                        .font(.system(size: subtitleFontSize, weight: .medium))
+                                        .foregroundColor(action.color)
+                                        .lineLimit(1)
+                                }
+                            }
                         }
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(ScaleButtonStyle())
                 }
-                .buttonStyle(ScaleButtonStyle())
             }
+            .padding(14)
+            .background(Theme.cardBackground)
+            .cornerRadius(Theme.cornerRadius)
+            .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
         }
-        .padding(14)
-        .background(Theme.cardBackground)
-        .cornerRadius(Theme.cornerRadius)
-        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
+        .frame(height: 110)
         .padding(.horizontal, Theme.horizontalPadding)
-        // BillSwap feature removed - button kept for future rebuild
+        .fullScreenCover(isPresented: $showSwapHub) {
+            BillSwapView()
+        }
         .sheet(isPresented: $showAddBill) {
             AddBillActionSheet()
         }
         .sheet(isPresented: $showChat) {
             ChatHubView()
         }
-        .sheet(isPresented: $showBudget) {
-            BudgetOverviewView()
+        .fullScreenCover(isPresented: $showRelief) {
+            ReliefFlowView()
         }
     }
 
     private func handleAction(_ action: QuickActionType) {
         switch action {
         case .compare:
-            break // BillSwap feature removed - button kept for future rebuild
+            showSwapHub = true
         case .addBill:
             showAddBill = true
         case .chat:
             showChat = true
-        case .budget:
-            showBudget = true
+        case .relief:
+            showRelief = true
         }
     }
 }
