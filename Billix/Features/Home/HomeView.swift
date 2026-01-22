@@ -726,7 +726,7 @@ private struct NotificationRow: View {
 // MARK: - Quick Actions
 
 private enum QuickActionType: String, Identifiable {
-    case addBill = "Add Bill"
+    case store = "Store"
     case chat = "Chat"
     case compare = "Swap"
     case relief = "Relief"
@@ -735,7 +735,7 @@ private enum QuickActionType: String, Identifiable {
 
     var icon: String {
         switch self {
-        case .addBill: return "plus.circle.fill"
+        case .store: return "cart.fill"
         case .chat: return "message.fill"
         case .compare: return "arrow.left.arrow.right.circle.fill"
         case .relief: return "heart.circle.fill"
@@ -744,7 +744,7 @@ private enum QuickActionType: String, Identifiable {
 
     var color: Color {
         switch self {
-        case .addBill: return Theme.accent
+        case .store: return Color.billixGoldenAmber
         case .chat: return Theme.info
         case .compare: return Theme.purple
         case .relief: return Theme.danger
@@ -753,6 +753,7 @@ private enum QuickActionType: String, Identifiable {
 
     var subtitle: String? {
         switch self {
+        case .store: return "Shop"
         case .compare: return "Bill Swap"
         case .relief: return "Get Help"
         default: return nil
@@ -762,11 +763,11 @@ private enum QuickActionType: String, Identifiable {
 
 private struct QuickActionsZone: View {
     @State private var showSwapHub = false
-    @State private var showAddBill = false
+    @State private var showStore = false
     @State private var showChat = false
     @State private var showRelief = false
 
-    private let actions: [QuickActionType] = [.addBill, .chat, .compare, .relief]
+    private let actions: [QuickActionType] = [.store, .chat, .compare, .relief]
 
     var body: some View {
         GeometryReader { geometry in
@@ -824,8 +825,8 @@ private struct QuickActionsZone: View {
         .fullScreenCover(isPresented: $showSwapHub) {
             BillSwapView()
         }
-        .sheet(isPresented: $showAddBill) {
-            AddBillActionSheet()
+        .sheet(isPresented: $showStore) {
+            BillixStoreView()
         }
         .sheet(isPresented: $showChat) {
             ChatHubView()
@@ -839,8 +840,8 @@ private struct QuickActionsZone: View {
         switch action {
         case .compare:
             showSwapHub = true
-        case .addBill:
-            showAddBill = true
+        case .store:
+            showStore = true
         case .chat:
             showChat = true
         case .relief:
