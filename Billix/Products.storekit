@@ -18,6 +18,21 @@
       "productID" : "com.billix.handshake_fee",
       "referenceName" : "Handshake Fee",
       "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "6738294504",
+      "localizations" : [
+        {
+          "description" : "Get 3 Connect Tokens to unlock chats with bill swap matches",
+          "displayName" : "3 Connect Tokens",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.billix.token_pack_3",
+      "referenceName" : "Token Pack (3)",
+      "type" : "Consumable"
     }
   ],
   "settings" : {

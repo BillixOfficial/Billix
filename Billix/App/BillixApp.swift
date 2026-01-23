@@ -7,12 +7,45 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
+
+// MARK: - App Delegate for Push Notifications
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        // Set notification delegate
+        UNUserNotificationCenter.current().delegate = NotificationService.shared
+        return true
+    }
+
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        Task {
+            await NotificationService.shared.registerDeviceToken(deviceToken)
+        }
+    }
+
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+        print("Failed to register for remote notifications: \(error.localizedDescription)")
+    }
+}
 
 @main
 struct BillixApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     @StateObject private var authService = AuthService.shared
     @StateObject private var streakService = StreakService.shared
     @StateObject private var tasksViewModel = TasksViewModel.shared
+    @StateObject private var notificationService = NotificationService.shared
     @Environment(\.scenePhase) private var scenePhase
 
     var sharedModelContainer: ModelContainer = {
@@ -32,6 +65,23 @@ struct BillixApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(authService)
+                .environmentObject(notificationService)
+                .task {
+                    // Check notification permission status on launch
+                    await notificationService.checkPermissionStatus()
+                }
+                .onChange(of: authService.isAuthenticated) { wasAuthenticated, isAuthenticated in
+                    Task {
+                        if isAuthenticated {
+                            // Subscribe to realtime swap updates when user logs in
+                            await notificationService.subscribeToSwapUpdates()
+                        } else {
+                            // Unsubscribe and remove device token when user logs out
+                            await notificationService.unsubscribeFromSwapUpdates()
+                            await notificationService.removeDeviceToken()
+                        }
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
         .onChange(of: scenePhase) { oldPhase, newPhase in

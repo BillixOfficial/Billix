@@ -11,7 +11,7 @@ import MapKit
 
 // MARK: - MKCoordinateRegion Equatable Extension
 
-extension MKCoordinateRegion: @retroactive Equatable {
+extension MKCoordinateRegion: Equatable {
     public static func == (lhs: MKCoordinateRegion, rhs: MKCoordinateRegion) -> Bool {
         lhs.center.latitude == rhs.center.latitude &&
         lhs.center.longitude == rhs.center.longitude &&

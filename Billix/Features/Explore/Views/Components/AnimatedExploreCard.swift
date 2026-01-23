@@ -109,15 +109,21 @@ struct AnimatedExploreCard: View {
     }
 }
 
-#Preview("Animated Explore Card") {
-    @Previewable @Namespace var namespace
+private struct AnimatedExploreCard_Preview: View {
+    @Namespace private var namespace
 
-    AnimatedExploreCard(
-        card: AnimatedExploreCardModel.mockCards[0],
-        cardWidth: UIScreen.main.bounds.width * 0.72,
-        cardHeight: UIScreen.main.bounds.height * 0.65,
-        namespace: namespace
-    )
-    .padding()
-    .background(Color.billixCreamBeige.opacity(0.3))
+    var body: some View {
+        AnimatedExploreCard(
+            card: AnimatedExploreCardModel.mockCards[0],
+            cardWidth: UIScreen.main.bounds.width * 0.72,
+            cardHeight: UIScreen.main.bounds.height * 0.65,
+            namespace: namespace
+        )
+        .padding()
+        .background(Color.billixCreamBeige.opacity(0.3))
+    }
+}
+
+#Preview("Animated Explore Card") {
+    AnimatedExploreCard_Preview()
 }

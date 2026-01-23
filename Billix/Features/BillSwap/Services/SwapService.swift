@@ -155,6 +155,11 @@ class SwapService: ObservableObject {
         // Update bill statuses
         try await SwapBillService.shared.updateBillStatus(billId: myBillId, status: .matched)
 
+        // Get the bill amount for the notification
+        let myBill = try await SwapBillService.shared.getBill(id: myBillId)
+        let billAmount = NSDecimalNumber(decimal: myBill.amount).doubleValue
+        await NotificationService.shared.notifyMatchFound(swapId: swap.id, billAmount: billAmount)
+
         // Refresh swaps
         try await fetchMySwaps()
 
@@ -202,6 +207,12 @@ class SwapService: ObservableObject {
                 .update(["status": BillSwapStatus.active.rawValue])
                 .eq("id", value: swapId.uuidString)
                 .execute()
+
+            // Both committed - notify both users that chat is unlocked
+            await NotificationService.shared.notifyBothCommitted(swap: updatedSwap)
+        } else {
+            // Only one committed - notify partner
+            await NotificationService.shared.notifyPartnerCommitted(swap: updatedSwap, currentUserId: userId)
         }
 
         // Refresh swaps
@@ -262,6 +273,12 @@ class SwapService: ObservableObject {
             .execute()
             .value
 
+        // Get the partner's bill amount for the notification
+        let partnerBillId = updatedSwap.partnerBillId(for: userId)
+        let partnerBill = try await SwapBillService.shared.getBill(id: partnerBillId)
+        let amount = NSDecimalNumber(decimal: partnerBill.amount).doubleValue
+        await NotificationService.shared.notifyBillPaid(swap: updatedSwap, paidByUserId: userId, amount: amount)
+
         if updatedSwap.canComplete {
             try await completeSwap(swapId: swapId)
         }
@@ -293,6 +310,9 @@ class SwapService: ObservableObject {
         // Update both bills to paid status
         try await SwapBillService.shared.updateBillStatus(billId: swap.billAId, status: .paid)
         try await SwapBillService.shared.updateBillStatus(billId: swap.billBId, status: .paid)
+
+        // Notify both users that swap is complete
+        await NotificationService.shared.notifySwapComplete(swap: swap)
 
         // Refresh swaps
         try await fetchMySwaps()

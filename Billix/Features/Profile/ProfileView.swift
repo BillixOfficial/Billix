@@ -195,6 +195,14 @@ struct ProfileView: View {
     @State private var isJoiningHousehold = false
     @State private var joinCode = ""
 
+    // Verification states
+    @State private var showPhoneVerification = false
+    @State private var showIDVerification = false
+    @State private var verifiedOnlyMode = false
+    @StateObject private var phoneVerificationService = PhoneVerificationService.shared
+    @StateObject private var idVerificationService = IDVerificationService.shared
+    @StateObject private var tokenService = TokenService.shared
+
     // Trust & Points
     private var userTrustScore: Int {
         authService.currentUser?.vault.trustScore ?? 0
@@ -952,6 +960,12 @@ struct ProfileView: View {
                 }
             }
 
+            // Verification Status Card
+            verificationStatusCard
+
+            // Connect Tokens Card
+            connectTokensCard
+
             // Referral Card
             ProfileCard(title: "INVITE & EARN") {
                 HStack(spacing: 12) {
@@ -1027,6 +1041,22 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showSubscriptionSheet) {
             SubscriptionSheet(storeKit: storeKit, accentColor: selectedTabColor)
+        }
+        .sheet(isPresented: $showPhoneVerification) {
+            PhoneVerificationView {
+                // Refresh verification status after completion
+                Task {
+                    _ = try? await phoneVerificationService.checkVerificationStatus()
+                }
+            }
+        }
+        .sheet(isPresented: $showIDVerification) {
+            IDVerificationView {
+                // Refresh verification status after completion
+                Task {
+                    _ = try? await idVerificationService.checkVerificationStatus()
+                }
+            }
         }
         .alert("Error", isPresented: $showAccountError) {
             Button("OK", role: .cancel) {}
@@ -1687,6 +1717,377 @@ struct ProfileView: View {
             UIApplication.shared.open(url)
         }
     }
+
+    // MARK: - Verification Status Card
+
+    private var verificationStatusCard: some View {
+        ProfileCard(title: "VERIFICATION STATUS") {
+            VStack(spacing: 0) {
+                // Phone Verification
+                Button {
+                    if !phoneVerificationService.isPhoneVerified {
+                        showPhoneVerification = true
+                    }
+                } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(phoneVerificationService.isPhoneVerified ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: phoneVerificationService.isPhoneVerified ? "phone.badge.checkmark" : "phone.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(phoneVerificationService.isPhoneVerified ? .green : .orange)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Phone Number")
+                                .font(.system(size: 15))
+                                .foregroundColor(darkTextColor)
+                            Text(phoneVerificationService.isPhoneVerified ? "Verified" : "Tap to verify")
+                                .font(.system(size: 12))
+                                .foregroundColor(phoneVerificationService.isPhoneVerified ? .green : grayTextColor)
+                        }
+
+                        Spacer()
+
+                        if phoneVerificationService.isPhoneVerified {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        } else {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(grayTextColor)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+                .disabled(phoneVerificationService.isPhoneVerified)
+
+                Divider().padding(.leading, 52)
+
+                // ID Verification
+                Button {
+                    if !idVerificationService.isIDVerified {
+                        showIDVerification = true
+                    }
+                } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(idVerificationService.isIDVerified ? Color.green.opacity(0.15) : Color.blue.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: idVerificationService.isIDVerified ? "checkmark.seal.fill" : "person.text.rectangle")
+                                .font(.system(size: 16))
+                                .foregroundColor(idVerificationService.isIDVerified ? .green : .blue)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("ID Verification")
+                                .font(.system(size: 15))
+                                .foregroundColor(darkTextColor)
+                            Text(idVerificationService.isIDVerified ? "Verified" : "Get the Verified badge")
+                                .font(.system(size: 12))
+                                .foregroundColor(idVerificationService.isIDVerified ? .green : grayTextColor)
+                        }
+
+                        Spacer()
+
+                        if idVerificationService.isIDVerified {
+                            Image(systemName: "checkmark.seal.fill")
+                                .foregroundColor(.billixMoneyGreen)
+                        } else {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(grayTextColor)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+                .disabled(idVerificationService.isIDVerified)
+
+                // Verified Only Mode (Prime feature)
+                if storeKit.isPrime && phoneVerificationService.isPhoneVerified && idVerificationService.isIDVerified {
+                    Divider().padding(.leading, 52)
+
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.purple.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "shield.checkered")
+                                .font(.system(size: 16))
+                                .foregroundColor(.purple)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Verified Only Mode")
+                                .font(.system(size: 15))
+                                .foregroundColor(darkTextColor)
+                            Text("Only match with verified users")
+                                .font(.system(size: 12))
+                                .foregroundColor(grayTextColor)
+                        }
+
+                        Spacer()
+
+                        Toggle("", isOn: $verifiedOnlyMode)
+                            .labelsHidden()
+                            .tint(selectedTabColor)
+                            .onChange(of: verifiedOnlyMode) { _, newValue in
+                                Task {
+                                    await updateVerifiedOnlyMode(newValue)
+                                }
+                            }
+                    }
+                    .padding(.vertical, 8)
+                }
+
+                // Verification Tier Display
+                if phoneVerificationService.isPhoneVerified || idVerificationService.isIDVerified {
+                    Divider().padding(.leading, 52)
+
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(verificationTierColor.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: verificationTierIcon)
+                                .font(.system(size: 16))
+                                .foregroundColor(verificationTierColor)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Trust Level")
+                                .font(.system(size: 15))
+                                .foregroundColor(darkTextColor)
+                            Text(verificationTierName)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(verificationTierColor)
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+        }
+        .onAppear {
+            Task {
+                _ = try? await phoneVerificationService.checkVerificationStatus()
+                _ = try? await idVerificationService.checkVerificationStatus()
+                await loadVerifiedOnlyMode()
+            }
+        }
+    }
+
+    // MARK: - Verification Tier Helpers
+
+    private var verificationTier: VerificationTier {
+        if idVerificationService.isIDVerified && phoneVerificationService.isPhoneVerified {
+            return .fullyVerified
+        } else if phoneVerificationService.isPhoneVerified {
+            return .phoneVerified
+        }
+        return .basic
+    }
+
+    private var verificationTierName: String {
+        switch verificationTier {
+        case .basic: return "Basic"
+        case .phoneVerified: return "Phone Verified"
+        case .fullyVerified: return "Fully Verified"
+        }
+    }
+
+    private var verificationTierIcon: String {
+        switch verificationTier {
+        case .basic: return "person"
+        case .phoneVerified: return "phone.badge.checkmark"
+        case .fullyVerified: return "checkmark.seal.fill"
+        }
+    }
+
+    private var verificationTierColor: Color {
+        switch verificationTier {
+        case .basic: return .gray
+        case .phoneVerified: return .blue
+        case .fullyVerified: return .billixMoneyGreen
+        }
+    }
+
+    private func updateVerifiedOnlyMode(_ enabled: Bool) async {
+        guard let userId = authService.currentUser?.id else { return }
+
+        do {
+            try await SupabaseService.shared.client
+                .from("profiles")
+                .update(["verified_only_mode": enabled])
+                .eq("user_id", value: userId.uuidString)
+                .execute()
+        } catch {
+            print("Failed to update verified only mode: \(error)")
+        }
+    }
+
+    private func loadVerifiedOnlyMode() async {
+        guard let userId = authService.currentUser?.id else { return }
+
+        do {
+            let response: [VerifiedOnlyResponse] = try await SupabaseService.shared.client
+                .from("profiles")
+                .select("verified_only_mode")
+                .eq("user_id", value: userId.uuidString)
+                .execute()
+                .value
+
+            if let mode = response.first?.verified_only_mode {
+                await MainActor.run {
+                    verifiedOnlyMode = mode
+                }
+            }
+        } catch {
+            print("Failed to load verified only mode: \(error)")
+        }
+    }
+
+    // MARK: - Connect Tokens Card
+
+    private var connectTokensCard: some View {
+        ProfileCard(title: "CONNECT TOKENS") {
+            VStack(spacing: 0) {
+                // Token Balance
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.billixGoldenAmber.opacity(0.15))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 16))
+                            .foregroundColor(.billixGoldenAmber)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Token Balance")
+                            .font(.system(size: 15))
+                            .foregroundColor(darkTextColor)
+
+                        if tokenService.hasUnlimitedTokens {
+                            Text("Unlimited (Prime)")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(selectedTabColor)
+                        } else {
+                            Text("\(tokenService.totalAvailableTokens) tokens available")
+                                .font(.system(size: 12))
+                                .foregroundColor(grayTextColor)
+                        }
+                    }
+
+                    Spacer()
+
+                    if !tokenService.hasUnlimitedTokens {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("\(tokenService.tokenBalance)")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.billixGoldenAmber)
+                            if tokenService.freeTokensRemaining > 0 {
+                                Text("+\(tokenService.freeTokensRemaining) free")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
+
+                // Buy Tokens (only show if not Prime)
+                if !tokenService.hasUnlimitedTokens {
+                    Divider().padding(.leading, 52)
+
+                    Button {
+                        Task {
+                            do {
+                                let success = try await tokenService.purchaseTokenPack()
+                                if success {
+                                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                                }
+                            } catch {
+                                print("Token purchase failed: \(error)")
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.blue.opacity(0.15))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.blue)
+                            }
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Buy 3 Tokens")
+                                    .font(.system(size: 15))
+                                    .foregroundColor(darkTextColor)
+                                Text("$1.99 - Use for BillSwap")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(grayTextColor)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14))
+                                .foregroundColor(grayTextColor)
+                        }
+                        .padding(.vertical, 8)
+                    }
+
+                    Divider().padding(.leading, 52)
+
+                    // Token info
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.secondary.opacity(0.1))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 16))
+                                .foregroundColor(.secondary)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Token Info")
+                                .font(.system(size: 15))
+                                .foregroundColor(darkTextColor)
+                            Text("2 free tokens/month, reset on \(tokenResetDateString)")
+                                .font(.system(size: 12))
+                                .foregroundColor(grayTextColor)
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+        }
+        .onAppear {
+            Task {
+                await tokenService.loadTokenBalance()
+            }
+        }
+    }
+
+    private var tokenResetDateString: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        return formatter.string(from: tokenService.freeTokensResetDate)
+    }
+}
+
+// Helper for loading verified only mode
+struct VerifiedOnlyResponse: Codable {
+    let verified_only_mode: Bool?
 }
 
 // MARK: - Support Row View
