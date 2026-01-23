@@ -52,6 +52,8 @@
 		680BB9D3534B76879FBC45C6 /* GameBoostsCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BD4EDC4999053161C1DBAC6 /* GameBoostsCarousel.swift */; };
 		6E7377A8AF25180CCC439D19 /* UploadBillViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B5810EAC623887EB2177FAE /* UploadBillViewModel.swift */; };
 		6EE24325E0DBEF0BDBAC5D13 /* TokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33663A1F52E8D3337C6DB801 /* TokenService.swift */; };
+		6FF24326E1DCEF1CDBBC6D14 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44773B2063F9E4448D7EC902 /* NotificationService.swift */; };
+		6FF24327E1DCEF2CDBBC6D15 /* SwapNotificationToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44773B2163F9E4558D7EC903 /* SwapNotificationToast.swift */; };
 		70B5F4AD0198AEA9D127B088 /* IDVerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50CE766DB305FE4445A0B866 /* IDVerificationView.swift */; };
 		70UTAGEBOT1234567890ABCD /* OutageBotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80UTAGEBOT234567890BCDEF /* OutageBotView.swift */; };
 		742470BDB1E7F5FEC8B881DC /* SwapBillService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5747D9E395617E6C5A044B67 /* SwapBillService.swift */; };
@@ -430,6 +432,18 @@
 		F9F189512F05F79C007CF227 /* HomeSetupQuestionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F1894F2F05F79C007CF227 /* HomeSetupQuestionsView.swift */; };
 		F9F189522F05F79C007CF227 /* QuickActionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F189502F05F79C007CF227 /* QuickActionViews.swift */; };
 		FB021E8FC90B96BB845CCD82 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */; };
+		C606071B5D44CFE310E40E38 /* HeaderZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B71E8B16DA66E5F2CCA01E3 /* HeaderZone.swift */; };
+		4A4775FCE691563A775A55F5 /* HomeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */; };
+		386274001DDC5BC67E434A3F /* HouseholdModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A9D4079FDDAD55678A5C /* HouseholdModels.swift */; };
+		BFCB80529BEDDF31A719C498 /* HouseholdService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F31A485219F8C6FC916CE5B /* HouseholdService.swift */; };
+		2730E19F51DAABF8E6C6FCAB /* KarmaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95746F8B600F23DF04149AE3 /* KarmaService.swift */; };
+		FB4BCEEA822F6653DD8AFEB9 /* NudgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EEF8494E0D8F1E5CA84EE4 /* NudgeService.swift */; };
+		C12C710EDAE0C74EA7365DF7 /* FairnessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 441EF5142067732FB83D32B3 /* FairnessService.swift */; };
+		929D6AE4AA2EA27FBB2EC2AC /* AutoPilotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FC0BB67CCFCCE154206D1F /* AutoPilotService.swift */; };
+		5C65F6CA4FD3A2CA60189E27 /* HouseholdViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C41E3F4126EEEBEC41D501E /* HouseholdViewModel.swift */; };
+		3DBC140FAD80A9F118448006 /* HouseholdDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A20664EF1CE8B4798EE5DE0 /* HouseholdDashboardView.swift */; };
+		B213B823B86FBC855E230735 /* KarmaLeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E05A16366636C697D06ABC /* KarmaLeaderboardView.swift */; };
+		0B016A56D3A8893EC4D71A22 /* VaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF7B42B62D1376A06567910 /* VaultView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -474,6 +488,8 @@
 		3144A8AD7B2C94D39FF81EFA /* ClusterCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClusterCard.swift; sourceTree = "<group>"; };
 		3148AB941A21B82415DA8DEB /* ChatConversationViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ChatConversationViewModel.swift; path = ../../../../../Chat/ViewModels/ChatConversationViewModel.swift; sourceTree = "<group>"; };
 		33663A1F52E8D3337C6DB801 /* TokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenService.swift; sourceTree = "<group>"; };
+		44773B2063F9E4448D7EC902 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		44773B2163F9E4558D7EC903 /* SwapNotificationToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwapNotificationToast.swift; sourceTree = "<group>"; };
 		356536A013AE49BFAC0913C1 /* TypographyStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Utilities/TypographyStyles.swift; sourceTree = SOURCE_ROOT; };
 		3B353A4DD91EC01073F7AC96 /* SwapService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwapService.swift; sourceTree = "<group>"; };
 		3BD4EDC4999053161C1DBAC6 /* GameBoostsCarousel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameBoostsCarousel.swift; sourceTree = "<group>"; };
@@ -850,6 +866,18 @@
 		F9F189502F05F79C007CF227 /* QuickActionViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QuickActionViews.swift; sourceTree = "<group>"; };
 		FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AllUploadsView.swift; sourceTree = "<group>"; };
 		FD03CB72B19A74E508D2FDA5 /* ReliefStep4Urgency.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefStep4Urgency.swift; sourceTree = "<group>"; };
+		0B71E8B16DA66E5F2CCA01E3 /* HeaderZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/HeaderZone.swift; sourceTree = "<group>"; };
+		12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme/HomeTheme.swift; sourceTree = "<group>"; };
+		3105A9D4079FDDAD55678A5C /* HouseholdModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdModels.swift; sourceTree = "<group>"; };
+		8F31A485219F8C6FC916CE5B /* HouseholdService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdService.swift; sourceTree = "<group>"; };
+		95746F8B600F23DF04149AE3 /* KarmaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KarmaService.swift; sourceTree = "<group>"; };
+		65EEF8494E0D8F1E5CA84EE4 /* NudgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeService.swift; sourceTree = "<group>"; };
+		441EF5142067732FB83D32B3 /* FairnessService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairnessService.swift; sourceTree = "<group>"; };
+		82FC0BB67CCFCCE154206D1F /* AutoPilotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoPilotService.swift; sourceTree = "<group>"; };
+		3C41E3F4126EEEBEC41D501E /* HouseholdViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdViewModel.swift; sourceTree = "<group>"; };
+		6A20664EF1CE8B4798EE5DE0 /* HouseholdDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdDashboardView.swift; sourceTree = "<group>"; };
+		38E05A16366636C697D06ABC /* KarmaLeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KarmaLeaderboardView.swift; sourceTree = "<group>"; };
+		7CF7B42B62D1376A06567910 /* VaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -944,6 +972,7 @@
 		2B2B2B2B2B2B2B2B2B2B2B2B /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				AADDCF18840C57AB95877093 /* Household */,
 				C348D9768CDF8013AD17A732 /* Verification */,
 				A602F25E2EF9AB2900856DEE /* TrustLadder */,
 				A602F2432EF9AA6700856DEE /* BillCoach */,
@@ -1038,6 +1067,7 @@
 				1F485968CB45FB6B55F9C7AD /* SwapBillCard.swift */,
 				B14EFA54C472ACE4DF038890 /* TrustBadge.swift */,
 				3F1B6BB77389411DC68FA8C1 /* SwapActionButton.swift */,
+				44773B2163F9E4558D7EC903 /* SwapNotificationToast.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -1117,6 +1147,8 @@
 		8B8B8B8B8B8B8B8B8B8B8B8B /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */,
+				0B71E8B16DA66E5F2CCA01E3 /* HeaderZone.swift */,
 				A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */,
 				A6E5FF4E2F088187009F1277 /* QuizService.swift */,
 				A6E5FF4F2F088187009F1277 /* TipsService.swift */,
@@ -1340,6 +1372,7 @@
 				5DE1642796379DA2C49C2FF8 /* IDVerificationService.swift */,
 				72968254CC027164D389E59F /* PhoneVerificationService.swift */,
 				33663A1F52E8D3337C6DB801 /* TokenService.swift */,
+				44773B2063F9E4448D7EC902 /* NotificationService.swift */,
 				F90BBA6B2F2035C90041159A /* RateLimitConfig.swift */,
 				F90BBA6C2F2035C90041159A /* RateLimitService.swift */,
 				A6E500072F189D44009F1277 /* RentCastEdgeFunctionService.swift */,
@@ -2080,6 +2113,55 @@
 			path = Features/Chat/Services;
 			sourceTree = "<group>";
 		};
+		CD48990605366780EC621019 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3105A9D4079FDDAD55678A5C,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		D6E0C95448D5FC07670F86D7 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				8F31A485219F8C6FC916CE5B,
+				95746F8B600F23DF04149AE3,
+				65EEF8494E0D8F1E5CA84EE4,
+				441EF5142067732FB83D32B3,
+				82FC0BB67CCFCCE154206D1F,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		F9B9A9E04B82A77B4654EF4C /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				3C41E3F4126EEEBEC41D501E,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		0CEC1227BAC59DD984520020 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				6A20664EF1CE8B4798EE5DE0,
+				38E05A16366636C697D06ABC,
+				7CF7B42B62D1376A06567910,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AADDCF18840C57AB95877093 /* Household */ = {
+			isa = PBXGroup;
+			children = (
+				CD48990605366780EC621019 /* Models */,
+				D6E0C95448D5FC07670F86D7 /* Services */,
+				F9B9A9E04B82A77B4654EF4C /* ViewModels */,
+				0CEC1227BAC59DD984520020 /* Views */,
+			);
+			path = Household;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -2230,6 +2312,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B016A56D3A8893EC4D71A22 /* VaultView.swift in Sources */,
+				B213B823B86FBC855E230735 /* KarmaLeaderboardView.swift in Sources */,
+				3DBC140FAD80A9F118448006 /* HouseholdDashboardView.swift in Sources */,
+				5C65F6CA4FD3A2CA60189E27 /* HouseholdViewModel.swift in Sources */,
+				929D6AE4AA2EA27FBB2EC2AC /* AutoPilotService.swift in Sources */,
+				C12C710EDAE0C74EA7365DF7 /* FairnessService.swift in Sources */,
+				FB4BCEEA822F6653DD8AFEB9 /* NudgeService.swift in Sources */,
+				2730E19F51DAABF8E6C6FCAB /* KarmaService.swift in Sources */,
+				BFCB80529BEDDF31A719C498 /* HouseholdService.swift in Sources */,
+				386274001DDC5BC67E434A3F /* HouseholdModels.swift in Sources */,
+				4A4775FCE691563A775A55F5 /* HomeTheme.swift in Sources */,
+				C606071B5D44CFE310E40E38 /* HeaderZone.swift in Sources */,
+				6FF24326E1DCEF1CDBBC6D14 /* NotificationService.swift in Sources */,
+				6FF24327E1DCEF2CDBBC6D15 /* SwapNotificationToast.swift in Sources */,
 				70B5F4AD0198AEA9D127B088 /* IDVerificationView.swift in Sources */,
 				D4B3D8C9DD85041F46316B24 /* PhoneVerificationView.swift in Sources */,
 				7768AD2CABCC62CF883EB55A /* IDVerificationService.swift in Sources */,

@@ -121,6 +121,19 @@ class SwapBillService: ObservableObject {
         myBills.removeAll { $0.id == billId }
     }
 
+    /// Get a specific bill by ID
+    func getBill(id: UUID) async throws -> SwapBill {
+        let bill: SwapBill = try await supabase
+            .from("swap_bills")
+            .select()
+            .eq("id", value: id.uuidString)
+            .single()
+            .execute()
+            .value
+
+        return bill
+    }
+
     // MARK: - Image Upload
 
     /// Upload bill image to Supabase Storage

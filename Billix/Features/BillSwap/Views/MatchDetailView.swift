@@ -30,21 +30,87 @@ private enum DetailTheme {
     static let shadowRadius: CGFloat = 8
 }
 
+// MARK: - Update Types
+
+private struct ChatUnlockedUpdate: Encodable {
+    let chatUnlocked: Bool
+    let chatUnlockedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case chatUnlocked = "chat_unlocked"
+        case chatUnlockedAt = "chat_unlocked_at"
+    }
+}
+
 // MARK: - Main View
 
 struct MatchDetailView: View {
     @StateObject private var viewModel: SwapDetailViewModel
+    @StateObject private var tokenService = TokenService.shared
     @Environment(\.dismiss) private var dismiss
 
     @State private var showProofPicker = false
     @State private var selectedProofItem: PhotosPickerItem?
     @State private var showDisputeSheet = false
+    @State private var showDisclaimer = false
+    @State private var showChat = false
+    @State private var showTokenPurchase = false
 
     init(swapId: UUID) {
         _viewModel = StateObject(wrappedValue: SwapDetailViewModel(swapId: swapId))
     }
 
     var body: some View {
+        mainContent
+            .navigationTitle("Swap Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { toolbarContent }
+            .task { await loadInitialData() }
+            .photosPicker(isPresented: $showProofPicker, selection: $selectedProofItem, matching: .images)
+            .onChange(of: selectedProofItem) { oldValue, newValue in
+                Task {
+                    if let data = try? await newValue?.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data) {
+                        viewModel.proofImage = image
+                    }
+                }
+            }
+            .alert("Error", isPresented: $viewModel.showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(viewModel.error?.localizedDescription ?? "An error occurred")
+            }
+            .alert("Payment Successful!", isPresented: $viewModel.showPaymentSuccess) {
+                Button("Continue", role: .cancel) { }
+            } message: {
+                Text("You can now see your partner's account details. Pay their bill to complete the swap.")
+            }
+            .alert("Proof Uploaded!", isPresented: $viewModel.showProofSuccess) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Your partner will be notified. The swap will complete once they pay your bill too.")
+            }
+            .sheet(isPresented: $showDisputeSheet) {
+                DisputeSheetView { reason in
+                    Task {
+                        await viewModel.raiseDispute(reason: reason)
+                    }
+                }
+            }
+            .sheet(isPresented: $showDisclaimer) {
+                DisclaimerSheetView {
+                    showDisclaimer = false
+                    showChat = true
+                }
+            }
+            .navigationDestination(isPresented: $showChat) {
+                chatDestination
+            }
+    }
+
+    // MARK: - Main Content
+
+    private var mainContent: some View {
         ZStack {
             DetailTheme.background.ignoresSafeArea()
 
@@ -53,16 +119,9 @@ struct MatchDetailView: View {
                     if viewModel.isLoading {
                         loadingView
                     } else if let swap = viewModel.swap {
-                        // Status header
                         statusHeader(swap: swap)
-
-                        // Progress indicator
                         progressSection(swap: swap)
-
-                        // Bills comparison
                         billsComparisonSection
-
-                        // Action section based on state
                         actionSection(swap: swap)
                     }
                 }
@@ -71,57 +130,48 @@ struct MatchDetailView: View {
                 .padding(.bottom, 40)
             }
         }
-        .navigationTitle("Swap Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button(role: .destructive) {
-                        showDisputeSheet = true
-                    } label: {
-                        Label("Report Issue", systemImage: "exclamationmark.triangle")
-                    }
+    }
+
+    // MARK: - Toolbar Content
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Menu {
+                Button(role: .destructive) {
+                    showDisputeSheet = true
                 } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .foregroundColor(DetailTheme.accent)
+                    Label("Report Issue", systemImage: "exclamationmark.triangle")
                 }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .foregroundColor(DetailTheme.accent)
             }
         }
-        .task {
-            await viewModel.loadSwap()
-            await viewModel.loadFreeSwapCount()
+    }
+
+    // MARK: - Chat Destination
+
+    @ViewBuilder
+    private var chatDestination: some View {
+        if let swap = viewModel.swap,
+           let userId = viewModel.currentUserId {
+            let partnerId = swap.isUserA(userId: userId) ? swap.userBId : swap.userAId
+            let participant = ChatParticipant(
+                userId: partnerId,
+                handle: nil,
+                displayName: "Swap Partner"
+            )
+            ChatConversationView(conversationId: swap.id, otherParticipant: participant)
         }
-        .photosPicker(isPresented: $showProofPicker, selection: $selectedProofItem, matching: .images)
-        .onChange(of: selectedProofItem) { oldValue, newValue in
-            Task {
-                if let data = try? await newValue?.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    viewModel.proofImage = image
-                }
-            }
-        }
-        .alert("Error", isPresented: $viewModel.showError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(viewModel.error?.localizedDescription ?? "An error occurred")
-        }
-        .alert("Payment Successful!", isPresented: $viewModel.showPaymentSuccess) {
-            Button("Continue", role: .cancel) { }
-        } message: {
-            Text("You can now see your partner's account details. Pay their bill to complete the swap.")
-        }
-        .alert("Proof Uploaded!", isPresented: $viewModel.showProofSuccess) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text("Your partner will be notified. The swap will complete once they pay your bill too.")
-        }
-        .sheet(isPresented: $showDisputeSheet) {
-            DisputeSheetView { reason in
-                Task {
-                    await viewModel.raiseDispute(reason: reason)
-                }
-            }
-        }
+    }
+
+    // MARK: - Load Initial Data
+
+    private func loadInitialData() async {
+        await viewModel.loadSwap()
+        await viewModel.loadFreeSwapCount()
+        await tokenService.loadBalance()
     }
 
     // MARK: - Loading View
@@ -449,20 +499,20 @@ struct MatchDetailView: View {
             // Lock icon
             ZStack {
                 Circle()
-                    .fill(DetailTheme.warning.opacity(0.12))
+                    .fill(DetailTheme.accent.opacity(0.12))
                     .frame(width: 64, height: 64)
 
-                Image(systemName: "lock.fill")
+                Image(systemName: "message.badge.circle.fill")
                     .font(.system(size: 28))
-                    .foregroundColor(DetailTheme.warning)
+                    .foregroundColor(DetailTheme.accent)
             }
 
             VStack(spacing: 8) {
-                Text("Account Details Locked")
+                Text("Ready to Connect")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(DetailTheme.primaryText)
 
-                Text("Confirm to start this swap. Account details will be revealed once both parties confirm.")
+                Text("Use 1 Connect Token to unlock chat with your match. You'll exchange payment details (Venmo, CashApp) directly in chat.")
                     .font(.system(size: 14))
                     .foregroundColor(DetailTheme.secondaryText)
                     .multilineTextAlignment(.center)
@@ -481,54 +531,57 @@ struct MatchDetailView: View {
                 }
             }
 
-            // Partner status indicator
-            if viewModel.partnerHasCommitted {
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(DetailTheme.success)
-                    Text("Your partner has confirmed!")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(DetailTheme.success)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(DetailTheme.success.opacity(0.1))
-                .cornerRadius(8)
-            }
+            // Token balance display
+            tokenBalanceCard
 
-            // Confirm button - different text based on user tier
+            // Connect button - different text based on user tier
             Button {
                 Task {
-                    await viewModel.acceptSwap()
+                    await useTokenAndConnect()
                 }
             } label: {
                 HStack(spacing: 8) {
-                    if viewModel.isPurchasing {
+                    if tokenService.isLoading {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Image(systemName: confirmButtonIcon)
+                        Image(systemName: tokenButtonIcon)
                             .font(.system(size: 16))
-                        Text(viewModel.confirmButtonText)
+                        Text(tokenButtonText)
                             .font(.system(size: 15, weight: .semibold))
                     }
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(DetailTheme.accent)
+                .background(canUseToken ? DetailTheme.accent : DetailTheme.secondaryText)
                 .cornerRadius(12)
             }
-            .disabled(viewModel.isPurchasing)
+            .disabled(tokenService.isLoading || !canUseToken)
 
-            // Upgrade to Prime option (shown when no free swaps left and not Prime)
-            if !viewModel.isPrime && !viewModel.hasFreeSwapsRemaining {
+            // Buy more tokens option (shown when no tokens available)
+            if !tokenService.hasUnlimitedTokens && !tokenService.hasTokens {
                 Button {
-                    // TODO: Navigate to Prime subscription page
+                    Task {
+                        try? await tokenService.purchaseTokenPack()
+                    }
                 } label: {
-                    Text("or Upgrade to Billix Prime")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(DetailTheme.accent)
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 14))
+                        Text("Buy 3 Tokens for $1.99")
+                            .font(.system(size: 13, weight: .medium))
+                    }
+                    .foregroundColor(DetailTheme.accent)
+                }
+                .padding(.top, 4)
+
+                Button {
+                    // Navigate to Prime subscription
+                } label: {
+                    Text("or Get Unlimited with Prime")
+                        .font(.system(size: 12))
+                        .foregroundColor(DetailTheme.secondaryText)
                 }
             }
         }
@@ -538,13 +591,106 @@ struct MatchDetailView: View {
         .shadow(color: DetailTheme.shadowColor, radius: DetailTheme.shadowRadius, x: 0, y: 2)
     }
 
-    private var confirmButtonIcon: String {
-        if viewModel.isPrime {
+    private var tokenBalanceCard: some View {
+        HStack(spacing: 12) {
+            // Token icon
+            ZStack {
+                Circle()
+                    .fill(DetailTheme.accent.opacity(0.1))
+                    .frame(width: 40, height: 40)
+
+                Image(systemName: tokenService.hasUnlimitedTokens ? "infinity" : "coins")
+                    .font(.system(size: 18))
+                    .foregroundColor(DetailTheme.accent)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Your Tokens")
+                    .font(.system(size: 12))
+                    .foregroundColor(DetailTheme.secondaryText)
+
+                if tokenService.hasUnlimitedTokens {
+                    HStack(spacing: 4) {
+                        Text("Unlimited")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(DetailTheme.accent)
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.yellow)
+                    }
+                } else {
+                    Text("\(tokenService.totalAvailableTokens) available")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(DetailTheme.primaryText)
+                }
+            }
+
+            Spacer()
+
+            if !tokenService.hasUnlimitedTokens {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(tokenService.freeTokensRemaining) free")
+                        .font(.system(size: 11))
+                        .foregroundColor(DetailTheme.secondaryText)
+                    Text("\(tokenService.tokenBalance) purchased")
+                        .font(.system(size: 11))
+                        .foregroundColor(DetailTheme.secondaryText)
+                }
+            }
+        }
+        .padding(14)
+        .background(DetailTheme.background)
+        .cornerRadius(12)
+    }
+
+    private var canUseToken: Bool {
+        tokenService.hasUnlimitedTokens || tokenService.hasTokens
+    }
+
+    private var tokenButtonIcon: String {
+        if tokenService.hasUnlimitedTokens {
             return "star.fill"
-        } else if viewModel.hasFreeSwapsRemaining {
-            return "checkmark.circle.fill"
+        } else if tokenService.hasTokens {
+            return "message.fill"
         } else {
-            return "creditcard.fill"
+            return "lock.fill"
+        }
+    }
+
+    private var tokenButtonText: String {
+        if tokenService.hasUnlimitedTokens {
+            return "Connect (Free with Prime)"
+        } else if tokenService.freeTokensRemaining > 0 {
+            return "Use Free Token to Connect"
+        } else if tokenService.tokenBalance > 0 {
+            return "Use 1 Token to Connect"
+        } else {
+            return "No Tokens Available"
+        }
+    }
+
+    private func useTokenAndConnect() async {
+        guard let swapId = viewModel.swap?.id else { return }
+
+        do {
+            let success = try await tokenService.useToken(for: swapId)
+            if success {
+                // Mark swap as chat unlocked
+                try await SupabaseService.shared.client
+                    .from("swaps")
+                    .update(ChatUnlockedUpdate(
+                        chatUnlocked: true,
+                        chatUnlockedAt: ISO8601DateFormatter().string(from: Date())
+                    ))
+                    .eq("id", value: swapId.uuidString)
+                    .execute()
+
+                // Show disclaimer before opening chat
+                showDisclaimer = true
+            }
+        } catch {
+            viewModel.error = error
+            viewModel.showError = true
         }
     }
 
@@ -1135,5 +1281,132 @@ struct BillInfoCard: View {
 #Preview("Dispute Sheet") {
     DisputeSheetView { reason in
         print("Dispute: \(reason)")
+    }
+}
+
+// MARK: - Disclaimer Sheet View
+
+struct DisclaimerSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    let onAccept: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                DetailTheme.background.ignoresSafeArea()
+
+                VStack(spacing: 24) {
+                    // Warning icon
+                    ZStack {
+                        Circle()
+                            .fill(DetailTheme.warning.opacity(0.12))
+                            .frame(width: 80, height: 80)
+
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 36))
+                            .foregroundColor(DetailTheme.warning)
+                    }
+                    .padding(.top, 20)
+
+                    VStack(spacing: 12) {
+                        Text("Important Notice")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(DetailTheme.primaryText)
+
+                        Text("Billix is a connection tool only.\nWe do not handle money.")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(DetailTheme.primaryText)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    // Bullet points
+                    VStack(alignment: .leading, spacing: 16) {
+                        DisclaimerBullet(
+                            icon: "person.badge.shield.checkmark",
+                            text: "You are responsible for verifying your partner"
+                        )
+                        DisclaimerBullet(
+                            icon: "dollarsign.circle",
+                            text: "Do not send money without confirming details"
+                        )
+                        DisclaimerBullet(
+                            icon: "message.badge.filled.fill",
+                            text: "Exchange payment info (Venmo, CashApp) in chat"
+                        )
+                        DisclaimerBullet(
+                            icon: "flag.fill",
+                            text: "Report suspicious behavior immediately"
+                        )
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 20)
+                    .background(DetailTheme.cardBackground)
+                    .cornerRadius(16)
+                    .padding(.horizontal, DetailTheme.horizontalPadding)
+
+                    Spacer()
+
+                    // Accept button
+                    Button {
+                        onAccept()
+                    } label: {
+                        Text("I Understand & Agree")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(DetailTheme.accent)
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal, DetailTheme.horizontalPadding)
+
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(DetailTheme.secondaryText)
+                    }
+                    .padding(.bottom, 20)
+                }
+            }
+            .navigationTitle("Before You Chat")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(DetailTheme.secondaryText)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct DisclaimerBullet: View {
+    let icon: String
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 18))
+                .foregroundColor(DetailTheme.accent)
+                .frame(width: 24)
+
+            Text(text)
+                .font(.system(size: 14))
+                .foregroundColor(DetailTheme.primaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+#Preview("Disclaimer Sheet") {
+    DisclaimerSheetView {
+        print("Accepted")
     }
 }

@@ -66,20 +66,6 @@ private extension View {
     func cardStyle(shadow: Bool = true) -> some View {
         modifier(CardStyle(hasShadow: shadow))
     }
-
-    func sectionHeader() -> some View {
-        self
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundColor(Theme.secondaryText)
-            .textCase(.uppercase)
-            .tracking(0.5)
-    }
-}
-
-// MARK: - Haptic Helper
-
-private func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
-    UIImpactFeedbackGenerator(style: style).impactOccurred()
 }
 
 // MARK: - Home View
@@ -91,6 +77,7 @@ struct HomeView: View {
     // Real user data from AuthService
     @StateObject private var authService = AuthService.shared
     @StateObject private var streakService = StreakService.shared
+    @StateObject private var notificationService = NotificationService.shared
 
     // First-time setup questions
     @State private var showSetupQuestions = false
@@ -124,7 +111,6 @@ struct HomeView: View {
     private var streakDays: Int {
         streakService.currentStreak
     }
-    @State private var notificationCount = 3
 
     // Section rotation - show different sections on different days
     private var dayOfWeek: Int {
@@ -154,7 +140,7 @@ struct HomeView: View {
                             zipCode: userZip,
                             score: billixScore,
                             streak: streakDays,
-                            notificationCount: notificationCount
+                            notificationService: notificationService
                         )
                     }
                     .padding(.top, 8)
@@ -451,278 +437,6 @@ private struct UtilityNewsBanner: View {
     }
 }
 
-// MARK: - Zone A: Header
-
-private struct HeaderZone: View {
-    let userName: String
-    let location: String
-    let zipCode: String
-    let score: Int
-    let streak: Int
-    let notificationCount: Int
-
-    @State private var showNotifications = false
-
-    private var greeting: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        switch hour {
-        case 0..<12: return "Good Morning"
-        case 12..<17: return "Good Afternoon"
-        default: return "Good Evening"
-        }
-    }
-
-    private var scoreLabel: String {
-        switch score {
-        case 750...: return "Excellent"
-        case 700..<750: return "Very Efficient"
-        case 650..<700: return "Good"
-        default: return "Needs Work"
-        }
-    }
-
-    var body: some View {
-        VStack(spacing: 16) {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("\(greeting), \(userName)")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundColor(Theme.primaryText)
-
-                    Button {
-                        haptic()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "location.fill")
-                                .font(.system(size: 11))
-                            Text("\(location) \(zipCode)")
-                                .font(.system(size: 13, weight: .medium))
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 10, weight: .semibold))
-                        }
-                        .foregroundColor(Theme.accent)
-                    }
-                }
-
-                Spacer()
-
-                Button {
-                    haptic()
-                    showNotifications = true
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Theme.cardBackground)
-                            .frame(width: 40, height: 40)
-                            .shadow(color: Theme.shadowColor, radius: 4)
-
-                        Image(systemName: "bell.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(Theme.accent)
-
-                        if notificationCount > 0 {
-                            Text("\(notificationCount)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 16, height: 16)
-                                .background(Theme.danger)
-                                .clipShape(Circle())
-                                .offset(x: 10, y: -10)
-                        }
-                    }
-                }
-            }
-
-            HStack(spacing: 10) {
-                // Score chip with social ranking
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "chart.line.uptrend.xyaxis")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Theme.accent)
-                        Text("\(score)")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundColor(Theme.primaryText)
-                        Text("· \(scoreLabel)")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(Theme.secondaryText)
-                    }
-
-                    // Social ranking micro-label
-                    Text("Top 18% in \(zipCode)")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(Theme.accent)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Theme.cardBackground)
-                .cornerRadius(14)
-                .shadow(color: Theme.shadowColor, radius: 4)
-
-                // Streak chip
-                HStack(spacing: 4) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 14))
-                    Text("\(streak) Day Streak")
-                        .font(.system(size: 13, weight: .semibold))
-                }
-                .foregroundColor(Theme.warning)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color(hex: "#FEF3E2"))
-                .cornerRadius(20)
-
-                Spacer()
-            }
-        }
-        .padding(.horizontal, Theme.horizontalPadding)
-        .sheet(isPresented: $showNotifications) {
-            NotificationsSheet()
-        }
-    }
-}
-
-// MARK: - Notifications Sheet
-
-private struct NotificationsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-
-    private let notifications = [
-        NotificationItem(
-            icon: "bolt.fill",
-            iconColor: Color(hex: "#E8A54B"),
-            title: "Electric bill is due soon",
-            subtitle: "DTE Energy · Due in 3 days",
-            time: "2h ago",
-            isUnread: true
-        ),
-        NotificationItem(
-            icon: "arrow.down.circle.fill",
-            iconColor: Color(hex: "#4CAF7A"),
-            title: "You saved $23 this month!",
-            subtitle: "Your negotiation with Xfinity worked",
-            time: "1d ago",
-            isUnread: true
-        ),
-        NotificationItem(
-            icon: "person.2.fill",
-            iconColor: Color(hex: "#9B7EB8"),
-            title: "New swap partner available",
-            subtitle: "Sarah M. wants to swap bills",
-            time: "2d ago",
-            isUnread: true
-        ),
-        NotificationItem(
-            icon: "star.fill",
-            iconColor: Color(hex: "#5BA4D4"),
-            title: "Achievement unlocked!",
-            subtitle: "You earned the 'Budget Master' badge",
-            time: "3d ago",
-            isUnread: false
-        ),
-        NotificationItem(
-            icon: "chart.line.uptrend.xyaxis",
-            iconColor: Color(hex: "#5B8A6B"),
-            title: "Your Billix Score increased",
-            subtitle: "Up 12 points to 742",
-            time: "5d ago",
-            isUnread: false
-        )
-    ]
-
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(notifications) { notification in
-                        NotificationRow(notification: notification)
-                        if notification.id != notifications.last?.id {
-                            Divider()
-                                .padding(.leading, 60)
-                        }
-                    }
-                }
-                .background(Color.white)
-                .cornerRadius(16)
-                .padding()
-            }
-            .background(Color(hex: "#F7F9F8"))
-            .navigationTitle("Notifications")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Mark all read") {
-                        haptic()
-                    }
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "#5B8A6B"))
-                }
-            }
-        }
-    }
-}
-
-private struct NotificationItem: Identifiable {
-    let id = UUID()
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let subtitle: String
-    let time: String
-    let isUnread: Bool
-}
-
-private struct NotificationRow: View {
-    let notification: NotificationItem
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(notification.iconColor.opacity(0.15))
-                    .frame(width: 40, height: 40)
-
-                Image(systemName: notification.icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(notification.iconColor)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(notification.title)
-                        .font(.system(size: 15, weight: notification.isUnread ? .semibold : .regular))
-                        .foregroundColor(Color(hex: "#2D3B35"))
-
-                    Spacer()
-
-                    if notification.isUnread {
-                        Circle()
-                            .fill(Color(hex: "#5B8A6B"))
-                            .frame(width: 8, height: 8)
-                    }
-                }
-
-                Text(notification.subtitle)
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(hex: "#8B9A94"))
-
-                Text(notification.time)
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#8B9A94").opacity(0.7))
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(notification.isUnread ? Color(hex: "#5B8A6B").opacity(0.03) : Color.clear)
-    }
-}
-
 // MARK: - Quick Actions
 
 private enum QuickActionType: String, Identifiable {
@@ -730,6 +444,7 @@ private enum QuickActionType: String, Identifiable {
     case chat = "Chat"
     case compare = "Swap"
     case relief = "Relief"
+    case household = "Household"
 
     var id: String { rawValue }
 
@@ -739,6 +454,7 @@ private enum QuickActionType: String, Identifiable {
         case .chat: return "message.fill"
         case .compare: return "arrow.left.arrow.right.circle.fill"
         case .relief: return "heart.circle.fill"
+        case .household: return "house.fill"
         }
     }
 
@@ -748,6 +464,7 @@ private enum QuickActionType: String, Identifiable {
         case .chat: return Theme.info
         case .compare: return Theme.purple
         case .relief: return Theme.danger
+        case .household: return Theme.accent
         }
     }
 
@@ -756,6 +473,7 @@ private enum QuickActionType: String, Identifiable {
         case .store: return "Shop"
         case .compare: return "Bill Swap"
         case .relief: return "Get Help"
+        case .household: return "Roommates"
         default: return nil
         }
     }
@@ -766,17 +484,20 @@ private struct QuickActionsZone: View {
     @State private var showStore = false
     @State private var showChat = false
     @State private var showRelief = false
+    @State private var showHousehold = false
 
-    private let actions: [QuickActionType] = [.store, .chat, .compare, .relief]
+    private let actions: [QuickActionType] = [.store, .chat, .compare, .relief, .household]
 
     var body: some View {
         GeometryReader { geometry in
-            let availableWidth = geometry.size.width - 28 - 30 // Subtract padding (14*2) and spacing (10*3)
-            let buttonWidth = availableWidth / 4
-            let iconSize = min(buttonWidth * 0.75, 52.0)
-            let iconFontSize = min(buttonWidth * 0.35, 22.0)
-            let labelFontSize = min(buttonWidth * 0.18, 12.0)
-            let subtitleFontSize = min(buttonWidth * 0.14, 9.0)
+            let actionCount = CGFloat(actions.count)
+            let totalSpacing = 10.0 * (actionCount - 1) // Spacing between buttons
+            let availableWidth = geometry.size.width - 28 - totalSpacing // Subtract padding (14*2) and spacing
+            let buttonWidth = availableWidth / actionCount
+            let iconSize = min(buttonWidth * 0.75, 46.0)
+            let iconFontSize = min(buttonWidth * 0.35, 18.0)
+            let labelFontSize = min(buttonWidth * 0.20, 11.0)
+            let subtitleFontSize = min(buttonWidth * 0.14, 8.0)
 
             HStack(spacing: 10) {
                 ForEach(actions) { action in
@@ -834,6 +555,9 @@ private struct QuickActionsZone: View {
         .fullScreenCover(isPresented: $showRelief) {
             ReliefFlowView()
         }
+        .fullScreenCover(isPresented: $showHousehold) {
+            HouseholdDashboardView()
+        }
     }
 
     private func handleAction(_ action: QuickActionType) {
@@ -846,6 +570,8 @@ private struct QuickActionsZone: View {
             showChat = true
         case .relief:
             showRelief = true
+        case .household:
+            showHousehold = true
         }
     }
 }
