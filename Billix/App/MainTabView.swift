@@ -27,7 +27,6 @@ struct MainTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea()
 
             // Custom Bottom Navigation Bar
             CustomBottomNavBar(selectedTab: $selectedTab)

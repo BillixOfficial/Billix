@@ -127,57 +127,53 @@ struct HomeView: View {
     }
 
     private var regularHomeView: some View {
-        ZStack {
-            Theme.background.ignoresSafeArea()
-
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 28) {
-                    // Top section - Header & Search
-                    VStack(spacing: Theme.cardSpacing) {
-                        HeaderZone(
-                            userName: userName,
-                            location: userCity,
-                            zipCode: userZip,
-                            score: billixScore,
-                            streak: streakDays,
-                            notificationService: notificationService
-                        )
-                    }
-                    .padding(.top, 8)
-
-                    // Today's Utility News
-                    UtilityNewsBanner()
-
-                    // Primary Actions
-                    QuickActionsZone()
-
-                    // Your Bills (with empty state if no bills)
-                    BillsListZone()
-
-                    // Market Context - National Averages
-                    BillTickerZone(zipCode: userZip)
-
-                    // 30-Second Utility Checkup (Regional Signals)
-                    UtilityCheckupZone()
-
-                    // Weather-Based Utility Insight
-                    UtilityInsightZone(zipCode: userZip)
-
-                    // Education (Contextual - rotates)
-                    if showLearnToLower {
-                        LearnToLowerZone()
-                    }
-
-                    // Invite & Earn (Referral System)
-                    InviteEarnBannerNew()
-
-                    // Emotional Closure - Permission to relax
-                    AllClearBanner()
-
-                    Spacer().frame(height: 100)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 28) {
+                // Top section - Header & Search
+                VStack(spacing: Theme.cardSpacing) {
+                    HeaderZone(
+                        userName: userName,
+                        location: userCity,
+                        zipCode: userZip,
+                        score: billixScore,
+                        streak: streakDays,
+                        notificationService: notificationService
+                    )
                 }
-                .padding(.top, 20)
+
+                // Today's Utility News
+                UtilityNewsBanner()
+
+                // Primary Actions
+                QuickActionsZone()
+
+                // Your Bills (with empty state if no bills)
+                BillsListZone()
+
+                // Market Context - National Averages
+                BillTickerZone(zipCode: userZip)
+
+                // 30-Second Utility Checkup (Regional Signals)
+                UtilityCheckupZone()
+
+                // Weather-Based Utility Insight
+                UtilityInsightZone(zipCode: userZip)
+
+                // Education (Contextual - rotates)
+                if showLearnToLower {
+                    LearnToLowerZone()
+                }
+
+                // Invite & Earn (Referral System)
+                InviteEarnBannerNew()
+
+                // Emotional Closure - Permission to relax
+                AllClearBanner()
+
+                Spacer().frame(height: 100)
             }
+            .padding(.top, 8)
+        }
             .refreshable {
                 await MainActor.run {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -199,10 +195,10 @@ struct HomeView: View {
                     }
                 }
             }
-            .fullScreenCover(isPresented: $showSetupQuestions) {
-                HomeSetupQuestionsView()
-            }
+        .fullScreenCover(isPresented: $showSetupQuestions) {
+            HomeSetupQuestionsView()
         }
+        .background(Theme.background.ignoresSafeArea())
     }
 }
 
