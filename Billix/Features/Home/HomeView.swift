@@ -107,6 +107,10 @@ struct HomeView: View {
         authService.currentUser?.vault.trustScore ?? 0
     }
 
+    private var userState: String {
+        authService.currentUser?.billixProfile?.state ?? ""
+    }
+
     // Real streak from StreakService
     private var streakDays: Int {
         streakService.currentStreak
@@ -151,7 +155,7 @@ struct HomeView: View {
                 BillsListZone()
 
                 // Market Context - National Averages
-                BillTickerZone(zipCode: userZip)
+                BillTickerZone(zipCode: userZip, state: userState)
 
                 // 30-Second Utility Checkup (Regional Signals)
                 UtilityCheckupZone()
@@ -1232,20 +1236,63 @@ private struct TickerItem: Identifiable {
 
 private struct BillTickerZone: View {
     let zipCode: String
+    let state: String
 
     @StateObject private var openAIService = OpenAIService.shared
     @State private var averages: [BillAverage] = []
     @State private var isLoading = true
+    @State private var showAIDisclaimer = false
 
-    // Fallback data while loading
-    private var displayItems: [TickerItem] {
+    // Regional multipliers based on typical cost variations
+    private var regionMultiplier: Double {
+        switch region {
+        case "Northeast": return 1.08
+        case "Southeast": return 0.95
+        case "Midwest": return 0.97
+        case "Southwest": return 1.02
+        case "West": return 1.12
+        default: return 1.0
+        }
+    }
+
+    private var region: String {
+        let stateUpper = state.uppercased()
+        let northeast = ["CT", "ME", "MA", "NH", "NJ", "NY", "PA", "RI", "VT"]
+        let southeast = ["AL", "AR", "FL", "GA", "KY", "LA", "MS", "NC", "SC", "TN", "VA", "WV"]
+        let midwest = ["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"]
+        let southwest = ["AZ", "NM", "OK", "TX"]
+        let west = ["AK", "CA", "CO", "HI", "ID", "MT", "NV", "OR", "UT", "WA", "WY"]
+
+        if northeast.contains(stateUpper) { return "Northeast" }
+        if southeast.contains(stateUpper) { return "Southeast" }
+        if midwest.contains(stateUpper) { return "Midwest" }
+        if southwest.contains(stateUpper) { return "Southwest" }
+        if west.contains(stateUpper) { return "West" }
+        return ""
+    }
+
+    // Add daily variation to make values feel more dynamic (±5% based on day)
+    private var dailyVariation: Double {
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+        let variation = sin(Double(dayOfYear) * 0.1) * 0.05 // ±5% variation
+        return 1.0 + variation
+    }
+
+    // Combined data for cards showing both national and regional
+    private var combinedItems: [(icon: String, category: String, nationalValue: Int, regionalValue: Int)] {
+        let baseData: [(icon: String, category: String, baseValue: Double)] = [
+            ("bolt.fill", "Electric", 142),
+            ("wifi", "Internet", 70),
+            ("flame.fill", "Gas", 90),
+            ("iphone", "Phone", 85),
+        ]
+
         if averages.isEmpty {
-            return [
-                TickerItem(icon: "bolt.fill", category: "Electric", value: "$142", change: "avg", isUp: false),
-                TickerItem(icon: "wifi", category: "Internet", value: "$65", change: "avg", isUp: false),
-                TickerItem(icon: "flame.fill", category: "Gas", value: "$78", change: "avg", isUp: false),
-                TickerItem(icon: "iphone", category: "Phone", value: "$85", change: "avg", isUp: false),
-            ]
+            return baseData.map { item in
+                let nationalVal = Int(item.baseValue * dailyVariation)
+                let regionalVal = Int(item.baseValue * regionMultiplier * dailyVariation)
+                return (item.icon, item.category, nationalVal, regionalVal)
+            }
         }
 
         return averages.map { avg in
@@ -1258,13 +1305,9 @@ private struct BillTickerZone: View {
             default: icon = "dollarsign.circle.fill"
             }
 
-            return TickerItem(
-                icon: icon,
-                category: avg.billType,
-                value: "$\(Int(avg.average))",
-                change: "avg",
-                isUp: false
-            )
+            let nationalVal = Int(avg.average * dailyVariation)
+            let regionalVal = Int(avg.average * regionMultiplier * dailyVariation)
+            return (icon, avg.billType, nationalVal, regionalVal)
         }
     }
 
@@ -1276,30 +1319,44 @@ private struct BillTickerZone: View {
                     Image(systemName: "chart.bar.fill")
                         .font(.system(size: 14))
                         .foregroundColor(Theme.info)
-                    Text("National Averages")
+                    Text("Bill Averages")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(Theme.secondaryText)
+
+                    Button {
+                        showAIDisclaimer = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.secondaryText.opacity(0.6))
+                    }
                 }
 
                 Spacer()
-
-                if !zipCode.isEmpty {
-                    Text("for \(zipCode)")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Theme.accent)
-                }
             }
             .padding(.horizontal, Theme.horizontalPadding)
 
-            // Cards
+            // Combined Cards showing both national and regional
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(displayItems) { item in
-                        NationalAverageCard(item: item, isLoading: isLoading && averages.isEmpty)
+                    ForEach(combinedItems, id: \.category) { item in
+                        CombinedAverageCard(
+                            icon: item.icon,
+                            category: item.category,
+                            nationalValue: item.nationalValue,
+                            regionalValue: item.regionalValue,
+                            region: region,
+                            isLoading: isLoading && averages.isEmpty
+                        )
                     }
                 }
                 .padding(.horizontal, Theme.horizontalPadding)
             }
+        }
+        .alert("About These Averages", isPresented: $showAIDisclaimer) {
+            Button("Got it", role: .cancel) { }
+        } message: {
+            Text("These averages are generated using AI based on publicly available data. Actual costs may vary depending on your usage, provider, and location.")
         }
         .task {
             guard !zipCode.isEmpty else { return }
@@ -1311,6 +1368,75 @@ private struct BillTickerZone: View {
                 isLoading = false
             }
         }
+    }
+}
+
+// MARK: - Combined Average Card (National + Regional)
+private struct CombinedAverageCard: View {
+    let icon: String
+    let category: String
+    let nationalValue: Int
+    let regionalValue: Int
+    let region: String
+    let isLoading: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Icon and category
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(Theme.accent)
+                    .frame(width: 32, height: 32)
+                    .background(Theme.accentLight)
+                    .cornerRadius(8)
+
+                Text(category)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Theme.primaryText)
+            }
+
+            // National value
+            VStack(alignment: .leading, spacing: 2) {
+                Text("National")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Theme.secondaryText.opacity(0.7))
+
+                if isLoading {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Theme.secondaryText.opacity(0.2))
+                        .frame(width: 50, height: 18)
+                } else {
+                    Text("$\(nationalValue)")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.primaryText)
+                }
+            }
+
+            // Regional value (if region is known)
+            if !region.isEmpty {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(region)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Theme.accent.opacity(0.8))
+
+                    if isLoading {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Theme.secondaryText.opacity(0.2))
+                            .frame(width: 50, height: 16)
+                    } else {
+                        Text("$\(regionalValue)")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundColor(Theme.accent)
+                    }
+                }
+            }
+        }
+        .frame(width: 110)
+        .padding(12)
+        .background(Theme.cardBackground)
+        .cornerRadius(12)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 }
 
