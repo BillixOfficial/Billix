@@ -116,19 +116,19 @@ struct CustomBottomNavBar: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .padding(.top, 12)
-        .padding(.bottom, -6) // Push icons even lower
+        .padding(.top, 14)
+        .padding(.bottom, 8)
         .background(
             UnevenRoundedRectangle(
-                topLeadingRadius: 0,
-                bottomLeadingRadius: 28,
-                bottomTrailingRadius: 28,
-                topTrailingRadius: 0
+                topLeadingRadius: 24,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: 24
             )
             .fill(.white)
             .ignoresSafeArea(edges: .bottom)
         )
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -1)
+        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: -4)
     }
 }
 
