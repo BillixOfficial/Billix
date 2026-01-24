@@ -75,9 +75,9 @@ struct HomeView: View {
     @State private var showRoutingDemo = false
 
     // Real user data from AuthService
-    @StateObject private var authService = AuthService.shared
-    @StateObject private var streakService = StreakService.shared
-    @StateObject private var notificationService = NotificationService.shared
+    @ObservedObject private var authService = AuthService.shared
+    @ObservedObject private var streakService = StreakService.shared
+    @ObservedObject private var notificationService = NotificationService.shared
 
     // First-time setup questions
     @State private var showSetupQuestions = false
