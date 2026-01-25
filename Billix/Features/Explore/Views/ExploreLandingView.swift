@@ -38,7 +38,7 @@ struct ExploreLandingView: View {
             // Header overlaid on backdrop
             VStack {
                 ExploreHeaderView(activeCardIndex: activeCardIndex)
-                    .padding(.top, 120)
+                    .padding(.top, 60)
                 Spacer()
             }
             .allowsHitTesting(false)
