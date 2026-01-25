@@ -67,7 +67,7 @@ struct ExploreLandingView: View {
         NavigationStack {
             switch destination {
             case .economyByAI:
-                ComingSoonView(title: "Economy by AI")
+                EconomyFeedView()
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button {
@@ -84,7 +84,7 @@ struct ExploreLandingView: View {
                                     Text("Back")
                                         .font(.system(size: 17))
                                 }
-                                .foregroundColor(.white)
+                                .foregroundColor(Color(hex: "#3B6CFF"))
                             }
                         }
                     }
