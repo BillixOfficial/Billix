@@ -128,6 +128,20 @@ class StreakService: ObservableObject {
                     formatter.dateFormat = "yyyy-MM-dd"
                     self.lastActivityDate = formatter.date(from: dateString)
                     print("📅 [STREAK SERVICE] lastActivityDate parsed: \(self.lastActivityDate?.description ?? "nil")")
+
+                    // Validate streak is still active (last activity must be today or yesterday)
+                    if let lastActivity = self.lastActivityDate {
+                        let calendar = Calendar.current
+                        let today = calendar.startOfDay(for: Date())
+                        let lastActivityDay = calendar.startOfDay(for: lastActivity)
+                        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+
+                        // If last activity was NOT today or yesterday, streak is broken
+                        if lastActivityDay != today && lastActivityDay != yesterday {
+                            print("⚠️ [STREAK SERVICE] Streak broken! Last activity was \(lastActivityDay), resetting to 0")
+                            self.currentStreak = 0
+                        }
+                    }
                 }
 
                 print("✅ [STREAK SERVICE] Streak fetched successfully: \(self.currentStreak) days")
