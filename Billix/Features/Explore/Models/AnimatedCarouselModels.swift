@@ -41,7 +41,7 @@ extension AnimatedExploreCardModel {
     static let mockCards: [AnimatedExploreCardModel] = [
         // Card 1: Housing Trends (MOVED TO FIRST)
         AnimatedExploreCardModel(
-            title: "Housing Trends",
+            title: "Rent & Property\nCost",
             description: "Explore market data, rent estimates, and comparables",
             icon: "house.fill",
             imageName: "HouseExplore_OFFICIAL",
@@ -51,8 +51,8 @@ extension AnimatedExploreCardModel {
                 Color(hex: "#7BA8C1").opacity(0.6)
             ],
             destination: .housingTrends,
-            categories: ["Housing", "Market", "Data"],
-            buttonText: "View Trends"
+            categories: ["Rent", "Property", "Trends"],
+            buttonText: "Explore"
         ),
 
         // Card 2: Bills Explorer (MOVED TO SECOND)
