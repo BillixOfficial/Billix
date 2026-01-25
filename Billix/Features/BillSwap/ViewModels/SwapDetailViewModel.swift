@@ -2,387 +2,294 @@
 //  SwapDetailViewModel.swift
 //  Billix
 //
-//  Swap Detail ViewModel
+//  ViewModel for individual swap details and handshake flow
 //
 
 import Foundation
-import Combine
 import UIKit
+import Combine
 
+/// ViewModel for managing a single swap transaction
 @MainActor
 class SwapDetailViewModel: ObservableObject {
-    // MARK: - Services
-    private let billSwapService = BillSwapService.shared
-    private let proofService = ProofService.shared
-    private let trustService = TrustService.shared
-    private let paymentService = SwapPaymentService.shared
-    private let disputeService = DisputeService.shared
 
     // MARK: - Published Properties
-
-    @Published var swap: BillSwap
-    @Published var billA: SwapBill?
-    @Published var billB: SwapBill?
-    @Published var proofs: [BillSwapProof] = []
-    @Published var disputes: [SwapDispute] = []
-
-    // User info
-    @Published var initiatorProfile: TrustProfile?
-    @Published var counterpartyProfile: TrustProfile?
-
-    // UI State
+    @Published var swap: BillSwapTransaction?
+    @Published var myBill: SwapBill?
+    @Published var partnerBill: SwapBill?
     @Published var isLoading = false
-    @Published var isProcessing = false
+    @Published var isPurchasing = false
+    @Published var isUploadingProof = false
     @Published var error: Error?
+    @Published var showError = false
+    @Published var showPaymentSuccess = false
+    @Published var showProofSuccess = false
+    @Published var remainingFreeSwaps: Int = 2  // Default, will be loaded from profile
 
-    // Sheets
-    @Published var showProofUpload = false
-    @Published var showProofReview = false
-    @Published var showPaymentSheet = false
-    @Published var showDisputeSheet = false
-    @Published var showCounterOfferSheet = false
-    @Published var showChatSheet = false
+    // Proof upload
+    @Published var proofImage: UIImage?
+    @Published var showProofImagePicker = false
 
-    @Published var selectedProof: BillSwapProof?
-    @Published var proofToReview: BillSwapProof?
+    // MARK: - Services
+    private let swapService = SwapService.shared
+    private let billService = SwapBillService.shared
+    private let storeKitService = StoreKitService.shared
+
+    // MARK: - Properties
+    private var swapId: UUID?
 
     // MARK: - Computed Properties
 
     var currentUserId: UUID? {
-        SupabaseService.shared.currentUserId
+        AuthService.shared.currentUser?.id
     }
 
-    var isInitiator: Bool {
-        currentUserId == swap.initiatorUserId
+    var hasPaidFee: Bool {
+        guard let swap = swap, let userId = currentUserId else { return false }
+        return swap.hasPaidFee(userId: userId)
     }
 
-    var isCounterparty: Bool {
-        currentUserId == swap.counterpartyUserId
+    var hasPaidPartner: Bool {
+        guard let swap = swap, let userId = currentUserId else { return false }
+        return swap.hasPaidPartner(userId: userId)
     }
 
-    var myBill: SwapBill? {
-        isInitiator ? billA : billB
+    var partnerHasPaidMe: Bool {
+        guard let swap = swap, let userId = currentUserId else { return false }
+        return swap.partnerHasPaidMe(userId: userId)
     }
 
-    var theirBill: SwapBill? {
-        isInitiator ? billB : billA
-    }
-
-    var needsToPay: Bool {
-        guard swap.status == .acceptedPendingFee else { return false }
-        if isInitiator {
-            return !swap.feePaidInitiator
-        } else {
-            return !swap.feePaidCounterparty
-        }
-    }
-
-    var needsToSubmitProof: Bool {
-        guard swap.status == .awaitingProof else { return false }
-        guard let userId = currentUserId else { return false }
-
-        // Check if user already has an accepted proof
-        let myAcceptedProofs = proofs.filter {
-            $0.submitterUserId == userId &&
-            ($0.status == .accepted || $0.status == .autoAccepted)
-        }
-        return myAcceptedProofs.isEmpty
-    }
-
-    var needsToReviewProof: Bool {
-        guard swap.status == .awaitingProof else { return false }
-        guard let userId = currentUserId else { return false }
-
-        // Check if there are pending proofs from the other party
-        let theirPendingProofs = proofs.filter {
-            $0.submitterUserId != userId && $0.status == .pending
-        }
-        return !theirPendingProofs.isEmpty
-    }
-
-    var pendingProofsToReview: [BillSwapProof] {
-        guard let userId = currentUserId else { return [] }
-        return proofs.filter {
-            $0.submitterUserId != userId && $0.status == .pending
-        }
-    }
-
-    var myProofs: [BillSwapProof] {
-        guard let userId = currentUserId else { return [] }
-        return proofs.filter { $0.submitterUserId == userId }
-    }
-
-    var theirProofs: [BillSwapProof] {
-        guard let userId = currentUserId else { return [] }
-        return proofs.filter { $0.submitterUserId != userId }
-    }
-
-    var canCancel: Bool {
-        swap.status.isActive && (isInitiator || isCounterparty)
-    }
-
-    var canDispute: Bool {
-        let disputeableStatuses: [BillSwapStatus] = [.awaitingProof, .failed]
-        return disputeableStatuses.contains(swap.status) && disputes.isEmpty
-    }
-
-    var isChatEnabled: Bool {
-        let chatStatuses: [BillSwapStatus] = [
-            .acceptedPendingFee, .locked, .awaitingProof,
-            .completed, .failed, .disputed
-        ]
-        return chatStatuses.contains(swap.status)
-    }
-
-    var feeAmount: String {
-        paymentService.formattedPrice(for: swap.swapType)
+    var canSeeAccountNumber: Bool {
+        // Account number is revealed only when BOTH users have paid/committed
+        guard let swap = swap else { return false }
+        return swap.bothPaidFees
     }
 
     var statusMessage: String {
-        switch swap.status {
-        case .offered:
-            return isInitiator
-                ? "Waiting for someone to accept your swap offer"
-                : "You have a swap offer to review"
-        case .countered:
-            return isInitiator
-                ? "Your swap has a counter-offer to review"
-                : "Waiting for counter-offer response"
-        case .acceptedPendingFee:
-            if needsToPay {
-                return "Pay \(feeAmount) to lock in the swap"
-            }
-            return "Waiting for the other party to pay"
-        case .locked:
-            return "Swap locked! Payment in progress..."
-        case .awaitingProof:
-            if needsToSubmitProof {
-                return "Submit proof of your payment"
-            }
-            if needsToReviewProof {
-                return "Review the payment proof submitted"
-            }
-            return "Waiting for proof submissions"
-        case .completed:
-            return "Swap completed successfully!"
-        case .failed:
-            return "Swap failed"
-        case .disputed:
-            return "Under dispute review"
-        case .cancelled:
-            return "Swap was cancelled"
-        case .expired:
-            return "Swap offer expired"
-        }
+        guard let swap = swap, let userId = currentUserId else { return "" }
+        return swap.statusMessage(for: userId)
     }
 
-    var timeRemaining: String? {
-        switch swap.status {
-        case .offered:
-            guard let deadline = swap.acceptDeadline else { return nil }
-            return formatTimeRemaining(until: deadline)
-        case .awaitingProof:
-            guard let deadline = swap.proofDueDeadline else { return nil }
-            return formatTimeRemaining(until: deadline)
-        default:
-            return nil
+    var progress: Double {
+        swap?.progressPercentage ?? 0
+    }
+
+    var handshakeFeePrice: String {
+        storeKitService.handshakeFeePrice
+    }
+
+    /// Whether current user has Billix Prime subscription
+    var isPrime: Bool {
+        storeKitService.isPrime
+    }
+
+    /// Whether partner has already committed to the swap
+    var partnerHasCommitted: Bool {
+        guard let swap = swap, let userId = currentUserId else { return false }
+        return swap.partnerHasCommitted(userId: userId)
+    }
+
+    /// Time remaining until match expires
+    var formattedTimeRemaining: String? {
+        swap?.formattedTimeRemaining
+    }
+
+    /// Whether the swap has expired
+    var isExpired: Bool {
+        swap?.isExpired ?? false
+    }
+
+    /// Whether user has remaining free swaps
+    var hasFreeSwapsRemaining: Bool {
+        remainingFreeSwaps > 0
+    }
+
+    /// Description of what happens when user confirms
+    var confirmButtonText: String {
+        if isPrime {
+            return "Confirm Swap (Free with Prime)"
+        } else if hasFreeSwapsRemaining {
+            return "Use Free Swap (\(remainingFreeSwaps) remaining)"
+        } else {
+            return "Pay \(handshakeFeePrice) to Unlock"
         }
     }
 
     // MARK: - Initialization
 
-    init(swap: BillSwap) {
-        self.swap = swap
+    init(swapId: UUID? = nil) {
+        self.swapId = swapId
     }
 
-    // MARK: - Load Data
+    // MARK: - Data Loading
 
-    func loadDetails() async {
+    /// Load swap details
+    func loadSwap() async {
+        guard let swapId = swapId else { return }
+
         isLoading = true
-        defer { isLoading = false }
+        error = nil
 
         do {
-            // Load swap details in parallel
-            async let swapTask = billSwapService.fetchSwap(swap.id)
-            async let proofsTask = proofService.fetchProofsForSwap(swap.id)
-            async let disputesTask = disputeService.fetchDisputesForSwap(swap.id)
+            let swap = try await swapService.getSwap(id: swapId)
+            self.swap = swap
 
-            swap = try await swapTask
-            proofs = try await proofsTask
-            disputes = try await disputesTask
+            // Load bills
+            guard let userId = currentUserId else { return }
 
-            // Load bill details
-            async let billATask = fetchBill(swap.billAId)
-            let billBTask: SwapBill? = swap.billBId != nil ? try await fetchBill(swap.billBId!) : nil
+            let myBillId = swap.myBillId(for: userId)
+            let partnerBillId = swap.partnerBillId(for: userId)
 
-            billA = try await billATask
-            billB = billBTask
+            // Fetch both bills
+            let myBillResult: SwapBill = try await SupabaseService.shared.client
+                .from("swap_bills")
+                .select()
+                .eq("id", value: myBillId.uuidString)
+                .single()
+                .execute()
+                .value
 
-            // Load profiles
-            async let initiatorTask = trustService.fetchProfile(userId: swap.initiatorUserId)
-            initiatorProfile = try await initiatorTask
+            let partnerBillResult: SwapBill = try await SupabaseService.shared.client
+                .from("swap_bills")
+                .select()
+                .eq("id", value: partnerBillId.uuidString)
+                .single()
+                .execute()
+                .value
 
-            if let counterpartyId = swap.counterpartyUserId {
-                counterpartyProfile = try await trustService.fetchProfile(userId: counterpartyId)
+            self.myBill = myBillResult
+            self.partnerBill = partnerBillResult
+
+        } catch {
+            self.error = error
+            self.showError = true
+        }
+
+        isLoading = false
+    }
+
+    /// Set swap ID and load
+    func setSwap(id: UUID) async {
+        self.swapId = id
+        await loadSwap()
+    }
+
+    // MARK: - Handshake Flow
+
+    /// Accept the swap - handles Prime users, free swaps, and paid swaps
+    func acceptSwap() async {
+        guard let swapId = swapId else { return }
+
+        isPurchasing = true
+        error = nil
+
+        do {
+            var committed = false
+
+            if isPrime {
+                // Prime users get unlimited free swaps
+                committed = true
+            } else if hasFreeSwapsRemaining {
+                // Use one of the free monthly swaps
+                try await swapService.useFreeSwap()
+                remainingFreeSwaps -= 1
+                committed = true
+            } else {
+                // Must pay the handshake fee
+                committed = try await storeKitService.purchaseHandshakeFee()
+            }
+
+            if committed {
+                // Update swap in database
+                try await swapService.acceptSwap(swapId: swapId)
+
+                // Reload swap data
+                await loadSwap()
+
+                showPaymentSuccess = true
             }
         } catch {
             self.error = error
-            print("Failed to load swap details: \(error)")
+            self.showError = true
+        }
+
+        isPurchasing = false
+    }
+
+    /// Load remaining free swaps from user profile
+    func loadFreeSwapCount() async {
+        do {
+            remainingFreeSwaps = try await swapService.getRemainingFreeSwaps()
+        } catch {
+            print("Failed to load free swap count: \(error)")
+            remainingFreeSwaps = 0
         }
     }
 
-    private func fetchBill(_ billId: UUID) async throws -> SwapBill {
-        let supabase = SupabaseService.shared.client
-        return try await supabase
-            .from("swap_bills")
-            .select()
-            .eq("id", value: billId.uuidString)
-            .single()
-            .execute()
-            .value
-    }
+    // MARK: - Proof Upload
 
-    func refresh() async {
-        await loadDetails()
-    }
-
-    // MARK: - Accept Swap
-
-    func acceptSwap(withBillId: UUID? = nil) async throws {
-        isProcessing = true
-        defer { isProcessing = false }
-
-        try await billSwapService.acceptSwap(swap.id, billBId: withBillId)
-        await loadDetails()
-    }
-
-    // MARK: - Cancel Swap
-
-    func cancelSwap() async throws {
-        isProcessing = true
-        defer { isProcessing = false }
-
-        try await billSwapService.cancelSwap(swap.id)
-        await loadDetails()
-    }
-
-    // MARK: - Pay Fee
-
-    func payFee() async throws {
-        isProcessing = true
-        defer { isProcessing = false }
-
-        try await paymentService.purchaseFee(for: swap, isInitiator: isInitiator)
-        await loadDetails()
-    }
-
-    func waiveFeeWithPoints() async throws {
-        isProcessing = true
-        defer { isProcessing = false }
-
-        try await paymentService.waiveFeeWithPoints(for: swap, isInitiator: isInitiator)
-        await loadDetails()
-    }
-
-    // MARK: - Proof Submission
-
-    func submitProof(type: SwapProofType, imageData: Data, notes: String?) async throws {
-        isProcessing = true
-        defer { isProcessing = false }
-
-        // Upload image
-        let imageUrl = try await proofService.uploadProofImage(
-            swapId: swap.id,
-            imageData: imageData
-        )
-
-        // Submit proof
-        let request = SubmitProofRequest(
-            swapId: swap.id,
-            proofType: type,
-            proofUrl: imageUrl,
-            notes: notes
-        )
-
-        _ = try await proofService.submitProof(request)
-        await loadDetails()
-    }
-
-    // MARK: - Proof Review
-
-    func acceptProof(_ proof: BillSwapProof) async throws {
-        isProcessing = true
-        defer { isProcessing = false }
-
-        try await proofService.acceptProof(proof.id)
-        await loadDetails()
-    }
-
-    func rejectProof(_ proof: BillSwapProof, reason: SwapProofRejectionReason, notes: String?) async throws {
-        isProcessing = true
-        defer { isProcessing = false }
-
-        try await proofService.rejectProof(proof.id, reason: reason, notes: notes)
-        await loadDetails()
-    }
-
-    // MARK: - File Dispute
-
-    func fileDispute(reason: SwapDisputeReason, description: String?, evidence: [Data]?) async throws {
-        isProcessing = true
-        defer { isProcessing = false }
-
-        guard let userId = currentUserId else {
-            throw BillSwapError.notAuthenticated
+    /// Process and upload proof of payment
+    func uploadProof() async {
+        guard let swapId = swapId,
+              let proofImage = proofImage else {
+            error = SwapDetailError.proofImageRequired
+            showError = true
+            return
         }
 
-        let reportedUserId = isInitiator
-            ? swap.counterpartyUserId ?? UUID()
-            : swap.initiatorUserId
+        isUploadingProof = true
+        error = nil
 
-        // Upload evidence if provided
-        var evidenceUrls: [String]?
-        if let evidenceData = evidence {
-            evidenceUrls = []
-            for data in evidenceData {
-                // Upload would go here - simplified for now
-                // let url = try await disputeService.uploadEvidence(disputeId: UUID(), imageData: data)
-                // evidenceUrls?.append(url)
-            }
+        do {
+            // Upload image to storage
+            let proofUrl = try await billService.uploadBillImage(proofImage)
+
+            // Update swap with proof
+            try await swapService.markPartnerPaid(swapId: swapId, proofUrl: proofUrl)
+
+            // Reload swap data
+            await loadSwap()
+
+            // Clear proof image
+            self.proofImage = nil
+
+            showProofSuccess = true
+        } catch {
+            self.error = error
+            self.showError = true
         }
 
-        let request = FileDisputeRequest(
-            swapId: swap.id,
-            reportedUserId: reportedUserId,
-            reason: reason,
-            description: description,
-            evidenceUrls: evidenceUrls
-        )
-
-        _ = try await disputeService.fileDispute(request)
-        await loadDetails()
+        isUploadingProof = false
     }
 
-    // MARK: - Helpers
+    // MARK: - Dispute
 
-    private func formatTimeRemaining(until date: Date) -> String {
-        let now = Date()
-        let remaining = date.timeIntervalSince(now)
+    /// Raise a dispute
+    func raiseDispute(reason: String) async {
+        guard let swapId = swapId else { return }
 
-        if remaining <= 0 {
-            return "Expired"
+        do {
+            try await swapService.raiseDispute(swapId: swapId, reason: reason)
+            await loadSwap()
+        } catch {
+            self.error = error
+            self.showError = true
         }
+    }
+}
 
-        let hours = Int(remaining) / 3600
-        let minutes = Int(remaining) % 3600 / 60
+// MARK: - Errors
 
-        if hours > 24 {
-            let days = hours / 24
-            return "\(days)d remaining"
-        } else if hours > 0 {
-            return "\(hours)h \(minutes)m remaining"
-        } else {
-            return "\(minutes)m remaining"
+enum SwapDetailError: LocalizedError {
+    case proofImageRequired
+    case swapNotFound
+
+    var errorDescription: String? {
+        switch self {
+        case .proofImageRequired:
+            return "Please capture a photo of your payment receipt"
+        case .swapNotFound:
+            return "Swap not found"
         }
     }
 }

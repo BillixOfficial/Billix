@@ -2,6 +2,9 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
+    @State private var exploreResetId = UUID()
+    @State private var navigateToSwapId: UUID?
+    @EnvironmentObject var notificationService: NotificationService
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -28,12 +31,27 @@ struct MainTabView: View {
                     .allowsHitTesting(selectedTab == 4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea()
 
             // Custom Bottom Navigation Bar
             CustomBottomNavBar(selectedTab: $selectedTab)
                 .edgesIgnoringSafeArea(.bottom)
         }
+        .swapNotificationToast(
+            notification: $notificationService.pendingNotification,
+            onTap: {
+                // Navigate to swap when notification is tapped
+                if let swapId = notificationService.pendingNotification?.swapId {
+                    navigateToSwapId = swapId
+                    // Post notification for navigation to swap detail
+                    NotificationCenter.default.post(
+                        name: .navigateToSwapDetail,
+                        object: nil,
+                        userInfo: ["swapId": swapId]
+                    )
+                }
+                notificationService.clearPendingNotification()
+            }
+        )
         .ignoresSafeArea(.keyboard)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToUpload"))) { _ in
             withAnimation {
@@ -45,7 +63,24 @@ struct MainTabView: View {
                 selectedTab = 3  // Switch to Rewards tab (where game is)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .swapNotificationTapped)) { notification in
+            // Handle push notification tap when app was in background
+            if let swapId = (notification.userInfo?["notification"] as? SwapNotificationData)?.swapId {
+                navigateToSwapId = swapId
+                NotificationCenter.default.post(
+                    name: .navigateToSwapDetail,
+                    object: nil,
+                    userInfo: ["swapId": swapId]
+                )
+            }
+        }
     }
+}
+
+// MARK: - Navigation Notification Names
+
+extension Notification.Name {
+    static let navigateToSwapDetail = Notification.Name("navigateToSwapDetail")
 }
 
 // MARK: - Custom Bottom Navigation Bar
@@ -79,19 +114,19 @@ struct CustomBottomNavBar: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .padding(.top, 12)
-        .padding(.bottom, -6) // Push icons even lower
+        .padding(.top, 14)
+        .padding(.bottom, 8)
         .background(
             UnevenRoundedRectangle(
-                topLeadingRadius: 0,
-                bottomLeadingRadius: 28,
-                bottomTrailingRadius: 28,
-                topTrailingRadius: 0
+                topLeadingRadius: 24,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: 24
             )
             .fill(.white)
             .ignoresSafeArea(edges: .bottom)
         )
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -1)
+        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: -4)
     }
 }
 

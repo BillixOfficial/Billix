@@ -2,650 +2,1152 @@
 //  BillSwapView.swift
 //  Billix
 //
-//  Main Bill Swap Hub View - Complete Redesign
-//  With Marketplace, Matches, Activity Feed, and Import
+//  Bill Swap feature matching homepage design system
 //
 
 import SwiftUI
 
-// MARK: - Bill Swap View
+// MARK: - Theme (matching HomeView)
+
+private enum SwapThemeColors {
+    static let background = Color(hex: "#F7F9F8")
+    static let cardBackground = Color.white
+    static let primaryText = Color(hex: "#2D3B35")
+    static let secondaryText = Color(hex: "#8B9A94")
+    static let accent = Color(hex: "#5B8A6B")
+    static let accentLight = Color(hex: "#5B8A6B").opacity(0.08)
+    static let success = Color(hex: "#4CAF7A")
+    static let warning = Color(hex: "#E8A54B")
+    static let danger = Color(hex: "#E07A6B")
+    static let info = Color(hex: "#5BA4D4")
+    static let purple = Color(hex: "#9B7EB8")
+
+    static let horizontalPadding: CGFloat = 20
+    static let cardPadding: CGFloat = 16
+    static let cornerRadius: CGFloat = 16
+    static let shadowColor = Color.black.opacity(0.03)
+    static let shadowRadius: CGFloat = 8
+}
+
+// MARK: - Main View
 
 struct BillSwapView: View {
+    @StateObject private var viewModel = SwapHomeViewModel()
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = BillSwapViewModel()
-    @State private var selectedSwap: BillSwap?
-    @State private var selectedBill: SwapBill?
-    @State private var selectedMatch: SwapMatch?
+    @State private var selectedTab: SwapTab = .home
+    @State private var showUploadSheet = false
     @State private var showInfoSheet = false
-    @State private var cardsVisible = false
+    @State private var selectedSwap: BillSwapTransaction?
+    @State private var selectedBillForDetail: SwapBillWithUser?
+
+    enum SwapTab: String, CaseIterable {
+        case home = "Home"
+        case matches = "Matches"
+        case active = "Active"
+
+        var icon: String {
+            switch self {
+            case .home: return "house.fill"
+            case .matches: return "person.2.fill"
+            case .active: return "arrow.triangle.2.circlepath"
+            }
+        }
+    }
 
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background
-                BillSwapTheme.background
-                    .ignoresSafeArea()
+                SwapThemeColors.background.ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Trust Tier Header
-                        if let tierInfo = viewModel.tierInfo {
-                            TierHeaderCard(
-                                tierName: tierInfo.name,
-                                maxBill: tierInfo.maxBill,
-                                activeSwaps: viewModel.activeSwaps.count,
-                                maxSwaps: tierInfo.maxSwaps,
-                                pointsBalance: viewModel.pointsBalance,
-                                showInfoSheet: $showInfoSheet
-                            )
-                            .padding(.horizontal, BillSwapTheme.screenPadding)
-                            .padding(.top, 8)
-                        }
+                VStack(spacing: 0) {
+                    // Header
+                    swapHeader
 
-                        // Tab Selector
-                        SegmentedTabSelector(selectedTab: $viewModel.selectedTab)
-                            .padding(.horizontal, BillSwapTheme.screenPadding)
-                            .padding(.top, 16)
+                    // Tab selector
+                    swapTabBar
+                        .padding(.top, 12)
 
-                        // Content based on selected tab
-                        tabContent
-                            .padding(.horizontal, BillSwapTheme.screenPadding)
-                            .padding(.top, 16)
-                            .padding(.bottom, 100)
+                    // Content
+                    TabView(selection: $selectedTab) {
+                        SwapHomeContent(viewModel: viewModel, showUploadSheet: $showUploadSheet, selectedBillForDetail: $selectedBillForDetail)
+                            .tag(SwapTab.home)
+
+                        SwapMatchesContent(viewModel: viewModel, selectedBillForDetail: $selectedBillForDetail)
+                            .tag(SwapTab.matches)
+
+                        SwapActiveContent(viewModel: viewModel, selectedSwap: $selectedSwap)
+                            .tag(SwapTab.active)
                     }
-                }
-                .refreshable {
-                    await viewModel.refresh()
+                    .tabViewStyle(.page(indexDisplayMode: .never))
                 }
             }
-            .navigationTitle("Bill Swap")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(BillSwapTheme.cardBackground, for: .navigationBar)
-            .toolbarColorScheme(.light, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(BillSwapTheme.primaryText)
-                    }
+            .navigationBarHidden(true)
+            .sheet(isPresented: $showUploadSheet) {
+                UploadBillView {
+                    showUploadSheet = false
+                    Task { await viewModel.loadData() }
                 }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 12) {
-                        // Import from uploads
-                        Button {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            viewModel.showImportSheet = true
-                        } label: {
-                            Image(systemName: "square.and.arrow.down")
-                                .font(.system(size: 18))
-                                .foregroundColor(BillSwapTheme.accent)
-                        }
-
-                        // Create new bill
-                        Button {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            viewModel.showCreateBillSheet = true
-                        } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(BillSwapTheme.accent)
-                        }
-                        .disabled(!viewModel.canCreateBill)
-                    }
-                }
-            }
-            .task {
-                await viewModel.loadInitialData()
-                withAnimation(.easeOut(duration: 0.3).delay(0.2)) {
-                    cardsVisible = true
-                }
-            }
-            .sheet(isPresented: $viewModel.showCreateBillSheet) {
-                CreateBillSheet(viewModel: viewModel)
-            }
-            .sheet(isPresented: $viewModel.showImportSheet) {
-                ImportBillSheet(viewModel: viewModel)
             }
             .sheet(isPresented: $showInfoSheet) {
-                BillSwapInfoSheet()
+                SwapInfoSheet()
+            }
+            .sheet(item: $selectedBillForDetail) { billWithUser in
+                BillDetailSheet(billWithUser: billWithUser)
             }
             .navigationDestination(item: $selectedSwap) { swap in
-                SwapDetailView(swap: swap)
+                MatchDetailView(swapId: swap.id)
             }
-            .overlay {
-                if viewModel.isLoading && !cardsVisible {
-                    loadingOverlay
-                }
-            }
+            .task { await viewModel.loadData() }
+            .refreshable { await viewModel.refresh() }
         }
     }
 
-    // MARK: - Tab Content
+    // MARK: - Header
 
-    @ViewBuilder
-    private var tabContent: some View {
-        switch viewModel.selectedTab {
-        case .marketplace:
-            marketplaceContent
-        case .matches:
-            matchesContent
-        case .myBills:
-            myBillsContent
-        case .active:
-            activeSwapsContent
-        case .history:
-            historyContent
-        }
-    }
+    private var swapHeader: some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Home")
+                        .font(.system(size: 15, weight: .medium))
+                }
+                .foregroundColor(SwapThemeColors.accent)
+            }
 
-    // MARK: - Marketplace Content (Activity Feed + Available Bills)
+            Spacer()
 
-    @ViewBuilder
-    private var marketplaceContent: some View {
-        VStack(spacing: 16) {
-            // Activity Feed Section
-            ActivityFeedList(
-                items: Array(viewModel.activityFeed.prefix(5)),
-                stats: viewModel.activityStats
-            )
-            .staggeredAppear(index: 0, isVisible: cardsVisible)
+            Text("Bill Swap")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundColor(SwapThemeColors.primaryText)
 
-            // Available Bills Section
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text("Available Bills")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(BillSwapTheme.primaryText)
+            Spacer()
 
-                    Spacer()
-
-                    Text("\(viewModel.filteredAvailableBills.count) bills")
-                        .font(.system(size: 12))
-                        .foregroundColor(BillSwapTheme.secondaryText)
+            HStack(spacing: 12) {
+                Button { showInfoSheet = true } label: {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 20))
+                        .foregroundColor(SwapThemeColors.accent)
                 }
 
-                if viewModel.filteredAvailableBills.isEmpty {
-                    BillSwapEmptyState(
-                        icon: "rectangle.stack",
-                        title: "No Bills Available",
-                        message: "Check back later or add your own bill!"
-                    )
-                } else {
-                    LazyVStack(spacing: BillSwapTheme.cardSpacing) {
-                        ForEach(Array(viewModel.filteredAvailableBills.enumerated()), id: \.element.id) { index, bill in
-                            BillCard(
-                                bill: bill,
-                                showOwner: true,
-                                ownerHandle: "user"
-                            ) {
-                                selectedBill = bill
-                            }
-                            .staggeredAppear(index: index + 1, isVisible: cardsVisible)
-                        }
-                    }
+                Button { showUploadSheet = true } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(SwapThemeColors.accent)
                 }
             }
         }
+        .padding(.horizontal, SwapThemeColors.horizontalPadding)
+        .padding(.vertical, 12)
     }
 
-    // MARK: - Matches Content
+    // MARK: - Tab Bar
 
-    @ViewBuilder
-    private var matchesContent: some View {
-        VStack(spacing: 16) {
-            // Matching status
-            if viewModel.isMatching {
-                HStack(spacing: 8) {
-                    ProgressView()
-                        .tint(BillSwapTheme.accent)
-                    Text("Finding matches...")
-                        .font(.system(size: 13))
-                        .foregroundColor(BillSwapTheme.secondaryText)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(BillSwapTheme.accentLight)
-                .cornerRadius(12)
-            }
-
-            if viewModel.proposedMatches.isEmpty && !viewModel.isMatching {
-                VStack(spacing: 16) {
-                    BillSwapEmptyState(
-                        icon: "person.2.badge.gearshape",
-                        title: "No Matches Yet",
-                        message: "Add a bill to start finding swap partners with similar bills."
-                    )
-
-                    if !viewModel.myBills.isEmpty {
-                        Button {
-                            Task {
-                                if let profile = viewModel.trustProfile {
-                                    await viewModel.findMatchesForMyBills(profile: profile)
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: "magnifyingglass")
-                                Text("Find Matches")
-                            }
-                        }
-                        .buttonStyle(BillSwapPrimaryButtonStyle())
-                    }
-                }
-                .staggeredAppear(index: 0, isVisible: cardsVisible)
-            } else {
-                LazyVStack(spacing: 16) {
-                    ForEach(Array(viewModel.proposedMatches.enumerated()), id: \.element.id) { index, match in
-                        MatchCardView(
-                            match: match,
-                            onAccept: {
-                                Task {
-                                    do {
-                                        let swap = try await viewModel.acceptMatch(match)
-                                        selectedSwap = swap
-                                    } catch {
-                                        viewModel.error = error
-                                    }
-                                }
-                            },
-                            onDismiss: {
-                                withAnimation {
-                                    viewModel.proposedMatches.removeAll { $0.id == match.id }
-                                }
-                            }
-                        )
-                        .staggeredAppear(index: index, isVisible: cardsVisible)
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - My Bills Content
-
-    @ViewBuilder
-    private var myBillsContent: some View {
-        if viewModel.myBills.isEmpty {
-            VStack(spacing: 24) {
-                BillSwapEmptyState(
-                    icon: "doc.text",
-                    title: "No Bills Yet",
-                    message: "Add a bill to start swapping with other users and save money together."
-                )
-
+    private var swapTabBar: some View {
+        HStack(spacing: 0) {
+            ForEach(SwapTab.allCases, id: \.self) { tab in
                 Button {
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                    viewModel.showCreateBillSheet = true
+                    withAnimation(.spring(response: 0.3)) {
+                        selectedTab = tab
+                    }
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Add Your First Bill")
+                    VStack(spacing: 6) {
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 18))
+                        Text(tab.rawValue)
+                            .font(.system(size: 12, weight: .medium))
                     }
-                }
-                .buttonStyle(BillSwapPrimaryButtonStyle())
-                .frame(width: 200)
-            }
-            .staggeredAppear(index: 0, isVisible: cardsVisible)
-        } else {
-            LazyVStack(spacing: BillSwapTheme.cardSpacing) {
-                ForEach(Array(viewModel.myBills.enumerated()), id: \.element.id) { index, bill in
-                    BillCard(bill: bill) { action in
-                        switch action {
-                        case .edit:
-                            // TODO: Edit bill
-                            break
-                        case .delete:
-                            Task { try? await viewModel.deleteBill(bill) }
-                        case .offer:
-                            break
-                        }
-                    }
-                    .staggeredAppear(index: index, isVisible: cardsVisible)
+                    .foregroundColor(selectedTab == tab ? SwapThemeColors.accent : SwapThemeColors.secondaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(
+                        selectedTab == tab ? SwapThemeColors.accentLight : Color.clear
+                    )
+                    .cornerRadius(12)
                 }
             }
         }
-    }
-
-    // MARK: - Active Swaps Content
-
-    @ViewBuilder
-    private var activeSwapsContent: some View {
-        if viewModel.activeSwaps.isEmpty {
-            BillSwapEmptyState(
-                icon: "arrow.triangle.2.circlepath",
-                title: "No Active Swaps",
-                message: "Start by browsing available bills or adding your own to find a swap partner."
-            )
-            .staggeredAppear(index: 0, isVisible: cardsVisible)
-        } else {
-            LazyVStack(spacing: BillSwapTheme.cardSpacing) {
-                ForEach(Array(viewModel.activeSwaps.enumerated()), id: \.element.id) { index, swap in
-                    SwapCard(
-                        swap: swap,
-                        currentUserId: viewModel.currentUserId ?? UUID()
-                    ) {
-                        selectedSwap = swap
-                    }
-                    .staggeredAppear(index: index, isVisible: cardsVisible)
-                }
-            }
-        }
-    }
-
-    // MARK: - History Content
-
-    @ViewBuilder
-    private var historyContent: some View {
-        if viewModel.swapHistory.isEmpty {
-            BillSwapEmptyState(
-                icon: "clock",
-                title: "No Swap History",
-                message: "Your completed and past swaps will appear here."
-            )
-            .staggeredAppear(index: 0, isVisible: cardsVisible)
-        } else {
-            LazyVStack(spacing: BillSwapTheme.cardSpacing) {
-                ForEach(Array(viewModel.swapHistory.enumerated()), id: \.element.id) { index, swap in
-                    SwapCard(
-                        swap: swap,
-                        currentUserId: viewModel.currentUserId ?? UUID()
-                    ) {
-                        selectedSwap = swap
-                    }
-                    .staggeredAppear(index: index, isVisible: cardsVisible)
-                }
-            }
-        }
-    }
-
-    // MARK: - Loading Overlay
-
-    private var loadingOverlay: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.2)
-                .tint(BillSwapTheme.accent)
-
-            Text("Loading...")
-                .font(.system(size: 14))
-                .foregroundColor(BillSwapTheme.secondaryText)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.ultraThinMaterial)
+        .padding(4)
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(14)
+        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+        .padding(.horizontal, SwapThemeColors.horizontalPadding)
     }
 }
 
-// MARK: - Tier Header Card (Redesigned with Gradient)
+// MARK: - Home Content
 
-private struct TierHeaderCard: View {
-    let tierName: String
-    let maxBill: String
-    let activeSwaps: Int
-    let maxSwaps: Int
-    let pointsBalance: Int
-    @Binding var showInfoSheet: Bool
+private struct SwapHomeContent: View {
+    @ObservedObject var viewModel: SwapHomeViewModel
+    @Binding var showUploadSheet: Bool
+    @Binding var selectedBillForDetail: SwapBillWithUser?
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Gradient header with tier info
-            HStack(spacing: 14) {
-                // Tier badge
-                ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.2))
-                        .frame(width: 52, height: 52)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 20) {
+                // My Bills Section
+                myBillsSection
 
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 44, height: 44)
+                Spacer(minLength: 100)
+            }
+            .padding(.top, 20)
+        }
+    }
 
-                    Image(systemName: tierIcon)
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(tierIconGradient)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Text(tierName)
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-
-                        Button {
-                            showInfoSheet = true
-                        } label: {
-                            Image(systemName: "info.circle")
-                                .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.8))
-                        }
-                    }
-
-                    Text("Max Bill: \(maxBill)")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
+    private var myBillsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
+            HStack {
+                HStack(spacing: 8) {
+                    Image(systemName: "doc.text.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(SwapThemeColors.accent)
+                    Text("MY BILLS")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(SwapThemeColors.secondaryText)
+                        .tracking(0.5)
                 }
 
                 Spacer()
 
-                // Points badge
-                VStack(alignment: .trailing, spacing: 2) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color.billixGoldenAmber)
-                        Text("\(pointsBalance)")
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.white)
+                if !viewModel.myBillsWithUsers.isEmpty {
+                    Text("\(viewModel.myBillsWithUsers.count)")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(SwapThemeColors.accent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(SwapThemeColors.accentLight)
+                        .cornerRadius(8)
+                }
+            }
+            .padding(.horizontal, SwapThemeColors.horizontalPadding)
+
+            if viewModel.myBillsWithUsers.isEmpty && viewModel.myBills.isEmpty {
+                // Empty state
+                emptyBillsCard
+            } else {
+                // Bills list
+                VStack(spacing: 12) {
+                    ForEach(viewModel.myBillsWithUsers) { billWithUser in
+                        Button {
+                            selectedBillForDetail = billWithUser
+                        } label: {
+                            EnhancedBillCard(billWithUser: billWithUser)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    Text("points")
+                }
+                .padding(.horizontal, SwapThemeColors.horizontalPadding)
+            }
+        }
+    }
+
+    private var emptyBillsCard: some View {
+        Button { showUploadSheet = true } label: {
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(SwapThemeColors.accentLight)
+                        .frame(width: 64, height: 64)
+
+                    Image(systemName: "doc.badge.plus")
+                        .font(.system(size: 28))
+                        .foregroundColor(SwapThemeColors.accent)
+                }
+
+                VStack(spacing: 6) {
+                    Text("Upload your first bill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(SwapThemeColors.primaryText)
+
+                    Text("Add a bill to start finding\nswap partners")
+                        .font(.system(size: 13))
+                        .foregroundColor(SwapThemeColors.secondaryText)
+                        .multilineTextAlignment(.center)
+                }
+
+                HStack(spacing: 6) {
+                    Text("Upload Bill")
+                        .font(.system(size: 14, weight: .semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 12, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(SwapThemeColors.accent)
+                .cornerRadius(12)
+            }
+            .padding(.vertical, 30)
+            .frame(maxWidth: .infinity)
+            .background(SwapThemeColors.cardBackground)
+            .cornerRadius(SwapThemeColors.cornerRadius)
+            .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .padding(.horizontal, SwapThemeColors.horizontalPadding)
+    }
+}
+
+// MARK: - Enhanced Bill Card
+
+private struct EnhancedBillCard: View {
+    let billWithUser: SwapBillWithUser
+
+    private var bill: SwapBill { billWithUser.bill }
+
+    private var iconName: String {
+        bill.category?.icon ?? "doc.text.fill"
+    }
+
+    private var iconColor: Color {
+        switch bill.category {
+        case .electric: return .yellow
+        case .naturalGas: return .orange
+        case .water: return .blue
+        case .internet: return .purple
+        case .phonePlan: return .green
+        default: return SwapThemeColors.accent
+        }
+    }
+
+    private var dueInfo: (text: String, color: Color) {
+        guard let dueDate = bill.dueDate else {
+            return ("No due date", SwapThemeColors.secondaryText)
+        }
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: dueDate).day ?? 0
+        if days < 0 {
+            return ("Overdue", SwapThemeColors.danger)
+        } else if days == 0 {
+            return ("Due today", SwapThemeColors.warning)
+        } else if days <= 3 {
+            return ("Due in \(days)d", SwapThemeColors.warning)
+        } else {
+            return ("Due in \(days)d", SwapThemeColors.secondaryText)
+        }
+    }
+
+    private var statusColor: Color {
+        switch bill.status {
+        case .unmatched: return SwapThemeColors.warning
+        case .matched: return SwapThemeColors.info
+        case .paid: return SwapThemeColors.success
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Top row: User info
+            HStack(spacing: 8) {
+                // Avatar
+                userAvatar
+
+                // Handle
+                Text("@\(billWithUser.userHandle)")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(SwapThemeColors.secondaryText)
+
+                Spacer()
+
+                // Status badge
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(statusColor)
+                        .frame(width: 6, height: 6)
+                    Text(bill.status.displayName)
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(statusColor)
                 }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(statusColor.opacity(0.1))
+                .cornerRadius(6)
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 16)
-            .background(
-                LinearGradient(
-                    colors: tierGradientColors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .padding(.horizontal, 14)
+            .padding(.top, 12)
+            .padding(.bottom, 10)
 
-            // Bottom stats bar
-            HStack(spacing: 0) {
-                // Active swaps stat
-                HStack(spacing: 8) {
-                    ZStack {
-                        Circle()
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 3)
-                            .frame(width: 32, height: 32)
+            Divider()
+                .padding(.horizontal, 14)
 
-                        Circle()
-                            .trim(from: 0, to: maxSwaps > 0 ? CGFloat(activeSwaps) / CGFloat(maxSwaps) : 0)
-                            .stroke(BillSwapTheme.accent, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                            .frame(width: 32, height: 32)
-                            .rotationEffect(.degrees(-90))
+            // Main content row
+            HStack(spacing: 12) {
+                // Category icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(iconColor.opacity(0.12))
+                        .frame(width: 44, height: 44)
 
-                        Text("\(activeSwaps)")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(BillSwapTheme.primaryText)
-                    }
-
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Active Swaps")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(BillSwapTheme.secondaryText)
-                        Text("\(activeSwaps) of \(maxSwaps)")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(BillSwapTheme.primaryText)
-                    }
+                    Image(systemName: iconName)
+                        .font(.system(size: 20))
+                        .foregroundColor(iconColor)
                 }
-                .frame(maxWidth: .infinity)
 
-                Rectangle()
-                    .fill(Color.gray.opacity(0.15))
-                    .frame(width: 1, height: 36)
+                // Bill info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(bill.category?.displayName ?? "Bill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(SwapThemeColors.primaryText)
 
-                // Quick action
-                Button {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    showInfoSheet = true
-                } label: {
+                    if let provider = bill.providerName {
+                        Text(provider)
+                            .font(.system(size: 13))
+                            .foregroundColor(SwapThemeColors.secondaryText)
+                    }
+
                     HStack(spacing: 6) {
-                        Image(systemName: "arrow.up.right.circle.fill")
-                            .font(.system(size: 18))
-                        Text("Level Up")
-                            .font(.system(size: 13, weight: .semibold))
+                        Image(systemName: "calendar")
+                            .font(.system(size: 10))
+                        Text(dueInfo.text)
+                            .font(.system(size: 11))
                     }
-                    .foregroundColor(BillSwapTheme.accent)
+                    .foregroundColor(dueInfo.color)
                 }
-                .frame(maxWidth: .infinity)
+
+                Spacer()
+
+                // Amount and chevron
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(bill.formattedAmount)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(SwapThemeColors.primaryText)
+
+                    if let zipCode = bill.zipCode {
+                        HStack(spacing: 4) {
+                            Image(systemName: "location.fill")
+                                .font(.system(size: 9))
+                            Text(zipCode)
+                                .font(.system(size: 11))
+                        }
+                        .foregroundColor(SwapThemeColors.secondaryText)
+                    }
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(SwapThemeColors.secondaryText.opacity(0.5))
             }
+            .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(Color.white)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(SwapThemeColors.cornerRadius)
+        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
     }
 
-    private var tierGradientColors: [Color] {
-        switch tierName.lowercased() {
-        case "streamer", "provisional":
-            return [Color(hex: "667eea"), Color(hex: "764ba2")]
-        case "utility", "established":
-            return [Color(hex: "11998e"), Color(hex: "38ef7d")]
-        case "guardian", "power":
-            return [Color(hex: "f093fb"), Color(hex: "f5576c")]
-        case "champion", "elite":
-            return [Color(hex: "FFD700"), Color(hex: "FFA500")]
-        default:
-            return [BillSwapTheme.accent, BillSwapTheme.accent.opacity(0.7)]
-        }
-    }
+    private var userAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(SwapThemeColors.accent.opacity(0.15))
+                .frame(width: 28, height: 28)
 
-    private var tierIconGradient: LinearGradient {
-        LinearGradient(
-            colors: tierGradientColors,
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-
-    private var tierIcon: String {
-        switch tierName.lowercased() {
-        case "streamer", "provisional": return "play.circle.fill"
-        case "utility", "established": return "bolt.fill"
-        case "guardian", "power": return "shield.fill"
-        case "champion", "elite": return "crown.fill"
-        default: return "star.fill"
+            if let avatarUrl = billWithUser.userAvatarUrl, !avatarUrl.isEmpty {
+                AsyncImage(url: URL(string: avatarUrl)) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Text(billWithUser.userInitials)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(SwapThemeColors.accent)
+                }
+                .frame(width: 28, height: 28)
+                .clipShape(Circle())
+            } else {
+                Text(billWithUser.userInitials)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(SwapThemeColors.accent)
+            }
         }
     }
 }
 
-// MARK: - Scrollable Icon Tab Selector (Redesigned)
+// MARK: - Matches Content
 
-private struct SegmentedTabSelector: View {
-    @Binding var selectedTab: SwapHubTab
-    @Namespace private var animation
+private struct SwapMatchesContent: View {
+    @ObservedObject var viewModel: SwapHomeViewModel
+    @Binding var selectedBillForDetail: SwapBillWithUser?
+    @State private var selectedMatch: SwapBillWithUser?
+    @State private var showConfirmation = false
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(SwapHubTab.allCases) { tab in
-                    TabButton(
-                        tab: tab,
-                        isSelected: selectedTab == tab,
-                        animation: animation
-                    ) {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            selectedTab = tab
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 16) {
+                if viewModel.matchesWithUsers.isEmpty && viewModel.potentialMatches.isEmpty {
+                    emptyMatchesView
+                } else {
+                    // Header
+                    HStack {
+                        Text("\(viewModel.matchesWithUsers.count) potential match\(viewModel.matchesWithUsers.count == 1 ? "" : "es")")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(SwapThemeColors.secondaryText)
+                            .tracking(0.5)
+                        Spacer()
+                    }
+                    .padding(.horizontal, SwapThemeColors.horizontalPadding)
+
+                    // Matches list using enhanced cards
+                    VStack(spacing: 12) {
+                        ForEach(viewModel.matchesWithUsers) { matchWithUser in
+                            MatchCardWithActions(
+                                billWithUser: matchWithUser,
+                                onTap: {
+                                    selectedBillForDetail = matchWithUser
+                                },
+                                onStartSwap: {
+                                    selectedMatch = matchWithUser
+                                    showConfirmation = true
+                                }
+                            )
                         }
                     }
+                    .padding(.horizontal, SwapThemeColors.horizontalPadding)
+                }
+
+                Spacer(minLength: 100)
+            }
+            .padding(.top, 20)
+        }
+        .alert("Start Swap?", isPresented: $showConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Start Swap") {
+                if let match = selectedMatch,
+                   let myBill = viewModel.unmatchedBills.first {
+                    Task {
+                        await viewModel.createSwap(myBill: myBill, partnerBill: match.bill)
+                    }
                 }
             }
-            .padding(.horizontal, 4)
-            .padding(.vertical, 4)
+        } message: {
+            if let match = selectedMatch {
+                Text("Start a swap with @\(match.userHandle)'s \(match.bill.formattedAmount) bill?")
+            }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
-        )
+    }
+
+    private var emptyMatchesView: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(SwapThemeColors.purple.opacity(0.12))
+                    .frame(width: 64, height: 64)
+
+                Image(systemName: "person.2.slash")
+                    .font(.system(size: 28))
+                    .foregroundColor(SwapThemeColors.purple)
+            }
+
+            VStack(spacing: 6) {
+                Text("No matches yet")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(SwapThemeColors.primaryText)
+
+                Text("Upload bills or wait for\nother users to add similar bills")
+                    .font(.system(size: 13))
+                    .foregroundColor(SwapThemeColors.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+
+            Button {
+                Task { await viewModel.refresh() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("Refresh")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(SwapThemeColors.accent)
+            }
+        }
+        .padding(.vertical, 40)
+        .frame(maxWidth: .infinity)
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(SwapThemeColors.cornerRadius)
+        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+        .padding(.horizontal, SwapThemeColors.horizontalPadding)
     }
 }
 
-// MARK: - Individual Tab Button
+// MARK: - Match Card With Actions
 
-private struct TabButton: View {
-    let tab: SwapHubTab
-    let isSelected: Bool
-    let animation: Namespace.ID
-    let action: () -> Void
+private struct MatchCardWithActions: View {
+    let billWithUser: SwapBillWithUser
+    let onTap: () -> Void
+    let onStartSwap: () -> Void
+
+    private var bill: SwapBill { billWithUser.bill }
+
+    private var iconName: String {
+        bill.category?.icon ?? "doc.text.fill"
+    }
+
+    private var iconColor: Color {
+        switch bill.category {
+        case .electric: return .yellow
+        case .naturalGas: return .orange
+        case .water: return .blue
+        case .internet: return .purple
+        case .phonePlan: return .green
+        default: return SwapThemeColors.accent
+        }
+    }
 
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                // Icon in circle
-                ZStack {
-                    if isSelected {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [BillSwapTheme.accent, BillSwapTheme.accent.opacity(0.8)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 42, height: 42)
-                            .matchedGeometryEffect(id: "TAB_BG", in: animation)
-                    } else {
-                        Circle()
-                            .fill(Color.gray.opacity(0.08))
-                            .frame(width: 42, height: 42)
+        VStack(spacing: 0) {
+            // Top row: User info with match indicator
+            HStack(spacing: 8) {
+                // Avatar
+                userAvatar
+
+                // Handle
+                Text("@\(billWithUser.userHandle)")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(SwapThemeColors.secondaryText)
+
+                Spacer()
+
+                // Match badge
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 10))
+                    Text("Match")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .foregroundColor(SwapThemeColors.success)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(SwapThemeColors.success.opacity(0.1))
+                .cornerRadius(6)
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 12)
+            .padding(.bottom, 10)
+
+            Divider()
+                .padding(.horizontal, 14)
+
+            // Main content (tappable)
+            Button(action: onTap) {
+                HStack(spacing: 12) {
+                    // Category icon
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(iconColor.opacity(0.12))
+                            .frame(width: 44, height: 44)
+
+                        Image(systemName: iconName)
+                            .font(.system(size: 20))
+                            .foregroundColor(iconColor)
                     }
 
-                    Image(systemName: tab.icon)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(isSelected ? .white : BillSwapTheme.secondaryText)
+                    // Bill info
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(bill.category?.displayName ?? "Bill")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(SwapThemeColors.primaryText)
+
+                        if let provider = bill.providerName {
+                            Text(provider)
+                                .font(.system(size: 13))
+                                .foregroundColor(SwapThemeColors.secondaryText)
+                        }
+
+                        if let zipCode = bill.zipCode {
+                            HStack(spacing: 4) {
+                                Image(systemName: "location.fill")
+                                    .font(.system(size: 9))
+                                Text(zipCode)
+                                    .font(.system(size: 11))
+                            }
+                            .foregroundColor(SwapThemeColors.secondaryText)
+                        }
+                    }
+
+                    Spacer()
+
+                    // Amount
+                    Text(bill.formattedAmount)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(SwapThemeColors.primaryText)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(SwapThemeColors.secondaryText.opacity(0.5))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            Divider()
+                .padding(.horizontal, 14)
+
+            // Action button
+            Button(action: onStartSwap) {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("Start Swap")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(SwapThemeColors.accent)
+                .cornerRadius(10)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+        }
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(SwapThemeColors.cornerRadius)
+        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+    }
+
+    private var userAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(SwapThemeColors.accent.opacity(0.15))
+                .frame(width: 28, height: 28)
+
+            if let avatarUrl = billWithUser.userAvatarUrl, !avatarUrl.isEmpty {
+                AsyncImage(url: URL(string: avatarUrl)) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Text(billWithUser.userInitials)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(SwapThemeColors.accent)
+                }
+                .frame(width: 28, height: 28)
+                .clipShape(Circle())
+            } else {
+                Text(billWithUser.userInitials)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(SwapThemeColors.accent)
+            }
+        }
+    }
+}
+
+// MARK: - Active Swaps Content
+
+private struct SwapActiveContent: View {
+    @ObservedObject var viewModel: SwapHomeViewModel
+    @Binding var selectedSwap: BillSwapTransaction?
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 16) {
+                if viewModel.activeSwaps.isEmpty {
+                    emptyActiveView
+                } else {
+                    // Header
+                    HStack {
+                        Text("\(viewModel.activeSwaps.count) active swap\(viewModel.activeSwaps.count == 1 ? "" : "s")")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(SwapThemeColors.secondaryText)
+                            .tracking(0.5)
+                        Spacer()
+                    }
+                    .padding(.horizontal, SwapThemeColors.horizontalPadding)
+
+                    // Swaps list
+                    VStack(spacing: 12) {
+                        ForEach(viewModel.activeSwaps) { swap in
+                            ActiveSwapCard(swap: swap) {
+                                selectedSwap = swap
+                            }
+                        }
+                    }
+                    .padding(.horizontal, SwapThemeColors.horizontalPadding)
                 }
 
-                // Short label
-                Text(tab.shortName)
-                    .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
-                    .foregroundColor(isSelected ? BillSwapTheme.accent : BillSwapTheme.secondaryText)
-                    .lineLimit(1)
+                Spacer(minLength: 100)
             }
-            .frame(width: 60)
-            .padding(.vertical, 6)
+            .padding(.top, 20)
+        }
+    }
+
+    private var emptyActiveView: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(SwapThemeColors.info.opacity(0.12))
+                    .frame(width: 64, height: 64)
+
+                Image(systemName: "arrow.left.arrow.right.circle")
+                    .font(.system(size: 28))
+                    .foregroundColor(SwapThemeColors.info)
+            }
+
+            VStack(spacing: 6) {
+                Text("No active swaps")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(SwapThemeColors.primaryText)
+
+                Text("Start a swap from the\nMatches tab")
+                    .font(.system(size: 13))
+                    .foregroundColor(SwapThemeColors.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(.vertical, 40)
+        .frame(maxWidth: .infinity)
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(SwapThemeColors.cornerRadius)
+        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+        .padding(.horizontal, SwapThemeColors.horizontalPadding)
+    }
+}
+
+private struct ActiveSwapCard: View {
+    let swap: BillSwapTransaction
+    let onTap: () -> Void
+
+    private var statusConfig: (color: Color, icon: String) {
+        switch swap.status {
+        case .pending: return (SwapThemeColors.warning, "clock.fill")
+        case .active: return (SwapThemeColors.info, "arrow.triangle.2.circlepath")
+        case .expired: return (SwapThemeColors.danger, "clock.badge.xmark.fill")
+        case .completed: return (SwapThemeColors.success, "checkmark.circle.fill")
+        case .dispute: return (SwapThemeColors.danger, "exclamationmark.triangle.fill")
+        }
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 12) {
+                HStack {
+                    // Swap icon
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(statusConfig.color.opacity(0.12))
+                            .frame(width: 36, height: 36)
+
+                        Image(systemName: statusConfig.icon)
+                            .font(.system(size: 14))
+                            .foregroundColor(statusConfig.color)
+                    }
+
+                    Text("Swap #\(swap.id.uuidString.prefix(8))")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(SwapThemeColors.primaryText)
+
+                    Spacer()
+
+                    // Status badge
+                    Text(swap.status.displayName)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(statusConfig.color)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(statusConfig.color.opacity(0.12))
+                        .cornerRadius(6)
+                }
+
+                // Progress bar
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(SwapThemeColors.accent.opacity(0.15))
+                            .frame(height: 6)
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(SwapThemeColors.accent)
+                            .frame(width: geo.size.width * swap.progressPercentage, height: 6)
+                    }
+                }
+                .frame(height: 6)
+
+                HStack {
+                    Text("\(Int(swap.progressPercentage * 100))% complete")
+                        .font(.system(size: 12))
+                        .foregroundColor(SwapThemeColors.secondaryText)
+
+                    Spacer()
+
+                    HStack(spacing: 4) {
+                        Text("View")
+                            .font(.system(size: 12, weight: .medium))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(SwapThemeColors.accent)
+                }
+            }
+            .padding(14)
+            .background(SwapThemeColors.cardBackground)
+            .cornerRadius(SwapThemeColors.cornerRadius)
+            .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
 
-// MARK: - SwapHubTab Short Names Extension
+// MARK: - Bill Detail Sheet
 
-extension SwapHubTab {
-    var shortName: String {
-        switch self {
-        case .marketplace: return "Market"
-        case .matches: return "Matches"
-        case .myBills: return "My Bills"
-        case .active: return "Active"
-        case .history: return "History"
+private struct BillDetailSheet: View {
+    let billWithUser: SwapBillWithUser
+    @Environment(\.dismiss) private var dismiss
+
+    private var bill: SwapBill { billWithUser.bill }
+
+    private var iconName: String {
+        bill.category?.icon ?? "doc.text.fill"
+    }
+
+    private var iconColor: Color {
+        switch bill.category {
+        case .electric: return .yellow
+        case .naturalGas: return .orange
+        case .water: return .blue
+        case .internet: return .purple
+        case .phonePlan: return .green
+        default: return SwapThemeColors.accent
         }
+    }
+
+    private var statusColor: Color {
+        switch bill.status {
+        case .unmatched: return SwapThemeColors.warning
+        case .matched: return SwapThemeColors.info
+        case .paid: return SwapThemeColors.success
+        }
+    }
+
+    private var formattedCreatedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: bill.createdAt)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header with category icon
+                    headerSection
+
+                    // User info card
+                    userInfoCard
+
+                    // Bill details card
+                    billDetailsCard
+
+                    // Additional info card
+                    additionalInfoCard
+
+                    Spacer(minLength: 40)
+                }
+                .padding(.top, 20)
+            }
+            .background(SwapThemeColors.background)
+            .navigationTitle("Bill Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .fontWeight(.semibold)
+                        .foregroundColor(SwapThemeColors.accent)
+                }
+            }
+        }
+    }
+
+    private var headerSection: some View {
+        VStack(spacing: 12) {
+            // Category icon
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.15))
+                    .frame(width: 72, height: 72)
+
+                Image(systemName: iconName)
+                    .font(.system(size: 32))
+                    .foregroundColor(iconColor)
+            }
+
+            // Category name
+            Text(bill.category?.displayName ?? "Bill")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(SwapThemeColors.primaryText)
+
+            // Amount
+            Text(bill.formattedAmount)
+                .font(.system(size: 36, weight: .bold, design: .rounded))
+                .foregroundColor(SwapThemeColors.accent)
+
+            // Status badge
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 8, height: 8)
+                Text(bill.status.displayName)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(statusColor)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(statusColor.opacity(0.1))
+            .cornerRadius(8)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, 10)
+    }
+
+    private var userInfoCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("UPLOADED BY")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(SwapThemeColors.secondaryText)
+                .tracking(0.5)
+
+            HStack(spacing: 12) {
+                // Avatar
+                ZStack {
+                    Circle()
+                        .fill(SwapThemeColors.accent.opacity(0.15))
+                        .frame(width: 44, height: 44)
+
+                    if let avatarUrl = billWithUser.userAvatarUrl, !avatarUrl.isEmpty {
+                        AsyncImage(url: URL(string: avatarUrl)) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } placeholder: {
+                            Text(billWithUser.userInitials)
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(SwapThemeColors.accent)
+                        }
+                        .frame(width: 44, height: 44)
+                        .clipShape(Circle())
+                    } else {
+                        Text(billWithUser.userInitials)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(SwapThemeColors.accent)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    if let displayName = billWithUser.userDisplayName {
+                        Text(displayName)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(SwapThemeColors.primaryText)
+                    }
+                    Text("@\(billWithUser.userHandle)")
+                        .font(.system(size: 14))
+                        .foregroundColor(SwapThemeColors.secondaryText)
+                }
+
+                Spacer()
+            }
+        }
+        .padding(16)
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(SwapThemeColors.cornerRadius)
+        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+        .padding(.horizontal, SwapThemeColors.horizontalPadding)
+    }
+
+    private var billDetailsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("BILL DETAILS")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(SwapThemeColors.secondaryText)
+                .tracking(0.5)
+
+            VStack(spacing: 0) {
+                // Provider
+                if let provider = bill.providerName {
+                    detailRow(label: "Provider", value: provider, icon: "building.2.fill")
+                    Divider().padding(.leading, 44)
+                }
+
+                // Category
+                detailRow(label: "Category", value: bill.category?.displayName ?? "Unknown", icon: iconName)
+                Divider().padding(.leading, 44)
+
+                // Due Date
+                if let dueDate = bill.formattedDueDate {
+                    detailRow(label: "Due Date", value: dueDate, icon: "calendar")
+                    Divider().padding(.leading, 44)
+                }
+
+                // Location
+                if let zipCode = bill.zipCode {
+                    detailRow(label: "Location", value: zipCode, icon: "location.fill")
+                }
+            }
+        }
+        .padding(16)
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(SwapThemeColors.cornerRadius)
+        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+        .padding(.horizontal, SwapThemeColors.horizontalPadding)
+    }
+
+    private var additionalInfoCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("ADDITIONAL INFO")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(SwapThemeColors.secondaryText)
+                .tracking(0.5)
+
+            VStack(spacing: 0) {
+                // Upload Date
+                detailRow(label: "Uploaded", value: formattedCreatedDate, icon: "clock.fill")
+
+                // Days until due
+                if let days = bill.daysUntilDue {
+                    Divider().padding(.leading, 44)
+                    if days < 0 {
+                        detailRow(label: "Status", value: "Overdue by \(abs(days)) day\(abs(days) == 1 ? "" : "s")", icon: "exclamationmark.triangle.fill", valueColor: SwapThemeColors.danger)
+                    } else if days == 0 {
+                        detailRow(label: "Status", value: "Due today", icon: "exclamationmark.triangle.fill", valueColor: SwapThemeColors.warning)
+                    } else {
+                        detailRow(label: "Status", value: "Due in \(days) day\(days == 1 ? "" : "s")", icon: "clock.badge.checkmark.fill", valueColor: SwapThemeColors.success)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(SwapThemeColors.cornerRadius)
+        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+        .padding(.horizontal, SwapThemeColors.horizontalPadding)
+    }
+
+    private func detailRow(label: String, value: String, icon: String, valueColor: Color = SwapThemeColors.primaryText) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundColor(SwapThemeColors.secondaryText)
+                .frame(width: 24)
+
+            Text(label)
+                .font(.system(size: 14))
+                .foregroundColor(SwapThemeColors.secondaryText)
+
+            Spacer()
+
+            Text(value)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(valueColor)
+        }
+        .padding(.vertical, 10)
     }
 }
 
 // MARK: - Info Sheet
 
-private struct BillSwapInfoSheet: View {
+private struct SwapInfoSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -653,77 +1155,48 @@ private struct BillSwapInfoSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     // Header
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("How Bill Swap Works")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(BillSwapTheme.primaryText)
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(SwapThemeColors.accent.opacity(0.12))
+                                .frame(width: 72, height: 72)
 
-                        Text("A safe way to help each other pay bills")
-                            .font(.system(size: 15))
-                            .foregroundColor(BillSwapTheme.secondaryText)
+                            Image(systemName: "arrow.left.arrow.right.circle.fill")
+                                .font(.system(size: 36))
+                                .foregroundColor(SwapThemeColors.accent)
+                        }
+
+                        Text("How Bill Swap Works")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(SwapThemeColors.primaryText)
+
+                        Text("Exchange bills with other users")
+                            .font(.system(size: 14))
+                            .foregroundColor(SwapThemeColors.secondaryText)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 20)
 
                     // Steps
-                    VStack(spacing: 16) {
-                        InfoStep(
-                            number: 1,
-                            title: "Add Your Bill",
-                            description: "Upload a bill you need help paying. Include the amount, due date, and payment details."
-                        )
-
-                        InfoStep(
-                            number: 2,
-                            title: "Find a Match",
-                            description: "Browse available bills from other users or wait for someone to offer on yours."
-                        )
-
-                        InfoStep(
-                            number: 3,
-                            title: "Lock & Pay",
-                            description: "Once matched, both parties pay a small fee to lock the swap. Then pay each other's bills."
-                        )
-
-                        InfoStep(
-                            number: 4,
-                            title: "Submit Proof",
-                            description: "Take a screenshot showing payment confirmation and submit it for verification."
-                        )
-
-                        InfoStep(
-                            number: 5,
-                            title: "Complete",
-                            description: "Once both proofs are verified, the swap is complete and you both earn trust points!"
-                        )
+                    VStack(spacing: 12) {
+                        InfoStep(number: 1, title: "Upload Your Bill", description: "Take a photo or upload your bill")
+                        InfoStep(number: 2, title: "Find a Match", description: "We match bills within 10% of your amount")
+                        InfoStep(number: 3, title: "Confirm & Swap", description: "Both parties agree and pay each other's bills")
+                        InfoStep(number: 4, title: "Verify", description: "Upload proof and complete the swap")
                     }
+                    .padding(.horizontal, SwapThemeColors.horizontalPadding)
 
-                    // Trust Tiers
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Trust Tiers")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(BillSwapTheme.primaryText)
-
-                        Text("Complete swaps to level up your tier and unlock higher bill limits.")
-                            .font(.system(size: 14))
-                            .foregroundColor(BillSwapTheme.secondaryText)
-
-                        VStack(spacing: 8) {
-                            TierRow(name: "Streamer", limit: "$25", icon: "play.circle.fill")
-                            TierRow(name: "Utility", limit: "$150", icon: "bolt.fill")
-                            TierRow(name: "Guardian", limit: "$500", icon: "shield.fill")
-                        }
-                    }
-                    .padding(.top, 8)
+                    Spacer(minLength: 40)
                 }
-                .padding(BillSwapTheme.screenPadding)
             }
-            .background(BillSwapTheme.background)
+            .background(SwapThemeColors.background)
+            .navigationTitle("About Bill Swap")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .foregroundColor(BillSwapTheme.accent)
+                    Button("Done") { dismiss() }
+                        .fontWeight(.semibold)
+                        .foregroundColor(SwapThemeColors.accent)
                 }
             }
         }
@@ -736,63 +1209,42 @@ private struct InfoStep: View {
     let description: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            // Number badge
+        HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(BillSwapTheme.accentLight)
-                    .frame(width: 32, height: 32)
+                    .fill(SwapThemeColors.accent)
+                    .frame(width: 28, height: 28)
 
                 Text("\(number)")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(BillSwapTheme.accent)
+                    .foregroundColor(.white)
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(BillSwapTheme.primaryText)
+                    .foregroundColor(SwapThemeColors.primaryText)
 
                 Text(description)
                     .font(.system(size: 13))
-                    .foregroundColor(BillSwapTheme.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .foregroundColor(SwapThemeColors.secondaryText)
             }
-        }
-    }
-}
-
-private struct TierRow: View {
-    let name: String
-    let limit: String
-    let icon: String
-
-    var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(BillSwapTheme.accent)
-                .frame(width: 24)
-
-            Text(name)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(BillSwapTheme.primaryText)
 
             Spacer()
-
-            Text("Up to \(limit)")
-                .font(.system(size: 13))
-                .foregroundColor(BillSwapTheme.secondaryText)
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(BillSwapTheme.cardBackground)
-        .cornerRadius(8)
+        .padding(14)
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(12)
+        .shadow(color: SwapThemeColors.shadowColor, radius: 4, x: 0, y: 2)
     }
 }
 
-// MARK: - Preview
+// MARK: - Previews
 
-#Preview {
+#Preview("Bill Swap View") {
     BillSwapView()
+}
+
+#Preview("Info Sheet") {
+    SwapInfoSheet()
 }

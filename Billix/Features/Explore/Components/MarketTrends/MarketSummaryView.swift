@@ -83,7 +83,7 @@ struct MarketSummaryView: View {
         lastUpdated: Date()
     )
 
-    MarketSummaryView(
+    return MarketSummaryView(
         marketData: mockData,
         marketHealth: .cool
     )

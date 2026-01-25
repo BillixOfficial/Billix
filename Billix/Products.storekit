@@ -1,0 +1,164 @@
+{
+  "identifier" : "8F4C5B9A-1D2E-4F3A-8B7C-9E0D1A2B3C4D",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "6738294501",
+      "localizations" : [
+        {
+          "description" : "Unlock your swap partner's account details and guest pay link",
+          "displayName" : "Swap Handshake Fee",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.billix.handshake_fee",
+      "referenceName" : "Handshake Fee",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "6738294504",
+      "localizations" : [
+        {
+          "description" : "Get 3 Connect Tokens to unlock chats with bill swap matches",
+          "displayName" : "3 Connect Tokens",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.billix.token_pack_3",
+      "referenceName" : "Token Pack (3)",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6738294500",
+    "_developerTeamID" : "XXXXXXXXXX",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 778723200,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21489753",
+      "localizations" : [
+
+      ],
+      "name" : "Billix Prime",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6738294502",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlock premium features with Billix Prime",
+              "displayName" : "Billix Prime Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.billix.prime.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Billix Prime Monthly",
+          "subscriptionGroupID" : "21489753",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6738294503",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Save with annual Billix Prime subscription",
+              "displayName" : "Billix Prime Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.billix.prime.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Billix Prime Yearly",
+          "subscriptionGroupID" : "21489753",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

@@ -13,7 +13,7 @@ struct HeaderZone: View {
     let zipCode: String
     let score: Int
     let streak: Int
-    let notificationCount: Int
+    @ObservedObject var notificationService: NotificationService
 
     @State private var showNotifications = false
 
@@ -74,8 +74,8 @@ struct HeaderZone: View {
                             .font(.system(size: 16))
                             .foregroundColor(HomeTheme.accent)
 
-                        if notificationCount > 0 {
-                            Text("\(notificationCount)")
+                        if notificationService.unreadCount > 0 {
+                            Text("\(notificationService.unreadCount)")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.white)
                                 .frame(width: 16, height: 16)
@@ -128,7 +128,7 @@ struct HeaderZone: View {
         }
         .padding(.horizontal, HomeTheme.horizontalPadding)
         .sheet(isPresented: $showNotifications) {
-            NotificationsSheet()
+            NotificationsSheet(notificationService: notificationService)
         }
     }
 }
@@ -137,65 +137,48 @@ struct HeaderZone: View {
 
 struct NotificationsSheet: View {
     @Environment(\.dismiss) private var dismiss
-
-    private let notifications = [
-        NotificationItem(
-            icon: "bolt.fill",
-            iconColor: HomeTheme.warning,
-            title: "Electric bill is due soon",
-            subtitle: "DTE Energy · Due in 3 days",
-            time: "2h ago",
-            isUnread: true
-        ),
-        NotificationItem(
-            icon: "arrow.down.circle.fill",
-            iconColor: HomeTheme.success,
-            title: "You saved $23 this month!",
-            subtitle: "Your negotiation with Xfinity worked",
-            time: "1d ago",
-            isUnread: true
-        ),
-        NotificationItem(
-            icon: "person.2.fill",
-            iconColor: HomeTheme.purple,
-            title: "New swap partner available",
-            subtitle: "Sarah M. wants to swap bills",
-            time: "2d ago",
-            isUnread: true
-        ),
-        NotificationItem(
-            icon: "star.fill",
-            iconColor: HomeTheme.info,
-            title: "Achievement unlocked!",
-            subtitle: "You earned the 'Budget Master' badge",
-            time: "3d ago",
-            isUnread: false
-        ),
-        NotificationItem(
-            icon: "chart.line.uptrend.xyaxis",
-            iconColor: HomeTheme.accent,
-            title: "Your Billix Score increased",
-            subtitle: "Up 12 points to 742",
-            time: "5d ago",
-            isUnread: false
-        )
-    ]
+    @ObservedObject var notificationService: NotificationService
 
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(notifications) { notification in
-                        NotificationRow(notification: notification)
-                        if notification.id != notifications.last?.id {
-                            Divider()
-                                .padding(.leading, 60)
+                if notificationService.notifications.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "bell.slash")
+                            .font(.system(size: 48))
+                            .foregroundColor(HomeTheme.secondaryText.opacity(0.5))
+
+                        Text("No notifications yet")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(HomeTheme.secondaryText)
+
+                        Text("You'll see updates about your swaps, bills, and achievements here.")
+                            .font(.system(size: 14))
+                            .foregroundColor(HomeTheme.secondaryText.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 60)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(notificationService.notifications) { notification in
+                            NotificationRow(
+                                notification: notification,
+                                onTap: {
+                                    notificationService.markRead(id: notification.id)
+                                }
+                            )
+                            if notification.id != notificationService.notifications.last?.id {
+                                Divider()
+                                    .padding(.leading, 60)
+                            }
                         }
                     }
+                    .background(Color.white)
+                    .cornerRadius(HomeTheme.cornerRadius)
+                    .padding()
                 }
-                .background(Color.white)
-                .cornerRadius(HomeTheme.cornerRadius)
-                .padding()
             }
             .background(HomeTheme.background)
             .navigationTitle("Notifications")
@@ -206,70 +189,71 @@ struct NotificationsSheet: View {
                         .fontWeight(.semibold)
                 }
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Mark all read") { haptic() }
+                    if !notificationService.notifications.isEmpty && notificationService.unreadCount > 0 {
+                        Button("Mark all read") {
+                            haptic()
+                            notificationService.markAllRead()
+                        }
                         .font(.system(size: 14))
                         .foregroundColor(HomeTheme.accent)
+                    }
                 }
             }
         }
     }
 }
 
-// MARK: - Notification Item
-
-struct NotificationItem: Identifiable {
-    let id = UUID()
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let subtitle: String
-    let time: String
-    let isUnread: Bool
-}
-
 // MARK: - Notification Row
 
 struct NotificationRow: View {
-    let notification: NotificationItem
+    let notification: AppNotificationItem
+    var onTap: (() -> Void)? = nil
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(notification.iconColor.opacity(0.15))
-                    .frame(width: 40, height: 40)
+        Button {
+            haptic()
+            onTap?()
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(notification.iconColor.opacity(0.15))
+                        .frame(width: 40, height: 40)
 
-                Image(systemName: notification.icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(notification.iconColor)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(notification.title)
-                        .font(.system(size: 15, weight: notification.isUnread ? .semibold : .regular))
-                        .foregroundColor(HomeTheme.primaryText)
-
-                    Spacer()
-
-                    if notification.isUnread {
-                        Circle()
-                            .fill(HomeTheme.accent)
-                            .frame(width: 8, height: 8)
-                    }
+                    Image(systemName: notification.icon)
+                        .font(.system(size: 16))
+                        .foregroundColor(notification.iconColor)
                 }
 
-                Text(notification.subtitle)
-                    .font(.system(size: 13))
-                    .foregroundColor(HomeTheme.secondaryText)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(notification.title)
+                            .font(.system(size: 15, weight: notification.isUnread ? .semibold : .regular))
+                            .foregroundColor(HomeTheme.primaryText)
 
-                Text(notification.time)
-                    .font(.system(size: 12))
-                    .foregroundColor(HomeTheme.secondaryText.opacity(0.7))
+                        Spacer()
+
+                        if notification.isUnread {
+                            Circle()
+                                .fill(HomeTheme.accent)
+                                .frame(width: 8, height: 8)
+                        }
+                    }
+
+                    Text(notification.subtitle)
+                        .font(.system(size: 13))
+                        .foregroundColor(HomeTheme.secondaryText)
+                        .lineLimit(2)
+
+                    Text(notification.relativeTime)
+                        .font(.system(size: 12))
+                        .foregroundColor(HomeTheme.secondaryText.opacity(0.7))
+                }
             }
+            .padding(.horizontal, HomeTheme.cardPadding)
+            .padding(.vertical, 14)
+            .background(notification.isUnread ? HomeTheme.accent.opacity(0.03) : Color.clear)
         }
-        .padding(.horizontal, HomeTheme.cardPadding)
-        .padding(.vertical, 14)
-        .background(notification.isUnread ? HomeTheme.accent.opacity(0.03) : Color.clear)
+        .buttonStyle(.plain)
     }
 }

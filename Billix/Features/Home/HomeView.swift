@@ -66,20 +66,6 @@ private extension View {
     func cardStyle(shadow: Bool = true) -> some View {
         modifier(CardStyle(hasShadow: shadow))
     }
-
-    func sectionHeader() -> some View {
-        self
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundColor(Theme.secondaryText)
-            .textCase(.uppercase)
-            .tracking(0.5)
-    }
-}
-
-// MARK: - Haptic Helper
-
-private func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
-    UIImpactFeedbackGenerator(style: style).impactOccurred()
 }
 
 // MARK: - Home View
@@ -89,8 +75,9 @@ struct HomeView: View {
     @State private var showRoutingDemo = false
 
     // Real user data from AuthService
-    @StateObject private var authService = AuthService.shared
-    @StateObject private var streakService = StreakService.shared
+    @ObservedObject private var authService = AuthService.shared
+    @ObservedObject private var streakService = StreakService.shared
+    @ObservedObject private var notificationService = NotificationService.shared
 
     // First-time setup questions
     @State private var showSetupQuestions = false
@@ -120,11 +107,14 @@ struct HomeView: View {
         authService.currentUser?.vault.trustScore ?? 0
     }
 
+    private var userState: String {
+        authService.currentUser?.billixProfile?.state ?? ""
+    }
+
     // Real streak from StreakService
     private var streakDays: Int {
         streakService.currentStreak
     }
-    @State private var notificationCount = 3
 
     // Section rotation - show different sections on different days
     private var dayOfWeek: Int {
@@ -141,57 +131,53 @@ struct HomeView: View {
     }
 
     private var regularHomeView: some View {
-        ZStack {
-            Theme.background.ignoresSafeArea()
-
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 28) {
-                    // Top section - Header & Search
-                    VStack(spacing: Theme.cardSpacing) {
-                        HeaderZone(
-                            userName: userName,
-                            location: userCity,
-                            zipCode: userZip,
-                            score: billixScore,
-                            streak: streakDays,
-                            notificationCount: notificationCount
-                        )
-                    }
-                    .padding(.top, 8)
-
-                    // Today's Utility News
-                    UtilityNewsBanner()
-
-                    // Primary Actions
-                    QuickActionsZone()
-
-                    // Your Bills (with empty state if no bills)
-                    BillsListZone()
-
-                    // Market Context - National Averages
-                    BillTickerZone(zipCode: userZip)
-
-                    // 30-Second Utility Checkup (Regional Signals)
-                    UtilityCheckupZone()
-
-                    // Weather-Based Utility Insight
-                    UtilityInsightZone(zipCode: userZip)
-
-                    // Education (Contextual - rotates)
-                    if showLearnToLower {
-                        LearnToLowerZone()
-                    }
-
-                    // Invite & Earn (Referral System)
-                    InviteEarnBannerNew()
-
-                    // Emotional Closure - Permission to relax
-                    AllClearBanner()
-
-                    Spacer().frame(height: 100)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 28) {
+                // Top section - Header & Search
+                VStack(spacing: Theme.cardSpacing) {
+                    HeaderZone(
+                        userName: userName,
+                        location: userCity,
+                        zipCode: userZip,
+                        score: billixScore,
+                        streak: streakDays,
+                        notificationService: notificationService
+                    )
                 }
-                .padding(.top, 20)
+
+                // Today's Utility News
+                UtilityNewsBanner()
+
+                // Primary Actions
+                QuickActionsZone()
+
+                // Your Bills (with empty state if no bills)
+                BillsListZone()
+
+                // Market Context - National Averages
+                BillTickerZone(zipCode: userZip, state: userState)
+
+                // 30-Second Utility Checkup (Regional Signals)
+                UtilityCheckupZone()
+
+                // Weather-Based Utility Insight
+                UtilityInsightZone(zipCode: userZip)
+
+                // Education (Contextual - rotates)
+                if showLearnToLower {
+                    LearnToLowerZone()
+                }
+
+                // Invite & Earn (Referral System)
+                InviteEarnBannerNew()
+
+                // Emotional Closure - Permission to relax
+                AllClearBanner()
+
+                Spacer().frame(height: 100)
             }
+            .padding(.top, 8)
+        }
             .refreshable {
                 await MainActor.run {
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -213,10 +199,10 @@ struct HomeView: View {
                     }
                 }
             }
-            .fullScreenCover(isPresented: $showSetupQuestions) {
-                HomeSetupQuestionsView()
-            }
+        .fullScreenCover(isPresented: $showSetupQuestions) {
+            HomeSetupQuestionsView()
         }
+        .background(Theme.background.ignoresSafeArea())
     }
 }
 
@@ -451,309 +437,43 @@ private struct UtilityNewsBanner: View {
     }
 }
 
-// MARK: - Zone A: Header
-
-private struct HeaderZone: View {
-    let userName: String
-    let location: String
-    let zipCode: String
-    let score: Int
-    let streak: Int
-    let notificationCount: Int
-
-    @State private var showNotifications = false
-
-    private var greeting: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        switch hour {
-        case 0..<12: return "Good Morning"
-        case 12..<17: return "Good Afternoon"
-        default: return "Good Evening"
-        }
-    }
-
-    private var scoreLabel: String {
-        switch score {
-        case 750...: return "Excellent"
-        case 700..<750: return "Very Efficient"
-        case 650..<700: return "Good"
-        default: return "Needs Work"
-        }
-    }
-
-    var body: some View {
-        VStack(spacing: 16) {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("\(greeting), \(userName)")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundColor(Theme.primaryText)
-
-                    Button {
-                        haptic()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "location.fill")
-                                .font(.system(size: 11))
-                            Text("\(location) \(zipCode)")
-                                .font(.system(size: 13, weight: .medium))
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 10, weight: .semibold))
-                        }
-                        .foregroundColor(Theme.accent)
-                    }
-                }
-
-                Spacer()
-
-                Button {
-                    haptic()
-                    showNotifications = true
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(Theme.cardBackground)
-                            .frame(width: 40, height: 40)
-                            .shadow(color: Theme.shadowColor, radius: 4)
-
-                        Image(systemName: "bell.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(Theme.accent)
-
-                        if notificationCount > 0 {
-                            Text("\(notificationCount)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 16, height: 16)
-                                .background(Theme.danger)
-                                .clipShape(Circle())
-                                .offset(x: 10, y: -10)
-                        }
-                    }
-                }
-            }
-
-            HStack(spacing: 10) {
-                // Score chip with social ranking
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "chart.line.uptrend.xyaxis")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Theme.accent)
-                        Text("\(score)")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundColor(Theme.primaryText)
-                        Text("· \(scoreLabel)")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(Theme.secondaryText)
-                    }
-
-                    // Social ranking micro-label
-                    Text("Top 18% in \(zipCode)")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(Theme.accent)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Theme.cardBackground)
-                .cornerRadius(14)
-                .shadow(color: Theme.shadowColor, radius: 4)
-
-                // Streak chip
-                HStack(spacing: 4) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 14))
-                    Text("\(streak) Day Streak")
-                        .font(.system(size: 13, weight: .semibold))
-                }
-                .foregroundColor(Theme.warning)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color(hex: "#FEF3E2"))
-                .cornerRadius(20)
-
-                Spacer()
-            }
-        }
-        .padding(.horizontal, Theme.horizontalPadding)
-        .sheet(isPresented: $showNotifications) {
-            NotificationsSheet()
-        }
-    }
-}
-
-// MARK: - Notifications Sheet
-
-private struct NotificationsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-
-    private let notifications = [
-        NotificationItem(
-            icon: "bolt.fill",
-            iconColor: Color(hex: "#E8A54B"),
-            title: "Electric bill is due soon",
-            subtitle: "DTE Energy · Due in 3 days",
-            time: "2h ago",
-            isUnread: true
-        ),
-        NotificationItem(
-            icon: "arrow.down.circle.fill",
-            iconColor: Color(hex: "#4CAF7A"),
-            title: "You saved $23 this month!",
-            subtitle: "Your negotiation with Xfinity worked",
-            time: "1d ago",
-            isUnread: true
-        ),
-        NotificationItem(
-            icon: "person.2.fill",
-            iconColor: Color(hex: "#9B7EB8"),
-            title: "New swap partner available",
-            subtitle: "Sarah M. wants to swap bills",
-            time: "2d ago",
-            isUnread: true
-        ),
-        NotificationItem(
-            icon: "star.fill",
-            iconColor: Color(hex: "#5BA4D4"),
-            title: "Achievement unlocked!",
-            subtitle: "You earned the 'Budget Master' badge",
-            time: "3d ago",
-            isUnread: false
-        ),
-        NotificationItem(
-            icon: "chart.line.uptrend.xyaxis",
-            iconColor: Color(hex: "#5B8A6B"),
-            title: "Your Billix Score increased",
-            subtitle: "Up 12 points to 742",
-            time: "5d ago",
-            isUnread: false
-        )
-    ]
-
-    var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(notifications) { notification in
-                        NotificationRow(notification: notification)
-                        if notification.id != notifications.last?.id {
-                            Divider()
-                                .padding(.leading, 60)
-                        }
-                    }
-                }
-                .background(Color.white)
-                .cornerRadius(16)
-                .padding()
-            }
-            .background(Color(hex: "#F7F9F8"))
-            .navigationTitle("Notifications")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
-                }
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Mark all read") {
-                        haptic()
-                    }
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "#5B8A6B"))
-                }
-            }
-        }
-    }
-}
-
-private struct NotificationItem: Identifiable {
-    let id = UUID()
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let subtitle: String
-    let time: String
-    let isUnread: Bool
-}
-
-private struct NotificationRow: View {
-    let notification: NotificationItem
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(notification.iconColor.opacity(0.15))
-                    .frame(width: 40, height: 40)
-
-                Image(systemName: notification.icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(notification.iconColor)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(notification.title)
-                        .font(.system(size: 15, weight: notification.isUnread ? .semibold : .regular))
-                        .foregroundColor(Color(hex: "#2D3B35"))
-
-                    Spacer()
-
-                    if notification.isUnread {
-                        Circle()
-                            .fill(Color(hex: "#5B8A6B"))
-                            .frame(width: 8, height: 8)
-                    }
-                }
-
-                Text(notification.subtitle)
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(hex: "#8B9A94"))
-
-                Text(notification.time)
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#8B9A94").opacity(0.7))
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(notification.isUnread ? Color(hex: "#5B8A6B").opacity(0.03) : Color.clear)
-    }
-}
-
 // MARK: - Quick Actions
 
 private enum QuickActionType: String, Identifiable {
-    case addBill = "Add Bill"
+    case store = "Store"
     case chat = "Chat"
     case compare = "Swap"
-    case budget = "Budget"
+    case relief = "Relief"
+    case household = "Household"
 
     var id: String { rawValue }
 
     var icon: String {
         switch self {
-        case .addBill: return "plus.circle.fill"
+        case .store: return "cart.fill"
         case .chat: return "message.fill"
         case .compare: return "arrow.left.arrow.right.circle.fill"
-        case .budget: return "chart.pie.fill"
+        case .relief: return "heart.circle.fill"
+        case .household: return "house.fill"
         }
     }
 
     var color: Color {
         switch self {
-        case .addBill: return Theme.accent
+        case .store: return Color.billixGoldenAmber
         case .chat: return Theme.info
         case .compare: return Theme.purple
-        case .budget: return Theme.warning
+        case .relief: return Theme.danger
+        case .household: return Theme.accent
         }
     }
 
     var subtitle: String? {
         switch self {
+        case .store: return "Shop"
         case .compare: return "Bill Swap"
+        case .relief: return "Get Help"
+        case .household: return "Roommates"
         default: return nil
         }
     }
@@ -761,63 +481,82 @@ private enum QuickActionType: String, Identifiable {
 
 private struct QuickActionsZone: View {
     @State private var showSwapHub = false
-    @State private var showAddBill = false
+    @State private var showStore = false
     @State private var showChat = false
-    @State private var showBudget = false
+    @State private var showRelief = false
+    @State private var showHousehold = false
 
-    private let actions: [QuickActionType] = [.addBill, .chat, .compare, .budget]
+    private let actions: [QuickActionType] = [.store, .chat, .compare, .relief, .household]
 
     var body: some View {
-        HStack(spacing: 10) {
-            ForEach(actions) { action in
-                Button {
-                    haptic()
-                    handleAction(action)
-                } label: {
-                    VStack(spacing: 6) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(action.color.opacity(0.12))
-                                .frame(width: 52, height: 52)
+        GeometryReader { geometry in
+            let actionCount = CGFloat(actions.count)
+            let totalSpacing = 10.0 * (actionCount - 1) // Spacing between buttons
+            let availableWidth = geometry.size.width - 28 - totalSpacing // Subtract padding (14*2) and spacing
+            let buttonWidth = availableWidth / actionCount
+            let iconSize = min(buttonWidth * 0.75, 46.0)
+            let iconFontSize = min(buttonWidth * 0.35, 18.0)
+            let labelFontSize = min(buttonWidth * 0.20, 11.0)
+            let subtitleFontSize = min(buttonWidth * 0.14, 8.0)
 
-                            Image(systemName: action.icon)
-                                .font(.system(size: 22))
-                                .foregroundColor(action.color)
-                        }
+            HStack(spacing: 10) {
+                ForEach(actions) { action in
+                    Button {
+                        haptic()
+                        handleAction(action)
+                    } label: {
+                        VStack(spacing: 6) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(action.color.opacity(0.12))
+                                    .frame(width: iconSize, height: iconSize)
 
-                        VStack(spacing: 2) {
-                            Text(action.rawValue)
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(Theme.primaryText)
-
-                            if let subtitle = action.subtitle {
-                                Text(subtitle)
-                                    .font(.system(size: 9, weight: .medium))
+                                Image(systemName: action.icon)
+                                    .font(.system(size: iconFontSize))
                                     .foregroundColor(action.color)
                             }
+
+                            VStack(spacing: 2) {
+                                Text(action.rawValue)
+                                    .font(.system(size: labelFontSize, weight: .semibold))
+                                    .foregroundColor(Theme.primaryText)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+
+                                if let subtitle = action.subtitle {
+                                    Text(subtitle)
+                                        .font(.system(size: subtitleFontSize, weight: .medium))
+                                        .foregroundColor(action.color)
+                                        .lineLimit(1)
+                                }
+                            }
                         }
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(ScaleButtonStyle())
                 }
-                .buttonStyle(ScaleButtonStyle())
             }
+            .padding(14)
+            .background(Theme.cardBackground)
+            .cornerRadius(Theme.cornerRadius)
+            .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
         }
-        .padding(14)
-        .background(Theme.cardBackground)
-        .cornerRadius(Theme.cornerRadius)
-        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
+        .frame(height: 110)
         .padding(.horizontal, Theme.horizontalPadding)
         .fullScreenCover(isPresented: $showSwapHub) {
             BillSwapView()
         }
-        .sheet(isPresented: $showAddBill) {
-            AddBillActionSheet()
+        .sheet(isPresented: $showStore) {
+            BillixStoreView()
         }
         .sheet(isPresented: $showChat) {
             ChatHubView()
         }
-        .sheet(isPresented: $showBudget) {
-            BudgetOverviewView()
+        .fullScreenCover(isPresented: $showRelief) {
+            ReliefFlowView()
+        }
+        .fullScreenCover(isPresented: $showHousehold) {
+            HouseholdDashboardView()
         }
     }
 
@@ -825,12 +564,14 @@ private struct QuickActionsZone: View {
         switch action {
         case .compare:
             showSwapHub = true
-        case .addBill:
-            showAddBill = true
+        case .store:
+            showStore = true
         case .chat:
             showChat = true
-        case .budget:
-            showBudget = true
+        case .relief:
+            showRelief = true
+        case .household:
+            showHousehold = true
         }
     }
 }
@@ -1495,20 +1236,63 @@ private struct TickerItem: Identifiable {
 
 private struct BillTickerZone: View {
     let zipCode: String
+    let state: String
 
     @StateObject private var openAIService = OpenAIService.shared
     @State private var averages: [BillAverage] = []
     @State private var isLoading = true
+    @State private var showAIDisclaimer = false
 
-    // Fallback data while loading
-    private var displayItems: [TickerItem] {
+    // Regional multipliers based on typical cost variations
+    private var regionMultiplier: Double {
+        switch region {
+        case "Northeast": return 1.08
+        case "Southeast": return 0.95
+        case "Midwest": return 0.97
+        case "Southwest": return 1.02
+        case "West": return 1.12
+        default: return 1.0
+        }
+    }
+
+    private var region: String {
+        let stateUpper = state.uppercased()
+        let northeast = ["CT", "ME", "MA", "NH", "NJ", "NY", "PA", "RI", "VT"]
+        let southeast = ["AL", "AR", "FL", "GA", "KY", "LA", "MS", "NC", "SC", "TN", "VA", "WV"]
+        let midwest = ["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"]
+        let southwest = ["AZ", "NM", "OK", "TX"]
+        let west = ["AK", "CA", "CO", "HI", "ID", "MT", "NV", "OR", "UT", "WA", "WY"]
+
+        if northeast.contains(stateUpper) { return "Northeast" }
+        if southeast.contains(stateUpper) { return "Southeast" }
+        if midwest.contains(stateUpper) { return "Midwest" }
+        if southwest.contains(stateUpper) { return "Southwest" }
+        if west.contains(stateUpper) { return "West" }
+        return ""
+    }
+
+    // Add daily variation to make values feel more dynamic (±5% based on day)
+    private var dailyVariation: Double {
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+        let variation = sin(Double(dayOfYear) * 0.1) * 0.05 // ±5% variation
+        return 1.0 + variation
+    }
+
+    // Combined data for cards showing both national and regional
+    private var combinedItems: [(icon: String, category: String, nationalValue: Int, regionalValue: Int)] {
+        let baseData: [(icon: String, category: String, baseValue: Double)] = [
+            ("bolt.fill", "Electric", 142),
+            ("wifi", "Internet", 70),
+            ("flame.fill", "Gas", 90),
+            ("iphone", "Phone", 85),
+        ]
+
         if averages.isEmpty {
-            return [
-                TickerItem(icon: "bolt.fill", category: "Electric", value: "$142", change: "avg", isUp: false),
-                TickerItem(icon: "wifi", category: "Internet", value: "$65", change: "avg", isUp: false),
-                TickerItem(icon: "flame.fill", category: "Gas", value: "$78", change: "avg", isUp: false),
-                TickerItem(icon: "iphone", category: "Phone", value: "$85", change: "avg", isUp: false),
-            ]
+            return baseData.map { item in
+                let nationalVal = Int(item.baseValue * dailyVariation)
+                let regionalVal = Int(item.baseValue * regionMultiplier * dailyVariation)
+                return (item.icon, item.category, nationalVal, regionalVal)
+            }
         }
 
         return averages.map { avg in
@@ -1521,13 +1305,9 @@ private struct BillTickerZone: View {
             default: icon = "dollarsign.circle.fill"
             }
 
-            return TickerItem(
-                icon: icon,
-                category: avg.billType,
-                value: "$\(Int(avg.average))",
-                change: "avg",
-                isUp: false
-            )
+            let nationalVal = Int(avg.average * dailyVariation)
+            let regionalVal = Int(avg.average * regionMultiplier * dailyVariation)
+            return (icon, avg.billType, nationalVal, regionalVal)
         }
     }
 
@@ -1539,30 +1319,44 @@ private struct BillTickerZone: View {
                     Image(systemName: "chart.bar.fill")
                         .font(.system(size: 14))
                         .foregroundColor(Theme.info)
-                    Text("National Averages")
+                    Text("Bill Averages")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(Theme.secondaryText)
+
+                    Button {
+                        showAIDisclaimer = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.secondaryText.opacity(0.6))
+                    }
                 }
 
                 Spacer()
-
-                if !zipCode.isEmpty {
-                    Text("for \(zipCode)")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Theme.accent)
-                }
             }
             .padding(.horizontal, Theme.horizontalPadding)
 
-            // Cards
+            // Combined Cards showing both national and regional
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(displayItems) { item in
-                        NationalAverageCard(item: item, isLoading: isLoading && averages.isEmpty)
+                    ForEach(combinedItems, id: \.category) { item in
+                        CombinedAverageCard(
+                            icon: item.icon,
+                            category: item.category,
+                            nationalValue: item.nationalValue,
+                            regionalValue: item.regionalValue,
+                            region: region,
+                            isLoading: isLoading && averages.isEmpty
+                        )
                     }
                 }
                 .padding(.horizontal, Theme.horizontalPadding)
             }
+        }
+        .alert("About These Averages", isPresented: $showAIDisclaimer) {
+            Button("Got it", role: .cancel) { }
+        } message: {
+            Text("These averages are generated using AI based on publicly available data. Actual costs may vary depending on your usage, provider, and location.")
         }
         .task {
             guard !zipCode.isEmpty else { return }
@@ -1574,6 +1368,75 @@ private struct BillTickerZone: View {
                 isLoading = false
             }
         }
+    }
+}
+
+// MARK: - Combined Average Card (National + Regional)
+private struct CombinedAverageCard: View {
+    let icon: String
+    let category: String
+    let nationalValue: Int
+    let regionalValue: Int
+    let region: String
+    let isLoading: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Icon and category
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(Theme.accent)
+                    .frame(width: 32, height: 32)
+                    .background(Theme.accentLight)
+                    .cornerRadius(8)
+
+                Text(category)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Theme.primaryText)
+            }
+
+            // National value
+            VStack(alignment: .leading, spacing: 2) {
+                Text("National")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(Theme.secondaryText.opacity(0.7))
+
+                if isLoading {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Theme.secondaryText.opacity(0.2))
+                        .frame(width: 50, height: 18)
+                } else {
+                    Text("$\(nationalValue)")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.primaryText)
+                }
+            }
+
+            // Regional value (if region is known)
+            if !region.isEmpty {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(region)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Theme.accent.opacity(0.8))
+
+                    if isLoading {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Theme.secondaryText.opacity(0.2))
+                            .frame(width: 50, height: 16)
+                    } else {
+                        Text("$\(regionalValue)")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundColor(Theme.accent)
+                    }
+                }
+            }
+        }
+        .frame(width: 110)
+        .padding(12)
+        .background(Theme.cardBackground)
+        .cornerRadius(12)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 }
 

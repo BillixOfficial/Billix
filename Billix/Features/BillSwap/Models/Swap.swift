@@ -2,434 +2,282 @@
 //  Swap.swift
 //  Billix
 //
-//  Bill Swap Core Model with State Machine
+//  Swap transaction model for the BillSwap feature
 //
 
 import Foundation
 
-// MARK: - Swap Type
-
-enum BillSwapType: String, Codable, CaseIterable {
-    case twoSided = "TWO_SIDED"
-    case oneSidedAssist = "ONE_SIDED_ASSIST"
-
-    var displayName: String {
-        switch self {
-        case .twoSided: return "Two-Way Swap"
-        case .oneSidedAssist: return "One-Sided Assist"
-        }
-    }
-
-    var description: String {
-        switch self {
-        case .twoSided: return "Both users pay each other's bills"
-        case .oneSidedAssist: return "Helper pays your bill, you pay them back later"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .twoSided: return "arrow.left.arrow.right"
-        case .oneSidedAssist: return "hand.raised"
-        }
-    }
-
-    /// Facilitation fee for initiator in cents ($1.99)
-    var initiatorFeeCents: Int {
-        switch self {
-        case .twoSided: return 199      // $1.99
-        case .oneSidedAssist: return 0  // Free for recipient
-        }
-    }
-
-    /// Facilitation fee for counterparty (helper) in cents ($1.99)
-    var counterpartyFeeCents: Int {
-        switch self {
-        case .twoSided: return 199      // $1.99
-        case .oneSidedAssist: return 199 // $1.99 for helper
-        }
-    }
-
-    /// Formatted fee string
-    var formattedFee: String {
-        "$1.99"
-    }
-}
-
-// MARK: - Fee Calculator
-
-enum SwapFeeCalculator {
-    /// Facilitation fee per user in cents
-    static let facilitationFeeCents: Int = 199  // $1.99
-
-    /// Spread fee percentage (for unequal bill amounts)
-    static let spreadFeePercentage: Double = 0.03  // 3%
-
-    /// Calculate spread fee for unequal bills
-    static func calculateSpreadFee(billACents: Int, billBCents: Int) -> Int {
-        let difference = abs(billACents - billBCents)
-        return Int(Double(difference) * spreadFeePercentage)
-    }
-
-    /// Calculate total fees for a swap
-    static func calculateTotalFees(billACents: Int, billBCents: Int?, swapType: BillSwapType) -> SwapFees {
-        let spreadFee: Int
-        if let billBCents = billBCents {
-            spreadFee = calculateSpreadFee(billACents: billACents, billBCents: billBCents)
-        } else {
-            spreadFee = 0
-        }
-
-        let initiatorFee = swapType.initiatorFeeCents
-        let counterpartyFee = swapType.counterpartyFeeCents
-
-        return SwapFees(
-            facilitationFeeInitiator: initiatorFee,
-            facilitationFeeCounterparty: counterpartyFee,
-            spreadFee: spreadFee,
-            totalInitiator: initiatorFee + (spreadFee / 2),
-            totalCounterparty: counterpartyFee + (spreadFee / 2)
-        )
-    }
-}
-
-/// Fee breakdown for a swap
-struct SwapFees {
-    let facilitationFeeInitiator: Int
-    let facilitationFeeCounterparty: Int
-    let spreadFee: Int
-    let totalInitiator: Int
-    let totalCounterparty: Int
-
-    var totalAllFees: Int {
-        totalInitiator + totalCounterparty
-    }
-
-    var formattedInitiatorFee: String {
-        String(format: "$%.2f", Double(totalInitiator) / 100.0)
-    }
-
-    var formattedCounterpartyFee: String {
-        String(format: "$%.2f", Double(totalCounterparty) / 100.0)
-    }
-
-    var formattedSpreadFee: String {
-        String(format: "$%.2f", Double(spreadFee) / 100.0)
-    }
-}
-
-// MARK: - Swap Status (10-State Machine)
-
+/// Status of a BillSwap transaction
 enum BillSwapStatus: String, Codable, CaseIterable {
-    case offered = "OFFERED"
-    case countered = "COUNTERED"
-    case acceptedPendingFee = "ACCEPTED_PENDING_FEE"
-    case locked = "LOCKED"
-    case awaitingProof = "AWAITING_PROOF"
-    case completed = "COMPLETED"
-    case failed = "FAILED"
-    case disputed = "DISPUTED"
-    case cancelled = "CANCELLED"
-    case expired = "EXPIRED"
+    case pending    // Match found, waiting for BOTH to commit
+    case active     // Both users committed, swap in progress
+    case expired    // Timer ran out without both committing
+    case completed  // Both users paid each other's bills
+    case dispute    // Issue raised, under review
 
     var displayName: String {
         switch self {
-        case .offered: return "Offered"
-        case .countered: return "Counter Offered"
-        case .acceptedPendingFee: return "Pending Fee"
-        case .locked: return "Locked"
-        case .awaitingProof: return "Awaiting Proof"
-        case .completed: return "Completed"
-        case .failed: return "Failed"
-        case .disputed: return "Disputed"
-        case .cancelled: return "Cancelled"
+        case .pending: return "Pending"
+        case .active: return "Active"
         case .expired: return "Expired"
+        case .completed: return "Completed"
+        case .dispute: return "Disputed"
         }
     }
 
-    var icon: String {
+    var iconName: String {
         switch self {
-        case .offered: return "arrow.right.circle"
-        case .countered: return "arrow.left.arrow.right"
-        case .acceptedPendingFee: return "creditcard"
-        case .locked: return "lock.fill"
-        case .awaitingProof: return "doc.badge.clock"
+        case .pending: return "clock.fill"
+        case .active: return "arrow.left.arrow.right"
+        case .expired: return "clock.badge.xmark.fill"
         case .completed: return "checkmark.circle.fill"
-        case .failed: return "xmark.circle.fill"
-        case .disputed: return "exclamationmark.triangle.fill"
-        case .cancelled: return "xmark.circle"
-        case .expired: return "clock.badge.xmark"
-        }
-    }
-
-    var color: String {
-        switch self {
-        case .offered: return "#5BA4D4"       // Blue
-        case .countered: return "#9B59B6"     // Purple
-        case .acceptedPendingFee: return "#F5A623"  // Orange
-        case .locked: return "#2ECC71"        // Green
-        case .awaitingProof: return "#F5A623" // Orange
-        case .completed: return "#27AE60"     // Dark Green
-        case .failed: return "#E74C3C"        // Red
-        case .disputed: return "#E67E22"      // Dark Orange
-        case .cancelled: return "#8B9A94"     // Gray
-        case .expired: return "#8B9A94"       // Gray
-        }
-    }
-
-    /// Is this an active (non-terminal) state?
-    var isActive: Bool {
-        switch self {
-        case .offered, .countered, .acceptedPendingFee, .locked, .awaitingProof, .disputed:
-            return true
-        default:
-            return false
-        }
-    }
-
-    /// Is this a terminal state?
-    var isTerminal: Bool {
-        switch self {
-        case .completed, .failed, .cancelled, .expired:
-            return true
-        default:
-            return false
-        }
-    }
-
-    /// Valid transitions from this state
-    var validTransitions: [BillSwapStatus] {
-        switch self {
-        case .offered:
-            return [.acceptedPendingFee, .countered, .cancelled, .expired]
-        case .countered:
-            return [.acceptedPendingFee, .countered, .cancelled, .expired]
-        case .acceptedPendingFee:
-            return [.locked, .cancelled, .expired]
-        case .locked:
-            return [.awaitingProof]
-        case .awaitingProof:
-            return [.completed, .failed, .disputed]
-        case .disputed:
-            return [.completed, .failed]
-        case .completed, .failed, .cancelled, .expired:
-            return [] // Terminal states
+        case .dispute: return "exclamationmark.triangle.fill"
         }
     }
 }
 
-// MARK: - Bill Swap Model
-
-struct BillSwap: Identifiable, Codable, Equatable, Hashable {
+/// A swap transaction between two users in BillSwap
+struct BillSwapTransaction: Identifiable, Codable, Equatable, Hashable {
     let id: UUID
-    let swapType: BillSwapType
-    var status: BillSwapStatus
-
-    // Participants
-    let initiatorUserId: UUID
-    var counterpartyUserId: UUID?
-
-    // Bills
     let billAId: UUID
-    var billBId: UUID?
-
-    // Counter offer
-    var counterOfferAmountCents: Int?
-    var counterOfferByUserId: UUID?
-
-    // Fees (in cents) - $1.99 = 199 cents per user
-    let feeAmountCentsInitiator: Int
-    let feeAmountCentsCounterparty: Int
-    var spreadFeeCents: Int  // 3% of bill difference
-    var feePaidInitiator: Bool
-    var feePaidCounterparty: Bool
-    var pointsWaiverInitiator: Bool
-    var pointsWaiverCounterparty: Bool
-
-    // Deadlines
-    var acceptDeadline: Date?
-    var proofDueDeadline: Date?
-
-    // Timestamps
+    let billBId: UUID
+    let userAId: UUID
+    let userBId: UUID
+    var status: BillSwapStatus
+    var userAPaidFee: Bool      // User A committed (paid fee, used free swap, or is Prime)
+    var userBPaidFee: Bool      // User B committed (paid fee, used free swap, or is Prime)
+    var userAPaidPartner: Bool  // User A paid User B's bill
+    var userBPaidPartner: Bool  // User B paid User A's bill
+    var proofAUrl: String?      // Receipt screenshot from User A
+    var proofBUrl: String?      // Receipt screenshot from User B
     let createdAt: Date
-    var updatedAt: Date
-    var acceptedAt: Date?
-    var lockedAt: Date?
     var completedAt: Date?
-
-    // Associated data (not from DB)
-    var billA: SwapBill?
-    var billB: SwapBill?
-    var initiatorProfile: TrustProfile?
-    var counterpartyProfile: TrustProfile?
+    var expiresAt: Date?        // 24 hours from creation, match expires if both haven't committed
+    var userACommittedAt: Date? // When User A committed to the swap
+    var userBCommittedAt: Date? // When User B committed to the swap
 
     enum CodingKeys: String, CodingKey {
         case id
-        case swapType = "swap_type"
+        case billAId = "bill_a_id"
+        case billBId = "bill_b_id"
+        case userAId = "user_a_id"
+        case userBId = "user_b_id"
         case status
-        case initiatorUserId = "initiator_user_id"
-        case counterpartyUserId = "counterparty_user_id"
-        case billAId = "bill_a_id"
-        case billBId = "bill_b_id"
-        case counterOfferAmountCents = "counter_offer_amount_cents"
-        case counterOfferByUserId = "counter_offer_by_user_id"
-        case feeAmountCentsInitiator = "fee_amount_cents_initiator"
-        case feeAmountCentsCounterparty = "fee_amount_cents_counterparty"
-        case spreadFeeCents = "spread_fee_cents"
-        case feePaidInitiator = "fee_paid_initiator"
-        case feePaidCounterparty = "fee_paid_counterparty"
-        case pointsWaiverInitiator = "points_waiver_initiator"
-        case pointsWaiverCounterparty = "points_waiver_counterparty"
-        case acceptDeadline = "accept_deadline"
-        case proofDueDeadline = "proof_due_deadline"
+        case userAPaidFee = "user_a_paid_fee"
+        case userBPaidFee = "user_b_paid_fee"
+        case userAPaidPartner = "user_a_paid_partner"
+        case userBPaidPartner = "user_b_paid_partner"
+        case proofAUrl = "proof_a_url"
+        case proofBUrl = "proof_b_url"
         case createdAt = "created_at"
-        case updatedAt = "updated_at"
-        case acceptedAt = "accepted_at"
-        case lockedAt = "locked_at"
         case completedAt = "completed_at"
+        case expiresAt = "expires_at"
+        case userACommittedAt = "user_a_committed_at"
+        case userBCommittedAt = "user_b_committed_at"
     }
 
-    // MARK: - Hashable
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+    /// Check if current user is User A
+    func isUserA(userId: UUID) -> Bool {
+        return userAId == userId
     }
 
-    static func == (lhs: BillSwap, rhs: BillSwap) -> Bool {
-        lhs.id == rhs.id
+    /// Check if current user is User B
+    func isUserB(userId: UUID) -> Bool {
+        return userBId == userId
     }
 
-    // MARK: - Computed Properties
-
-    /// Total fee in cents
-    var totalFeeCents: Int {
-        feeAmountCentsInitiator + feeAmountCentsCounterparty
+    /// Get the partner's user ID
+    func partnerId(for currentUserId: UUID) -> UUID {
+        return isUserA(userId: currentUserId) ? userBId : userAId
     }
 
-    /// Are both fees paid (or waived)?
-    var bothFeesPaid: Bool {
-        let initiatorPaid = feePaidInitiator || pointsWaiverInitiator
-        let counterpartyPaid = feePaidCounterparty || pointsWaiverCounterparty || swapType == .oneSidedAssist
-        return initiatorPaid && counterpartyPaid
+    /// Get the partner's bill ID
+    func partnerBillId(for currentUserId: UUID) -> UUID {
+        return isUserA(userId: currentUserId) ? billBId : billAId
     }
 
-    /// Is the swap expired based on deadline?
-    var isExpired: Bool {
-        if let deadline = acceptDeadline, status == .offered || status == .countered {
-            return Date() > deadline
-        }
-        if let deadline = proofDueDeadline, status == .awaitingProof {
-            return Date() > deadline
-        }
-        return status == .expired
+    /// Get my bill ID
+    func myBillId(for currentUserId: UUID) -> UUID {
+        return isUserA(userId: currentUserId) ? billAId : billBId
     }
 
-    /// Is chat enabled for this swap?
-    var isChatEnabled: Bool {
+    /// Check if current user has paid the handshake fee
+    func hasPaidFee(userId: UUID) -> Bool {
+        return isUserA(userId: userId) ? userAPaidFee : userBPaidFee
+    }
+
+    /// Check if current user has paid their partner's bill
+    func hasPaidPartner(userId: UUID) -> Bool {
+        return isUserA(userId: userId) ? userAPaidPartner : userBPaidPartner
+    }
+
+    /// Check if partner has paid my bill
+    func partnerHasPaidMe(userId: UUID) -> Bool {
+        return isUserA(userId: userId) ? userBPaidPartner : userAPaidPartner
+    }
+
+    /// Get proof URL for current user
+    func myProofUrl(for userId: UUID) -> String? {
+        return isUserA(userId: userId) ? proofAUrl : proofBUrl
+    }
+
+    /// Get partner's proof URL
+    func partnerProofUrl(for userId: UUID) -> String? {
+        return isUserA(userId: userId) ? proofBUrl : proofAUrl
+    }
+
+    /// Check if both users have paid the handshake fee
+    var bothPaidFees: Bool {
+        return userAPaidFee && userBPaidFee
+    }
+
+    /// Check if both users have paid each other's bills
+    var bothPaidPartners: Bool {
+        return userAPaidPartner && userBPaidPartner
+    }
+
+    /// Check if the swap can be completed
+    var canComplete: Bool {
+        return status == .active && bothPaidPartners
+    }
+
+    /// Progress percentage (0.0 to 1.0)
+    var progressPercentage: Double {
+        var steps = 0.0
+
+        if userAPaidFee { steps += 0.25 }
+        if userBPaidFee { steps += 0.25 }
+        if userAPaidPartner { steps += 0.25 }
+        if userBPaidPartner { steps += 0.25 }
+
+        return steps
+    }
+
+    /// Human-readable status message for current user
+    func statusMessage(for userId: UUID) -> String {
         switch status {
-        case .offered, .countered, .cancelled, .expired:
-            return false
-        default:
-            return true
+        case .pending:
+            if hasPaidFee(userId: userId) {
+                return "Waiting for partner to accept"
+            } else {
+                return "Confirm to start this swap"
+            }
+
+        case .active:
+            if hasPaidPartner(userId: userId) {
+                if partnerHasPaidMe(userId: userId) {
+                    return "Swap complete!"
+                } else {
+                    return "Waiting for partner to pay your bill"
+                }
+            } else {
+                return "Pay your partner's bill"
+            }
+
+        case .expired:
+            return "This match has expired"
+
+        case .completed:
+            return "Swap completed successfully!"
+
+        case .dispute:
+            return "Dispute under review"
         }
     }
 
-    /// Can current user accept this swap?
-    func canAccept(currentUserId: UUID) -> Bool {
-        guard status == .offered || status == .countered else { return false }
-        guard !isExpired else { return false }
+    // MARK: - Expiration Helpers
 
-        // Initiator can accept counter offer
-        if status == .countered && initiatorUserId == currentUserId {
-            return counterOfferByUserId != currentUserId
+    /// Time remaining until expiration (nil if no expiration set)
+    var timeRemaining: TimeInterval? {
+        guard let expiresAt = expiresAt else { return nil }
+        return expiresAt.timeIntervalSinceNow
+    }
+
+    /// Whether the swap has expired
+    var isExpired: Bool {
+        guard let remaining = timeRemaining else { return false }
+        return remaining <= 0
+    }
+
+    /// Formatted time remaining string (e.g., "23h 45m")
+    var formattedTimeRemaining: String? {
+        guard let remaining = timeRemaining, remaining > 0 else { return nil }
+
+        let hours = Int(remaining) / 3600
+        let minutes = (Int(remaining) % 3600) / 60
+
+        if hours > 0 {
+            return "\(hours)h \(minutes)m remaining"
+        } else if minutes > 0 {
+            return "\(minutes)m remaining"
+        } else {
+            return "Less than 1m remaining"
         }
-
-        // Counterparty can accept offer
-        return counterpartyUserId == currentUserId || counterpartyUserId == nil
     }
 
-    /// Can current user cancel this swap?
-    func canCancel(currentUserId: UUID) -> Bool {
-        guard status.isActive else { return false }
-        return initiatorUserId == currentUserId || counterpartyUserId == currentUserId
-    }
-
-    // MARK: - State Transition
-
-    func canTransition(to newStatus: BillSwapStatus) -> Bool {
-        status.validTransitions.contains(newStatus)
-    }
-
-    mutating func transition(to newStatus: BillSwapStatus) throws {
-        guard canTransition(to: newStatus) else {
-            throw BillSwapError.invalidTransition(from: status, to: newStatus)
+    /// Check if partner has committed to the swap
+    func partnerHasCommitted(userId: UUID) -> Bool {
+        if isUserA(userId: userId) {
+            return userBPaidFee
+        } else {
+            return userAPaidFee
         }
-        status = newStatus
-        updatedAt = Date()
     }
-}
 
-// MARK: - Bill Swap Error
-
-enum BillSwapError: LocalizedError {
-    case notAuthenticated
-    case swapNotFound
-    case billNotFound
-    case invalidTransition(from: BillSwapStatus, to: BillSwapStatus)
-    case tierCapExceeded(maxCents: Int)
-    case maxActiveSwapsReached(max: Int)
-    case billNotAvailable
-    case cannotSwapOwnBill
-    case insufficientPoints
-    case proofRequired
-    case proofRejected
-    case disputeWindowExpired
-    case operationFailed(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .notAuthenticated:
-            return "You must be signed in"
-        case .swapNotFound:
-            return "Swap not found"
-        case .billNotFound:
-            return "Bill not found"
-        case .invalidTransition(let from, let to):
-            return "Cannot change status from \(from.displayName) to \(to.displayName)"
-        case .tierCapExceeded(let maxCents):
-            return "Bill amount exceeds your tier limit of $\(maxCents / 100)"
-        case .maxActiveSwapsReached(let max):
-            return "You've reached the maximum of \(max) active swaps for your tier"
-        case .billNotAvailable:
-            return "This bill is no longer available"
-        case .cannotSwapOwnBill:
-            return "You cannot swap your own bill"
-        case .insufficientPoints:
-            return "Not enough points to waive fee"
-        case .proofRequired:
-            return "Payment proof is required"
-        case .proofRejected:
-            return "Your payment proof was rejected"
-        case .disputeWindowExpired:
-            return "The dispute window has expired"
-        case .operationFailed(let message):
-            return message
+    /// Get partner's committed timestamp
+    func partnerCommittedAt(for userId: UUID) -> Date? {
+        if isUserA(userId: userId) {
+            return userBCommittedAt
+        } else {
+            return userACommittedAt
         }
     }
 }
 
-// MARK: - Create Swap Request
+// MARK: - Mock Data
 
-struct CreateSwapRequest: Codable {
-    let billAId: UUID
-    let billBId: UUID?
-    let counterpartyUserId: UUID?
-    let swapType: BillSwapType
+extension BillSwapTransaction {
+    static func mockSwap(userAId: UUID, userBId: UUID) -> BillSwapTransaction {
+        return BillSwapTransaction(
+            id: UUID(),
+            billAId: UUID(),
+            billBId: UUID(),
+            userAId: userAId,
+            userBId: userBId,
+            status: .pending,
+            userAPaidFee: false,
+            userBPaidFee: false,
+            userAPaidPartner: false,
+            userBPaidPartner: false,
+            proofAUrl: nil,
+            proofBUrl: nil,
+            createdAt: Date(),
+            completedAt: nil,
+            expiresAt: Calendar.current.date(byAdding: .hour, value: 24, to: Date()),
+            userACommittedAt: nil,
+            userBCommittedAt: nil
+        )
+    }
 
-    enum CodingKeys: String, CodingKey {
-        case billAId = "bill_a_id"
-        case billBId = "bill_b_id"
-        case counterpartyUserId = "counterparty_user_id"
-        case swapType = "swap_type"
+    static func mockActiveSwap(userAId: UUID, userBId: UUID) -> BillSwapTransaction {
+        return BillSwapTransaction(
+            id: UUID(),
+            billAId: UUID(),
+            billBId: UUID(),
+            userAId: userAId,
+            userBId: userBId,
+            status: .active,
+            userAPaidFee: true,
+            userBPaidFee: true,
+            userAPaidPartner: false,
+            userBPaidPartner: false,
+            proofAUrl: nil,
+            proofBUrl: nil,
+            createdAt: Date(),
+            completedAt: nil,
+            expiresAt: nil, // No expiration for active swaps
+            userACommittedAt: Date(),
+            userBCommittedAt: Date()
+        )
     }
 }

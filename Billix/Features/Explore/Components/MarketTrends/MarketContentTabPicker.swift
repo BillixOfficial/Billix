@@ -25,16 +25,22 @@ struct MarketContentTabPicker: View {
 
 // MARK: - Preview
 
-#Preview("Market Content Tab Picker") {
-    @Previewable @State var selectedTab: MarketContentTab = .summary
+private struct MarketContentTabPicker_Preview: View {
+    @State private var selectedTab: MarketContentTab = .summary
 
-    VStack(spacing: 20) {
-        MarketContentTabPicker(selectedTab: $selectedTab)
+    var body: some View {
+        VStack(spacing: 20) {
+            MarketContentTabPicker(selectedTab: $selectedTab)
 
-        Text("Selected: \(selectedTab.rawValue)")
-            .font(.system(size: 14))
-            .foregroundColor(.secondary)
+            Text("Selected: \(selectedTab.rawValue)")
+                .font(.system(size: 14))
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color(hex: "F8F9FA"))
     }
-    .padding()
-    .background(Color(hex: "F8F9FA"))
+}
+
+#Preview("Market Content Tab Picker") {
+    MarketContentTabPicker_Preview()
 }

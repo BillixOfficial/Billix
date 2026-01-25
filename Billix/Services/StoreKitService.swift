@@ -13,11 +13,22 @@ import StoreKit
 enum BillixProduct: String, CaseIterable {
     case billixPrimeMonthly = "com.billix.prime.monthly"
     case billixPrimeYearly = "com.billix.prime.yearly"
+    case swapHandshakeFee = "com.billix.handshake_fee"
+    case tokenPack3 = "com.billix.token_pack_3"
 
     var displayName: String {
         switch self {
         case .billixPrimeMonthly: return "Billix Prime Monthly"
         case .billixPrimeYearly: return "Billix Prime Yearly"
+        case .swapHandshakeFee: return "Swap Handshake Fee"
+        case .tokenPack3: return "3 Connect Tokens"
+        }
+    }
+
+    var isConsumable: Bool {
+        switch self {
+        case .swapHandshakeFee, .tokenPack3: return true
+        default: return false
         }
     }
 }
@@ -37,6 +48,12 @@ class StoreKitService: ObservableObject {
 
     var isPremium: Bool {
         !purchasedProductIDs.isEmpty
+    }
+
+    /// Check if user has an active Billix Prime subscription
+    var isPrime: Bool {
+        purchasedProductIDs.contains(BillixProduct.billixPrimeMonthly.rawValue) ||
+        purchasedProductIDs.contains(BillixProduct.billixPrimeYearly.rawValue)
     }
 
     private init() {
@@ -251,6 +268,112 @@ class StoreKitService: ObservableObject {
 
     var yearlyProduct: Product? {
         products.first { $0.id == BillixProduct.billixPrimeYearly.rawValue }
+    }
+
+    var handshakeFeeProduct: Product? {
+        products.first { $0.id == BillixProduct.swapHandshakeFee.rawValue }
+    }
+
+    var handshakeFeePrice: String {
+        handshakeFeeProduct?.displayPrice ?? "$1.99"
+    }
+
+    var tokenPackProduct: Product? {
+        products.first { $0.id == BillixProduct.tokenPack3.rawValue }
+    }
+
+    var tokenPackPrice: String {
+        tokenPackProduct?.displayPrice ?? "$1.99"
+    }
+
+    // MARK: - Purchase Token Pack (Consumable)
+
+    /// Purchase the 3-token pack (consumable product)
+    /// Returns true if purchase was successful
+    func purchaseTokenPack() async throws -> Bool {
+        guard let product = tokenPackProduct else {
+            throw StoreError.productNotFound
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            let result = try await product.purchase()
+
+            switch result {
+            case .success(let verification):
+                let transaction = try checkVerified(verification)
+
+                // Consumable - don't add to purchasedProductIDs, just finish
+                await transaction.finish()
+
+                isLoading = false
+                return true
+
+            case .userCancelled:
+                isLoading = false
+                return false
+
+            case .pending:
+                isLoading = false
+                errorMessage = "Purchase is pending approval"
+                return false
+
+            @unknown default:
+                isLoading = false
+                return false
+            }
+        } catch {
+            isLoading = false
+            errorMessage = "Purchase failed: \(error.localizedDescription)"
+            throw error
+        }
+    }
+
+    // MARK: - Purchase Handshake Fee (Consumable)
+
+    /// Purchase the swap handshake fee (consumable product)
+    /// Returns true if purchase was successful
+    func purchaseHandshakeFee() async throws -> Bool {
+        guard let product = handshakeFeeProduct else {
+            throw StoreError.productNotFound
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            let result = try await product.purchase()
+
+            switch result {
+            case .success(let verification):
+                let transaction = try checkVerified(verification)
+
+                // Consumable - don't add to purchasedProductIDs, just finish
+                await transaction.finish()
+
+                isLoading = false
+                return true
+
+            case .userCancelled:
+                isLoading = false
+                return false
+
+            case .pending:
+                isLoading = false
+                errorMessage = "Purchase is pending approval"
+                return false
+
+            @unknown default:
+                isLoading = false
+                return false
+            }
+        } catch {
+            isLoading = false
+            errorMessage = "Purchase failed: \(error.localizedDescription)"
+            throw error
+        }
     }
 }
 
