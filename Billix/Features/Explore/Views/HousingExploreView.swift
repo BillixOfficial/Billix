@@ -346,7 +346,7 @@ struct HousingExploreView: View {
     private var emptyStateView: some View {
         VStack(spacing: 24) {
             Spacer()
-                .frame(height: 60)  // Push content below search bar
+                .frame(height: 140)  // Push content below search bar
 
             // Icon
             Image(systemName: "magnifyingglass")

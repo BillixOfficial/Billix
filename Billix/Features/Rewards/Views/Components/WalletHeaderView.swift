@@ -362,6 +362,31 @@ struct WeeklyProgressSlide: View {
         }
     }
 
+    /// Today's weekday index (Mon=0, Tue=1, ..., Sun=6)
+    private var todayWeekdayIndex: Int {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: Date())
+        // Convert: Sunday=1, Monday=2...Saturday=7 → Monday=0...Sunday=6
+        return weekday == 1 ? 6 : weekday - 2
+    }
+
+    /// Only show checkmarks for consecutive days that are part of the current streak
+    private func shouldShowCheckmark(at index: Int) -> Bool {
+        // Only show checkmarks for the current streak period
+        guard actualStreak > 0 else { return false }
+
+        // Calculate which days are part of current streak (last N consecutive days ending today)
+        let streakStartIndex = todayWeekdayIndex - actualStreak + 1
+
+        // Handle week wrap-around (e.g., streak started last week)
+        if streakStartIndex < 0 {
+            // Streak spans from previous week
+            return (index >= (7 + streakStartIndex) || index <= todayWeekdayIndex) && progress[index]
+        } else {
+            return index >= streakStartIndex && index <= todayWeekdayIndex && progress[index]
+        }
+    }
+
     var body: some View {
         let _ = print("🎯 [CAROUSEL] WeeklyProgressSlide rendering - streakCount: \(streakCount), actualStreak: \(actualStreak)")
         HStack(spacing: 12) {
@@ -397,12 +422,12 @@ struct WeeklyProgressSlide: View {
 
                             ZStack {
                                 Circle()
-                                    .fill(progress[index] ? Color.billixArcadeGold : Color.gray.opacity(0.3))
+                                    .fill(shouldShowCheckmark(at: index) ? Color.billixArcadeGold : Color.gray.opacity(0.3))
                                     .frame(width: 20, height: 20)
                                     .scaleEffect(animatedChecks[index] ? 1.0 : 0.8)
                                     .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(Double(index) * 0.08), value: animatedChecks[index])
 
-                                if progress[index] {
+                                if shouldShowCheckmark(at: index) {
                                     Image(systemName: "checkmark")
                                         .font(.system(size: 9, weight: .bold))
                                         .foregroundColor(.white)
@@ -423,9 +448,9 @@ struct WeeklyProgressSlide: View {
                 .symbolEffect(.pulse, options: streakCount >= 4 ? .repeating : .default)
         }
         .onAppear {
-            // Trigger animation on appear
+            // Trigger animation on appear for days that are part of the current streak
             for i in 0..<progress.count {
-                if progress[i] {
+                if shouldShowCheckmark(at: i) {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         animatedChecks[i] = true
                     }
