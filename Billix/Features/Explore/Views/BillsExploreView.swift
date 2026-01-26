@@ -9,7 +9,6 @@
 import SwiftUI
 
 struct BillsExploreView: View {
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = BillExplorerViewModel()
 
     private let backgroundColor = Color(hex: "#F5F5F7")
@@ -36,40 +35,10 @@ struct BillsExploreView: View {
                 }
             }
         }
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                backButton
-            }
-
-            ToolbarItem(placement: .principal) {
-                Text("Bill Explorer")
-                    .font(.system(size: 17, weight: .semibold))
-            }
-        }
+        .navigationTitle("Bill Explorer")
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable {
             await viewModel.refresh()
-        }
-    }
-
-    // MARK: - Back Button
-
-    private var backButton: some View {
-        Button {
-            dismiss()
-        } label: {
-            HStack(spacing: 4) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 16, weight: .semibold))
-                Text("Back")
-                    .font(.system(size: 17))
-            }
-            .foregroundColor(Color(hex: "#1A1A1A"))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color.white)
-            .clipShape(Capsule())
-            .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
         }
     }
 
