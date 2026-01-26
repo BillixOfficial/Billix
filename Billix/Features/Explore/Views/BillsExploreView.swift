@@ -137,7 +137,7 @@ struct BillsExploreView: View {
         ScrollView {
             LazyVStack(spacing: 16) {
                 ForEach(viewModel.filteredListings) { listing in
-                    BillListingCard(
+                    ExploreBillListingCard(
                         listing: listing,
                         onReactionTapped: { reaction in
                             viewModel.toggleReaction(for: listing.id, reaction: reaction)
