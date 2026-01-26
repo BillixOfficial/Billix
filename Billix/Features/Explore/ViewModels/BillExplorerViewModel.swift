@@ -8,6 +8,7 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
 @MainActor
 class BillExplorerViewModel: ObservableObject {
@@ -15,21 +16,21 @@ class BillExplorerViewModel: ObservableObject {
     // MARK: - Published Properties
 
     @Published var listings: [ExploreBillListing] = []
-    @Published var selectedBillType: BillType?
+    @Published var selectedExploreBillType: ExploreBillType?
     @Published var isLoading = false
     @Published var error: String?
 
     // MARK: - Computed Properties
 
     var filteredListings: [ExploreBillListing] {
-        guard let selectedType = selectedBillType else {
+        guard let selectedType = selectedExploreBillType else {
             return listings
         }
         return listings.filter { $0.billType == selectedType }
     }
 
-    var billTypes: [BillType] {
-        BillType.allCases
+    var billTypes: [ExploreBillType] {
+        ExploreBillType.allCases
     }
 
     // MARK: - Initialization
@@ -61,12 +62,12 @@ class BillExplorerViewModel: ObservableObject {
         isLoading = false
     }
 
-    func selectBillType(_ type: BillType?) {
+    func selectExploreBillType(_ type: ExploreBillType?) {
         withAnimation(.easeInOut(duration: 0.2)) {
-            if selectedBillType == type {
-                selectedBillType = nil  // Toggle off
+            if selectedExploreBillType == type {
+                selectedExploreBillType = nil  // Toggle off
             } else {
-                selectedBillType = type
+                selectedExploreBillType = type
             }
         }
     }

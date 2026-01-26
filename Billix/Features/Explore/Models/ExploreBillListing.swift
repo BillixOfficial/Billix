@@ -10,7 +10,7 @@ import Foundation
 
 // MARK: - Bill Type
 
-enum BillType: String, CaseIterable, Identifiable {
+enum ExploreBillType: String, CaseIterable, Identifiable {
     case electric = "Electric"
     case gas = "Gas"
     case water = "Water"
@@ -136,7 +136,7 @@ enum BillReactionType: String, CaseIterable {
 
 struct ExploreBillListing: Identifiable {
     let id: UUID
-    let billType: BillType
+    let billType: ExploreBillType
     let provider: String
     let amount: Double
     let billingPeriod: String

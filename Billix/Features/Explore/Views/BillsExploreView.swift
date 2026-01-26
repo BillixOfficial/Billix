@@ -82,10 +82,10 @@ struct BillsExploreView: View {
                 filterChip(
                     icon: "square.grid.2x2",
                     label: "All",
-                    isSelected: viewModel.selectedBillType == nil,
+                    isSelected: viewModel.selectedExploreBillType == nil,
                     color: "#6B7280"
                 ) {
-                    viewModel.selectBillType(nil)
+                    viewModel.selectExploreBillType(nil)
                 }
 
                 // Bill type chips
@@ -93,10 +93,10 @@ struct BillsExploreView: View {
                     filterChip(
                         icon: billType.icon,
                         label: billType.rawValue,
-                        isSelected: viewModel.selectedBillType == billType,
+                        isSelected: viewModel.selectedExploreBillType == billType,
                         color: billType.color
                     ) {
-                        viewModel.selectBillType(billType)
+                        viewModel.selectExploreBillType(billType)
                     }
                 }
             }
@@ -187,9 +187,9 @@ struct BillsExploreView: View {
                     .foregroundColor(Color(hex: "#6B7280"))
             }
 
-            if viewModel.selectedBillType != nil {
+            if viewModel.selectedExploreBillType != nil {
                 Button {
-                    viewModel.selectBillType(nil)
+                    viewModel.selectExploreBillType(nil)
                 } label: {
                     Text("Show All Bills")
                         .font(.system(size: 15, weight: .semibold))
