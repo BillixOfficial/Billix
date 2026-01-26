@@ -38,7 +38,7 @@ struct ExploreLandingView: View {
             // Header overlaid on backdrop
             VStack {
                 ExploreHeaderView(activeCardIndex: activeCardIndex)
-                    .padding(.top, 120)
+                    .padding(.top, 60)
                 Spacer()
             }
             .allowsHitTesting(false)
@@ -67,7 +67,7 @@ struct ExploreLandingView: View {
         NavigationStack {
             switch destination {
             case .economyByAI:
-                ComingSoonView(title: "Economy by AI")
+                EconomyTabView()
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button {
@@ -84,7 +84,7 @@ struct ExploreLandingView: View {
                                     Text("Back")
                                         .font(.system(size: 17))
                                 }
-                                .foregroundColor(.white)
+                                .foregroundColor(Color(hex: "#3B6CFF"))
                             }
                         }
                     }
@@ -151,9 +151,9 @@ struct ExploreHeaderView: View {
 
     private var headerSubtitle: String {
         switch activeCardIndex {
-        case 2: // Economy by AI
-            return "Economy News in your area"
-        default: // Housing Trends (0) and Bills Explorer (1)
+        case 0: // Community
+            return "Connect with fellow savers"
+        default: // Housing Trends (1) and Bills Explorer (2)
             return "See what your neighbors pay"
         }
     }
