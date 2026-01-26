@@ -468,6 +468,17 @@
 		F9F189522F05F79C007CF227 /* QuickActionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F189502F05F79C007CF227 /* QuickActionViews.swift */; };
 		FB021E8FC90B96BB845CCD82 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */; };
 		FB4BCEEA822F6653DD8AFEB9 /* NudgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EEF8494E0D8F1E5CA84EE4 /* NudgeService.swift */; };
+		C12C710EDAE0C74EA7365DF7 /* FairnessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 441EF5142067732FB83D32B3 /* FairnessService.swift */; };
+		929D6AE4AA2EA27FBB2EC2AC /* AutoPilotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FC0BB67CCFCCE154206D1F /* AutoPilotService.swift */; };
+		5C65F6CA4FD3A2CA60189E27 /* HouseholdViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C41E3F4126EEEBEC41D501E /* HouseholdViewModel.swift */; };
+		3DBC140FAD80A9F118448006 /* HouseholdDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A20664EF1CE8B4798EE5DE0 /* HouseholdDashboardView.swift */; };
+		B213B823B86FBC855E230735 /* KarmaLeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E05A16366636C697D06ABC /* KarmaLeaderboardView.swift */; };
+		0B016A56D3A8893EC4D71A22 /* VaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF7B42B62D1376A06567910 /* VaultView.swift */; };
+		865DDD23F588479B54DE2DF6 /* PriceTargetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84E8A84B928DCE3392C317C8 /* PriceTargetService.swift */; };
+		408450C83E8A5B64B125F652 /* NameYourPriceZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6EA051F44EA92555332753 /* NameYourPriceZone.swift */; };
+		F9BC2322822703F3435F3E96 /* PriceTargetCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255D4FF7831141C778F3E0A5 /* PriceTargetCard.swift */; };
+		B09286EAA01182CAE0A34A14 /* SetPriceSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DA2401C08A6D91ADA4767D /* SetPriceSheet.swift */; };
+		DA4CE8C1D3FB84A3824C258E /* PriceOptionsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED86E0A84EF041F20EB729 /* PriceOptionsSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -926,6 +937,23 @@
 		F9F189502F05F79C007CF227 /* QuickActionViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QuickActionViews.swift; sourceTree = "<group>"; };
 		FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AllUploadsView.swift; sourceTree = "<group>"; };
 		FD03CB72B19A74E508D2FDA5 /* ReliefStep4Urgency.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefStep4Urgency.swift; sourceTree = "<group>"; };
+		0B71E8B16DA66E5F2CCA01E3 /* HeaderZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/HeaderZone.swift; sourceTree = "<group>"; };
+		12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme/HomeTheme.swift; sourceTree = "<group>"; };
+		3105A9D4079FDDAD55678A5C /* HouseholdModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdModels.swift; sourceTree = "<group>"; };
+		8F31A485219F8C6FC916CE5B /* HouseholdService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdService.swift; sourceTree = "<group>"; };
+		95746F8B600F23DF04149AE3 /* KarmaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KarmaService.swift; sourceTree = "<group>"; };
+		65EEF8494E0D8F1E5CA84EE4 /* NudgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeService.swift; sourceTree = "<group>"; };
+		441EF5142067732FB83D32B3 /* FairnessService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairnessService.swift; sourceTree = "<group>"; };
+		82FC0BB67CCFCCE154206D1F /* AutoPilotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoPilotService.swift; sourceTree = "<group>"; };
+		3C41E3F4126EEEBEC41D501E /* HouseholdViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdViewModel.swift; sourceTree = "<group>"; };
+		6A20664EF1CE8B4798EE5DE0 /* HouseholdDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdDashboardView.swift; sourceTree = "<group>"; };
+		38E05A16366636C697D06ABC /* KarmaLeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KarmaLeaderboardView.swift; sourceTree = "<group>"; };
+		7CF7B42B62D1376A06567910 /* VaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultView.swift; sourceTree = "<group>"; };
+		84E8A84B928DCE3392C317C8 /* PriceTargetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceTargetService.swift; sourceTree = "<group>"; };
+		8D6EA051F44EA92555332753 /* NameYourPriceZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/NameYourPriceZone.swift"; sourceTree = "<group>"; };
+		255D4FF7831141C778F3E0A5 /* PriceTargetCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/PriceTargetCard.swift"; sourceTree = "<group>"; };
+		C9DA2401C08A6D91ADA4767D /* SetPriceSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/SetPriceSheet.swift"; sourceTree = "<group>"; };
+		AEED86E0A84EF041F20EB729 /* PriceOptionsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Components/PriceOptionsSheet.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1203,8 +1231,12 @@
 		8B8B8B8B8B8B8B8B8B8B8B8B /* Home */ = {
 			isa = PBXGroup;
 			children = (
-				12922BB48C9B4D4E51F4A208 /* Theme/HomeTheme.swift */,
-				0B71E8B16DA66E5F2CCA01E3 /* Components/HeaderZone.swift */,
+				AEED86E0A84EF041F20EB729 /* PriceOptionsSheet.swift */,
+				C9DA2401C08A6D91ADA4767D /* SetPriceSheet.swift */,
+				255D4FF7831141C778F3E0A5 /* PriceTargetCard.swift */,
+				8D6EA051F44EA92555332753 /* NameYourPriceZone.swift */,
+				12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */,
+				0B71E8B16DA66E5F2CCA01E3 /* HeaderZone.swift */,
 				A6E5FF4D2F088187009F1277 /* CommunityPollService.swift */,
 				A6E5FF4E2F088187009F1277 /* QuizService.swift */,
 				A6E5FF4F2F088187009F1277 /* TipsService.swift */,
@@ -1427,6 +1459,7 @@
 		A64F7F502ECBB46B005576C5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				84E8A84B928DCE3392C317C8 /* PriceTargetService.swift */,
 				A66170E22F25E2A600B24FD5 /* EconomyNewsService.swift */,
 				5DE1642796379DA2C49C2FF8 /* IDVerificationService.swift */,
 				72968254CC027164D389E59F /* PhoneVerificationService.swift */,
@@ -2392,6 +2425,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DA4CE8C1D3FB84A3824C258E /* PriceOptionsSheet.swift in Sources */,
+				B09286EAA01182CAE0A34A14 /* SetPriceSheet.swift in Sources */,
+				F9BC2322822703F3435F3E96 /* PriceTargetCard.swift in Sources */,
+				408450C83E8A5B64B125F652 /* NameYourPriceZone.swift in Sources */,
+				865DDD23F588479B54DE2DF6 /* PriceTargetService.swift in Sources */,
 				0B016A56D3A8893EC4D71A22 /* VaultView.swift in Sources */,
 				B213B823B86FBC855E230735 /* KarmaLeaderboardView.swift in Sources */,
 				3DBC140FAD80A9F118448006 /* HouseholdDashboardView.swift in Sources */,
