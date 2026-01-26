@@ -167,6 +167,14 @@
 		A66170E92F26E63300B24FD5 /* GroupDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170E82F26E63300B24FD5 /* GroupDetailView.swift */; };
 		A66170EB2F26EA0E00B24FD5 /* CreatePostSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170EA2F26EA0E00B24FD5 /* CreatePostSheet.swift */; };
 		A66170ED2F280C1800B24FD5 /* ReportPostSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170EC2F280C1800B24FD5 /* ReportPostSheet.swift */; };
+		A661710A2F28237D00B24FD5 /* PercentileBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171082F28237D00B24FD5 /* PercentileBar.swift */; };
+		A661710B2F28237D00B24FD5 /* BillReactionsBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171072F28237D00B24FD5 /* BillReactionsBar.swift */; };
+		A661710C2F28237D00B24FD5 /* BillListingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171062F28237D00B24FD5 /* BillListingCard.swift */; };
+		A661710E2F28239600B24FD5 /* ExploreBillListing.swift in Sources */ = {isa = PBXBuildFile; fileRef = A661710D2F28239600B24FD5 /* ExploreBillListing.swift */; };
+		A66171102F2823A500B24FD5 /* BillExplorerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A661710F2F2823A500B24FD5 /* BillExplorerViewModel.swift */; };
+		A66171152F28247500B24FD5 /* BillReactionsBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171122F28247500B24FD5 /* BillReactionsBar.swift */; };
+		A66171162F28247500B24FD5 /* PercentileBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171132F28247500B24FD5 /* PercentileBar.swift */; };
+		A66171172F28247500B24FD5 /* BillListingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171112F28247500B24FD5 /* BillListingCard.swift */; };
 		A69E78142F05D397004E63B4 /* StreakService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78122F05D397004E63B4 /* StreakService.swift */; };
 		A69E78152F05D397004E63B4 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78112F05D397004E63B4 /* OpenAIService.swift */; };
 		A69E78162F05D397004E63B4 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78132F05D397004E63B4 /* WeatherService.swift */; };
@@ -632,6 +640,14 @@
 		A66170E82F26E63300B24FD5 /* GroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupDetailView.swift; sourceTree = "<group>"; };
 		A66170EA2F26EA0E00B24FD5 /* CreatePostSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostSheet.swift; sourceTree = "<group>"; };
 		A66170EC2F280C1800B24FD5 /* ReportPostSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportPostSheet.swift; sourceTree = "<group>"; };
+		A66171062F28237D00B24FD5 /* BillListingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillListingCard.swift; sourceTree = "<group>"; };
+		A66171072F28237D00B24FD5 /* BillReactionsBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillReactionsBar.swift; sourceTree = "<group>"; };
+		A66171082F28237D00B24FD5 /* PercentileBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PercentileBar.swift; sourceTree = "<group>"; };
+		A661710D2F28239600B24FD5 /* ExploreBillListing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreBillListing.swift; sourceTree = "<group>"; };
+		A661710F2F2823A500B24FD5 /* BillExplorerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillExplorerViewModel.swift; sourceTree = "<group>"; };
+		A66171112F28247500B24FD5 /* BillListingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillListingCard.swift; sourceTree = "<group>"; };
+		A66171122F28247500B24FD5 /* BillReactionsBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillReactionsBar.swift; sourceTree = "<group>"; };
+		A66171132F28247500B24FD5 /* PercentileBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PercentileBar.swift; sourceTree = "<group>"; };
 		A69E78112F05D397004E63B4 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
 		A69E78122F05D397004E63B4 /* StreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakService.swift; sourceTree = "<group>"; };
 		A69E78132F05D397004E63B4 /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
@@ -1272,6 +1288,7 @@
 		9EXP10REM0DELSGR0UP12345 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A661710D2F28239600B24FD5 /* ExploreBillListing.swift */,
 				A66170E42F26A5AF00B24FD5 /* CommunityGroup.swift */,
 				A66170DE2F25E1F300B24FD5 /* EconomyNewsModels.swift */,
 				A66170C22F25DF1F00B24FD5 /* CommunityPost.swift */,
@@ -1488,6 +1505,26 @@
 			path = Economy;
 			sourceTree = "<group>";
 		};
+		A66171092F28237D00B24FD5 /* BillExplorer */ = {
+			isa = PBXGroup;
+			children = (
+				A66171062F28237D00B24FD5 /* BillListingCard.swift */,
+				A66171072F28237D00B24FD5 /* BillReactionsBar.swift */,
+				A66171082F28237D00B24FD5 /* PercentileBar.swift */,
+			);
+			path = BillExplorer;
+			sourceTree = "<group>";
+		};
+		A66171142F28247500B24FD5 /* BillExplorer */ = {
+			isa = PBXGroup;
+			children = (
+				A66171112F28247500B24FD5 /* BillListingCard.swift */,
+				A66171122F28247500B24FD5 /* BillReactionsBar.swift */,
+				A66171132F28247500B24FD5 /* PercentileBar.swift */,
+			);
+			path = BillExplorer;
+			sourceTree = "<group>";
+		};
 		A6E5FF5D2F0B23E4009F1277 /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -1628,6 +1665,7 @@
 		A6FF81232ECEB3D3008330C9 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				A661710F2F2823A500B24FD5 /* BillExplorerViewModel.swift */,
 				A66170E02F25E20C00B24FD5 /* EconomyFeedViewModel.swift */,
 				A6E5FFB72F0DC428009F1277 /* MarketTrendsViewModel.swift */,
 				A6E5FF7E2F0C3D86009F1277 /* HousingSearchViewModel.swift */,
@@ -1645,6 +1683,8 @@
 		A6FF81282ECEB3E5008330C9 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				A66171142F28247500B24FD5 /* BillExplorer */,
+				A66171092F28237D00B24FD5 /* BillExplorer */,
 				A66170CA2F25DF5800B24FD5 /* Economy */,
 				A6E5FFBE2F0DC43D009F1277 /* MarketTrends */,
 				A6E5FF8F2F0C3D90009F1277 /* Housing */,
@@ -2516,6 +2556,9 @@
 				F9F1894E2F05F78D007CF227 /* HomePageZones.swift in Sources */,
 				A64F7F542ECBB46B005576C5 /* BillAnalysis.swift in Sources */,
 				A6E5FF7C2F0C3D74009F1277 /* HousingMockData.swift in Sources */,
+				A66171152F28247500B24FD5 /* BillReactionsBar.swift in Sources */,
+				A66171162F28247500B24FD5 /* PercentileBar.swift in Sources */,
+				A66171172F28247500B24FD5 /* BillListingCard.swift in Sources */,
 				A6E5FF7D2F0C3D74009F1277 /* HousingSearchModels.swift in Sources */,
 				F9076D582ED19DC10051E1D8 /* BillHealthSnapshot.swift in Sources */,
 				F9076D672ED19DEE0051E1D8 /* ProfileSectionCard.swift in Sources */,
@@ -2553,6 +2596,7 @@
 				A6E5FFD12F0E215C009F1277 /* LargeExploreCard.swift in Sources */,
 				A6E5FFD22F0E215C009F1277 /* ExploreSearchBar.swift in Sources */,
 				7G0UGE1NDEX12345678ABCDE /* GougeIndexView.swift in Sources */,
+				A661710E2F28239600B24FD5 /* ExploreBillListing.swift in Sources */,
 				70UTAGEBOT1234567890ABCD /* OutageBotView.swift in Sources */,
 				F9076DC22ED50D5A0051E1D8 /* OnboardingViewModel.swift in Sources */,
 				56B98B0996B208DFE01050A6 /* HealthView.swift in Sources */,
@@ -2637,6 +2681,7 @@
 				A6FF82652EDE3AD4008330C9 /* GeoGameContainerView.swift in Sources */,
 				A6FF82662EDE3AD4008330C9 /* ProgressBarView.swift in Sources */,
 				A66170D82F25E09900B24FD5 /* EconomyTabView.swift in Sources */,
+				A66171102F2823A500B24FD5 /* BillExplorerViewModel.swift in Sources */,
 				A66170D92F25E09900B24FD5 /* EconomyFeedTabView.swift in Sources */,
 				A66170DB2F25E09900B24FD5 /* AllArticlesModalView.swift in Sources */,
 				A66170DC2F25E09900B24FD5 /* EconomyNewsTabView.swift in Sources */,
@@ -2670,6 +2715,9 @@
 				16473D354B7EF3B1A7B15B25 /* MarketplaceTheme.swift in Sources */,
 				A6E5FFAF2F0C6879009F1277 /* PropertyListCard.swift in Sources */,
 				A6E5FFB52F0DC418009F1277 /* MarketTrendsMockData.swift in Sources */,
+				A661710A2F28237D00B24FD5 /* PercentileBar.swift in Sources */,
+				A661710B2F28237D00B24FD5 /* BillReactionsBar.swift in Sources */,
+				A661710C2F28237D00B24FD5 /* BillListingCard.swift in Sources */,
 				A6E5FFB62F0DC418009F1277 /* MarketTrendsModels.swift in Sources */,
 				63D72A126147271EDE056149 /* MarketplaceView.swift in Sources */,
 				A69E781D2F05D3CE004E63B4 /* BillixScoreModels.swift in Sources */,
