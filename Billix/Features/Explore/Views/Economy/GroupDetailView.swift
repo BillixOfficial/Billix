@@ -202,6 +202,19 @@ struct GroupDetailView: View {
                             onLikeTapped: { viewModel.toggleLike(for: post) },
                             onCommentTapped: { /* Future: Show comments */ },
                             onSaveTapped: { viewModel.toggleSave(for: post) },
+                            onReactionSelected: { reaction in
+                                viewModel.setReaction(for: post, reaction: reaction.stringValue)
+                            },
+                            onDeleteTapped: {
+                                Task {
+                                    _ = await viewModel.deletePost(post)
+                                }
+                            },
+                            onReportSubmitted: { reason, details in
+                                Task {
+                                    _ = await viewModel.reportPost(post, reason: reason, details: details)
+                                }
+                            },
                             showTopComment: false
                         )
                     }

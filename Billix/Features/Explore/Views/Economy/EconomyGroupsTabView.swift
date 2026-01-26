@@ -11,10 +11,9 @@ import SwiftUI
 struct EconomyGroupsTabView: View {
     @ObservedObject var viewModel: CommunityFeedViewModel
     @Binding var searchText: String
+    @ObservedObject var router: GroupsNavigationRouter  // Router survives TabView recreation
     @State private var isButtonExpanded = true
     @State private var lastOffsetY: CGFloat = 0
-    @State private var selectedGroup: CommunityGroup?
-    @State private var showGroupDetail = false
     @State private var showCreatePostSheet = false
 
     private let backgroundColor = Color(hex: "#F5F5F7")
@@ -28,6 +27,7 @@ struct EconomyGroupsTabView: View {
     }
 
     var body: some View {
+        let _ = print("[EconomyGroupsTabView] 🔄 BODY EVALUATED - router.selectedGroup: \(router.selectedGroup?.name ?? "nil")")
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 ScrollView {
@@ -79,10 +79,7 @@ struct EconomyGroupsTabView: View {
                 floatingPostButton
             }
             .navigationBarHidden(true)
-            .navigationDestination(item: $selectedGroup) { group in
-                GroupDetailView(group: group)
-                    .environmentObject(viewModel)
-            }
+            // NOTE: fullScreenCover moved to parent EconomyTabView to prevent TabView recreation interference
             .sheet(isPresented: $showCreatePostSheet) {
                 CreatePostSheet(
                     availableGroups: viewModel.groups,
@@ -122,7 +119,8 @@ struct EconomyGroupsTabView: View {
                 HStack(spacing: 12) {
                     ForEach(joinedGroups) { group in
                         Button {
-                            selectedGroup = group
+                            print("[EconomyGroupsTabView] 🎯 Joined group tapped: \(group.name)")
+                            router.navigateTo(group: group)
                         } label: {
                             joinedGroupCard(group)
                         }
@@ -191,7 +189,9 @@ struct EconomyGroupsTabView: View {
                         GroupCard(
                             group: group,
                             onCardTapped: {
-                                selectedGroup = group
+                                print("[EconomyGroupsTabView] 🎯 onCardTapped called for: \(group.name)")
+                                print("[EconomyGroupsTabView] 🎯 Using router.navigateTo()")
+                                router.navigateTo(group: group)
                             },
                             onJoinTapped: {
                                 toggleJoin(for: group)
@@ -267,7 +267,10 @@ struct GroupCard: View {
     let onJoinTapped: () -> Void
 
     var body: some View {
-        Button(action: onCardTapped) {
+        Button(action: {
+            print("[GroupCard] ⭐ TAPPED - group: \(group.name)")
+            onCardTapped()
+        }) {
             HStack(spacing: 14) {
                 // Icon
                 Circle()
@@ -326,5 +329,5 @@ struct GroupCard: View {
 // MARK: - Preview
 
 #Preview("Economy Groups Tab") {
-    EconomyGroupsTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""))
+    EconomyGroupsTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""), router: GroupsNavigationRouter())
 }

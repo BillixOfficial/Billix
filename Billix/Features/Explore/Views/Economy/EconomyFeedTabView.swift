@@ -12,6 +12,7 @@ import SwiftUI
 struct EconomyFeedTabView: View {
     @ObservedObject var viewModel: CommunityFeedViewModel
     @Binding var searchText: String
+    @ObservedObject var groupsRouter: GroupsNavigationRouter  // For navigating to groups from posts
     @State private var isButtonExpanded = true
     @State private var lastOffsetY: CGFloat = 0
     @State private var showCreatePostSheet = false
@@ -86,7 +87,26 @@ struct EconomyFeedTabView: View {
                                     post: post,
                                     onLikeTapped: { viewModel.toggleLike(for: post) },
                                     onCommentTapped: { /* Future: Show comments */ },
-                                    onSaveTapped: { viewModel.toggleSave(for: post) }
+                                    onSaveTapped: { viewModel.toggleSave(for: post) },
+                                    onReactionSelected: { reaction in
+                                        viewModel.setReaction(for: post, reaction: reaction.stringValue)
+                                    },
+                                    onGroupTapped: { groupId in
+                                        // Find the group and navigate to it
+                                        if let group = viewModel.groups.first(where: { $0.id == groupId }) {
+                                            groupsRouter.navigateTo(group: group)
+                                        }
+                                    },
+                                    onDeleteTapped: {
+                                        Task {
+                                            _ = await viewModel.deletePost(post)
+                                        }
+                                    },
+                                    onReportSubmitted: { reason, details in
+                                        Task {
+                                            _ = await viewModel.reportPost(post, reason: reason, details: details)
+                                        }
+                                    }
                                 )
                             }
                         }
@@ -247,5 +267,5 @@ enum CommunityFeedFilter: String, CaseIterable {
 // MARK: - Preview
 
 #Preview("Economy Feed Tab") {
-    EconomyFeedTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""))
+    EconomyFeedTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""), groupsRouter: GroupsNavigationRouter())
 }

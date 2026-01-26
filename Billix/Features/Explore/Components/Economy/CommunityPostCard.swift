@@ -36,6 +36,29 @@ enum PostReaction: String, CaseIterable {
         case .clap: return "Applause"
         }
     }
+
+    /// String identifier for backend storage (must match database enum values)
+    var stringValue: String {
+        switch self {
+        case .heart: return "heart"
+        case .thumbsUp: return "thumbsup"  // Database uses lowercase
+        case .lightbulb: return "lightbulb"
+        case .fire: return "fire"
+        case .clap: return "clap"
+        }
+    }
+
+    /// Convert from backend string to PostReaction
+    static func fromString(_ string: String) -> PostReaction? {
+        switch string.lowercased() {
+        case "heart", "love": return .heart
+        case "thumbsup", "like": return .thumbsUp
+        case "lightbulb", "insightful": return .lightbulb
+        case "fire": return .fire
+        case "clap", "applause": return .clap
+        default: return nil
+        }
+    }
 }
 
 struct CommunityPostCard: View {
@@ -44,12 +67,36 @@ struct CommunityPostCard: View {
     let onCommentTapped: () -> Void
     let onSaveTapped: () -> Void
     var onReactionSelected: ((PostReaction) -> Void)?
+    var onGroupTapped: ((UUID) -> Void)?  // Called when "Posted in [Group]" is tapped
+    var onDeleteTapped: (() -> Void)?  // Called when delete is tapped (only for own posts)
+    var onReportSubmitted: ((String, String?) -> Void)?  // Called when report is submitted (reason, details)
     var showTopComment: Bool = true
 
     @State private var isExpanded = false
     @State private var showReactions = false
     @State private var isPressed = false
-    @State private var selectedReaction: PostReaction? = nil
+    @State private var selectedReaction: PostReaction?
+    @State private var showDeleteConfirmation = false
+    @State private var showReportSheet = false
+
+    // Initialize selectedReaction from post's stored reaction
+    init(post: CommunityPost, onLikeTapped: @escaping () -> Void, onCommentTapped: @escaping () -> Void, onSaveTapped: @escaping () -> Void, onReactionSelected: ((PostReaction) -> Void)? = nil, onGroupTapped: ((UUID) -> Void)? = nil, onDeleteTapped: (() -> Void)? = nil, onReportSubmitted: ((String, String?) -> Void)? = nil, showTopComment: Bool = true) {
+        self.post = post
+        self.onLikeTapped = onLikeTapped
+        self.onCommentTapped = onCommentTapped
+        self.onSaveTapped = onSaveTapped
+        self.onReactionSelected = onReactionSelected
+        self.onGroupTapped = onGroupTapped
+        self.onDeleteTapped = onDeleteTapped
+        self.onReportSubmitted = onReportSubmitted
+        self.showTopComment = showTopComment
+        // Initialize selectedReaction from post's userReaction
+        if let reactionString = post.userReaction {
+            _selectedReaction = State(initialValue: PostReaction.fromString(reactionString))
+        } else {
+            _selectedReaction = State(initialValue: nil)
+        }
+    }
 
     // Design colors
     private let cardBackground = Color.white
@@ -77,18 +124,40 @@ struct CommunityPostCard: View {
         VStack(alignment: .leading, spacing: 0) {
             // Main Post Card
             VStack(alignment: .leading, spacing: 0) {
-                // Group indicator (if post belongs to a group)
-                if let groupName = post.groupName {
-                    HStack(spacing: 5) {
-                        Image(systemName: "person.3.fill")
-                            .font(.system(size: 11))
-                        Text("Posted in \(groupName)")
-                            .font(.system(size: 13, weight: .medium))
+                // Group indicator (if post belongs to a group) - tappable to navigate when handler provided
+                if let groupName = post.groupName, let groupId = post.groupId {
+                    if let onGroupTapped = onGroupTapped {
+                        // Tappable version with chevron
+                        Button {
+                            onGroupTapped(groupId)
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "person.3.fill")
+                                    .font(.system(size: 11))
+                                Text("Posted in \(groupName)")
+                                    .font(.system(size: 13, weight: .medium))
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 10, weight: .semibold))
+                            }
+                            .foregroundColor(Color.billixDarkTeal)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 4)
+                    } else {
+                        // Static version (no navigation) - e.g., when viewing within GroupDetailView
+                        HStack(spacing: 5) {
+                            Image(systemName: "person.3.fill")
+                                .font(.system(size: 11))
+                            Text("Posted in \(groupName)")
+                                .font(.system(size: 13, weight: .medium))
+                        }
+                        .foregroundColor(Color.billixDarkTeal)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 4)
                     }
-                    .foregroundColor(Color.billixDarkTeal)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-                    .padding(.bottom, 4)
                 }
 
                 // Author Row
@@ -136,6 +205,28 @@ struct CommunityPostCard: View {
         .shadow(color: .black.opacity(0.02), radius: 2, x: 0, y: 1)
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        // Sync selectedReaction when post data changes (e.g., after reload from database)
+        .onChange(of: post.userReaction) { oldValue, newValue in
+            let newReaction = newValue.flatMap { PostReaction.fromString($0) }
+            if selectedReaction != newReaction {
+                selectedReaction = newReaction
+            }
+        }
+        // Delete confirmation dialog
+        .alert("Delete Post?", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDeleteTapped?()
+            }
+        } message: {
+            Text("This post will be permanently deleted. This action cannot be undone.")
+        }
+        // Report sheet
+        .sheet(isPresented: $showReportSheet) {
+            ReportPostSheet(post: post) { reason, details in
+                onReportSubmitted?(reason.rawValue, details)
+            }
+        }
     }
 
     // MARK: - Top Comment View
@@ -266,15 +357,27 @@ struct CommunityPostCard: View {
 
             // More Menu
             Menu {
+                // Save/Unsave
                 Button(action: { onSaveTapped() }) {
                     Label(post.isSaved ? "Unsave Post" : "Save Post", systemImage: post.isSaved ? "bookmark.fill" : "bookmark")
                 }
-                Button(action: {}) {
-                    Label("Follow \(post.authorName.components(separatedBy: " ").first ?? "")", systemImage: "person.badge.plus")
-                }
+
                 Divider()
-                Button(role: .destructive, action: {}) {
+
+                // Report
+                Button(role: .destructive, action: {
+                    showReportSheet = true
+                }) {
                     Label("Report", systemImage: "flag")
+                }
+
+                // Delete (only for own posts)
+                if post.isOwnPost {
+                    Button(role: .destructive, action: {
+                        showDeleteConfirmation = true
+                    }) {
+                        Label("Delete Post", systemImage: "trash")
+                    }
                 }
             } label: {
                 Image(systemName: "ellipsis")
@@ -332,19 +435,25 @@ struct CommunityPostCard: View {
 
     private var engagementStatsBar: some View {
         HStack(spacing: 0) {
-            // Reaction indicators
-            if post.likeCount > 0 {
+            // Reaction indicators - show user's reaction if they have one, otherwise default
+            if post.likeCount > 0 || selectedReaction != nil {
                 HStack(spacing: -4) {
-                    reactionBubble(icon: "heart.fill", color: Color(hex: "#EF4444"))
-                    if post.likeCount > 5 {
+                    // Show user's selected reaction first (if any), otherwise show heart
+                    if let reaction = selectedReaction {
+                        reactionBubble(icon: reaction.rawValue, color: reaction.color)
+                    } else if post.likeCount > 0 {
+                        reactionBubble(icon: "heart.fill", color: Color(hex: "#EF4444"))
+                    }
+                    // Show additional reaction types for popular posts
+                    if post.likeCount > 5 && selectedReaction != .thumbsUp {
                         reactionBubble(icon: "hand.thumbsup.fill", color: Color.billixDarkTeal)
                     }
-                    if post.likeCount > 20 {
+                    if post.likeCount > 20 && selectedReaction != .lightbulb {
                         reactionBubble(icon: "lightbulb.fill", color: Color.billixGoldenAmber)
                     }
                 }
 
-                Text("\(post.likeCount)")
+                Text("\(max(post.likeCount, selectedReaction != nil ? 1 : 0))")
                     .font(.system(size: 13))
                     .foregroundColor(metadataGrey)
                     .padding(.leading, 6)
@@ -486,20 +595,30 @@ struct CommunityPostCard: View {
     }
 
     private func selectReaction(_ reaction: PostReaction) {
+        print("[CommunityPostCard] 🎨 selectReaction called - reaction: \(reaction.label), current: \(selectedReaction?.label ?? "none")")
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
         impactFeedback.impactOccurred()
 
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             if selectedReaction == reaction {
+                // Tapping same reaction = remove it
+                print("[CommunityPostCard] 🎨 Same reaction tapped - removing")
                 selectedReaction = nil
+                onLikeTapped() // This will remove the reaction
             } else {
+                print("[CommunityPostCard] 🎨 New reaction selected: \(reaction.label)")
                 selectedReaction = reaction
+                // Use onReactionSelected if available, otherwise fall back to onLikeTapped
+                if let onReactionSelected = onReactionSelected {
+                    print("[CommunityPostCard] 🎨 Calling onReactionSelected")
+                    onReactionSelected(reaction)
+                } else if !post.isLiked {
+                    print("[CommunityPostCard] 🎨 Falling back to onLikeTapped")
+                    onLikeTapped()
+                }
             }
             showReactions = false
-        }
-        onReactionSelected?(reaction)
-        if !post.isLiked {
-            onLikeTapped()
+            print("[CommunityPostCard] 🎨 selectReaction DONE")
         }
     }
 

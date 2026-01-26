@@ -17,6 +17,7 @@ enum EconomyTab: String, CaseIterable {
 struct EconomyTabView: View {
     @StateObject private var newsViewModel = EconomyFeedViewModel()
     @StateObject private var communityViewModel = CommunityFeedViewModel()
+    @StateObject private var groupsRouter = GroupsNavigationRouter()  // Router survives view recreation
     @State private var selectedTab: EconomyTab = .feed
     @State private var showProfileSheet = false
     @State private var isSearching = false
@@ -54,10 +55,14 @@ struct EconomyTabView: View {
 
             // Tab Content
             TabView(selection: $selectedTab) {
-                EconomyFeedTabView(viewModel: communityViewModel, searchText: $searchText)
+                EconomyFeedTabView(viewModel: communityViewModel, searchText: $searchText, groupsRouter: groupsRouter)
                     .tag(EconomyTab.feed)
 
-                EconomyGroupsTabView(viewModel: communityViewModel, searchText: $searchText)
+                EconomyGroupsTabView(
+                    viewModel: communityViewModel,
+                    searchText: $searchText,
+                    router: groupsRouter
+                )
                     .tag(EconomyTab.groups)
 
                 EconomyNewsTabView(viewModel: newsViewModel, searchText: $searchText)
@@ -71,6 +76,30 @@ struct EconomyTabView: View {
         .onChange(of: selectedTab) { _, _ in
             // Clear search when switching tabs
             searchText = ""
+        }
+        // IMPORTANT: fullScreenCover moved here from EconomyGroupsTabView
+        // This prevents TabView recreation from interfering with presentation
+        .fullScreenCover(item: $groupsRouter.selectedGroup) { (group: CommunityGroup) in
+            NavigationStack {
+                GroupDetailView(group: group)
+                    .environmentObject(communityViewModel)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button {
+                                print("[EconomyTabView] 🔙 Back button tapped")
+                                groupsRouter.selectedGroup = nil
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "chevron.left")
+                                    Text("Groups")
+                                }
+                            }
+                        }
+                    }
+            }
+        }
+        .onChange(of: groupsRouter.selectedGroup) { oldValue, newValue in
+            print("[EconomyTabView] 📍 groupsRouter.selectedGroup CHANGED: \(oldValue?.name ?? "nil") → \(newValue?.name ?? "nil")")
         }
     }
 

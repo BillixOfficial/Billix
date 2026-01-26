@@ -60,6 +60,8 @@ struct CommunityPost: Identifiable {
     var isTrending: Bool
     var topComment: CommunityComment?  // Featured comment to show below post
     var isSaved: Bool  // Whether the current user has saved/bookmarked this post
+    var userReaction: String?  // The current user's reaction type (e.g., "heart", "fire", "thumbsUp")
+    var isOwnPost: Bool  // Whether the current user is the author of this post
 
     init(
         id: UUID = UUID(),
@@ -77,7 +79,9 @@ struct CommunityPost: Identifiable {
         isLiked: Bool = false,
         isTrending: Bool = false,
         topComment: CommunityComment? = nil,
-        isSaved: Bool = false
+        isSaved: Bool = false,
+        userReaction: String? = nil,
+        isOwnPost: Bool = false
     ) {
         self.id = id
         self.authorName = authorName
@@ -95,6 +99,8 @@ struct CommunityPost: Identifiable {
         self.isTrending = isTrending
         self.topComment = topComment
         self.isSaved = isSaved
+        self.userReaction = userReaction
+        self.isOwnPost = isOwnPost
     }
 }
 
