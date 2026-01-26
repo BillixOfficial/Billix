@@ -1,67 +1,213 @@
+//
+//  BillsExploreView.swift
+//  Billix
+//
+//  Updated by Claude Code on 1/26/26.
+//  Bill Explorer feed with bill listings and filters
+//
+
 import SwiftUI
 
-/// Bills Explorer - Coming Soon placeholder
 struct BillsExploreView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel = BillExplorerViewModel()
+
+    private let backgroundColor = Color(hex: "#F5F5F7")
 
     var body: some View {
         ZStack {
             // Background
-            Color.billixCreamBeige.opacity(0.3)
+            backgroundColor
                 .ignoresSafeArea()
 
-            VStack(spacing: 32) {
-                Spacer()
+            VStack(spacing: 0) {
+                // Filter chips
+                filterChipsRow
+                    .padding(.top, 8)
+                    .padding(.bottom, 12)
 
-                // Icon
-                Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 80))
-                    .foregroundColor(Color.billixDarkTeal.opacity(0.6))
-
-                // Text
-                VStack(spacing: 12) {
-                    Text("Coming Soon")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(Color(hex: "#1A1A1A"))
-
-                    Text("Bill Explorer is under development.\nStay tuned for updates!")
-                        .font(.system(size: 16))
-                        .foregroundColor(Color(hex: "#6B7280"))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
+                // Content
+                if viewModel.isLoading {
+                    loadingView
+                } else if viewModel.filteredListings.isEmpty {
+                    emptyStateView
+                } else {
+                    feedContent
                 }
-
-                Spacer()
             }
-            .padding(.horizontal, 40)
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text("Back")
-                            .font(.system(size: 17))
+                backButton
+            }
+
+            ToolbarItem(placement: .principal) {
+                Text("Bill Explorer")
+                    .font(.system(size: 17, weight: .semibold))
+            }
+        }
+        .refreshable {
+            await viewModel.refresh()
+        }
+    }
+
+    // MARK: - Back Button
+
+    private var backButton: some View {
+        Button {
+            dismiss()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Back")
+                    .font(.system(size: 17))
+            }
+            .foregroundColor(Color(hex: "#1A1A1A"))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color.white)
+            .clipShape(Capsule())
+            .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+        }
+    }
+
+    // MARK: - Filter Chips Row
+
+    private var filterChipsRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                // "All" chip
+                filterChip(
+                    icon: "square.grid.2x2",
+                    label: "All",
+                    isSelected: viewModel.selectedBillType == nil,
+                    color: "#6B7280"
+                ) {
+                    viewModel.selectBillType(nil)
+                }
+
+                // Bill type chips
+                ForEach(viewModel.billTypes) { billType in
+                    filterChip(
+                        icon: billType.icon,
+                        label: billType.rawValue,
+                        isSelected: viewModel.selectedBillType == billType,
+                        color: billType.color
+                    ) {
+                        viewModel.selectBillType(billType)
                     }
-                    .foregroundColor(Color(hex: "#1A1A1A"))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.white)
-                    .clipShape(Capsule())
-                    .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func filterChip(icon: String, label: String, isSelected: Bool, color: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .semibold))
+                Text(label)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .foregroundColor(isSelected ? .white : Color(hex: color))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(
+                isSelected ?
+                Color(hex: color) :
+                Color.white
+            )
+            .clipShape(Capsule())
+            .shadow(
+                color: isSelected ? Color(hex: color).opacity(0.3) : .black.opacity(0.05),
+                radius: isSelected ? 8 : 4,
+                x: 0,
+                y: isSelected ? 4 : 2
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Feed Content
+
+    private var feedContent: some View {
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                ForEach(viewModel.filteredListings) { listing in
+                    BillListingCard(
+                        listing: listing,
+                        onReactionTapped: { reaction in
+                            viewModel.toggleReaction(for: listing.id, reaction: reaction)
+                        },
+                        onCommentTapped: {
+                            // Phase 2: Comments
+                            print("Comments tapped for listing \(listing.id)")
+                        }
+                    )
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 20)
+        }
+    }
+
+    // MARK: - Loading View
+
+    private var loadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.2)
+                .tint(Color.billixDarkTeal)
+
+            Text("Loading bills...")
+                .font(.system(size: 15))
+                .foregroundColor(Color(hex: "#6B7280"))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Empty State
+
+    private var emptyStateView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "doc.text.magnifyingglass")
+                .font(.system(size: 60))
+                .foregroundColor(Color(hex: "#D1D5DB"))
+
+            VStack(spacing: 8) {
+                Text("No bills found")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hex: "#374151"))
+
+                Text("Try selecting a different category")
+                    .font(.system(size: 15))
+                    .foregroundColor(Color(hex: "#6B7280"))
+            }
+
+            if viewModel.selectedBillType != nil {
+                Button {
+                    viewModel.selectBillType(nil)
+                } label: {
+                    Text("Show All Bills")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(Color.billixDarkTeal)
+                        .clipShape(Capsule())
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 // MARK: - Preview
 
-#Preview {
+#Preview("Bill Explorer") {
     NavigationStack {
         BillsExploreView()
     }
