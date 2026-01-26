@@ -13,7 +13,7 @@ struct CommunityGroup: Identifiable, Hashable {
     let name: String
     let description: String
     let icon: String // SF Symbol
-    let memberCount: Int
+    var memberCount: Int  // Mutable for optimistic updates
     let postCount: Int
     let color: String // Hex color
     var isJoined: Bool

@@ -9,8 +9,8 @@
 import SwiftUI
 
 struct EconomyGroupsTabView: View {
+    @ObservedObject var viewModel: CommunityFeedViewModel
     @Binding var searchText: String
-    @State private var groups: [CommunityGroup] = CommunityGroup.mockGroups
     @State private var isButtonExpanded = true
     @State private var lastOffsetY: CGFloat = 0
     @State private var selectedGroup: CommunityGroup?
@@ -20,17 +20,11 @@ struct EconomyGroupsTabView: View {
     private let backgroundColor = Color(hex: "#F5F5F7")
 
     var filteredGroups: [CommunityGroup] {
-        if searchText.isEmpty {
-            return groups
-        }
-        return groups.filter {
-            $0.name.localizedCaseInsensitiveContains(searchText) ||
-            $0.description.localizedCaseInsensitiveContains(searchText)
-        }
+        viewModel.filteredGroups(searchText: searchText)
     }
 
     var joinedGroups: [CommunityGroup] {
-        groups.filter { $0.isJoined }
+        viewModel.joinedGroups
     }
 
     var body: some View {
@@ -87,14 +81,21 @@ struct EconomyGroupsTabView: View {
             .navigationBarHidden(true)
             .navigationDestination(item: $selectedGroup) { group in
                 GroupDetailView(group: group)
+                    .environmentObject(viewModel)
             }
             .sheet(isPresented: $showCreatePostSheet) {
                 CreatePostSheet(
-                    availableGroups: groups,
+                    availableGroups: viewModel.groups,
                     preselectedGroup: nil
                 ) { content, topic, group in
                     // Post created - would be added to feed
                     print("Posted to groups: \(content)")
+                }
+            }
+            .task {
+                // Load groups if not already loaded (might be loaded by Feed tab)
+                if viewModel.groups.isEmpty {
+                    await viewModel.loadGroups()
                 }
             }
         }
@@ -252,10 +253,8 @@ struct EconomyGroupsTabView: View {
     // MARK: - Actions
 
     private func toggleJoin(for group: CommunityGroup) {
-        if let index = groups.firstIndex(where: { $0.id == group.id }) {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                groups[index].isJoined.toggle()
-            }
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            viewModel.toggleJoin(for: group)
         }
     }
 }
@@ -327,5 +326,5 @@ struct GroupCard: View {
 // MARK: - Preview
 
 #Preview("Economy Groups Tab") {
-    EconomyGroupsTabView(searchText: .constant(""))
+    EconomyGroupsTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""))
 }

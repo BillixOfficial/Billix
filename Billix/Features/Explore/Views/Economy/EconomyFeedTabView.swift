@@ -10,10 +10,8 @@
 import SwiftUI
 
 struct EconomyFeedTabView: View {
+    @ObservedObject var viewModel: CommunityFeedViewModel
     @Binding var searchText: String
-    @State private var posts: [CommunityPost] = CommunityPost.mockPosts
-    @State private var selectedFilter: CommunityFeedFilter = .recent
-    @State private var isRefreshing = false
     @State private var isButtonExpanded = true
     @State private var lastOffsetY: CGFloat = 0
     @State private var showCreatePostSheet = false
@@ -21,28 +19,7 @@ struct EconomyFeedTabView: View {
     private let backgroundColor = Color(hex: "#F5F5F7")
 
     var filteredPosts: [CommunityPost] {
-        var result: [CommunityPost]
-        switch selectedFilter {
-        case .myPosts:
-            // In future: filter by current user's posts
-            result = [] // Empty for now since user hasn't posted yet
-        case .recent:
-            result = posts
-        case .saved:
-            // In future: filter by saved/bookmarked posts
-            result = [] // Empty for now since user hasn't saved any posts yet
-        }
-
-        // Apply search filter
-        if !searchText.isEmpty {
-            result = result.filter {
-                $0.content.localizedCaseInsensitiveContains(searchText) ||
-                $0.authorName.localizedCaseInsensitiveContains(searchText) ||
-                ($0.topic ?? "").localizedCaseInsensitiveContains(searchText)
-            }
-        }
-
-        return result
+        viewModel.filteredPosts(searchText: searchText)
     }
 
     var body: some View {
@@ -81,13 +58,16 @@ struct EconomyFeedTabView: View {
 
                     // Posts Section Header
                     HStack {
-                        Text(selectedFilter.rawValue)
+                        Text(viewModel.selectedFilter.rawValue)
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(Color(hex: "#1A1A1A"))
 
                         Spacer()
 
-                        if !filteredPosts.isEmpty {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else if !filteredPosts.isEmpty {
                             Text("\(filteredPosts.count) posts")
                                 .font(.system(size: 13))
                                 .foregroundColor(Color(hex: "#6B7280"))
@@ -97,16 +77,16 @@ struct EconomyFeedTabView: View {
                     .padding(.bottom, 12)
 
                     // Posts
-                    if filteredPosts.isEmpty {
+                    if filteredPosts.isEmpty && !viewModel.isLoading {
                         emptyStateView
                     } else {
                         LazyVStack(spacing: 12) {
                             ForEach(filteredPosts) { post in
                                 CommunityPostCard(
                                     post: post,
-                                    onLikeTapped: { toggleLike(for: post) },
+                                    onLikeTapped: { viewModel.toggleLike(for: post) },
                                     onCommentTapped: { /* Future: Show comments */ },
-                                    onSaveTapped: { /* Future: Save post */ }
+                                    onSaveTapped: { viewModel.toggleSave(for: post) }
                                 )
                             }
                         }
@@ -120,7 +100,7 @@ struct EconomyFeedTabView: View {
             }
             .background(backgroundColor)
             .refreshable {
-                await refreshPosts()
+                await viewModel.refreshPosts()
             }
 
             // Floating Post Button
@@ -128,24 +108,16 @@ struct EconomyFeedTabView: View {
         }
         .sheet(isPresented: $showCreatePostSheet) {
             CreatePostSheet(
-                availableGroups: CommunityGroup.mockGroups,
+                availableGroups: viewModel.groups,
                 preselectedGroup: nil
             ) { content, topic, group in
-                // Create new post and add to feed
-                let newPost = CommunityPost(
-                    authorName: "You",
-                    authorUsername: "@you",
-                    authorRole: "Member",
-                    content: content,
-                    topic: topic.rawValue,
-                    timestamp: Date(),
-                    likeCount: 0,
-                    commentCount: 0,
-                    isLiked: false,
-                    isTrending: false
-                )
-                posts.insert(newPost, at: 0)
+                Task {
+                    _ = await viewModel.createPost(content: content, topic: topic, groupId: group?.id)
+                }
             }
+        }
+        .task {
+            await viewModel.loadPosts()
         }
     }
 
@@ -188,9 +160,11 @@ struct EconomyFeedTabView: View {
     }
 
     private func filterChip(_ filter: CommunityFeedFilter) -> some View {
-        Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                selectedFilter = filter
+        let isSelected = viewModel.selectedFilter == filter
+
+        return Button {
+            Task {
+                await viewModel.setFilter(filter)
             }
         } label: {
             HStack(spacing: 6) {
@@ -200,12 +174,12 @@ struct EconomyFeedTabView: View {
                 Text(filter.rawValue)
                     .font(.system(size: 14, weight: .semibold))
             }
-            .foregroundColor(selectedFilter == filter ? .white : Color(hex: "#4B5563"))
+            .foregroundColor(isSelected ? .white : Color(hex: "#4B5563"))
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
             .background(
                 Group {
-                    if selectedFilter == filter {
+                    if isSelected {
                         LinearGradient(
                             colors: [Color.billixDarkTeal, Color.billixDarkTeal.opacity(0.85)],
                             startPoint: .topLeading,
@@ -217,10 +191,10 @@ struct EconomyFeedTabView: View {
                 }
             )
             .clipShape(Capsule())
-            .shadow(color: selectedFilter == filter ? Color.billixDarkTeal.opacity(0.3) : .black.opacity(0.05),
-                    radius: selectedFilter == filter ? 8 : 4,
+            .shadow(color: isSelected ? Color.billixDarkTeal.opacity(0.3) : .black.opacity(0.05),
+                    radius: isSelected ? 8 : 4,
                     x: 0,
-                    y: selectedFilter == filter ? 4 : 2)
+                    y: isSelected ? 4 : 2)
         }
         .buttonStyle(.plain)
     }
@@ -229,11 +203,11 @@ struct EconomyFeedTabView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: 16) {
-            Image(systemName: selectedFilter.emptyIcon)
+            Image(systemName: viewModel.selectedFilter.emptyIcon)
                 .font(.system(size: 48))
                 .foregroundColor(Color(hex: "#D1D5DB"))
 
-            Text("No \(selectedFilter.rawValue.lowercased()) yet")
+            Text("No \(viewModel.selectedFilter.rawValue.lowercased()) yet")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(Color(hex: "#374151"))
 
@@ -243,28 +217,6 @@ struct EconomyFeedTabView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 60)
-    }
-
-    // MARK: - Actions
-
-    private func toggleLike(for post: CommunityPost) {
-        if let index = posts.firstIndex(where: { $0.id == post.id }) {
-            posts[index].isLiked.toggle()
-            if posts[index].isLiked {
-                posts[index].likeCount += 1
-            } else {
-                posts[index].likeCount -= 1
-            }
-        }
-    }
-
-    private func refreshPosts() async {
-        isRefreshing = true
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-        // In future: Fetch from API
-        posts = CommunityPost.mockPosts
-        isRefreshing = false
     }
 }
 
@@ -295,5 +247,5 @@ enum CommunityFeedFilter: String, CaseIterable {
 // MARK: - Preview
 
 #Preview("Economy Feed Tab") {
-    EconomyFeedTabView(searchText: .constant(""))
+    EconomyFeedTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""))
 }

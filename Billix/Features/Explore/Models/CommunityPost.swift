@@ -51,12 +51,15 @@ struct CommunityPost: Identifiable {
     let authorAvatar: String?
     let content: String
     let topic: String?  // e.g., "Savings", "Tips", "Bills", "Question", "Milestone"
+    let groupId: UUID?  // The group this post belongs to (nil = General Feed)
+    let groupName: String?  // Display name of the group (e.g., "Renters", "Bill Hacks")
     let timestamp: Date
     var likeCount: Int
     var commentCount: Int
     var isLiked: Bool
     var isTrending: Bool
     var topComment: CommunityComment?  // Featured comment to show below post
+    var isSaved: Bool  // Whether the current user has saved/bookmarked this post
 
     init(
         id: UUID = UUID(),
@@ -66,12 +69,15 @@ struct CommunityPost: Identifiable {
         authorAvatar: String? = nil,
         content: String,
         topic: String? = nil,
+        groupId: UUID? = nil,
+        groupName: String? = nil,
         timestamp: Date,
         likeCount: Int = 0,
         commentCount: Int = 0,
         isLiked: Bool = false,
         isTrending: Bool = false,
-        topComment: CommunityComment? = nil
+        topComment: CommunityComment? = nil,
+        isSaved: Bool = false
     ) {
         self.id = id
         self.authorName = authorName
@@ -80,12 +86,15 @@ struct CommunityPost: Identifiable {
         self.authorAvatar = authorAvatar
         self.content = content
         self.topic = topic
+        self.groupId = groupId
+        self.groupName = groupName
         self.timestamp = timestamp
         self.likeCount = likeCount
         self.commentCount = commentCount
         self.isLiked = isLiked
         self.isTrending = isTrending
         self.topComment = topComment
+        self.isSaved = isSaved
     }
 }
 

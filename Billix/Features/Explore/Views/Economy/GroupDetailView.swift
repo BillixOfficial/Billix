@@ -11,13 +11,18 @@ import SwiftUI
 struct GroupDetailView: View {
     let group: CommunityGroup
     @Environment(\.dismiss) private var dismiss
-    @State private var posts: [CommunityPost] = CommunityPost.mockPosts
+    @EnvironmentObject var viewModel: CommunityFeedViewModel
     @State private var isButtonExpanded = true
     @State private var lastOffsetY: CGFloat = 0
     @State private var isJoined: Bool
     @State private var showCreatePostSheet = false
 
     private let backgroundColor = Color(hex: "#F5F5F7")
+
+    // Computed property to get posts for this group from shared ViewModel
+    var posts: [CommunityPost] {
+        viewModel.groupPosts[group.id] ?? []
+    }
 
     init(group: CommunityGroup) {
         self.group = group
@@ -88,21 +93,14 @@ struct GroupDetailView: View {
                 availableGroups: [group],
                 preselectedGroup: group
             ) { content, topic, _ in
-                // Create new post and add to group feed
-                let newPost = CommunityPost(
-                    authorName: "You",
-                    authorUsername: "@you",
-                    authorRole: "Member",
-                    content: content,
-                    topic: topic.rawValue,
-                    timestamp: Date(),
-                    likeCount: 0,
-                    commentCount: 0,
-                    isLiked: false,
-                    isTrending: false
-                )
-                posts.insert(newPost, at: 0)
+                // Create post via shared viewModel (syncs across views)
+                Task {
+                    _ = await viewModel.createPost(content: content, topic: topic, groupId: group.id)
+                }
             }
+        }
+        .task {
+            await viewModel.loadGroupPosts(for: group.id)
         }
     }
 
@@ -144,6 +142,19 @@ struct GroupDetailView: View {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     isJoined.toggle()
                 }
+                // Sync with backend
+                Task {
+                    do {
+                        if isJoined {
+                            try await CommunityService.shared.joinGroup(id: group.id)
+                        } else {
+                            try await CommunityService.shared.leaveGroup(id: group.id)
+                        }
+                    } catch {
+                        // Revert on failure
+                        isJoined.toggle()
+                    }
+                }
             } label: {
                 Text(isJoined ? "Joined" : "Join Group")
                     .font(.system(size: 16, weight: .semibold))
@@ -177,16 +188,20 @@ struct GroupDetailView: View {
             .padding(.horizontal, 16)
 
             // Posts List
-            if posts.isEmpty {
+            if viewModel.isLoadingGroupPosts {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+            } else if posts.isEmpty {
                 emptyPostsView
             } else {
                 LazyVStack(spacing: 12) {
                     ForEach(posts) { post in
                         CommunityPostCard(
                             post: post,
-                            onLikeTapped: { toggleLike(for: post) },
+                            onLikeTapped: { viewModel.toggleLike(for: post) },
                             onCommentTapped: { /* Future: Show comments */ },
-                            onSaveTapped: { /* Future: Save post */ },
+                            onSaveTapped: { viewModel.toggleSave(for: post) },
                             showTopComment: false
                         )
                     }
@@ -242,18 +257,6 @@ struct GroupDetailView: View {
         .padding(.bottom, 70)
     }
 
-    // MARK: - Actions
-
-    private func toggleLike(for post: CommunityPost) {
-        if let index = posts.firstIndex(where: { $0.id == post.id }) {
-            posts[index].isLiked.toggle()
-            if posts[index].isLiked {
-                posts[index].likeCount += 1
-            } else {
-                posts[index].likeCount -= 1
-            }
-        }
-    }
 }
 
 // MARK: - Preview
@@ -261,5 +264,6 @@ struct GroupDetailView: View {
 #Preview("Group Detail View") {
     NavigationStack {
         GroupDetailView(group: CommunityGroup.mockGroups[0])
+            .environmentObject(CommunityFeedViewModel())
     }
 }

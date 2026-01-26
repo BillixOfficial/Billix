@@ -77,10 +77,24 @@ struct CommunityPostCard: View {
         VStack(alignment: .leading, spacing: 0) {
             // Main Post Card
             VStack(alignment: .leading, spacing: 0) {
+                // Group indicator (if post belongs to a group)
+                if let groupName = post.groupName {
+                    HStack(spacing: 5) {
+                        Image(systemName: "person.3.fill")
+                            .font(.system(size: 11))
+                        Text("Posted in \(groupName)")
+                            .font(.system(size: 13, weight: .medium))
+                    }
+                    .foregroundColor(Color.billixDarkTeal)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 4)
+                }
+
                 // Author Row
                 authorSection
                     .padding(.horizontal, 16)
-                    .padding(.top, 16)
+                    .padding(.top, post.groupName == nil ? 16 : 8)
                     .padding(.bottom, 12)
 
                 // Topic Tag (if applicable)
@@ -252,8 +266,8 @@ struct CommunityPostCard: View {
 
             // More Menu
             Menu {
-                Button(action: {}) {
-                    Label("Save Post", systemImage: "bookmark")
+                Button(action: { onSaveTapped() }) {
+                    Label(post.isSaved ? "Unsave Post" : "Save Post", systemImage: post.isSaved ? "bookmark.fill" : "bookmark")
                 }
                 Button(action: {}) {
                     Label("Follow \(post.authorName.components(separatedBy: " ").first ?? "")", systemImage: "person.badge.plus")
@@ -382,10 +396,13 @@ struct CommunityPostCard: View {
 
                 // Save Button
                 actionButton(
-                    icon: "bookmark",
+                    icon: post.isSaved ? "bookmark.fill" : "bookmark",
                     label: "Save",
-                    color: metadataGrey,
-                    action: onSaveTapped
+                    color: post.isSaved ? Color.billixGoldenAmber : metadataGrey,
+                    action: {
+                        print("[CommunityPostCard] Save tapped - post: \(post.id), currently saved: \(post.isSaved)")
+                        onSaveTapped()
+                    }
                 )
             }
 

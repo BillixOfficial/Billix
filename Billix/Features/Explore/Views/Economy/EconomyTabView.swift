@@ -15,7 +15,8 @@ enum EconomyTab: String, CaseIterable {
 }
 
 struct EconomyTabView: View {
-    @StateObject private var viewModel = EconomyFeedViewModel()
+    @StateObject private var newsViewModel = EconomyFeedViewModel()
+    @StateObject private var communityViewModel = CommunityFeedViewModel()
     @State private var selectedTab: EconomyTab = .feed
     @State private var showProfileSheet = false
     @State private var isSearching = false
@@ -53,19 +54,20 @@ struct EconomyTabView: View {
 
             // Tab Content
             TabView(selection: $selectedTab) {
-                EconomyFeedTabView(searchText: $searchText)
+                EconomyFeedTabView(viewModel: communityViewModel, searchText: $searchText)
                     .tag(EconomyTab.feed)
 
-                EconomyGroupsTabView(searchText: $searchText)
+                EconomyGroupsTabView(viewModel: communityViewModel, searchText: $searchText)
                     .tag(EconomyTab.groups)
 
-                EconomyNewsTabView(viewModel: viewModel, searchText: $searchText)
+                EconomyNewsTabView(viewModel: newsViewModel, searchText: $searchText)
                     .tag(EconomyTab.news)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeInOut(duration: 0.3), value: selectedTab)
         }
         .background(Color.white)
+        .environmentObject(communityViewModel)
         .onChange(of: selectedTab) { _, _ in
             // Clear search when switching tabs
             searchText = ""
@@ -86,18 +88,18 @@ struct EconomyTabView: View {
                         .fill(accentBlue.opacity(0.2))
                         .frame(width: 44, height: 44)
                         .overlay(
-                            Text(String(viewModel.userName.prefix(1)).uppercased())
+                            Text(String(newsViewModel.userName.prefix(1)).uppercased())
                                 .font(.system(size: 18, weight: .semibold))
                                 .foregroundColor(accentBlue)
                         )
 
                     // Greeting Text
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(viewModel.greeting)
+                        Text(newsViewModel.greeting)
                             .font(.system(size: 14))
                             .foregroundColor(metadataGrey)
 
-                        Text(viewModel.userName)
+                        Text(newsViewModel.userName)
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.black)
                     }
