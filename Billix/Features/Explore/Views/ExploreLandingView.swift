@@ -67,7 +67,7 @@ struct ExploreLandingView: View {
         NavigationStack {
             switch destination {
             case .economyByAI:
-                EconomyFeedView()
+                EconomyTabView()
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button {
@@ -151,9 +151,9 @@ struct ExploreHeaderView: View {
 
     private var headerSubtitle: String {
         switch activeCardIndex {
-        case 2: // Economy by AI
-            return "Economy News in your area"
-        default: // Housing Trends (0) and Bills Explorer (1)
+        case 0: // Community
+            return "Connect with fellow savers"
+        default: // Housing Trends (1) and Bills Explorer (2)
             return "See what your neighbors pay"
         }
     }

@@ -39,7 +39,23 @@ struct AnimatedExploreCardModel: Identifiable {
 
 extension AnimatedExploreCardModel {
     static let mockCards: [AnimatedExploreCardModel] = [
-        // Card 1: Housing Trends (MOVED TO FIRST)
+        // Card 1: Community (FIRST)
+        AnimatedExploreCardModel(
+            title: "Community",
+            description: "Join discussions, share tips, and connect with savers",
+            icon: "person.3.fill",
+            imageName: nil,
+            accentColor: .billixPurple,
+            backdropGradient: [
+                Color(hex: "#9B7EBD").opacity(0.8),
+                Color(hex: "#6B4E9B").opacity(0.6)
+            ],
+            destination: .economyByAI,
+            categories: ["Posts", "Tips", "Discussion"],
+            buttonText: "Join Community"
+        ),
+
+        // Card 2: Housing Trends (SECOND)
         AnimatedExploreCardModel(
             title: "Rent & Property\nCost",
             description: "Explore market data, rent estimates, and comparables",
@@ -52,10 +68,10 @@ extension AnimatedExploreCardModel {
             ],
             destination: .housingTrends,
             categories: ["Rent", "Property", "Trends"],
-            buttonText: "Explore"
+            buttonText: "Explore Housing"
         ),
 
-        // Card 2: Bills Explorer (MOVED TO SECOND)
+        // Card 3: Bills Explorer (THIRD)
         AnimatedExploreCardModel(
             title: "Bills Explorer",
             description: "Analyze your bills and find savings opportunities",
@@ -69,22 +85,6 @@ extension AnimatedExploreCardModel {
             destination: .bills,
             categories: ["Bills", "Savings", "Insights"],
             buttonText: "Explore Bills"
-        ),
-
-        // Card 3: My Economy (MOVED TO THIRD)
-        AnimatedExploreCardModel(
-            title: "My Economy",
-            description: "AI-powered economic insights and forecasts",
-            icon: "chart.line.uptrend.xyaxis",
-            imageName: nil,
-            accentColor: .billixPurple,
-            backdropGradient: [
-                Color(hex: "#9B7EBD").opacity(0.8),
-                Color(hex: "#6B4E9B").opacity(0.6)
-            ],
-            destination: .economyByAI,
-            categories: ["AI", "Economy", "Insights"],
-            buttonText: "Explore AI"
         )
     ]
 }
