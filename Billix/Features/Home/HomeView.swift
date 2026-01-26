@@ -151,8 +151,8 @@ struct HomeView: View {
                 // Primary Actions
                 QuickActionsZone()
 
-                // Your Bills (with empty state if no bills)
-                BillsListZone()
+                // Name Your Price - Tell us what you want to pay
+                NameYourPriceZone(userState: userState)
 
                 // Market Context - National Averages
                 BillTickerZone(zipCode: userZip, state: userState)
