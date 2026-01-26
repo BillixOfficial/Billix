@@ -161,6 +161,10 @@
 		A66170DF2F25E1F300B24FD5 /* EconomyNewsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170DE2F25E1F300B24FD5 /* EconomyNewsModels.swift */; };
 		A66170E12F25E20C00B24FD5 /* EconomyFeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170E02F25E20C00B24FD5 /* EconomyFeedViewModel.swift */; };
 		A66170E32F25E2A600B24FD5 /* EconomyNewsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170E22F25E2A600B24FD5 /* EconomyNewsService.swift */; };
+		A66170E52F26A5AF00B24FD5 /* CommunityGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170E42F26A5AF00B24FD5 /* CommunityGroup.swift */; };
+		A66170E72F26A5D900B24FD5 /* EconomyGroupsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170E62F26A5D900B24FD5 /* EconomyGroupsTabView.swift */; };
+		A66170E92F26E63300B24FD5 /* GroupDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170E82F26E63300B24FD5 /* GroupDetailView.swift */; };
+		A66170EB2F26EA0E00B24FD5 /* CreatePostSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170EA2F26EA0E00B24FD5 /* CreatePostSheet.swift */; };
 		A69E78142F05D397004E63B4 /* StreakService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78122F05D397004E63B4 /* StreakService.swift */; };
 		A69E78152F05D397004E63B4 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78112F05D397004E63B4 /* OpenAIService.swift */; };
 		A69E78162F05D397004E63B4 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78132F05D397004E63B4 /* WeatherService.swift */; };
@@ -616,6 +620,10 @@
 		A66170DE2F25E1F300B24FD5 /* EconomyNewsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EconomyNewsModels.swift; sourceTree = "<group>"; };
 		A66170E02F25E20C00B24FD5 /* EconomyFeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EconomyFeedViewModel.swift; sourceTree = "<group>"; };
 		A66170E22F25E2A600B24FD5 /* EconomyNewsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EconomyNewsService.swift; sourceTree = "<group>"; };
+		A66170E42F26A5AF00B24FD5 /* CommunityGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityGroup.swift; sourceTree = "<group>"; };
+		A66170E62F26A5D900B24FD5 /* EconomyGroupsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EconomyGroupsTabView.swift; sourceTree = "<group>"; };
+		A66170E82F26E63300B24FD5 /* GroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupDetailView.swift; sourceTree = "<group>"; };
+		A66170EA2F26EA0E00B24FD5 /* CreatePostSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostSheet.swift; sourceTree = "<group>"; };
 		A69E78112F05D397004E63B4 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
 		A69E78122F05D397004E63B4 /* StreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakService.swift; sourceTree = "<group>"; };
 		A69E78132F05D397004E63B4 /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
@@ -1254,6 +1262,7 @@
 		9EXP10REM0DELSGR0UP12345 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A66170E42F26A5AF00B24FD5 /* CommunityGroup.swift */,
 				A66170DE2F25E1F300B24FD5 /* EconomyNewsModels.swift */,
 				A66170C22F25DF1F00B24FD5 /* CommunityPost.swift */,
 				A6E5000B2F189EE6009F1277 /* RentCastModels.swift */,
@@ -1456,6 +1465,9 @@
 		A66170D72F25E09900B24FD5 /* Economy */ = {
 			isa = PBXGroup;
 			children = (
+				A66170EA2F26EA0E00B24FD5 /* CreatePostSheet.swift */,
+				A66170E82F26E63300B24FD5 /* GroupDetailView.swift */,
+				A66170E62F26A5D900B24FD5 /* EconomyGroupsTabView.swift */,
 				A66170D12F25E09900B24FD5 /* AllArticlesModalView.swift */,
 				A66170D22F25E09900B24FD5 /* EconomyArticleDetailView.swift */,
 				A66170D32F25E09900B24FD5 /* EconomyFeedTabView.swift */,
@@ -2494,6 +2506,7 @@
 				F9076D672ED19DEE0051E1D8 /* ProfileSectionCard.swift in Sources */,
 				A6E500132F19D0B3009F1277 /* AddressAutocompleteService.swift in Sources */,
 				A602F2162EF8593700856DEE /* MetadataPillView.swift in Sources */,
+				A66170E72F26A5D900B24FD5 /* EconomyGroupsTabView.swift in Sources */,
 				A602F2172EF8593700856DEE /* ExpeditionActionButton.swift in Sources */,
 				A602F2182EF8593700856DEE /* TimelineConnector.swift in Sources */,
 				A602F2192EF8593700856DEE /* ExpeditionIconBox.swift in Sources */,
@@ -2705,9 +2718,11 @@
 				9378B9C9840992DB036549E4 /* FinancialSpreadZone.swift in Sources */,
 				80463EA3D6F47BC4F7ED21E8 /* DynamicSpecsZone.swift in Sources */,
 				CC5C4203C8C523C5D67F2851 /* BlueprintTeaseZone.swift in Sources */,
+				A66170EB2F26EA0E00B24FD5 /* CreatePostSheet.swift in Sources */,
 				105CDC90740F2D3D993826F3 /* SellerFooterZone.swift in Sources */,
 				026616F06A2AC97D284507A7 /* BountyCard.swift in Sources */,
 				4A481D87CACB424C8A22B899 /* ClusterCard.swift in Sources */,
+				A66170E92F26E63300B24FD5 /* GroupDetailView.swift in Sources */,
 				7E857670BC41595C6662AB3F /* PredictionCard.swift in Sources */,
 				4EDF2DA492CE26CFAE5296F6 /* ScriptCard.swift in Sources */,
 				21B7E99EF6AF9B9219588A46 /* ServiceCard.swift in Sources */,
@@ -2757,6 +2772,7 @@
 				8434B20BEAFA6952FD9DFEBF /* GeocodingService.swift in Sources */,
 				3052D47C865EB0E5566BD8A2 /* SwapTheme.swift in Sources */,
 				B4E9B0D26B63EFD6D701D9BA /* SwapBill.swift in Sources */,
+				A66170E52F26A5AF00B24FD5 /* CommunityGroup.swift in Sources */,
 				E25F2B34183231F3BE72C3ED /* Swap.swift in Sources */,
 				742470BDB1E7F5FEC8B881DC /* SwapBillService.swift in Sources */,
 				17ED7707150F7AE5F72CBBB0 /* SwapService.swift in Sources */,

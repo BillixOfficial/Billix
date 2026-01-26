@@ -10,11 +10,23 @@ import SwiftUI
 
 struct EconomyNewsTabView: View {
     @ObservedObject var viewModel: EconomyFeedViewModel
+    @Binding var searchText: String
     @State private var showAllArticlesModal = false
 
     // Design spec colors
     private let accentBlue = Color(hex: "#3B6CFF")
     private let headlineBlack = Color(hex: "#1A1A1A")
+
+    var searchFilteredArticles: [EconomyArticle] {
+        if searchText.isEmpty {
+            return viewModel.displayedArticles
+        }
+        return viewModel.displayedArticles.filter {
+            $0.title.localizedCaseInsensitiveContains(searchText) ||
+            $0.source.localizedCaseInsensitiveContains(searchText) ||
+            $0.summary.localizedCaseInsensitiveContains(searchText)
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -65,11 +77,11 @@ struct EconomyNewsTabView: View {
                         // Article Cards
                         if viewModel.isLoading {
                             loadingView
-                        } else if viewModel.filteredArticles.isEmpty {
+                        } else if searchFilteredArticles.isEmpty {
                             emptyStateView
                         } else {
                             LazyVStack(spacing: 20) {
-                                ForEach(viewModel.displayedArticles) { article in
+                                ForEach(searchFilteredArticles) { article in
                                     EconomyNewsCard(article: article) {
                                         viewModel.selectArticle(article)
                                     }
@@ -180,5 +192,5 @@ struct EconomyNewsTabView: View {
 }
 
 #Preview("Economy News Tab") {
-    EconomyNewsTabView(viewModel: EconomyFeedViewModel())
+    EconomyNewsTabView(viewModel: EconomyFeedViewModel(), searchText: .constant(""))
 }

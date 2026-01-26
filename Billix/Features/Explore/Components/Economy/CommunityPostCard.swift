@@ -42,8 +42,9 @@ struct CommunityPostCard: View {
     let post: CommunityPost
     let onLikeTapped: () -> Void
     let onCommentTapped: () -> Void
-    let onShareTapped: () -> Void
+    let onSaveTapped: () -> Void
     var onReactionSelected: ((PostReaction) -> Void)?
+    var showTopComment: Bool = true
 
     @State private var isExpanded = false
     @State private var showReactions = false
@@ -111,8 +112,8 @@ struct CommunityPostCard: View {
             }
             .background(cardBackground)
 
-            // Top Comment Preview (if exists)
-            if let comment = post.topComment {
+            // Top Comment Preview (if exists and enabled)
+            if showTopComment, let comment = post.topComment {
                 topCommentView(comment)
             }
         }
@@ -379,12 +380,12 @@ struct CommunityPostCard: View {
                     action: onCommentTapped
                 )
 
-                // Share Button
+                // Save Button
                 actionButton(
-                    icon: "arrow.turn.up.right",
-                    label: "Share",
+                    icon: "bookmark",
+                    label: "Save",
                     color: metadataGrey,
-                    action: onShareTapped
+                    action: onSaveTapped
                 )
             }
 
@@ -637,7 +638,7 @@ struct CommunityPostCard: View {
                         post: post,
                         onLikeTapped: {},
                         onCommentTapped: {},
-                        onShareTapped: {}
+                        onSaveTapped: {}
                     )
                 }
             }
