@@ -11,6 +11,7 @@ struct LoginView: View {
     @State private var errorMessage: String?
     @State private var showError = false
     @State private var isSignUpMode = false
+    @State private var isGoogleLoading = false
     @FocusState private var focusedField: Field?
 
     enum Field {
@@ -111,8 +112,8 @@ struct LoginView: View {
 
                 // Login form
                 VStack(spacing: 16) {
-                    // Apple Sign In
-                    SignInWithAppleButton(.signIn) { request in
+                    // Apple Sign In - dynamic label based on mode
+                    SignInWithAppleButton(isSignUpMode ? .signUp : .signIn) { request in
                         request.requestedScopes = [.fullName, .email]
                     } onCompletion: { result in
                         handleAppleSignIn(result)
@@ -120,7 +121,34 @@ struct LoginView: View {
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 50)
                     .cornerRadius(16)
-                    .disabled(isLoading)
+                    .disabled(isLoading || isGoogleLoading)
+
+                    // Google Sign In - full width button
+                    Button(action: handleGoogleSignIn) {
+                        HStack(spacing: 8) {
+                            if isGoogleLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#5A6B64")))
+                            } else {
+                                Image(systemName: "g.circle.fill")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundColor(Color(hex: "#4285F4"))
+                            }
+                            Text(isSignUpMode ? "Sign up with Google" : "Sign in with Google")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Color(hex: "#3C4043"))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color.white)
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .disabled(isLoading || isGoogleLoading)
 
                     // Divider
                     HStack(spacing: 12) {
@@ -289,25 +317,6 @@ struct LoginView: View {
                     .padding(.top, 8)
                     .disabled(isLoading)
 
-                    // Guest Sign In Button (temporary for testing)
-                    if !isSignUpMode {
-                        Button(action: handleGuestLogin) {
-                            Text("Continue as Guest")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.billixLoginTeal)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                                .background(Color.white.opacity(0.9))
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.billixLoginTeal.opacity(0.5), lineWidth: 1)
-                                )
-                        }
-                        .buttonStyle(ScaleButtonStyle())
-                        .padding(.top, 8)
-                        .disabled(isLoading)
-                    }
                 }
                 .id(isSignUpMode) // Force SwiftUI to re-render when mode changes
                 .animation(.easeInOut(duration: 0.2), value: isSignUpMode)
@@ -482,14 +491,14 @@ struct LoginView: View {
         }
     }
 
-    private func handleGuestLogin() {
+    private func handleGoogleSignIn() {
         hideKeyboard()
         focusedField = nil
-        isLoading = true
+        isGoogleLoading = true
 
         Task {
             do {
-                try await authService.signInAsGuest()
+                try await authService.signInWithGoogle()
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
             } catch {
@@ -497,7 +506,7 @@ struct LoginView: View {
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.error)
             }
-            isLoading = false
+            isGoogleLoading = false
         }
     }
 

@@ -283,6 +283,23 @@ class AuthService: ObservableObject {
         }
     }
 
+    // MARK: - Google Sign In
+
+    /// Sign in with Google using Supabase OAuth
+    func signInWithGoogle() async throws {
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            try await supabase.auth.signInWithOAuth(
+                provider: .google,
+                redirectTo: URL(string: "billix://auth-callback")
+            )
+        } catch {
+            throw AuthError.googleSignInFailed(error.localizedDescription)
+        }
+    }
+
     // MARK: - Email/Password Authentication
 
     /// Sign in with email and password
@@ -722,6 +739,7 @@ enum AuthError: LocalizedError {
     case otpSendFailed(String)
     case otpVerificationFailed(String)
     case appleSignInFailed(String)
+    case googleSignInFailed(String)
     case passwordResetFailed(String)
     case passwordUpdateFailed(String)
     case emailVerificationFailed(String)
@@ -752,6 +770,8 @@ enum AuthError: LocalizedError {
             return "Verification failed: \(message)"
         case .appleSignInFailed(let message):
             return "Apple Sign In failed: \(message)"
+        case .googleSignInFailed(let message):
+            return "Google Sign In failed: \(message)"
         case .passwordResetFailed(let message):
             return "Password reset failed: \(message)"
         case .passwordUpdateFailed(let message):
