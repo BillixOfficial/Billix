@@ -114,7 +114,7 @@ struct ExploreLandingView: View {
                     }
 
             case .bills:
-                BillsExploreView()
+                BillExplorerFeedView()
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button {
