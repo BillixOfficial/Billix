@@ -21,6 +21,8 @@ enum ExploreBillType: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    var displayName: String { rawValue }
+
     var icon: String {
         switch self {
         case .electric: return "bolt.fill"
@@ -53,6 +55,19 @@ enum HousingType: String {
     case house = "House"
     case condo = "Condo"
     case townhouse = "Townhouse"
+
+    var displayText: String { rawValue }
+}
+
+// MARK: - Price Range (for historical data)
+
+struct PriceRange {
+    let min: Double
+    let max: Double
+
+    var displayText: String {
+        "$\(Int(min)) - $\(Int(max))"
+    }
 }
 
 // MARK: - Occupant Range
@@ -80,6 +95,8 @@ enum BillTrend: String {
     case decreased = "Decreased"
     case stable = "Stable"
 
+    var displayText: String { rawValue }
+
     var icon: String {
         switch self {
         case .increased: return "arrow.up"
@@ -105,7 +122,7 @@ enum BillVolatility: String {
     case spiky = "Spiky"
 }
 
-// MARK: - Bill Reaction Type
+// MARK: - Bill Reaction Type (Legacy - for backward compatibility)
 
 enum BillReactionType: String, CaseIterable {
     case looksLow = "looksLow"
@@ -129,6 +146,59 @@ enum BillReactionType: String, CaseIterable {
         case .howDidYou: return "How did you get this down?"
         case .jumped: return "This jumped a lot"
         }
+    }
+}
+
+// MARK: - Vote Type (Icon-based interactions)
+
+enum VoteType: String, Codable {
+    case up
+    case down
+}
+
+// MARK: - Bill Interaction Model
+
+struct BillInteraction: Codable, Identifiable {
+    let id: UUID
+    let listingId: UUID
+    let userId: UUID
+    var vote: VoteType?
+    var isBookmarked: Bool
+    let createdAt: Date
+
+    init(listingId: UUID, userId: UUID, vote: VoteType? = nil, isBookmarked: Bool = false) {
+        self.id = UUID()
+        self.listingId = listingId
+        self.userId = userId
+        self.vote = vote
+        self.isBookmarked = isBookmarked
+        self.createdAt = Date()
+    }
+}
+
+// MARK: - Anonymous Question Model
+
+struct AnonymousQuestion: Identifiable, Codable {
+    let id: UUID
+    let listingId: UUID
+    let askerAnonymousId: String
+    let question: String
+    var answer: String?
+    var answeredAt: Date?
+    let createdAt: Date
+
+    var isAnswered: Bool {
+        answer != nil
+    }
+
+    init(listingId: UUID, askerAnonymousId: String, question: String) {
+        self.id = UUID()
+        self.listingId = listingId
+        self.askerAnonymousId = askerAnonymousId
+        self.question = question
+        self.answer = nil
+        self.answeredAt = nil
+        self.createdAt = Date()
     }
 }
 
@@ -163,9 +233,29 @@ struct ExploreBillListing: Identifiable {
     let lastUpdated: Date
     let anonymizedId: String  // "User #4821"
 
-    // Engagement
+    // Engagement (legacy)
     var reactions: [BillReactionType: Int]
     var commentCount: Int
+
+    // Engagement metrics
+    var voteScore: Int
+    var tipCount: Int
+    var viewCount: Int
+
+    // Rotation algorithm
+    var lastBoostedAt: Date?
+
+    // Usage data (for bill-type specific details)
+    var usageAmount: Double?       // e.g., 892 (kWh for electric)
+    var usageUnit: String?         // e.g., "kWh", "therms", "gallons"
+    var ratePerUnit: Double?       // e.g., 0.12 ($/kWh)
+    var areaAverageUsage: Double?  // e.g., 1200 (for comparison)
+    var areaMinUsage: Double?      // e.g., 400 (lowest in dataset)
+    var areaMaxUsage: Double?      // e.g., 2500 (highest in dataset)
+
+    // Bill-type specific details
+    var planName: String?          // e.g., "Performance Plus"
+    var additionalDetails: [String: String]?  // Flexible key-value pairs
 
     // Computed properties
     var formattedAmount: String {
@@ -174,6 +264,16 @@ struct ExploreBillListing: Identifiable {
 
     var location: String {
         return "\(city), \(state)"
+    }
+
+    // Alias for compatibility
+    var anonymousId: String {
+        anonymizedId
+    }
+
+    // Historical range struct for detail view
+    var historicalRange: PriceRange? {
+        PriceRange(min: historicalMin, max: historicalMax)
     }
 
     var percentileText: String {
@@ -198,6 +298,69 @@ struct ExploreBillListing: Identifiable {
 
     var totalReactions: Int {
         reactions.values.reduce(0, +)
+    }
+
+    // New computed properties for Bill Explorer feed
+    var timeAgoDisplay: String {
+        let seconds = Date().timeIntervalSince(lastUpdated)
+        if seconds < 3600 {
+            return "\(Int(seconds / 60))m ago"
+        } else if seconds < 86400 {
+            return "\(Int(seconds / 3600))h ago"
+        } else {
+            return "\(Int(seconds / 86400))d ago"
+        }
+    }
+
+    var locationDisplay: String {
+        "\(city), \(state)"
+    }
+
+    var percentileDescription: String? {
+        if percentile <= 25 {
+            return "Lower than \(100 - percentile)% of similar homes"
+        } else if percentile >= 75 {
+            return "Higher than \(percentile)% of similar homes"
+        } else {
+            return "Around average for similar homes"
+        }
+    }
+
+    // Usage comparison computed properties
+    var usageDisplayText: String? {
+        guard let usage = usageAmount, let unit = usageUnit else { return nil }
+        return "\(Int(usage)) \(unit)"
+    }
+
+    var rateDisplayText: String? {
+        guard let rate = ratePerUnit, let unit = usageUnit else { return nil }
+        return String(format: "$%.2f/\(unit)", rate)
+    }
+
+    var usagePercentageDiff: Double? {
+        guard let usage = usageAmount, let avg = areaAverageUsage, avg > 0 else { return nil }
+        return ((usage - avg) / avg) * 100
+    }
+
+    var usageComparisonText: String? {
+        guard let diff = usagePercentageDiff else { return nil }
+        let absDiff = abs(Int(diff))
+        if diff < -5 {
+            return "\(absDiff)% below area average"
+        } else if diff > 5 {
+            return "\(absDiff)% above area average"
+        } else {
+            return "Around area average"
+        }
+    }
+
+    var hasUsageData: Bool {
+        usageAmount != nil && usageUnit != nil
+    }
+
+    // Region computed from state
+    var region: USRegion {
+        USRegion.region(for: state)
     }
 }
 
@@ -226,7 +389,19 @@ extension ExploreBillListing {
             lastUpdated: Date().addingTimeInterval(-86400 * 2),
             anonymizedId: "User #4821",
             reactions: [.looksLow: 12, .high: 3, .howDidYou: 5, .jumped: 2],
-            commentCount: 8
+            commentCount: 8,
+            voteScore: 24,
+            tipCount: 12,
+            viewCount: 247,
+            lastBoostedAt: nil,
+            usageAmount: 892,
+            usageUnit: "kWh",
+            ratePerUnit: 0.21,
+            areaAverageUsage: 1100,
+            areaMinUsage: 450,
+            areaMaxUsage: 2200,
+            planName: nil,
+            additionalDetails: ["peakUsage": "4-9 PM weekdays"]
         ),
         ExploreBillListing(
             id: UUID(),
@@ -249,7 +424,19 @@ extension ExploreBillListing {
             lastUpdated: Date().addingTimeInterval(-86400 * 1),
             anonymizedId: "User #2910",
             reactions: [.looksLow: 8, .high: 15, .howDidYou: 3, .jumped: 0],
-            commentCount: 4
+            commentCount: 4,
+            voteScore: 18,
+            tipCount: 7,
+            viewCount: 183,
+            lastBoostedAt: nil,
+            usageAmount: nil,
+            usageUnit: nil,
+            ratePerUnit: nil,
+            areaAverageUsage: nil,
+            areaMinUsage: nil,
+            areaMaxUsage: nil,
+            planName: "Performance Pro",
+            additionalDetails: ["speed": "500 Mbps down / 50 Mbps up", "contract": "No contract"]
         ),
         ExploreBillListing(
             id: UUID(),
@@ -272,7 +459,19 @@ extension ExploreBillListing {
             lastUpdated: Date().addingTimeInterval(-86400 * 3),
             anonymizedId: "User #7823",
             reactions: [.looksLow: 2, .high: 22, .howDidYou: 1, .jumped: 18],
-            commentCount: 12
+            commentCount: 12,
+            voteScore: 8,
+            tipCount: 3,
+            viewCount: 92,
+            lastBoostedAt: nil,
+            usageAmount: 68,
+            usageUnit: "therms",
+            ratePerUnit: 2.13,
+            areaAverageUsage: 52,
+            areaMinUsage: 25,
+            areaMaxUsage: 95,
+            planName: nil,
+            additionalDetails: nil
         ),
         ExploreBillListing(
             id: UUID(),
@@ -295,7 +494,19 @@ extension ExploreBillListing {
             lastUpdated: Date().addingTimeInterval(-86400 * 5),
             anonymizedId: "User #1102",
             reactions: [.looksLow: 28, .high: 1, .howDidYou: 15, .jumped: 0],
-            commentCount: 6
+            commentCount: 6,
+            voteScore: 42,
+            tipCount: 19,
+            viewCount: 521,
+            lastBoostedAt: Date().addingTimeInterval(-3600),
+            usageAmount: 2800,
+            usageUnit: "gallons",
+            ratePerUnit: 0.015,
+            areaAverageUsage: 4200,
+            areaMinUsage: 1500,
+            areaMaxUsage: 8000,
+            planName: nil,
+            additionalDetails: ["tier": "Tier 1 (0-5000 gal)"]
         ),
         ExploreBillListing(
             id: UUID(),
@@ -318,7 +529,19 @@ extension ExploreBillListing {
             lastUpdated: Date().addingTimeInterval(-3600 * 12),
             anonymizedId: "User #5543",
             reactions: [.looksLow: 5, .high: 8, .howDidYou: 2, .jumped: 1],
-            commentCount: 3
+            commentCount: 3,
+            voteScore: 15,
+            tipCount: 5,
+            viewCount: 156,
+            lastBoostedAt: nil,
+            usageAmount: nil,
+            usageUnit: nil,
+            ratePerUnit: nil,
+            areaAverageUsage: nil,
+            areaMinUsage: nil,
+            areaMaxUsage: nil,
+            planName: "Family Plan",
+            additionalDetails: ["lines": "2 lines", "data": "Unlimited"]
         ),
         ExploreBillListing(
             id: UUID(),
@@ -341,7 +564,19 @@ extension ExploreBillListing {
             lastUpdated: Date().addingTimeInterval(-86400 * 1),
             anonymizedId: "User #9921",
             reactions: [.looksLow: 18, .high: 5, .howDidYou: 8, .jumped: 3],
-            commentCount: 15
+            commentCount: 15,
+            voteScore: 31,
+            tipCount: 8,
+            viewCount: 312,
+            lastBoostedAt: nil,
+            usageAmount: nil,
+            usageUnit: nil,
+            ratePerUnit: nil,
+            areaAverageUsage: nil,
+            areaMinUsage: nil,
+            areaMaxUsage: nil,
+            planName: nil,
+            additionalDetails: ["bedrooms": "2 BR / 1 BA", "amenities": "Gym, Pool, Parking", "lease": "12-month lease"]
         ),
         ExploreBillListing(
             id: UUID(),
@@ -364,7 +599,19 @@ extension ExploreBillListing {
             lastUpdated: Date().addingTimeInterval(-86400 * 4),
             anonymizedId: "User #3382",
             reactions: [.looksLow: 22, .high: 2, .howDidYou: 12, .jumped: 0],
-            commentCount: 9
+            commentCount: 9,
+            voteScore: 28,
+            tipCount: 11,
+            viewCount: 278,
+            lastBoostedAt: nil,
+            usageAmount: nil,
+            usageUnit: nil,
+            ratePerUnit: nil,
+            areaAverageUsage: nil,
+            areaMinUsage: nil,
+            areaMaxUsage: nil,
+            planName: nil,
+            additionalDetails: ["coverage": "$300,000", "deductible": "$1,000", "policyType": "Homeowners"]
         ),
         ExploreBillListing(
             id: UUID(),
@@ -387,7 +634,19 @@ extension ExploreBillListing {
             lastUpdated: Date().addingTimeInterval(-86400 * 2),
             anonymizedId: "User #6677",
             reactions: [.looksLow: 1, .high: 35, .howDidYou: 0, .jumped: 28],
-            commentCount: 22
+            commentCount: 22,
+            voteScore: 5,
+            tipCount: 2,
+            viewCount: 145,
+            lastBoostedAt: nil,
+            usageAmount: 1850,
+            usageUnit: "kWh",
+            ratePerUnit: 0.13,
+            areaAverageUsage: 1400,
+            areaMinUsage: 600,
+            areaMaxUsage: 2800,
+            planName: nil,
+            additionalDetails: ["peakUsage": "2-7 PM weekdays"]
         )
     ]
 }
