@@ -508,12 +508,11 @@ class QuizViewModel: ObservableObject {
 
                 if claimResult.success {
                     // Award points via RewardsService
-                    try await rewardsService.addPoints(
+                    _ = try await rewardsService.addPoints(
                         userId: userId,
                         amount: claimResult.pointsAwarded,
                         type: "task_completion",
-                        description: "Daily quiz completion",
-                        source: "daily_complete_quiz"
+                        description: "Daily quiz completion"
                     )
 
                     // Notify RewardsViewModel to refresh

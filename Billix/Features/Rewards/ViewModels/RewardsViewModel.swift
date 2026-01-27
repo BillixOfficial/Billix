@@ -140,25 +140,14 @@ class RewardsViewModel: ObservableObject {
                 return
             }
 
-            // Fetch user points from Supabase
-            let userPointsDTO = try await rewardsService.getUserPoints(userId: userId)
+            // Fetch user points from Supabase (simplified - just balance)
+            let balance = try await rewardsService.getUserPoints(userId: userId)
 
-            // Fetch recent transactions
-            let transactionsDTO = try await rewardsService.getTransactions(userId: userId, limit: 50)
-
-            // Convert DTOs to domain models
+            // Simplified points model (no transaction history)
             points = RewardsPoints(
-                balance: userPointsDTO.balance,
-                lifetimeEarned: userPointsDTO.lifetimeEarned,
-                transactions: transactionsDTO.map { dto in
-                    PointTransaction(
-                        id: dto.id,
-                        type: PointTransactionType(rawValue: dto.type) ?? .achievement,
-                        amount: dto.amount,
-                        description: dto.description,
-                        createdAt: dto.createdAt
-                    )
-                }
+                balance: balance,
+                lifetimeEarned: balance, // Use balance as lifetime since we no longer track separately
+                transactions: []
             )
 
             // Filter rewards to only include Target, Kroger, and Walmart gift cards
@@ -201,39 +190,25 @@ class RewardsViewModel: ObservableObject {
         }
     }
 
-    func addPoints(_ amount: Int, description: String, type: PointTransactionType = .gameWin, source: String = "game") {
+    func addPoints(_ amount: Int, description: String, type: PointTransactionType = .gameWin) {
         Task {
             do {
-                guard let userId = authService.currentUser?.id else {
+                guard let userId = self.authService.currentUser?.id else {
                     print("⚠️ No authenticated user - cannot add points")
                     return
                 }
 
-                // Add points via Supabase service (atomic transaction)
-                let transactionDTO = try await rewardsService.addPoints(
+                // Add points via Supabase service
+                let newBalance = try await rewardsService.addPoints(
                     userId: userId,
                     amount: amount,
                     type: type.rawValue,
-                    description: description,
-                    source: source
+                    description: description
                 )
-
-                // Update local state with server response
-                let transaction = PointTransaction(
-                    id: transactionDTO.id,
-                    type: type,
-                    amount: transactionDTO.amount,
-                    description: transactionDTO.description,
-                    createdAt: transactionDTO.createdAt
-                )
-
-                // Fetch updated balance from server
-                let userPointsDTO = try await rewardsService.getUserPoints(userId: userId)
 
                 await MainActor.run {
-                    points.balance = userPointsDTO.balance
-                    points.lifetimeEarned = userPointsDTO.lifetimeEarned
-                    points.transactions.insert(transaction, at: 0)
+                    points.balance = newBalance
+                    points.lifetimeEarned = newBalance
 
                     // Animate the balance change
                     animateBalanceChange(to: points.balance)
@@ -262,35 +237,19 @@ class RewardsViewModel: ObservableObject {
 
         Task {
             do {
-                guard let userId = authService.currentUser?.id else {
+                guard let userId = self.authService.currentUser?.id else {
                     print("⚠️ No authenticated user - cannot redeem reward")
                     return
                 }
 
-                // Deduct points via Supabase service (negative amount)
-                let transactionDTO = try await rewardsService.addPoints(
+                // Deduct points via deductPoints service
+                let newBalance = try await rewardsService.deductPoints(
                     userId: userId,
-                    amount: -reward.pointsCost,
-                    type: PointTransactionType.redemption.rawValue,
-                    description: "Redeemed \(reward.title)",
-                    source: "redemption"
+                    amount: reward.pointsCost
                 )
-
-                // Update local state with server response
-                let transaction = PointTransaction(
-                    id: transactionDTO.id,
-                    type: .redemption,
-                    amount: transactionDTO.amount,
-                    description: transactionDTO.description,
-                    createdAt: transactionDTO.createdAt
-                )
-
-                // Fetch updated balance from server
-                let userPointsDTO = try await rewardsService.getUserPoints(userId: userId)
 
                 await MainActor.run {
-                    points.balance = userPointsDTO.balance
-                    points.transactions.insert(transaction, at: 0)
+                    points.balance = newBalance
 
                     animateBalanceChange(to: points.balance)
                     showRedeemSheet = false
@@ -332,26 +291,13 @@ class RewardsViewModel: ObservableObject {
                 .execute()
 
             // 2. Deduct points via RewardsService
-            try await rewardsService.addPoints(
+            let newBalance = try await rewardsService.deductPoints(
                 userId: userId,
-                amount: -reward.pointsCost,
-                type: "redemption",
-                description: "Redeemed \(reward.title)",
-                source: reward.id.uuidString
+                amount: reward.pointsCost
             )
 
-            // 3. Create local transaction for UI
-            let transaction = PointTransaction(
-                id: UUID(),
-                type: .redemption,
-                amount: -reward.pointsCost,
-                description: "Redeemed \(reward.title)",
-                createdAt: Date()
-            )
-
-            // 4. Update local state
-            points.balance -= reward.pointsCost
-            points.transactions.insert(transaction, at: 0)
+            // 3. Update local state
+            points.balance = newBalance
             animateBalanceChange(to: points.balance)
 
             print("✅ Gift card redemption saved to database")
@@ -443,26 +389,13 @@ class RewardsViewModel: ObservableObject {
                 .execute()
 
             // 2. Deduct points via RewardsService
-            try await rewardsService.addPoints(
+            let newBalance = try await rewardsService.deductPoints(
                 userId: userId,
-                amount: -amount.pointsCost,
-                type: "donation",
-                description: "Donation to \(organizationName)",
-                source: "donation_request"
+                amount: amount.pointsCost
             )
 
-            // 3. Create local transaction for UI
-            let transaction = PointTransaction(
-                id: UUID(),
-                type: .redemption,
-                amount: -amount.pointsCost,
-                description: "Donation to \(organizationName) (\(amount.displayText))",
-                createdAt: Date()
-            )
-
-            // 4. Update local state
-            points.balance -= amount.pointsCost
-            points.transactions.insert(transaction, at: 0)
+            // 3. Update local state
+            points.balance = newBalance
             animateBalanceChange(to: points.balance)
 
             showDonationRequestSheet = false

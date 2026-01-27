@@ -264,12 +264,11 @@ class TipViewModel: ObservableObject {
 
                 if claimResult.success {
                     // Award points via RewardsService
-                    try await rewardsService.addPoints(
+                    _ = try await rewardsService.addPoints(
                         userId: userId,
                         amount: claimResult.pointsAwarded,
                         type: "task_completion",
-                        description: "Daily tip read",
-                        source: "daily_read_tip"
+                        description: "Daily tip read"
                     )
 
                     // Notify RewardsViewModel to refresh

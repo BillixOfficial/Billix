@@ -353,12 +353,11 @@ class TasksViewModel: ObservableObject {
                 // Award points via RewardsViewModel
                 if result.pointsAwarded > 0 {
                     print("💰 Awarding \(result.pointsAwarded) points...")
-                    try await rewardsService.addPoints(
+                    _ = try await rewardsService.addPoints(
                         userId: userId,
                         amount: result.pointsAwarded,
                         type: "task_completion",
-                        description: "Daily check-in",
-                        source: "daily_check_in"
+                        description: "Daily check-in"
                     )
 
                     // Notify RewardsViewModel to refresh balance
@@ -406,12 +405,11 @@ class TasksViewModel: ObservableObject {
 
             if result.success {
                 // Award points via RewardsService
-                try await rewardsService.addPoints(
+                _ = try await rewardsService.addPoints(
                     userId: userId,
                     amount: result.pointsAwarded,
                     type: "task_completion",
-                    description: result.taskTitle,
-                    source: task.taskKey
+                    description: result.taskTitle
                 )
 
                 // Notify RewardsViewModel to refresh balance
