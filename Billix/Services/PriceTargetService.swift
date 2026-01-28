@@ -474,7 +474,6 @@ class PriceTargetService: ObservableObject {
                 .upsert(supabaseTarget, onConflict: "user_id,bill_type")
                 .execute()
 
-            print("Price target synced to Supabase: \(billType.displayName)")
         } catch {
             print("Failed to sync price target: \(error)")
         }
@@ -536,7 +535,6 @@ class PriceTargetService: ObservableObject {
             }
 
             saveTargets()
-            print("Loaded \(response.count) price targets from Supabase")
         } catch {
             print("Failed to load price targets from Supabase: \(error)")
         }

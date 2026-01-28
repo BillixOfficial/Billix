@@ -247,6 +247,5 @@ enum PostTopic: String, CaseIterable {
         availableGroups: CommunityGroup.mockGroups,
         preselectedGroup: nil
     ) { content, topic, group in
-        print("Posted: \(content), topic: \(topic.rawValue), group: \(group?.name ?? "General")")
     }
 }

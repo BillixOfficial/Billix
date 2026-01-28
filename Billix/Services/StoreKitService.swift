@@ -105,9 +105,6 @@ class StoreKitService: ObservableObject {
                 // Update purchased products
                 await updatePurchasedProducts()
 
-                // Update Supabase with subscription status
-                await updateSupabaseSubscription(isPremium: true)
-
                 // Finish the transaction
                 await transaction.finish()
 
@@ -173,9 +170,6 @@ class StoreKitService: ObservableObject {
         }
 
         purchasedProductIDs = purchased
-
-        // Update Supabase
-        await updateSupabaseSubscription(isPremium: !purchased.isEmpty)
     }
 
     // MARK: - Transaction Listener
@@ -210,55 +204,6 @@ class StoreKitService: ObservableObject {
         }
     }
 
-    // MARK: - Update Supabase
-
-    private func updateSupabaseSubscription(isPremium: Bool) async {
-        guard let userId = AuthService.shared.currentUser?.id else { return }
-
-        do {
-            let tier = isPremium ? "prime" : "free"
-
-            if isPremium, let expiresAt = Calendar.current.date(byAdding: .month, value: 1, to: Date()) {
-                // Update profiles table with expiration date
-                try await SupabaseService.shared.client
-                    .from("profiles")
-                    .update([
-                        "subscription_tier": tier,
-                        "subscription_expires_at": expiresAt.ISO8601Format()
-                    ])
-                    .eq("user_id", value: userId.uuidString)
-                    .execute()
-
-                // Update user_vault table with expiration date
-                try await SupabaseService.shared.client
-                    .from("user_vault")
-                    .update([
-                        "subscription_tier": tier,
-                        "subscription_expires_at": expiresAt.ISO8601Format()
-                    ])
-                    .eq("id", value: userId.uuidString)
-                    .execute()
-            } else {
-                // Update profiles table without expiration
-                try await SupabaseService.shared.client
-                    .from("profiles")
-                    .update(["subscription_tier": tier])
-                    .eq("user_id", value: userId.uuidString)
-                    .execute()
-
-                // Update user_vault table without expiration
-                try await SupabaseService.shared.client
-                    .from("user_vault")
-                    .update(["subscription_tier": tier])
-                    .eq("id", value: userId.uuidString)
-                    .execute()
-            }
-
-            print("Updated Supabase subscription to: \(tier)")
-        } catch {
-            print("Failed to update Supabase subscription: \(error)")
-        }
-    }
 
     // MARK: - Get Monthly Product
 

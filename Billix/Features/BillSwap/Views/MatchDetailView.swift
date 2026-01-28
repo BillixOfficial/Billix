@@ -1279,9 +1279,7 @@ struct BillInfoCard: View {
 }
 
 #Preview("Dispute Sheet") {
-    DisputeSheetView { reason in
-        print("Dispute: \(reason)")
-    }
+    DisputeSheetView { _ in }
 }
 
 // MARK: - Disclaimer Sheet View
@@ -1406,7 +1404,5 @@ private struct DisclaimerBullet: View {
 }
 
 #Preview("Disclaimer Sheet") {
-    DisclaimerSheetView {
-        print("Accepted")
-    }
+    DisclaimerSheetView { }
 }

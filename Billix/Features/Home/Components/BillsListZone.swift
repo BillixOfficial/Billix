@@ -140,7 +140,7 @@ struct BillsListZone: View {
         do {
             zipAverages = try await openAIService.getNationalAverages(zipCode: "07060")
         } catch {
-            print("Failed to load ZIP averages: \(error)")
+            print("❌ Error: Failed to load ZIP averages: \(error)")
         }
 
         isLoading = false

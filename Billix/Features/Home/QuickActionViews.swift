@@ -284,7 +284,6 @@ struct ManualBillEntryView: View {
 
     private func saveBill() {
         // TODO: Save bill to Supabase
-        print("Saving bill: \(billName) - $\(billAmount)")
         dismiss()
     }
 }

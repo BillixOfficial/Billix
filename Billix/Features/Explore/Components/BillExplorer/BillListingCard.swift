@@ -448,11 +448,11 @@ struct ExploreBillListingCard: View {
                     listing: listing,
                     userVote: listing.voteScore > 20 ? .up : nil,
                     isBookmarked: listing.tipCount > 10,
-                    onTap: { print("Tapped \(listing.provider)") },
-                    onUpvote: { print("Upvote") },
-                    onDownvote: { print("Downvote") },
-                    onBookmark: { print("Bookmark") },
-                    onMessage: { print("Message") }
+                    onTap: { },
+                    onUpvote: { },
+                    onDownvote: { },
+                    onBookmark: { },
+                    onMessage: { }
                 )
             }
         }

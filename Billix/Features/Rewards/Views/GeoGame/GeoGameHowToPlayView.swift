@@ -333,16 +333,12 @@ struct TutorialPage {
 #Preview {
     GeoGameHowToPlayView(
         onStart: {
-            print("Start game")
         },
         onSkip: {
-            print("Skip tutorial")
         },
         onSkipAndDontShowAgain: {
-            print("Skip and don't show again")
         },
         onPageChanged: { pageNumber in
-            print("Page changed to: \(pageNumber)")
         },
         isLoading: false,
         isManualView: false

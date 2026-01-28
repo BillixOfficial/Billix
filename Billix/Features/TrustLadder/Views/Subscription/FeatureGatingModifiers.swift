@@ -375,7 +375,6 @@ extension View {
                     subtitle: "Cover only a portion of a bill",
                     icon: "chart.pie"
                 ) {
-                    print("Tapped fractional swaps")
                 }
 
                 GatedFeatureRow(
@@ -384,16 +383,13 @@ extension View {
                     subtitle: "1:1 bill coordination",
                     icon: "arrow.left.arrow.right"
                 ) {
-                    print("Tapped exact match")
                 }
 
                 // Feature cards
                 PremiumFeatureCard(feature: .multiPartySwaps) {
-                    print("Tapped multi-party")
                 }
 
                 PremiumFeatureCard(feature: .groupSwaps) {
-                    print("Tapped group swaps")
                 }
 
                 // Badge examples

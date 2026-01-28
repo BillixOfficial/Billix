@@ -217,15 +217,8 @@ class RealBillUploadService: BillUploadServiceProtocol {
                 let analysis: BillAnalysis
             }
 
-            // DEBUG: Print raw JSON response
-            if let jsonString = String(data: data, encoding: .utf8) {
-                print("📥 Backend Response JSON:")
-                print(jsonString)
-            }
-
             do {
                 let apiResponse = try jsonDecoder.decode(UploadResponse.self, from: data)
-                print("✅ Successfully decoded BillAnalysis")
                 return apiResponse.analysis
             } catch {
                 print("❌ Decoding Error: \(error)")

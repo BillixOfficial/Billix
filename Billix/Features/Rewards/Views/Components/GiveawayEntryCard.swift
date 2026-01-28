@@ -340,10 +340,8 @@ struct PrizeTierRow: View {
                 totalEntries: 1247,
                 currentTier: .silver,
                 onBuyEntries: {
-                    print("Buy entries tapped")
                 },
                 onHowToEarn: {
-                    print("How to earn tapped")
                 }
             )
             .padding(20)
@@ -363,10 +361,8 @@ struct PrizeTierRow: View {
                 totalEntries: 1247,
                 currentTier: .silver,
                 onBuyEntries: {
-                    print("Buy entries tapped")
                 },
                 onHowToEarn: {
-                    print("How to earn tapped")
                 }
             )
             .padding(20)
@@ -386,10 +382,8 @@ struct PrizeTierRow: View {
                 totalEntries: 1247,
                 currentTier: .gold,
                 onBuyEntries: {
-                    print("Buy entries tapped")
                 },
                 onHowToEarn: {
-                    print("How to earn tapped")
                 }
             )
             .padding(20)
@@ -409,10 +403,8 @@ struct PrizeTierRow: View {
                 totalEntries: 1247,
                 currentTier: .bronze,
                 onBuyEntries: {
-                    print("Buy entries tapped")
                 },
                 onHowToEarn: {
-                    print("How to earn tapped")
                 }
             )
             .padding(20)

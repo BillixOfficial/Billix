@@ -97,7 +97,6 @@ class UtilityNewsService: ObservableObject {
                 self.todaysNews = news
                 self.lastFetchDate = Date()
                 cacheNews(news)
-                print("✅ Utility news fetched: \(news.headline)")
             } else {
                 // Fallback: try direct table query
                 let fallbackResults: [UtilityNews] = try await supabase
@@ -111,9 +110,7 @@ class UtilityNewsService: ObservableObject {
                 if let recentNews = fallbackResults.first {
                     self.todaysNews = recentNews
                     self.lastFetchDate = Date()
-                    print("ℹ️ Using fallback news")
                 } else {
-                    print("ℹ️ No utility news available")
                     loadCachedNews()
                 }
             }
@@ -143,7 +140,6 @@ class UtilityNewsService: ObservableObject {
         if let created = news.createdAt,
            Date().timeIntervalSince(created) < 48 * 3600 {
             self.todaysNews = news
-            print("ℹ️ Using cached utility news")
         }
     }
 

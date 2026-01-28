@@ -86,7 +86,7 @@ struct SocialLoginButton: View {
     VStack(spacing: 20) {
         SocialLoginButton(
             provider: .google,
-            action: { print("Google tapped") },
+            action: { },
             isLoading: false
         )
 

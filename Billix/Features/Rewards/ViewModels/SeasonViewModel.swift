@@ -104,7 +104,6 @@ class SeasonViewModel: ObservableObject {
             let session = try await SupabaseService.shared.client.auth.session
             currentUserId = session.user.id
         } catch {
-            print("⚠️ No authenticated user found")
             errorMessage = "Please log in to continue"
         }
     }
@@ -130,11 +129,9 @@ class SeasonViewModel: ObservableObject {
     /// Load user progress for all seasons (lightweight cache for display)
     func loadAllSeasonProgress() async {
         guard let userId = currentUserId else {
-            print("⚠️ No authenticated user - skipping progress load")
             return
         }
 
-        print("🔄 loadAllSeasonProgress() starting for user: \(userId.uuidString.prefix(8))...")
         // Don't set isLoading = true here, as this is a background operation
         errorMessage = nil
 
@@ -212,13 +209,6 @@ class SeasonViewModel: ObservableObject {
             // Session-based progress (array, no locationId)
             allSessionProgress = allProgress.filter { $0.locationId == nil }
 
-            print("✅ Loaded progress for \(allProgress.count) records across \(seasons.count) seasons")
-            // Log detailed stats for each season
-            for season in seasons {
-                if let stats = seasonCompletionStats[season.id] {
-                    print("   📊 \(season.title): \(stats.completed)/\(stats.total) completed")
-                }
-            }
         } catch {
             print("⚠️ Failed to load season progress: \(error)")
             // Non-blocking: show 0/0 if fails
@@ -260,7 +250,7 @@ class SeasonViewModel: ObservableObject {
                     }
                 } catch {
                     // Log error but don't block the UI - user can still see parts without progress
-                    print("⚠️ Failed to load user progress: \(error.localizedDescription)")
+                    print("❌ Failed to load user progress: \(error.localizedDescription)")
                     // Show progress as 0 for all parts
                     partCompletionCounts = Dictionary(uniqueKeysWithValues: seasonParts.map { ($0.id, 0) })
                 }
@@ -350,8 +340,6 @@ class SeasonViewModel: ObservableObject {
             // This aligns with "Expedition Ticket" UX goal of communicating commitment
             let attemptCount = partProgress.count
 
-            print("   🔍 getCompletionStats(partId: \(partId.uuidString.prefix(8))...) - Found \(attemptCount) attempts, passed: \(passed)")
-
             return PartCompletionStats(
                 completed: passed ? 1 : 0,
                 total: total,  // Use actual location count, not hardcoded 1
@@ -375,11 +363,9 @@ class SeasonViewModel: ObservableObject {
     func getSeasonCompletionStats(seasonId: UUID) -> SeasonCompletionStats {
         // Use cached stats if available (from loadAllSeasonProgress)
         if let cached = seasonCompletionStats[seasonId] {
-            print("   🔍 getSeasonCompletionStats() returning CACHED: \(cached.attempts) attempts, \(cached.passedParts)/\(cached.total) passed")
             return cached
         }
 
-        print("   ⚠️ getSeasonCompletionStats() NO CACHE - returning default")
         // Fallback: return default stats
         return SeasonCompletionStats(
             completed: 0,
@@ -453,9 +439,8 @@ class SeasonViewModel: ObservableObject {
         }
 
         isLoading = true
-        print("📝 Saving progress for location: \(location.locationName), userId: \(userId.uuidString), seasonId: \(finalSeasonId.uuidString), partId: \(finalPartId.uuidString)")
 
-        do {
+        do{
             // Save progress to database
             try await service.saveLocationProgress(
                 userId: userId,
@@ -464,8 +449,6 @@ class SeasonViewModel: ObservableObject {
                 locationId: location.id,
                 session: session
             )
-
-            print("💾 Progress saved to database successfully")
 
             // Reload progress to update UI and cache
             let progressArray = try await service.fetchUserProgress(userId: userId, seasonId: finalSeasonId)
@@ -476,8 +459,6 @@ class SeasonViewModel: ObservableObject {
                 }
             )
 
-            print("🔄 Reloaded \(progressArray.count) progress records")
-
             // Update completion count for this part
             let count = try await service.getPartCompletionCount(userId: userId, partId: finalPartId)
             partCompletionCounts[finalPartId] = count
@@ -485,7 +466,6 @@ class SeasonViewModel: ObservableObject {
             // IMPORTANT: Also update the seasonCompletionStats cache for the season card
             await loadAllSeasonProgress()
 
-            print("✅ Progress saved successfully for location: \(location.locationName) - Completion count: \(count)")
         } catch {
             errorMessage = "Failed to save progress: \(error.localizedDescription)"
             print("❌ Error saving progress: \(error)")
@@ -563,7 +543,6 @@ class SeasonViewModel: ObservableObject {
                 pricesAttempted: 0
             )
 
-            print("✅ Generated session with \(randomLocations.count) locations, \(sessionQuestions.count) questions")
         } catch {
             errorMessage = "Failed to generate session: \(error.localizedDescription)"
             print("❌ Error generating session: \(error)")
@@ -604,13 +583,10 @@ class SeasonViewModel: ObservableObject {
         let isLegitimateCompletion = session.health == 0 || session.currentQuestionIndex >= session.questions.count
 
         if !isLegitimateCompletion {
-            print("⚠️ Game not completed legitimately - not saving progress")
-            print("   Health: \(session.health), Questions: \(session.currentQuestionIndex)/\(session.questions.count)")
             return
         }
 
         isLoading = true
-        print("📝 Saving session progress - userId: \(userId.uuidString), seasonId: \(seasonId.uuidString), partId: \(partId.uuidString), correct: \(session.questionsCorrect)/\(session.questions.count)")
 
         do {
             // Save session progress to database
@@ -621,8 +597,6 @@ class SeasonViewModel: ObservableObject {
                 session: session
             )
 
-            print("💾 Session progress saved to database successfully")
-
             // Notify task tracking system
             NotificationCenter.default.post(
                 name: NSNotification.Name("GameCompleted"),
@@ -632,7 +606,6 @@ class SeasonViewModel: ObservableObject {
                     "pointsEarned": session.totalPoints
                 ]
             )
-            print("📤 Posted GameCompleted notification - sessionId: \(session.id), points: \(session.totalPoints)")
 
             // Reload parts to update unlock status if passed
             seasonParts = try await service.fetchSeasonParts(seasonId: seasonId)
@@ -650,8 +623,6 @@ class SeasonViewModel: ObservableObject {
 
             let totalCorrect = session.landmarksCorrect + session.pricesCorrect
             let hasPassed = totalCorrect >= 24
-
-            print("✅ Session progress saved: \(totalCorrect)/30 correct, Passed: \(hasPassed)")
 
             // Clear session state
             currentGameSession = nil

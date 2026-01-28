@@ -277,8 +277,6 @@ class TipViewModel: ObservableObject {
                         object: nil
                     )
 
-                    print("✅ Tip completed and claimed: +\(claimResult.pointsAwarded) pts")
-
                     // Show toast notification
                     showToast = true
 

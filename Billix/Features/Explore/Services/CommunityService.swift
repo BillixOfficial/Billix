@@ -284,13 +284,9 @@ class CommunityService: CommunityServiceProtocol {
     // MARK: - Posts
 
     func fetchFeed(filter: CommunityFeedFilter, page: Int = 0, limit: Int = 20) async throws -> [CommunityPost] {
-        print("[CommunityService] fetchFeed called - filter: \(filter), page: \(page)")
-
         guard let session = try? await supabase.auth.session else {
-            print("[CommunityService] fetchFeed - No session, returning empty")
             return []
         }
-        print("[CommunityService] fetchFeed - User authenticated: \(session.user.id)")
 
         let userId = session.user.id
         let offset = page * limit
@@ -350,7 +346,6 @@ class CommunityService: CommunityServiceProtocol {
             }
         }
 
-        print("[CommunityService] fetchFeed - Got \(posts.count) posts from DB")
         return posts.map { post in
             post.toUIModel(
                 isLiked: userReactions[post.id] != nil,
@@ -362,13 +357,9 @@ class CommunityService: CommunityServiceProtocol {
     }
 
     func createPost(content: String, topic: CommunityTopicType, groupId: UUID? = nil) async throws -> CommunityPost {
-        print("[CommunityService] createPost called - topic: \(topic), groupId: \(groupId?.uuidString ?? "nil")")
-
         guard let session = try? await supabase.auth.session else {
-            print("[CommunityService] createPost - Not authenticated")
             throw CommunityError.notAuthenticated
         }
-        print("[CommunityService] createPost - User: \(session.user.id)")
 
         var insertData: [String: String] = [
             "author_id": session.user.id.uuidString,
@@ -379,8 +370,6 @@ class CommunityService: CommunityServiceProtocol {
         if let groupId = groupId {
             insertData["group_id"] = groupId.uuidString
         }
-
-        print("[CommunityService] createPost - Insert data: \(insertData)")
 
         do {
             let selectQuery = "*, profiles!community_posts_author_id_fkey(user_id, display_name, handle), community_groups(id, name)"
@@ -393,23 +382,16 @@ class CommunityService: CommunityServiceProtocol {
                 .execute()
                 .value
 
-            print("[CommunityService] createPost - Success! Post ID: \(post.id), Group: \(post.group?.name ?? "General")")
             return post.toUIModel(isLiked: false, isSaved: false, currentUserId: session.user.id)
         } catch {
-            print("[CommunityService] createPost - ERROR: \(error)")
-            print("[CommunityService] createPost - Error details: \(String(describing: error))")
             throw error
         }
     }
 
     func deletePost(id: UUID) async throws {
-        print("[CommunityService] deletePost called - postId: \(id)")
-
         guard let session = try? await supabase.auth.session else {
-            print("[CommunityService] deletePost - Not authenticated")
             throw CommunityError.notAuthenticated
         }
-        print("[CommunityService] deletePost - User: \(session.user.id)")
 
         // Soft delete - set is_deleted to true (only if user is the author)
         try await supabase
@@ -418,16 +400,11 @@ class CommunityService: CommunityServiceProtocol {
             .eq("id", value: id.uuidString)
             .eq("author_id", value: session.user.id.uuidString)
             .execute()
-
-        print("[CommunityService] deletePost - SUCCESS")
     }
 
     /// Fetch posts for a specific group
     func fetchGroupPosts(groupId: UUID) async throws -> [CommunityPost] {
-        print("[CommunityService] fetchGroupPosts called - groupId: \(groupId)")
-
         guard let session = try? await supabase.auth.session else {
-            print("[CommunityService] fetchGroupPosts - No session")
             return []
         }
 
@@ -446,8 +423,6 @@ class CommunityService: CommunityServiceProtocol {
             .execute()
             .value
 
-        print("[CommunityService] fetchGroupPosts - Got \(posts.count) posts for group")
-
         let userId = session.user.id
         return posts.map { post in
             post.toUIModel(
@@ -462,13 +437,9 @@ class CommunityService: CommunityServiceProtocol {
     // MARK: - Reactions
 
     func addReaction(to postId: UUID, reaction: String = "heart") async throws {
-        print("[CommunityService] addReaction - postId: \(postId), reaction: \(reaction)")
-
         guard let session = try? await supabase.auth.session else {
-            print("[CommunityService] addReaction - Not authenticated")
             throw CommunityError.notAuthenticated
         }
-        print("[CommunityService] addReaction - User: \(session.user.id)")
 
         // Check if reaction already exists
         let existing: [CommunityReactionDB] = try await supabase
@@ -480,10 +451,7 @@ class CommunityService: CommunityServiceProtocol {
             .execute()
             .value
 
-        print("[CommunityService] addReaction - Existing reactions: \(existing.count)")
-
         if existing.isEmpty {
-            print("[CommunityService] addReaction - Inserting new reaction...")
             try await supabase
                 .from("community_reactions")
                 .insert([
@@ -495,20 +463,13 @@ class CommunityService: CommunityServiceProtocol {
                 .execute()
 
             cachedUserReactions[postId] = reaction
-            print("[CommunityService] addReaction - SUCCESS")
-        } else {
-            print("[CommunityService] addReaction - Reaction already exists, skipping")
         }
     }
 
     func removeReaction(from postId: UUID) async throws {
-        print("[CommunityService] removeReaction - postId: \(postId)")
-
         guard let session = try? await supabase.auth.session else {
-            print("[CommunityService] removeReaction - Not authenticated")
             throw CommunityError.notAuthenticated
         }
-        print("[CommunityService] removeReaction - User: \(session.user.id)")
 
         try await supabase
             .from("community_reactions")
@@ -519,7 +480,6 @@ class CommunityService: CommunityServiceProtocol {
             .execute()
 
         cachedUserReactions.removeValue(forKey: postId)
-        print("[CommunityService] removeReaction - SUCCESS")
     }
 
     func getUserReaction(for postId: UUID) async throws -> String? {
@@ -578,10 +538,7 @@ class CommunityService: CommunityServiceProtocol {
     // MARK: - Groups
 
     func fetchGroups() async throws -> [CommunityGroup] {
-        print("[CommunityService] fetchGroups called")
-
         let joinedIds = try await getUserJoinedGroupIds()
-        print("[CommunityService] fetchGroups - User joined \(joinedIds.count) groups")
 
         let groups: [CommunityGroupDB] = try await supabase
             .from("community_groups")
@@ -589,11 +546,6 @@ class CommunityService: CommunityServiceProtocol {
             .order("member_count", ascending: false)
             .execute()
             .value
-
-        print("[CommunityService] fetchGroups - Got \(groups.count) groups from DB")
-        for group in groups {
-            print("[CommunityService]   - \(group.name): \(group.memberCount) members")
-        }
 
         cachedGroups = groups
 
@@ -668,10 +620,7 @@ class CommunityService: CommunityServiceProtocol {
     // MARK: - Saved Posts
 
     func savePost(id: UUID) async throws {
-        print("[CommunityService] savePost called - postId: \(id)")
-
         guard let session = try? await supabase.auth.session else {
-            print("[CommunityService] savePost - Not authenticated")
             throw CommunityError.notAuthenticated
         }
 
@@ -694,17 +643,11 @@ class CommunityService: CommunityServiceProtocol {
                 .execute()
 
             cachedSavedPostIds?.insert(id)
-            print("[CommunityService] savePost SUCCESS")
-        } else {
-            print("[CommunityService] savePost - Already saved, skipping")
         }
     }
 
     func unsavePost(id: UUID) async throws {
-        print("[CommunityService] unsavePost called - postId: \(id)")
-
         guard let session = try? await supabase.auth.session else {
-            print("[CommunityService] unsavePost - Not authenticated")
             throw CommunityError.notAuthenticated
         }
 
@@ -716,7 +659,6 @@ class CommunityService: CommunityServiceProtocol {
             .execute()
 
         cachedSavedPostIds?.remove(id)
-        print("[CommunityService] unsavePost SUCCESS")
     }
 
     func getUserSavedPostIds() async throws -> Set<UUID> {
@@ -743,10 +685,7 @@ class CommunityService: CommunityServiceProtocol {
     // MARK: - Reports
 
     func reportPost(id: UUID, reason: String, details: String? = nil) async throws {
-        print("[CommunityService] reportPost called - postId: \(id), reason: \(reason)")
-
         guard let session = try? await supabase.auth.session else {
-            print("[CommunityService] reportPost - Not authenticated")
             throw CommunityError.notAuthenticated
         }
 
@@ -764,8 +703,6 @@ class CommunityService: CommunityServiceProtocol {
             .from("community_post_reports")
             .insert(insertData)
             .execute()
-
-        print("[CommunityService] reportPost SUCCESS - Post \(id) reported by user \(session.user.id)")
     }
 
     // MARK: - Cache Management

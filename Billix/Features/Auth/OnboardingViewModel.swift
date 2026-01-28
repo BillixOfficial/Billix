@@ -230,7 +230,7 @@ class OnboardingViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Error loading image: \(error)")
+            // Silently handle image loading errors
         }
     }
 

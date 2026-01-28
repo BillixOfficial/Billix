@@ -154,13 +154,10 @@ struct GeoGameContainerView: View {
     GeoGameContainerView(
         initialGame: GeoGameDataService.mockGames[0],
         onComplete: { result in
-            print("Game completed with \(result.pointsEarned) points")
         },
         onPlayAgain: {
-            print("Play again tapped")
         },
         onDismiss: {
-            print("Dismiss tapped")
         }
     )
 }

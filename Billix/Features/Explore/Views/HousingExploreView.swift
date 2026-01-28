@@ -45,16 +45,12 @@ struct HousingExploreView: View {
                     onPinTap: { id in
                         if id == "searched" {
                             // Blue pin (searched location) tapped - show full listing view
-                            print("📍 [PIN TAP] Blue pin (searched location) tapped")
-                            print("   → Clearing selection, expanding to FULL view (.large)")
                             viewModel.selectedPropertyId = nil  // Clear any selection
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                 sheetDetent = .large  // Full expanded view
                             }
                         } else {
                             // Comparable property pin tapped - show property details
-                            print("📍 [PIN TAP] Comparable pin tapped: \(id)")
-                            print("   → Selecting property, expanding to HALF view (.medium)")
                             viewModel.selectPropertyFromMap(id: id)
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                                 sheetDetent = .medium  // Half-expanded to show selected property
@@ -253,13 +249,11 @@ struct HousingExploreView: View {
         .task {
             // Auto-load user's location on first appear
             if viewModel.isInitialLoad {
-                print("📍 [HOUSING] Requesting user location...")
                 userLocation.getCurrentLocation()
 
                 // Fallback: If location takes too long (5 seconds), show empty state
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
                 if viewModel.isInitialLoad && userLocation.userZipCode == nil {
-                    print("📍 [HOUSING] Location timeout - user can search manually")
                     viewModel.isInitialLoad = false
                 }
             }
@@ -267,7 +261,6 @@ struct HousingExploreView: View {
         .onChange(of: userLocation.userZipCode) { zipCode in
             // Load properties when we get user's ZIP code (even if permission was granted after denial)
             if let zipCode = zipCode, !viewModel.hasSearched {
-                print("📍 [HOUSING] Got ZIP code: \(zipCode), loading properties...")
                 Task {
                     await viewModel.loadPopulatedArea(address: zipCode)
                 }
@@ -276,7 +269,6 @@ struct HousingExploreView: View {
         .onChange(of: userLocation.errorMessage) { error in
             // If location fails, let user search manually
             if error != nil && viewModel.isInitialLoad {
-                print("📍 [HOUSING] Location error: \(error ?? "unknown"), user can search manually")
                 viewModel.isInitialLoad = false
             }
         }
@@ -306,7 +298,6 @@ struct HousingExploreView: View {
                 rateLimitService: rateLimitService,
                 onUpgrade: {
                     // TODO: Navigate to premium subscription screen
-                    print("Navigate to premium subscription")
                 }
             )
             .overlay(alignment: .topTrailing) {

@@ -349,8 +349,6 @@ struct GiftCardEmailSheet: View {
             accentColor: "#CC0000"
         ),
         userPoints: 25000,
-        onRedeem: { email in
-            print("Redeem with email: \(email)")
-        }
+        onRedeem: { email in }
     )
 }

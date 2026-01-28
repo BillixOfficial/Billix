@@ -36,9 +36,8 @@ class TutorialManager: ObservableObject {
         do {
             let session = try await SupabaseService.shared.client.auth.session
             currentUserId = session.user.id
-            print("✅ TutorialManager initialized for user: \(session.user.id.uuidString.prefix(8))...")
         } catch {
-            print("⚠️ No authenticated user found in TutorialManager")
+            // No authenticated user found
         }
     }
 
@@ -48,7 +47,6 @@ class TutorialManager: ObservableObject {
     func fetchTutorialSettings(userId: UUID, forceFetch: Bool = false) async throws -> UserGameSettings {
         // Use cache if available and not forcing fetch
         if !forceFetch, let cached = cachedSettings, cached.userId == userId {
-            print("   📦 Using cached tutorial settings")
             return cached
         }
 
@@ -64,11 +62,8 @@ class TutorialManager: ObservableObject {
                 // Cache successful fetch
                 cachedSettings = settings
 
-                print("   ✅ Fetched tutorial settings (attempt \(attempt))")
                 return settings
             } catch {
-                print("   ⚠️ Fetch attempt \(attempt) failed: \(error.localizedDescription)")
-
                 if attempt < 3 {
                     // Exponential backoff: 0.5s, 1s, 2s
                     let delayNanoseconds = UInt64(pow(2.0, Double(attempt - 1)) * 500_000_000)
@@ -87,7 +82,6 @@ class TutorialManager: ObservableObject {
     /// Check if tutorial should be shown automatically
     func shouldShowTutorial() async -> Bool {
         guard let userId = currentUserId else {
-            print("   ⚠️ No user ID - defaulting to show tutorial")
             return true
         }
 
@@ -96,8 +90,6 @@ class TutorialManager: ObservableObject {
 
             // Don't show if user completed tutorial OR clicked "Don't Show Again"
             let shouldShow = !settings.hasCompletedTutorial && !settings.hasSeenTutorial
-
-            print("   🔍 shouldShowTutorial() = \(shouldShow) (completed: \(settings.hasCompletedTutorial), seen: \(settings.hasSeenTutorial))")
 
             return shouldShow
         } catch {
@@ -117,8 +109,6 @@ class TutorialManager: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        print("   📝 Marking tutorial as completed (pages: \(pagesViewed))")
-
         try await service.markTutorialCompleted(userId: userId, pagesViewed: pagesViewed)
 
         // Update cache
@@ -130,16 +120,12 @@ class TutorialManager: ObservableObject {
             settings.hasPlayedGeogame = true
             cachedSettings = settings
         }
-
-        print("   ✅ Tutorial marked as completed")
     }
 
     /// Mark tutorial as skipped (user clicked "Skip for Now")
     func markTutorialSkipped(userId: UUID) async throws {
         isLoading = true
         defer { isLoading = false }
-
-        print("   📝 Marking tutorial as skipped")
 
         try await service.markTutorialSkipped(userId: userId)
 
@@ -148,16 +134,12 @@ class TutorialManager: ObservableObject {
             settings.tutorialSkippedCount += 1
             cachedSettings = settings
         }
-
-        print("   ✅ Tutorial skip count incremented")
     }
 
     /// Mark tutorial as dismissed (user clicked "Don't Show Again")
     func markTutorialDismissed(userId: UUID) async throws {
         isLoading = true
         defer { isLoading = false }
-
-        print("   📝 Marking tutorial as dismissed (Don't Show Again)")
 
         try await service.markTutorialSeen(userId: userId)
 
@@ -167,8 +149,6 @@ class TutorialManager: ObservableObject {
             settings.lastTutorialShownAt = Date()
             cachedSettings = settings
         }
-
-        print("   ✅ Tutorial permanently dismissed")
     }
 
     /// Track page view (for analytics)
@@ -182,14 +162,12 @@ class TutorialManager: ObservableObject {
                 cachedSettings = settings
             }
         } catch {
-            print("   ⚠️ Failed to track page view: \(error.localizedDescription)")
             // Non-critical error - don't propagate
         }
     }
 
     /// Track manual tutorial view (for analytics)
     func trackManualTutorialView() {
-        print("   📚 User manually opened tutorial (no state change)")
         // Optional: Track analytics event here
     }
 
@@ -203,8 +181,6 @@ class TutorialManager: ObservableObject {
         if UserDefaults.standard.object(forKey: appStorageKey) != nil {
             let neverShowAgain = UserDefaults.standard.bool(forKey: appStorageKey)
 
-            print("   🔄 Migrating @AppStorage value: \(neverShowAgain)")
-
             if neverShowAgain {
                 // User previously clicked "Don't Show Again"
                 try await markTutorialDismissed(userId: userId)
@@ -212,9 +188,6 @@ class TutorialManager: ObservableObject {
 
             // Clear @AppStorage value
             UserDefaults.standard.removeObject(forKey: appStorageKey)
-            print("   ✅ Migration complete, @AppStorage cleared")
-        } else {
-            print("   ℹ️  No @AppStorage value to migrate")
         }
     }
 
@@ -224,9 +197,7 @@ class TutorialManager: ObservableObject {
     func preFetchSettings(userId: UUID) async {
         do {
             _ = try await fetchTutorialSettings(userId: userId, forceFetch: false)
-            print("   ✅ Pre-fetched tutorial settings for user: \(userId.uuidString.prefix(8))...")
         } catch {
-            print("   ⚠️ Pre-fetch failed: \(error.localizedDescription)")
             // Non-critical - cache will be populated on next fetch
         }
     }
@@ -234,6 +205,5 @@ class TutorialManager: ObservableObject {
     /// Invalidate cache (force refresh on next fetch)
     func invalidateCache() {
         cachedSettings = nil
-        print("   🗑️  Tutorial settings cache invalidated")
     }
 }

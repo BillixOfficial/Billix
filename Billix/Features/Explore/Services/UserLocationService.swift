@@ -46,21 +46,15 @@ class UserLocationService: NSObject, ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        print("📍 getCurrentLocation called, status: \(authorizationStatus.rawValue)")
-
         switch authorizationStatus {
         case .notDetermined:
-            print("📍 Requesting permission...")
             requestPermission()
         case .authorizedWhenInUse, .authorizedAlways:
-            print("📍 Permission granted, requesting location...")
             locationManager.requestLocation()
         case .denied, .restricted:
-            print("📍 Permission denied")
             isLoading = false
             errorMessage = "Location access denied. Please enable in Settings."
         @unknown default:
-            print("📍 Unknown status")
             isLoading = false
             errorMessage = "Unknown location status"
         }

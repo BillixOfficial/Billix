@@ -200,25 +200,19 @@ struct BadgePill: View {
         // Verified user
         ProfileHeaderView(
             profile: .preview,
-            onEditTap: {
-                print("Edit tapped")
-            }
+            onEditTap: {}
         )
 
         // Unverified user
         ProfileHeaderView(
             profile: .previewUnverified,
-            onEditTap: {
-                print("Edit tapped")
-            }
+            onEditTap: {}
         )
 
         // Power user
         ProfileHeaderView(
             profile: .previewPowerUser,
-            onEditTap: {
-                print("Edit tapped")
-            }
+            onEditTap: {}
         )
     }
     .padding()

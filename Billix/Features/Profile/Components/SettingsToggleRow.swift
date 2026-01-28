@@ -128,10 +128,7 @@ struct CompactToggleRow: View {
                         title: "Push Notifications",
                         subtitle: "Get alerts about your bills",
                         icon: "bell.fill",
-                        isOn: $toggle1,
-                        onChange: { newValue in
-                            print("Push notifications: \(newValue)")
-                        }
+                        isOn: $toggle1
                     )
                 }
 

@@ -93,12 +93,10 @@ class MarketTrendsViewModel: ObservableObject {
 
             if zipCode == nil {
                 // Use Apple geocoding to find zip code (free)
-                print("🗺️ [MARKET TRENDS] No zip found, using geocoding...")
                 zipCode = await GeocodingService.shared.getZipCode(from: location)
             }
 
             guard let resolvedZipCode = zipCode else {
-                print("❌ Could not resolve zip code for location: \(location)")
                 isLoading = false
                 return
             }
@@ -106,7 +104,6 @@ class MarketTrendsViewModel: ObservableObject {
             // Step 2: Check shared cache first (same cache as Housing tab)
             let cacheKey = CacheKey.rentCastMarketStats(zipCode: resolvedZipCode)
             if let cachedResponse: RentCastMarketResponse = await CacheManager.shared.get(cacheKey) {
-                print("💾 [MARKET TRENDS] Using cached data for zip \(resolvedZipCode)")
                 marketData = cachedResponse.toMarketTrendsData(location: location)
                 historyData = cachedResponse.toHistoryData()
                 isLoading = false
@@ -114,7 +111,6 @@ class MarketTrendsViewModel: ObservableObject {
             }
 
             // Step 3: Fetch from RentCast via Edge Function
-            print("📡 [MARKET TRENDS] Fetching fresh data for zip \(resolvedZipCode)...")
             let response = try await rentCastService.fetchMarketStatistics(
                 zipCode: resolvedZipCode,
                 historyRange: 60
@@ -122,7 +118,6 @@ class MarketTrendsViewModel: ObservableObject {
 
             // Step 4: Store in shared cache
             await CacheManager.shared.set(cacheKey, value: response)
-            print("💾 [MARKET TRENDS] Stored data for zip \(resolvedZipCode)")
 
             // Convert to Billix models
             marketData = response.toMarketTrendsData(location: location)
@@ -130,7 +125,6 @@ class MarketTrendsViewModel: ObservableObject {
 
         } catch {
             // Show error - NO FALLBACK to mock data
-            print("❌ Error loading market trends: \(error)")
             marketData = nil
             historyData = []
         }

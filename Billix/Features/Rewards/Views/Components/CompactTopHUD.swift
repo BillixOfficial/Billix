@@ -208,8 +208,8 @@ struct TimerDisplay: View {
                     vm.session.health = 2  // 66%
                     return vm
                 }(),
-                onClose: { print("Close tapped") },
-                onHelp: { print("Help tapped") }
+                onClose: {},
+                onHelp: {}
             )
 
             Spacer()
@@ -231,8 +231,8 @@ struct TimerDisplay: View {
                     vm.session.health = 3  // 100%
                     return vm
                 }(),
-                onClose: { print("Close tapped") },
-                onHelp: { print("Help tapped") }
+                onClose: {},
+                onHelp: {}
             )
 
             Spacer()

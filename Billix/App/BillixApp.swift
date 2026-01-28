@@ -108,7 +108,6 @@ struct BillixApp: App {
             // Supabase processes the OAuth callback and establishes the session
             // The auth state listener in AuthService will automatically pick up the new session
             try await SupabaseService.shared.client.auth.session(from: url)
-            print("OAuth callback processed successfully")
         } catch {
             print("OAuth callback error: \(error.localizedDescription)")
         }

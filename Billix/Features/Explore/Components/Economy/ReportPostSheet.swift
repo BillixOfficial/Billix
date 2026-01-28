@@ -273,7 +273,6 @@ struct ReportPostSheet: View {
     ReportPostSheet(
         post: CommunityPost.mockPosts[0],
         onSubmit: { reason, details in
-            print("Report: \(reason.rawValue), Details: \(details ?? "none")")
         }
     )
 }

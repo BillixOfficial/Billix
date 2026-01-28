@@ -98,7 +98,6 @@ struct HeartLostAnimation: View {
         Color.black.ignoresSafeArea()
 
         HeartLostAnimation {
-            print("Heart lost animation complete")
         }
     }
 }

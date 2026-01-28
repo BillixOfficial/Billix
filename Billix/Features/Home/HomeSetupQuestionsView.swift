@@ -416,7 +416,7 @@ struct HomeSetupQuestionsView: View {
             try await saveUserPreferences()
             dismiss()
         } catch {
-            print("Error saving preferences: \(error)")
+            print("❌ Error saving preferences: \(error)")
             // Still dismiss even on error
             dismiss()
         }
@@ -446,8 +446,6 @@ struct HomeSetupQuestionsView: View {
             .update(updateData)
             .eq("user_id", value: userId.uuidString)
             .execute()
-
-        print("✅ User preferences saved successfully")
     }
 
     private func haptic() {
