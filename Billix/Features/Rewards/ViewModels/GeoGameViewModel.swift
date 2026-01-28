@@ -270,8 +270,8 @@ class GeoGameViewModel: ObservableObject {
         timerEndDate = Date().addingTimeInterval(timeLimit)
         isTimerActive = true
 
-        // Create timer that fires every 0.1 seconds for smooth animation
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        // Create timer that fires every 0.25 seconds (4x/sec is enough for second-based countdown)
+        timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             Task { @MainActor [weak self] in
                 self?.updateTimer()

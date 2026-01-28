@@ -92,7 +92,7 @@ struct BillTickerZone: View {
                 averages = try await openAIService.getNationalAverages(zipCode: zipCode)
                 isLoading = false
             } catch {
-                print("Failed to load national averages: \(error)")
+                print("❌ Error: Failed to load national averages: \(error)")
                 isLoading = false
             }
         }

@@ -80,54 +80,28 @@ class StreakService: ObservableObject {
 
     /// Fetch current streak status for the logged-in user
     func fetchStreak() async throws {
-        print("🔄 [STREAK SERVICE] fetchStreak() called - START")
-
         guard let userId = try? await supabase.auth.session.user.id else {
-            print("⚠️ [STREAK SERVICE] No user logged in")
             return
         }
 
-        print("✅ [STREAK SERVICE] User ID: \(userId.uuidString)")
-
         isLoading = true
-        defer {
-            isLoading = false
-            print("🔄 [STREAK SERVICE] isLoading set to false")
-        }
+        defer { isLoading = false }
 
         do {
-            print("🌐 [STREAK SERVICE] Calling get_streak_status RPC...")
-            // Call the get_streak_status function
             let results: [StreakStatusResult] = try await supabase
                 .rpc("get_streak_status", params: ["p_user_id": userId.uuidString])
                 .execute()
                 .value
 
-            print("📦 [STREAK SERVICE] RPC response received - results count: \(results.count)")
-
             if let result = results.first {
-                print("📊 [STREAK SERVICE] Result data:")
-                print("   - currentStreak: \(result.currentStreak)")
-                print("   - longestStreak: \(result.longestStreak)")
-                print("   - isAtRisk: \(result.isAtRisk)")
-                print("   - lastActivityDate: \(result.lastActivityDate ?? "nil")")
-
-                // BEFORE update
-                print("📍 [STREAK SERVICE] BEFORE UPDATE - self.currentStreak = \(self.currentStreak)")
-
                 self.currentStreak = result.currentStreak
                 self.longestStreak = result.longestStreak
                 self.isAtRisk = result.isAtRisk
 
-                // AFTER update
-                print("📍 [STREAK SERVICE] AFTER UPDATE - self.currentStreak = \(self.currentStreak)")
-
-                // Parse last activity date
                 if let dateString = result.lastActivityDate {
                     let formatter = DateFormatter()
                     formatter.dateFormat = "yyyy-MM-dd"
                     self.lastActivityDate = formatter.date(from: dateString)
-                    print("📅 [STREAK SERVICE] lastActivityDate parsed: \(self.lastActivityDate?.description ?? "nil")")
 
                     // Validate streak is still active (last activity must be today or yesterday)
                     if let lastActivity = self.lastActivityDate {
@@ -138,35 +112,25 @@ class StreakService: ObservableObject {
 
                         // If last activity was NOT today or yesterday, streak is broken
                         if lastActivityDay != today && lastActivityDay != yesterday {
-                            print("⚠️ [STREAK SERVICE] Streak broken! Last activity was \(lastActivityDay), resetting to 0")
                             self.currentStreak = 0
                         }
                     }
                 }
-
-                print("✅ [STREAK SERVICE] Streak fetched successfully: \(self.currentStreak) days")
             } else {
-                print("⚠️ [STREAK SERVICE] No streak record found in results")
                 // No streak record yet - will be created on first activity
                 self.currentStreak = 0
                 self.longestStreak = 0
                 self.isAtRisk = false
-                print("ℹ️ [STREAK SERVICE] Set to defaults - currentStreak: 0")
             }
         } catch {
-            print("❌ [STREAK SERVICE] Error fetching streak: \(error)")
-            print("❌ [STREAK SERVICE] Error details: \(error.localizedDescription)")
             throw error
         }
-
-        print("✅ [STREAK SERVICE] fetchStreak() completed - FINAL currentStreak = \(self.currentStreak)")
     }
 
     /// Record activity and update streak
     /// Call this when user performs meaningful engagement (opens app, uploads bill, etc.)
     func recordActivity() async throws {
         guard let userId = try? await supabase.auth.session.user.id else {
-            print("⚠️ StreakService: No user logged in")
             return
         }
 
@@ -174,26 +138,18 @@ class StreakService: ObservableObject {
         defer { isLoading = false }
 
         do {
-            // Call the update_user_streak function
             let results: [UpdateStreakResult] = try await supabase
                 .rpc("update_user_streak", params: ["p_user_id": userId.uuidString])
                 .execute()
                 .value
 
             if let result = results.first {
-                let oldStreak = self.currentStreak
                 self.currentStreak = result.currentStreak
                 self.longestStreak = result.longestStreak
                 self.isAtRisk = result.isAtRisk
                 self.lastActivityDate = Date()
-
-                // Log streak milestone
-                if result.currentStreak > oldStreak && result.currentStreak > 0 {
-                    print("🔥 Streak increased to \(result.currentStreak) days!")
-                }
             }
         } catch {
-            print("❌ Error recording activity: \(error)")
             throw error
         }
     }

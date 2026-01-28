@@ -386,8 +386,6 @@ extension BillExplorerViewModel {
         .sorted { $0.lastUpdated < $1.lastUpdated }
         .prefix(50) // Boost up to 50 oldest per day
 
-        print("Would boost \(toBoost.count) old listings")
-
         // In production, update lastBoostedAt in Supabase
     }
 }

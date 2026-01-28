@@ -86,7 +86,6 @@ struct EconomyTabView: View {
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button {
-                                print("[EconomyTabView] 🔙 Back button tapped")
                                 groupsRouter.selectedGroup = nil
                             } label: {
                                 HStack(spacing: 4) {
@@ -97,9 +96,6 @@ struct EconomyTabView: View {
                         }
                     }
             }
-        }
-        .onChange(of: groupsRouter.selectedGroup) { oldValue, newValue in
-            print("[EconomyTabView] 📍 groupsRouter.selectedGroup CHANGED: \(oldValue?.name ?? "nil") → \(newValue?.name ?? "nil")")
         }
     }
 

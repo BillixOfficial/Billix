@@ -84,9 +84,9 @@ class RewardsViewModel: ObservableObject {
     @Published var showAllRewards: Bool = false
     @Published var errorMessage: String?
 
-    // MARK: - Timer
+    // MARK: - Animation
 
-    private var countdownTimer: Timer?
+    private var animationWorkItem: DispatchWorkItem?
 
     // MARK: - Initialization
 
@@ -100,7 +100,6 @@ class RewardsViewModel: ObservableObject {
         // Initialize with empty points data (will load from backend)
         self.points = RewardsPoints(balance: 0, lifetimeEarned: 0, transactions: [])
 
-        setupCountdownTimer()
         setupNotificationObservers()
     }
 
@@ -111,19 +110,16 @@ class RewardsViewModel: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            print("🔔 RewardsViewModel received PointsUpdated notification")
             guard let self = self else { return }
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                print("🔄 Refreshing rewards data...")
                 await self.loadRewardsData()
-                print("✅ Rewards data refreshed")
             }
         }
     }
 
     deinit {
-        countdownTimer?.invalidate()
+        animationWorkItem?.cancel()
         NotificationCenter.default.removeObserver(self)
     }
 
@@ -135,7 +131,6 @@ class RewardsViewModel: ObservableObject {
         do {
             // Get current user ID
             guard let userId = authService.currentUser?.id else {
-                print("⚠️ No authenticated user - using empty points data")
                 isLoading = false
                 return
             }
@@ -176,25 +171,56 @@ class RewardsViewModel: ObservableObject {
     }
 
     func animateBalanceChange(to newBalance: Int) {
+        // Cancel any previous animation to prevent stacking
+        animationWorkItem?.cancel()
+
         let startBalance = displayedBalance
         let difference = newBalance - startBalance
+
+        // If no change, just set directly
+        guard difference != 0 else {
+            displayedBalance = newBalance
+            return
+        }
+
         let steps = 20
         let stepDuration: TimeInterval = 0.03
 
-        for i in 0...steps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) { [weak self] in
+        // Create a single work item that performs all steps
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+
+            for i in 0...steps {
+                // Check if cancelled between steps
+                if self.animationWorkItem?.isCancelled == true { return }
+
                 let progress = Double(i) / Double(steps)
                 let easedProgress = 1 - pow(1 - progress, 3) // Ease out cubic
-                self?.displayedBalance = startBalance + Int(Double(difference) * easedProgress)
+
+                DispatchQueue.main.async { [weak self] in
+                    self?.displayedBalance = startBalance + Int(Double(difference) * easedProgress)
+                }
+
+                // Sleep between steps (non-blocking on background thread)
+                if i < steps {
+                    Thread.sleep(forTimeInterval: stepDuration)
+                }
+            }
+
+            // Ensure final value is exact
+            DispatchQueue.main.async { [weak self] in
+                self?.displayedBalance = newBalance
             }
         }
+
+        animationWorkItem = workItem
+        DispatchQueue.global(qos: .userInteractive).async(execute: workItem)
     }
 
     func addPoints(_ amount: Int, description: String, type: PointTransactionType = .gameWin) {
         Task {
             do {
                 guard let userId = self.authService.currentUser?.id else {
-                    print("⚠️ No authenticated user - cannot add points")
                     return
                 }
 
@@ -238,7 +264,6 @@ class RewardsViewModel: ObservableObject {
         Task {
             do {
                 guard let userId = self.authService.currentUser?.id else {
-                    print("⚠️ No authenticated user - cannot redeem reward")
                     return
                 }
 
@@ -300,7 +325,6 @@ class RewardsViewModel: ObservableObject {
             points.balance = newBalance
             animateBalanceChange(to: points.balance)
 
-            print("✅ Gift card redemption saved to database")
         } catch {
             print("❌ Error redeeming gift card: \(error)")
             errorMessage = "Failed to redeem gift card. Please try again."
@@ -335,8 +359,6 @@ class RewardsViewModel: ObservableObject {
                 "pointsEarned": result.pointsEarned // Preserved for metadata, but not awarded immediately
             ]
         )
-
-        print("📤 Posted GameCompleted notification - points will be awarded via weekly task claim")
     }
 
     func closeGeoGame() {
@@ -399,26 +421,10 @@ class RewardsViewModel: ObservableObject {
             animateBalanceChange(to: points.balance)
 
             showDonationRequestSheet = false
-            print("✅ Donation request saved to database")
         } catch {
             print("❌ Error submitting donation: \(error)")
             errorMessage = "Failed to submit donation request. Please try again."
         }
     }
 
-    // MARK: - Private Methods
-
-    private func setupCountdownTimer() {
-        updateCountdown()
-        countdownTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            Task { @MainActor [weak self] in
-                self?.updateCountdown()
-            }
-        }
-    }
-
-    private func updateCountdown() {
-        // No longer using countdown - games are always available
-    }
 }

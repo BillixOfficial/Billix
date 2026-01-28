@@ -113,7 +113,6 @@ struct BillsExploreView: View {
                         },
                         onCommentTapped: {
                             // Phase 2: Comments
-                            print("Comments tapped for listing \(listing.id)")
                         }
                     )
                 }

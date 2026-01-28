@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import AuthenticationServices
+import Combine
 
 /// ViewModel for managing authentication state and flows
 @MainActor
@@ -30,22 +31,31 @@ class AuthViewModel: ObservableObject {
 
     // MARK: - Private Properties
     private let authService = AuthService.shared
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Initialization
     init() {
-        // Observe auth service changes
-        Task {
-            for await _ in Timer.publish(every: 0.1, on: .main, in: .common).autoconnect().values {
-                if authService.isAuthenticated != isAuthenticated {
-                    isAuthenticated = authService.isAuthenticated
-                    currentUser = authService.currentUser
-                }
-
-                if authService.isLoading != isLoading {
-                    isLoading = authService.isLoading
-                }
+        // Subscribe to auth service changes using Combine (efficient, event-driven)
+        authService.$isAuthenticated
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                self?.isAuthenticated = value
             }
-        }
+            .store(in: &cancellables)
+
+        authService.$currentUser
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                self?.currentUser = value
+            }
+            .store(in: &cancellables)
+
+        authService.$isLoading
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                self?.isLoading = value
+            }
+            .store(in: &cancellables)
 
         // Check for existing session
         Task {

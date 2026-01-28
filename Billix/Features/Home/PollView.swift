@@ -409,8 +409,6 @@ class PollViewModel: ObservableObject {
                         object: nil
                     )
 
-                    print("✅ Poll completed and claimed: +\(claimResult.pointsAwarded) pts")
-
                     // Show toast notification
                     showToast = true
 

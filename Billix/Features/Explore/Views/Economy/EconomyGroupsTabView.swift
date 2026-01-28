@@ -27,7 +27,6 @@ struct EconomyGroupsTabView: View {
     }
 
     var body: some View {
-        let _ = print("[EconomyGroupsTabView] 🔄 BODY EVALUATED - router.selectedGroup: \(router.selectedGroup?.name ?? "nil")")
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 ScrollView {
@@ -86,7 +85,6 @@ struct EconomyGroupsTabView: View {
                     preselectedGroup: nil
                 ) { content, topic, group in
                     // Post created - would be added to feed
-                    print("Posted to groups: \(content)")
                 }
             }
             .task {
@@ -119,7 +117,6 @@ struct EconomyGroupsTabView: View {
                 HStack(spacing: 12) {
                     ForEach(joinedGroups) { group in
                         Button {
-                            print("[EconomyGroupsTabView] 🎯 Joined group tapped: \(group.name)")
                             router.navigateTo(group: group)
                         } label: {
                             joinedGroupCard(group)
@@ -189,8 +186,6 @@ struct EconomyGroupsTabView: View {
                         GroupCard(
                             group: group,
                             onCardTapped: {
-                                print("[EconomyGroupsTabView] 🎯 onCardTapped called for: \(group.name)")
-                                print("[EconomyGroupsTabView] 🎯 Using router.navigateTo()")
                                 router.navigateTo(group: group)
                             },
                             onJoinTapped: {
@@ -268,7 +263,6 @@ struct GroupCard: View {
 
     var body: some View {
         Button(action: {
-            print("[GroupCard] ⭐ TAPPED - group: \(group.name)")
             onCardTapped()
         }) {
             HStack(spacing: 14) {

@@ -24,21 +24,13 @@ class GroupsNavigationRouter: ObservableObject {
     private var debugEnabled = true
 
     func navigateTo(group: CommunityGroup) {
-        if debugEnabled {
-            print("[GroupsNavigationRouter] 🧭 navigateTo called - group: \(group.name)")
-            print("[GroupsNavigationRouter] 🧭 Current selectedGroup: \(selectedGroup?.name ?? "nil")")
-            print("[GroupsNavigationRouter] 🧭 isPresenting: \(isPresenting)")
-        }
-
         // Debounce: prevent rapid presentations (must wait 500ms between presentations)
         if let lastTime = lastPresentTime, Date().timeIntervalSince(lastTime) < 0.5 {
-            print("[GroupsNavigationRouter] ⚠️ Debounced - too soon after last presentation")
             return
         }
 
         // Don't present if already presenting or animation in progress
         guard !isPresenting, selectedGroup == nil else {
-            print("[GroupsNavigationRouter] ⚠️ Blocked - isPresenting: \(isPresenting), selectedGroup: \(selectedGroup?.name ?? "nil")")
             return
         }
 
@@ -50,24 +42,14 @@ class GroupsNavigationRouter: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.isPresenting = false
         }
-
-        if debugEnabled {
-            print("[GroupsNavigationRouter] 🧭 After set - selectedGroup: \(selectedGroup?.name ?? "nil")")
-        }
     }
 
     func popToRoot() {
-        if debugEnabled {
-            print("[GroupsNavigationRouter] 🧭 popToRoot called")
-        }
         selectedGroup = nil
         navigationPath = NavigationPath()
     }
 
     func reset() {
-        if debugEnabled {
-            print("[GroupsNavigationRouter] 🧭 reset called")
-        }
         selectedGroup = nil
         navigationPath = NavigationPath()
     }

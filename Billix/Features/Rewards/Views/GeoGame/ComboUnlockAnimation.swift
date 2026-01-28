@@ -123,7 +123,6 @@ struct ComboUnlockAnimation: View {
 
         VStack(spacing: 40) {
             ComboUnlockAnimation(comboStreak: 2) {
-                print("2x combo complete")
             }
         }
     }

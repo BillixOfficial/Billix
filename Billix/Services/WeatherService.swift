@@ -85,7 +85,6 @@ class WeatherService: ObservableObject {
     /// Fetch weather for a ZIP code via Supabase Edge Function
     func fetchWeather(zipCode: String) async throws {
         guard !zipCode.isEmpty else {
-            print("⚠️ WeatherService: Empty ZIP code")
             return
         }
 
@@ -94,7 +93,6 @@ class WeatherService: ObservableObject {
            cached.zipCode == zipCode,
            Date().timeIntervalSince(cached.timestamp) < cacheTimeout {
             self.currentWeather = cached.weather
-            print("✅ Weather loaded from cache for \(cached.weather.cityName)")
             return
         }
 
@@ -134,7 +132,6 @@ class WeatherService: ObservableObject {
             weatherCache = (zipCode, weather, Date())
 
             self.currentWeather = weather
-            print("✅ Weather fetched for \(weather.cityName): \(weather.temperatureInt)°F, \(weather.condition)")
 
         } catch let error as WeatherError {
             throw error

@@ -266,7 +266,6 @@ struct TierUpCelebrationView: View {
         newTier: .silver,
         bonusPoints: 500,
         onExploreShop: {
-            print("Explore shop tapped")
         }
     )
 }
@@ -277,7 +276,6 @@ struct TierUpCelebrationView: View {
         newTier: .gold,
         bonusPoints: 1000,
         onExploreShop: {
-            print("Explore shop tapped")
         }
     )
 }
@@ -288,7 +286,6 @@ struct TierUpCelebrationView: View {
         newTier: .platinum,
         bonusPoints: 2000,
         onExploreShop: {
-            print("Explore shop tapped")
         }
     )
 }

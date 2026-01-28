@@ -388,16 +388,12 @@ struct WeeklyProgressSlide: View {
     }
 
     var body: some View {
-        let _ = print("🎯 [CAROUSEL] WeeklyProgressSlide rendering - streakCount: \(streakCount), actualStreak: \(actualStreak)")
         HStack(spacing: 12) {
             // Left side: Streak Count
             VStack(spacing: 2) {
                 Text("\(streakCount)")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(streakColor)
-                    .onAppear {
-                        print("🎯 [CAROUSEL] Streak text appeared with value: \(streakCount)")
-                    }
 
                 Text("Day Streak!")
                     .font(.system(size: 8, weight: .semibold))

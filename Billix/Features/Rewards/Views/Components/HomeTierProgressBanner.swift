@@ -132,9 +132,7 @@ struct HomeTierProgressBanner: View {
             HomeTierProgressBanner(
                 currentPoints: 6000,
                 isDismissed: .constant(false),
-                onEarnMoreTapped: {
-                    print("Earn more tapped")
-                }
+                onEarnMoreTapped: {}
             )
 
             Spacer()
@@ -151,9 +149,7 @@ struct HomeTierProgressBanner: View {
             HomeTierProgressBanner(
                 currentPoints: 1600,
                 isDismissed: .constant(false),
-                onEarnMoreTapped: {
-                    print("Earn more tapped")
-                }
+                onEarnMoreTapped: {}
             )
 
             Spacer()
@@ -170,9 +166,7 @@ struct HomeTierProgressBanner: View {
             HomeTierProgressBanner(
                 currentPoints: 7600,
                 isDismissed: .constant(false),
-                onEarnMoreTapped: {
-                    print("Earn more tapped")
-                }
+                onEarnMoreTapped: {}
             )
 
             Spacer()

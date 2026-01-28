@@ -97,7 +97,7 @@ struct UpcomingEstimatesZone: View {
                 billCategories: ["Electric", "Gas", "Internet", "Water"]
             )
         } catch {
-            print("Failed to load upcoming estimates: \(error)")
+            print("❌ Error: Failed to load upcoming estimates: \(error)")
         }
 
         isLoading = false

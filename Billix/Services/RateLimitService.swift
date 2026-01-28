@@ -128,17 +128,9 @@ class RateLimitService: ObservableObject {
     /// Returns UsageCheckResult with current state
     /// Throws RateLimitError if limit exceeded or other errors
     func checkAndRecordUsage(points: Int = 1) async throws -> UsageCheckResult {
-        print("")
-        print("╔════════════════════════════════════════════════════════════╗")
-        print("║      🔒 RATE LIMIT CHECK - Recording \(points) point(s)            ║")
-        print("╚════════════════════════════════════════════════════════════╝")
-
         guard let userId = supabase.auth.currentSession?.user.id else {
-            print("❌ [RATE LIMIT] User not authenticated - cannot check rate limit")
             throw RateLimitError.userNotAuthenticated
         }
-
-        print("👤 [RATE LIMIT] User ID: \(userId.uuidString.prefix(8))...")
 
         isLoading = true
         defer { isLoading = false }
@@ -146,11 +138,6 @@ class RateLimitService: ObservableObject {
         let weekStart = getCurrentWeekStart()
         let weekStartStr = formatDateForDB(weekStart)
         let limit = subscriptionTier.weeklyLimit
-
-        print("📅 [RATE LIMIT] Week start: \(weekStartStr)")
-        print("👑 [RATE LIMIT] Subscription tier: \(subscriptionTier.rawValue)")
-        print("🎯 [RATE LIMIT] Weekly limit: \(limit) points")
-        print("📝 [RATE LIMIT] Points to consume: \(points)")
 
         do {
             // First check current usage to see if we're already at limit
@@ -166,22 +153,13 @@ class RateLimitService: ObservableObject {
 
             // Check if adding points would exceed limit
             if currentCount >= limit {
-                // Already at or over limit
                 currentUsage = currentCount
                 remainingCalls = 0
                 weeklyLimit = limit
-
-                print("🚫 [RATE LIMIT] ═══════════════════════════════════════")
-                print("🚫 [RATE LIMIT] LIMIT EXCEEDED! \(currentCount)/\(limit) used")
-                print("🚫 [RATE LIMIT] Resets on Monday")
-                print("🚫 [RATE LIMIT] ═══════════════════════════════════════")
-
                 throw RateLimitError.rateLimitExceeded(remaining: 0, limit: limit)
             }
 
             // Use atomic RPC to increment (prevents race conditions)
-            print("⚡ [RATE LIMIT] Using atomic RPC to increment by \(points)...")
-
             let rpcResponse: [IncrementUsageResponse] = try await supabase
                 .rpc("increment_rentcast_usage", params: [
                     "p_user_id": userId.uuidString,
@@ -192,7 +170,6 @@ class RateLimitService: ObservableObject {
                 .value
 
             guard let result = rpcResponse.first else {
-                print("❌ [RATE LIMIT] RPC returned no result")
                 throw RateLimitError.databaseError(NSError(domain: "RateLimitService", code: -1, userInfo: [NSLocalizedDescriptionKey: "RPC returned no result"]))
             }
 
@@ -203,18 +180,6 @@ class RateLimitService: ObservableObject {
             currentUsage = newCount
             remainingCalls = remaining
             weeklyLimit = limit
-
-            print("✅ [RATE LIMIT] Atomic increment successful")
-            print("────────────────────────────────────────────────────────────")
-            print("📊 [RATE LIMIT] RESULT: \(newCount)/\(limit) points used")
-            print("📊 [RATE LIMIT] Remaining: \(remaining) points this week")
-            print("────────────────────────────────────────────────────────────")
-            print("")
-
-            // Check if this increment pushed us over the limit
-            if !result.allowed {
-                print("⚠️ [RATE LIMIT] This request pushed usage over limit")
-            }
 
             return UsageCheckResult(
                 allowed: result.allowed,
@@ -227,7 +192,6 @@ class RateLimitService: ObservableObject {
         } catch let error as RateLimitError {
             throw error
         } catch {
-            print("❌ [RATE LIMIT] Database error: \(error)")
             throw RateLimitError.databaseError(error)
         }
     }
@@ -235,10 +199,7 @@ class RateLimitService: ObservableObject {
     /// Get current usage without recording a new call
     /// Use this to display UI indicators
     func getRemainingCalls() async throws -> UsageCheckResult {
-        print("🔍 [RATE LIMIT] Fetching current usage (no increment)...")
-
         guard let userId = supabase.auth.currentSession?.user.id else {
-            print("⚠️ [RATE LIMIT] User not authenticated - returning default state")
             throw RateLimitError.userNotAuthenticated
         }
 
@@ -266,8 +227,6 @@ class RateLimitService: ObservableObject {
             remainingCalls = remaining
             weeklyLimit = limit
 
-            print("📊 [RATE LIMIT] Current status: \(currentCount)/\(limit) used, \(remaining) remaining")
-
             return UsageCheckResult(
                 allowed: remaining > 0,
                 currentCount: currentCount,
@@ -277,19 +236,16 @@ class RateLimitService: ObservableObject {
             )
 
         } catch {
-            print("❌ [RATE LIMIT] Error fetching usage: \(error)")
             throw RateLimitError.databaseError(error)
         }
     }
 
     /// Refresh usage state from database
     func refreshUsage() async {
-        print("🔄 [RATE LIMIT] Refreshing usage from Supabase...")
         do {
             _ = try await getRemainingCalls()
-            print("✅ [RATE LIMIT] Usage refreshed successfully")
         } catch {
-            print("❌ [RATE LIMIT] Error refreshing usage: \(error)")
+            // Silently fail - UI will show stale data
         }
     }
 

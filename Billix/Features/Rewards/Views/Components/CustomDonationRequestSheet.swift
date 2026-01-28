@@ -354,8 +354,6 @@ struct DonationAmountChip: View {
         userPoints: 50000,
         userName: "John Doe",
         userEmail: "john@example.com",
-        onSubmit: { org, location, amount, inName, donorName, donorEmail in
-            print("Submitted: \(org), \(location), \(amount.displayText), In Name: \(inName)")
-        }
+        onSubmit: { org, location, amount, inName, donorName, donorEmail in }
     )
 }

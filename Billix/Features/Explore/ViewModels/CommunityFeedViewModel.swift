@@ -49,35 +49,28 @@ class CommunityFeedViewModel: ObservableObject {
     /// Load posts for the current filter
     func loadPosts() async {
         guard !isLoading else {
-            print("[CommunityFeedViewModel] loadPosts - Already loading, skipping")
             return
         }
 
-        print("[CommunityFeedViewModel] loadPosts - Starting for filter: \(selectedFilter)")
         isLoading = true
         error = nil
         currentPage = 0
 
         do {
             // Always reload groups to get fresh isJoined status (for CreatePostSheet)
-            print("[CommunityFeedViewModel] loadPosts - Loading groups")
             groups = try await service.fetchGroups()
-            print("[CommunityFeedViewModel] loadPosts - Got \(groups.count) groups")
 
             let fetchedPosts = try await service.fetchFeed(
                 filter: selectedFilter,
                 page: currentPage,
                 limit: pageSize
             )
-            print("[CommunityFeedViewModel] loadPosts - Got \(fetchedPosts.count) posts")
             posts = fetchedPosts
             hasMorePages = fetchedPosts.count >= pageSize
         } catch {
-            print("[CommunityFeedViewModel] loadPosts - Error: \(error.localizedDescription)")
             self.error = error.localizedDescription
             // Fall back to mock data if fetch fails
             if selectedFilter == .recent {
-                print("[CommunityFeedViewModel] loadPosts - Falling back to mock data")
                 posts = CommunityPost.mockPosts
             } else {
                 posts = []
@@ -133,9 +126,7 @@ class CommunityFeedViewModel: ObservableObject {
 
         do {
             groups = try await service.fetchGroups()
-            print("[CommunityFeedViewModel] loadGroups - Got \(groups.count) groups, \(joinedGroups.count) joined")
         } catch {
-            print("[CommunityFeedViewModel] loadGroups - Error: \(error)")
             // Fall back to mock data if fetch fails
             if groups.isEmpty {
                 groups = CommunityGroup.mockGroups
@@ -161,9 +152,7 @@ class CommunityFeedViewModel: ObservableObject {
         do {
             let fetchedPosts = try await service.fetchGroupPosts(groupId: groupId)
             groupPosts[groupId] = fetchedPosts
-            print("[CommunityFeedViewModel] loadGroupPosts - Loaded \(fetchedPosts.count) posts for group: \(groupId)")
         } catch {
-            print("[CommunityFeedViewModel] loadGroupPosts - Error: \(error)")
             groupPosts[groupId] = []
         }
 
@@ -190,7 +179,6 @@ class CommunityFeedViewModel: ObservableObject {
                 } else {
                     try await service.joinGroup(id: group.id)
                 }
-                print("[CommunityFeedViewModel] toggleJoin - \(wasJoined ? "Left" : "Joined") \(group.name)")
             } catch {
                 // Revert on failure
                 if let idx = groups.firstIndex(where: { $0.id == group.id }) {
@@ -209,9 +197,6 @@ class CommunityFeedViewModel: ObservableObject {
         let wasLiked = post.isLiked
         let previousLikeCount = post.likeCount
         let previousReaction = post.userReaction
-
-        print("[CommunityFeedViewModel] 🔥 setReaction START - Post: \(post.id), reaction: \(reaction)")
-        print("[CommunityFeedViewModel] 🔥 setReaction - wasLiked: \(wasLiked), previousReaction: \(previousReaction ?? "none")")
 
         // Optimistic update in main posts array
         if let index = posts.firstIndex(where: { $0.id == post.id }) {
@@ -239,14 +224,10 @@ class CommunityFeedViewModel: ObservableObject {
             do {
                 // If already had a reaction, remove it first then add new one
                 if wasLiked {
-                    print("[CommunityFeedViewModel] 🔥 setReaction - removing old reaction first...")
                     try await service.removeReaction(from: post.id)
                 }
-                print("[CommunityFeedViewModel] 🔥 setReaction - adding new reaction: \(reaction)")
                 try await service.addReaction(to: post.id, reaction: reaction)
-                print("[CommunityFeedViewModel] 🔥 setReaction COMPLETE ✅ - no more state changes")
             } catch {
-                print("[CommunityFeedViewModel] 🔥 setReaction - ERROR: \(error)")
                 // Revert in main posts array
                 if let idx = posts.firstIndex(where: { $0.id == post.id }) {
                     posts[idx].isLiked = wasLiked
@@ -275,10 +256,6 @@ class CommunityFeedViewModel: ObservableObject {
         let newIsLiked = !wasLiked
         let newLikeCount = wasLiked ? previousLikeCount - 1 : previousLikeCount + 1
 
-        print("[CommunityFeedViewModel] ❤️ toggleLike START - Post: \(post.id)")
-        print("[CommunityFeedViewModel] ❤️ toggleLike - wasLiked: \(wasLiked), now isLiked: \(newIsLiked)")
-        print("[CommunityFeedViewModel] ❤️ toggleLike - likeCount: \(previousLikeCount) -> \(newLikeCount)")
-
         // Optimistic update in main posts array
         if let index = posts.firstIndex(where: { $0.id == post.id }) {
             posts[index].isLiked = newIsLiked
@@ -300,18 +277,11 @@ class CommunityFeedViewModel: ObservableObject {
         Task {
             do {
                 if wasLiked {
-                    print("[CommunityFeedViewModel] ❤️ toggleLike - Calling removeReaction...")
                     try await service.removeReaction(from: post.id)
-                    print("[CommunityFeedViewModel] ❤️ toggleLike - removeReaction SUCCESS ✅")
                 } else {
-                    print("[CommunityFeedViewModel] ❤️ toggleLike - Calling addReaction...")
                     try await service.addReaction(to: post.id, reaction: "heart")
-                    print("[CommunityFeedViewModel] ❤️ toggleLike - addReaction SUCCESS ✅")
                 }
-                print("[CommunityFeedViewModel] ❤️ toggleLike COMPLETE - no more state changes")
             } catch {
-                print("[CommunityFeedViewModel] ❤️ toggleLike - ERROR: \(error)")
-                print("[CommunityFeedViewModel] ❤️ toggleLike - Reverting optimistic update")
                 // Revert in main posts array
                 if let idx = posts.firstIndex(where: { $0.id == post.id }) {
                     posts[idx].isLiked = wasLiked
@@ -337,8 +307,6 @@ class CommunityFeedViewModel: ObservableObject {
         let wasSaved = post.isSaved
         let newIsSaved = !wasSaved
 
-        print("[CommunityFeedViewModel] toggleSave - Post: \(post.id), wasSaved: \(wasSaved)")
-
         // Optimistic update in main posts array
         if let index = posts.firstIndex(where: { $0.id == post.id }) {
             posts[index].isSaved = newIsSaved
@@ -360,9 +328,7 @@ class CommunityFeedViewModel: ObservableObject {
                 } else {
                     try await service.savePost(id: post.id)
                 }
-                print("[CommunityFeedViewModel] toggleSave - SUCCESS")
             } catch {
-                print("[CommunityFeedViewModel] toggleSave - ERROR: \(error)")
                 // Revert in main posts array
                 if let idx = posts.firstIndex(where: { $0.id == post.id }) {
                     posts[idx].isSaved = wasSaved
@@ -380,18 +346,14 @@ class CommunityFeedViewModel: ObservableObject {
 
     /// Create a new post
     func createPost(content: String, topic: PostTopic, groupId: UUID? = nil) async -> Bool {
-        print("[CommunityFeedViewModel] createPost - content: \(content.prefix(50))..., topic: \(topic)")
-
         do {
             let topicType = CommunityTopicType(rawValue: topic.rawValue.lowercased()) ?? .general
-            print("[CommunityFeedViewModel] createPost - topicType: \(topicType)")
 
             let newPost = try await service.createPost(
                 content: content,
                 topic: topicType,
                 groupId: groupId
             )
-            print("[CommunityFeedViewModel] createPost - Success! Post: \(newPost.id)")
             // Insert at top of feed
             posts.insert(newPost, at: 0)
 
@@ -406,13 +368,11 @@ class CommunityFeedViewModel: ObservableObject {
                 // Increment group post count
                 if let index = groups.firstIndex(where: { $0.id == groupId }) {
                     groups[index].postCount += 1
-                    print("[CommunityFeedViewModel] createPost - Incremented group postCount: \(groups[index].postCount)")
                 }
             }
 
             return true
         } catch {
-            print("[CommunityFeedViewModel] createPost - ERROR: \(error)")
             self.error = error.localizedDescription
             return false
         }
@@ -420,8 +380,6 @@ class CommunityFeedViewModel: ObservableObject {
 
     /// Delete a post (optimistic update for instant UI feedback)
     func deletePost(_ post: CommunityPost) async -> Bool {
-        print("[CommunityFeedViewModel] deletePost called - postId: \(post.id)")
-
         // Store original state for potential rollback
         let originalPosts = posts
         let originalGroupPosts = groupPosts
@@ -430,31 +388,23 @@ class CommunityFeedViewModel: ObservableObject {
 
         // Optimistic update: Remove from UI immediately
         posts.removeAll { $0.id == post.id }
-        print("[CommunityFeedViewModel] deletePost - Optimistically removed from posts")
 
         // Remove from groupPosts
         for (gId, var groupPostList) in groupPosts {
-            let beforeCount = groupPostList.count
             groupPostList.removeAll { $0.id == post.id }
-            if beforeCount != groupPostList.count {
-                print("[CommunityFeedViewModel] deletePost - Optimistically removed from group \(gId)")
-            }
             groupPosts[gId] = groupPostList
         }
 
         // Decrement group post count (optimistic update)
         if let groupId = groupId, let index = groups.firstIndex(where: { $0.id == groupId }) {
             groups[index].postCount = max(0, groups[index].postCount - 1)
-            print("[CommunityFeedViewModel] deletePost - Decremented group postCount: \(groups[index].postCount)")
         }
 
         // Sync with backend
         do {
             try await service.deletePost(id: post.id)
-            print("[CommunityFeedViewModel] deletePost - SUCCESS")
             return true
         } catch {
-            print("[CommunityFeedViewModel] deletePost - ERROR: \(error), rolling back")
             // Rollback on failure
             posts = originalPosts
             groupPosts = originalGroupPosts
@@ -468,10 +418,8 @@ class CommunityFeedViewModel: ObservableObject {
     func reportPost(_ post: CommunityPost, reason: String, details: String? = nil) async -> Bool {
         do {
             try await service.reportPost(id: post.id, reason: reason, details: details)
-            print("[CommunityFeedViewModel] reportPost - SUCCESS for post \(post.id)")
             return true
         } catch {
-            print("[CommunityFeedViewModel] reportPost - ERROR: \(error)")
             self.error = error.localizedDescription
             return false
         }

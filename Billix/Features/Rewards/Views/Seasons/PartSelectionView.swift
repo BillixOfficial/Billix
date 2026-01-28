@@ -114,7 +114,6 @@ struct PartSelectionView: View {
                             do {
                                 try await tutorialManager.markTutorialCompleted(userId: userId, pagesViewed: 4)
                             } catch {
-                                print("⚠️ Failed to mark tutorial completed: \(error.localizedDescription)")
                             }
                         }
                         viewModel.launchSession()
@@ -127,7 +126,6 @@ struct PartSelectionView: View {
                             do {
                                 try await tutorialManager.markTutorialSkipped(userId: userId)
                             } catch {
-                                print("⚠️ Failed to mark tutorial skipped: \(error.localizedDescription)")
                             }
                         }
                         viewModel.launchSession()
@@ -140,7 +138,6 @@ struct PartSelectionView: View {
                             do {
                                 try await tutorialManager.markTutorialDismissed(userId: userId)
                             } catch {
-                                print("⚠️ Failed to mark tutorial dismissed: \(error.localizedDescription)")
                             }
                         }
                         viewModel.launchSession()

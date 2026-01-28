@@ -133,7 +133,6 @@ struct ProfileView: View {
                     userEmail = session.user.email ?? ""
                 }
             } catch {
-                print("Failed to fetch user email: \(error)")
             }
         }
     }
@@ -327,7 +326,6 @@ struct ProfileView: View {
                 await MainActor.run {
                     isSavingBio = false
                 }
-                print("Failed to save bio: \(error)")
             }
         }
     }
@@ -359,7 +357,6 @@ struct ProfileView: View {
             do {
                 try await authService.updateHandle(newUsername)
             } catch {
-                print("Failed to save username: \(error)")
             }
         }
     }
@@ -375,7 +372,6 @@ struct ProfileView: View {
                     userBillixPoints = points
                 }
             } catch {
-                print("Failed to load user points: \(error)")
             }
         }
     }
@@ -418,7 +414,6 @@ struct ProfileView: View {
                 showPhotoError = true
                 UINotificationFeedbackGenerator().notificationOccurred(.error)
             }
-            print("Failed to upload photo: \(error)")
         }
     }
 
@@ -1504,7 +1499,6 @@ struct ProfileView: View {
                     }
                 }
             } catch {
-                print("Failed to load household: \(error)")
             }
         }
     }
@@ -1918,7 +1912,6 @@ struct ProfileView: View {
                 .eq("user_id", value: userId.uuidString)
                 .execute()
         } catch {
-            print("Failed to update verified only mode: \(error)")
         }
     }
 
@@ -1939,7 +1932,6 @@ struct ProfileView: View {
                 }
             }
         } catch {
-            print("Failed to load verified only mode: \(error)")
         }
     }
 
@@ -2004,7 +1996,6 @@ struct ProfileView: View {
                                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                                 }
                             } catch {
-                                print("Token purchase failed: \(error)")
                             }
                         }
                     } label: {

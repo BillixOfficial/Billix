@@ -521,8 +521,6 @@ class QuizViewModel: ObservableObject {
                         object: nil
                     )
 
-                    print("✅ Quiz completed and claimed: +\(claimResult.pointsAwarded) pts")
-
                     // Show toast notification
                     showToast = true
 

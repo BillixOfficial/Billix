@@ -15,7 +15,21 @@ struct HeaderZone: View {
     let streak: Int
     @ObservedObject var notificationService: NotificationService
 
+    @StateObject private var scoreService = ActivityScoreService.shared
     @State private var showNotifications = false
+    @State private var showAreaInsights = false
+    @State private var showScoreDetail = false
+
+    // Parse location into city and state
+    private var cityName: String {
+        let parts = location.split(separator: ",")
+        return parts.first.map(String.init) ?? location
+    }
+
+    private var stateName: String {
+        let parts = location.split(separator: ",")
+        return parts.count > 1 ? String(parts[1]).trimmingCharacters(in: .whitespaces) : ""
+    }
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -26,14 +40,6 @@ struct HeaderZone: View {
         }
     }
 
-    private var scoreLabel: String {
-        switch score {
-        case 750...: return "Excellent"
-        case 700..<750: return "Very Efficient"
-        case 650..<700: return "Good"
-        default: return "Needs Work"
-        }
-    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -45,6 +51,7 @@ struct HeaderZone: View {
 
                     Button {
                         haptic()
+                        showAreaInsights = true
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "location.fill")
@@ -88,28 +95,34 @@ struct HeaderZone: View {
             }
 
             HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "chart.line.uptrend.xyaxis")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(HomeTheme.accent)
-                        Text("\(score)")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundColor(HomeTheme.primaryText)
-                        Text("· \(scoreLabel)")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(HomeTheme.secondaryText)
-                    }
+                Button {
+                    haptic()
+                    showScoreDetail = true
+                } label: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(scoreService.scoreColor)
+                            Text("\(scoreService.score)")
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundColor(HomeTheme.primaryText)
+                            Text("· \(scoreService.scoreLabel)")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(HomeTheme.secondaryText)
+                        }
 
-                    Text("Top 18% in \(zipCode)")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(HomeTheme.accent)
+                        Text(scoreService.encouragementText)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(scoreService.scoreColor)
+                            .lineLimit(1)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(HomeTheme.cardBackground)
+                    .cornerRadius(14)
+                    .shadow(color: HomeTheme.shadowColor, radius: 4)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(HomeTheme.cardBackground)
-                .cornerRadius(14)
-                .shadow(color: HomeTheme.shadowColor, radius: 4)
 
                 HStack(spacing: 4) {
                     Image(systemName: "flame.fill")
@@ -129,6 +142,15 @@ struct HeaderZone: View {
         .padding(.horizontal, HomeTheme.horizontalPadding)
         .sheet(isPresented: $showNotifications) {
             NotificationsSheet(notificationService: notificationService)
+        }
+        .sheet(isPresented: $showAreaInsights) {
+            AreaInsightsSheet(city: cityName, state: stateName, zipCode: zipCode)
+        }
+        .sheet(isPresented: $showScoreDetail) {
+            BillixScoreDetailSheet()
+        }
+        .task {
+            await scoreService.fetchAndCalculateScore()
         }
     }
 }

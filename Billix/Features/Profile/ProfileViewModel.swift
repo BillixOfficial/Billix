@@ -75,8 +75,6 @@ class ProfileViewModel: ObservableObject {
             self.marketplaceSettings = try await marketplaceSettings
             self.notificationPrefs = try await notificationPrefs
             self.securityAccount = try await securityAccount
-
-            print("✅ Profile data loaded successfully")
         } catch {
             handleError(error)
         }

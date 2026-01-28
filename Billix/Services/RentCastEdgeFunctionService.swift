@@ -82,7 +82,6 @@ actor RentCastEdgeFunctionService {
 
     private func logAPICall(_ endpoint: String) {
         apiCallCount += 1
-        print("📊 [API CALL #\(apiCallCount)] \(endpoint)")
     }
 
     /// Get total API calls made this session
@@ -133,8 +132,6 @@ actor RentCastEdgeFunctionService {
         historyRange: Int = 12
     ) async throws -> RentCastMarketResponse {
         logAPICall("fetch-market-statistics")
-        print("🏠 [RentCast] Fetching market statistics...")
-        print("   📍 ZIP: \(zipCode), History: \(historyRange) months")
 
         let request = MarketStatisticsRequest(
             zipCode: zipCode,
@@ -147,31 +144,13 @@ actor RentCastEdgeFunctionService {
                 "fetch-market-statistics",
                 options: FunctionInvokeOptions(body: request),
                 decode: { data, response in
-                    print("   ✅ Received \(data.count) bytes from edge function")
-
-                    // Debug: Print raw JSON response
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        print("   📦 Raw response: \(jsonString.prefix(500))...")
-                    }
-
-                    let result = try self.decoder.decode(RentCastMarketResponse.self, from: data)
-                    print("   ✅ Successfully decoded market data for ZIP: \(result.zipCode)")
-                    if let rental = result.rentalData {
-                        print("   💰 Average rent: $\(Int(rental.averageRent))")
-                        print("   📊 Bedrooms data count: \(rental.dataByBedrooms.count)")
-                        print("   📈 History months: \(rental.history.count)")
-                    }
-                    return result
+                    return try self.decoder.decode(RentCastMarketResponse.self, from: data)
                 }
             )
 
             return result
 
         } catch {
-            print("   ❌ Error fetching market statistics: \(error)")
-            if let decodingError = error as? DecodingError {
-                print("   🔍 Decoding error details: \(decodingError)")
-            }
             throw error
         }
     }
@@ -189,10 +168,6 @@ actor RentCastEdgeFunctionService {
         compCount: Int? = nil
     ) async throws -> RentCastEstimateResponse {
         logAPICall("fetch-rent-estimate")
-        print("🏠 [RentCast] Fetching rent estimate...")
-        print("   📍 Address: \(address)")
-        print("   🛏️ Beds: \(bedrooms ?? -1), Baths: \(bathrooms ?? -1), SqFt: \(squareFootage ?? -1)")
-        print("   📏 Radius: \(maxRadius ?? -1) miles, Days: \(daysOld ?? -1)")
 
         let request = RentEstimateRequest(
             address: address,
@@ -211,29 +186,13 @@ actor RentCastEdgeFunctionService {
                 "fetch-rent-estimate",
                 options: FunctionInvokeOptions(body: request),
                 decode: { data, response in
-                    print("   ✅ Received \(data.count) bytes from edge function")
-
-                    // Debug: Print raw JSON response
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        print("   📦 Raw response: \(jsonString.prefix(500))...")
-                    }
-
-                    let result = try self.decoder.decode(RentCastEstimateResponse.self, from: data)
-                    print("   ✅ Successfully decoded rent estimate")
-                    print("   💰 Estimated rent: $\(Int(result.rent))")
-                    print("   📊 Range: $\(Int(result.rentRangeLow)) - $\(Int(result.rentRangeHigh))")
-                    print("   🏘️ Comparables: \(result.comparables.count)")
-                    return result
+                    return try self.decoder.decode(RentCastEstimateResponse.self, from: data)
                 }
             )
 
             return result
 
         } catch {
-            print("   ❌ Error fetching rent estimate: \(error)")
-            if let decodingError = error as? DecodingError {
-                print("   🔍 Decoding error details: \(decodingError)")
-            }
             throw error
         }
     }
@@ -260,12 +219,6 @@ actor RentCastEdgeFunctionService {
         offset: Int = 0
     ) async throws -> [RentCastListing] {
         logAPICall("fetch-rental-listings")
-        print("🏠 [RentCast] Fetching rental listings...")
-        print("   📍 City: \(city ?? "nil"), State: \(state ?? "nil"), ZIP: \(zipCode ?? "nil")")
-        print("   🛏️ Beds: \(bedrooms ?? "any"), Baths: \(bathrooms ?? "any")")
-        print("   💵 Price: \(price ?? "any"), Status: \(status ?? "any")")
-        print("   📏 Radius: \(radius ?? -1) miles, Limit: \(limit)")
-        print("   🏠 Type: \(propertyType ?? "any"), Days: \(daysOld ?? "any")")
 
         let request = RentalListingsRequest(
             city: city,
@@ -293,30 +246,14 @@ actor RentCastEdgeFunctionService {
                 "fetch-rental-listings",
                 options: FunctionInvokeOptions(body: request),
                 decode: { data, response in
-                    print("   ✅ Received \(data.count) bytes from edge function")
-
-                    // Debug: Print raw JSON response
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        print("   📦 Raw response: \(jsonString.prefix(500))...")
-                    }
-
                     let result = try self.decoder.decode(ListingsResponse.self, from: data)
-                    let listings = result.listings ?? []
-                    print("   ✅ Successfully decoded \(listings.count) listings")
-                    if let first = listings.first {
-                        print("   🏠 First listing: \(first.formattedAddress) - $\(first.price)/mo")
-                    }
-                    return listings
+                    return result.listings ?? []
                 }
             )
 
             return listings
 
         } catch {
-            print("   ❌ Error fetching rental listings: \(error)")
-            if let decodingError = error as? DecodingError {
-                print("   🔍 Decoding error details: \(decodingError)")
-            }
             throw error
         }
     }
