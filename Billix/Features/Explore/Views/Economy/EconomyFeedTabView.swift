@@ -16,6 +16,8 @@ struct EconomyFeedTabView: View {
     @State private var isButtonExpanded = true
     @State private var lastOffsetY: CGFloat = 0
     @State private var showCreatePostSheet = false
+    @State private var showCommentsSheet = false
+    @State private var selectedPostForComments: CommunityPost?
 
     private let backgroundColor = Color(hex: "#F5F5F7")
 
@@ -86,7 +88,10 @@ struct EconomyFeedTabView: View {
                                 CommunityPostCard(
                                     post: post,
                                     onLikeTapped: { viewModel.toggleLike(for: post) },
-                                    onCommentTapped: { /* Future: Show comments */ },
+                                    onCommentTapped: {
+                                        selectedPostForComments = post
+                                        showCommentsSheet = true
+                                    },
                                     onSaveTapped: { viewModel.toggleSave(for: post) },
                                     onReactionSelected: { reaction in
                                         viewModel.setReaction(for: post, reaction: reaction.stringValue)
@@ -133,6 +138,13 @@ struct EconomyFeedTabView: View {
             ) { content, topic, group in
                 Task {
                     _ = await viewModel.createPost(content: content, topic: topic, groupId: group?.id)
+                }
+            }
+        }
+        .sheet(isPresented: $showCommentsSheet) {
+            if let post = selectedPostForComments {
+                CommentsSheetView(post: post) { newCount in
+                    viewModel.updateCommentCount(for: post.id, count: newCount)
                 }
             }
         }

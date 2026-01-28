@@ -464,6 +464,22 @@ class CommunityFeedViewModel: ObservableObject {
         }
     }
 
+    /// Update comment count for a post (called from CommentsSheetView)
+    func updateCommentCount(for postId: UUID, count: Int) {
+        // Update in main posts array
+        if let index = posts.firstIndex(where: { $0.id == postId }) {
+            posts[index].commentCount = count
+        }
+
+        // Also update in groupPosts to keep views in sync
+        for (groupId, var groupPostList) in groupPosts {
+            if let index = groupPostList.firstIndex(where: { $0.id == postId }) {
+                groupPostList[index].commentCount = count
+                groupPosts[groupId] = groupPostList
+            }
+        }
+    }
+
     /// Report a post
     func reportPost(_ post: CommunityPost, reason: String, details: String? = nil) async -> Bool {
         do {

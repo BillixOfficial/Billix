@@ -215,6 +215,24 @@ extension CommunityPostDB {
     }
 }
 
+extension CommunityCommentDB {
+    func toUIModel(isLiked: Bool = false, currentUserId: UUID? = nil) -> CommunityComment {
+        CommunityComment(
+            id: id,
+            authorId: authorId,
+            authorName: author?.displayName ?? "Anonymous",
+            authorUsername: "@\(author?.handle ?? "user")",
+            content: content,
+            timestamp: createdAt,
+            likeCount: likeCount,
+            parentCommentId: parentCommentId,
+            replies: [],
+            isLiked: isLiked,
+            isOwnComment: currentUserId != nil && authorId == currentUserId
+        )
+    }
+}
+
 extension CommunityGroupDB {
     func toUIModel(isJoined: Bool = false) -> CommunityGroup {
         CommunityGroup(
@@ -257,6 +275,13 @@ protocol CommunityServiceProtocol {
 
     // Reports
     func reportPost(id: UUID, reason: String, details: String?) async throws
+
+    // Comments
+    func fetchComments(for postId: UUID) async throws -> [CommunityCommentDB]
+    func createComment(postId: UUID, content: String, parentCommentId: UUID?) async throws -> CommunityCommentDB
+    func deleteComment(id: UUID) async throws
+    func likeComment(id: UUID) async throws
+    func unlikeComment(id: UUID) async throws
 }
 
 // MARK: - Service Implementation
@@ -766,6 +791,127 @@ class CommunityService: CommunityServiceProtocol {
             .execute()
 
         print("[CommunityService] reportPost SUCCESS - Post \(id) reported by user \(session.user.id)")
+    }
+
+    // MARK: - Comments
+
+    func fetchComments(for postId: UUID) async throws -> [CommunityCommentDB] {
+        print("[CommunityService] fetchComments - postId: \(postId)")
+
+        let selectQuery = "*, profiles!community_comments_author_id_fkey(user_id, display_name, handle)"
+
+        let comments: [CommunityCommentDB] = try await supabase
+            .from("community_comments")
+            .select(selectQuery)
+            .eq("post_id", value: postId.uuidString)
+            .eq("is_deleted", value: false)
+            .order("created_at", ascending: true)
+            .execute()
+            .value
+
+        print("[CommunityService] fetchComments - Got \(comments.count) comments")
+        return comments
+    }
+
+    func createComment(postId: UUID, content: String, parentCommentId: UUID? = nil) async throws -> CommunityCommentDB {
+        print("[CommunityService] createComment - postId: \(postId), parentId: \(parentCommentId?.uuidString ?? "nil")")
+
+        guard let session = try? await supabase.auth.session else {
+            print("[CommunityService] createComment - Not authenticated")
+            throw CommunityError.notAuthenticated
+        }
+
+        var insertData: [String: String] = [
+            "post_id": postId.uuidString,
+            "author_id": session.user.id.uuidString,
+            "content": content
+        ]
+
+        if let parentId = parentCommentId {
+            insertData["parent_comment_id"] = parentId.uuidString
+        }
+
+        let selectQuery = "*, profiles!community_comments_author_id_fkey(user_id, display_name, handle)"
+
+        let comment: CommunityCommentDB = try await supabase
+            .from("community_comments")
+            .insert(insertData)
+            .select(selectQuery)
+            .single()
+            .execute()
+            .value
+
+        print("[CommunityService] createComment - SUCCESS, id: \(comment.id)")
+        return comment
+    }
+
+    func deleteComment(id: UUID) async throws {
+        print("[CommunityService] deleteComment - id: \(id)")
+
+        guard let session = try? await supabase.auth.session else {
+            print("[CommunityService] deleteComment - Not authenticated")
+            throw CommunityError.notAuthenticated
+        }
+
+        // Soft delete - only if user is the author
+        try await supabase
+            .from("community_comments")
+            .update(["is_deleted": true])
+            .eq("id", value: id.uuidString)
+            .eq("author_id", value: session.user.id.uuidString)
+            .execute()
+
+        print("[CommunityService] deleteComment - SUCCESS")
+    }
+
+    func likeComment(id: UUID) async throws {
+        print("[CommunityService] likeComment - id: \(id)")
+
+        guard let session = try? await supabase.auth.session else {
+            throw CommunityError.notAuthenticated
+        }
+
+        // Check if already liked
+        let existing: [CommunityReactionDB] = try await supabase
+            .from("community_reactions")
+            .select()
+            .eq("user_id", value: session.user.id.uuidString)
+            .eq("reactable_type", value: "comment")
+            .eq("reactable_id", value: id.uuidString)
+            .execute()
+            .value
+
+        if existing.isEmpty {
+            try await supabase
+                .from("community_reactions")
+                .insert([
+                    "user_id": session.user.id.uuidString,
+                    "reactable_type": "comment",
+                    "reactable_id": id.uuidString,
+                    "reaction": "like"
+                ])
+                .execute()
+
+            print("[CommunityService] likeComment - SUCCESS")
+        }
+    }
+
+    func unlikeComment(id: UUID) async throws {
+        print("[CommunityService] unlikeComment - id: \(id)")
+
+        guard let session = try? await supabase.auth.session else {
+            throw CommunityError.notAuthenticated
+        }
+
+        try await supabase
+            .from("community_reactions")
+            .delete()
+            .eq("user_id", value: session.user.id.uuidString)
+            .eq("reactable_type", value: "comment")
+            .eq("reactable_id", value: id.uuidString)
+            .execute()
+
+        print("[CommunityService] unlikeComment - SUCCESS")
     }
 
     // MARK: - Cache Management

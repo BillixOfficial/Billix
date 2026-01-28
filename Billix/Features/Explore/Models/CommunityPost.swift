@@ -12,26 +12,41 @@ import Foundation
 
 struct CommunityComment: Identifiable {
     let id: UUID
+    let authorId: UUID?
     let authorName: String
     let authorUsername: String
     let content: String
     let timestamp: Date
     var likeCount: Int
+    let parentCommentId: UUID?  // For nested replies
+    var replies: [CommunityComment]  // Child comments
+    var isLiked: Bool
+    var isOwnComment: Bool
 
     init(
         id: UUID = UUID(),
+        authorId: UUID? = nil,
         authorName: String,
         authorUsername: String,
         content: String,
         timestamp: Date,
-        likeCount: Int = 0
+        likeCount: Int = 0,
+        parentCommentId: UUID? = nil,
+        replies: [CommunityComment] = [],
+        isLiked: Bool = false,
+        isOwnComment: Bool = false
     ) {
         self.id = id
+        self.authorId = authorId
         self.authorName = authorName
         self.authorUsername = authorUsername
         self.content = content
         self.timestamp = timestamp
         self.likeCount = likeCount
+        self.parentCommentId = parentCommentId
+        self.replies = replies
+        self.isLiked = isLiked
+        self.isOwnComment = isOwnComment
     }
 
     var timeAgo: String {
