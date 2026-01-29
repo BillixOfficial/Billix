@@ -116,6 +116,10 @@ class ChatService: ObservableObject {
     private var currentConversationId: UUID?
     private var realtimeChannel: RealtimeChannelV2?
     private var typingTimer: Timer?
+    private var realtimeTasks: [Task<Void, Never>] = []
+
+    // MARK: - Constants
+    private let maxMessagesInMemory = 100
 
     // MARK: - Current User
     private var currentUserId: UUID? {
@@ -126,6 +130,11 @@ class ChatService: ObservableObject {
     private init() {}
 
     deinit {
+        // Cancel all realtime tasks immediately (sync)
+        for task in realtimeTasks {
+            task.cancel()
+        }
+        // Cleanup channel asynchronously
         Task { @MainActor in
             await disconnect()
         }
@@ -308,6 +317,12 @@ class ChatService: ObservableObject {
 
     /// Disconnects from the current channel
     func disconnect() async {
+        // Cancel all realtime listener tasks
+        for task in realtimeTasks {
+            task.cancel()
+        }
+        realtimeTasks.removeAll()
+
         if let channel = realtimeChannel {
             await supabase.realtimeV2.removeChannel(channel)
         }
@@ -322,17 +337,19 @@ class ChatService: ObservableObject {
 
     // MARK: - Load Messages
 
-    /// Loads existing messages for a conversation
+    /// Loads existing messages for a conversation (limited to most recent)
     private func loadMessages(for conversationId: UUID) async throws {
         let loadedMessages: [ChatMessage] = try await supabase
             .from("chat_messages")
             .select()
             .eq("conversation_id", value: conversationId.uuidString)
-            .order("created_at", ascending: true)
+            .order("created_at", ascending: false)  // Get most recent first
+            .limit(maxMessagesInMemory)             // Limit to prevent memory issues
             .execute()
             .value
 
-        messages = loadedMessages
+        // Reverse to get chronological order (oldest first)
+        messages = loadedMessages.reversed()
     }
 
     // MARK: - Subscribe to Realtime
@@ -363,19 +380,29 @@ class ChatService: ObservableObject {
 
         realtimeChannel = channel
 
-        // Handle new message insertions
-        Task { [weak self] in
+        // Cancel any existing tasks before creating new ones
+        for task in realtimeTasks {
+            task.cancel()
+        }
+        realtimeTasks.removeAll()
+
+        // Handle new message insertions - store task for cleanup
+        let insertionTask = Task { [weak self] in
             for await insertion in insertions {
+                guard !Task.isCancelled else { return }
                 await self?.handleNewMessage(insertion)
             }
         }
+        realtimeTasks.append(insertionTask)
 
-        // Handle message updates (read receipts)
-        Task { [weak self] in
+        // Handle message updates (read receipts) - store task for cleanup
+        let updateTask = Task { [weak self] in
             for await update in updates {
+                guard !Task.isCancelled else { return }
                 await self?.handleMessageUpdate(update)
             }
         }
+        realtimeTasks.append(updateTask)
     }
 
     /// Handles a new message from realtime
@@ -386,6 +413,11 @@ class ChatService: ObservableObject {
                 // Avoid duplicates
                 if !messages.contains(where: { $0.id == message.id }) {
                     messages.append(message)
+
+                    // Cap messages to prevent unbounded memory growth
+                    if messages.count > maxMessagesInMemory {
+                        messages.removeFirst(messages.count - maxMessagesInMemory)
+                    }
 
                     // If this is from the other user, mark as read
                     if message.senderId != currentUserId, let convId = currentConversationId {

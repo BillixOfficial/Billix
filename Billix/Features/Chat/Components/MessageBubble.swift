@@ -268,6 +268,10 @@ struct TypingIndicatorView: View {
                 animationOffset = -4
             }
         }
+        .onDisappear {
+            // Stop the repeating animation when view disappears
+            animationOffset = 0
+        }
     }
 
     private func animationOffset(for index: Int) -> CGFloat {

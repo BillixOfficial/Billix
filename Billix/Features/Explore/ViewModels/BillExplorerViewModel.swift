@@ -24,8 +24,10 @@ class BillExplorerViewModel: ObservableObject {
     @Published var selectedRegion: USRegion = .all
     @Published var selectedState: String? = nil
 
-    // Interactions (local state before Supabase sync)
+    // Interactions (local state before Supabase sync) - capped to prevent unbounded growth
     @Published var interactions: [UUID: BillInteraction] = [:]
+    private var interactionAccessOrder: [UUID] = []  // Track access order for LRU eviction
+    private let maxInteractionsInMemory = 500
 
     // Selected listing for detail sheet
     @Published var selectedListing: ExploreBillListing?
@@ -266,7 +268,7 @@ class BillExplorerViewModel: ObservableObject {
             interaction.vote = .up
         }
 
-        interactions[listing.id] = interaction
+        storeInteraction(interaction, for: listing.id)
 
         // Update listing's vote score (local only, sync to Supabase in production)
         updateVoteScore(for: listing.id)
@@ -288,7 +290,7 @@ class BillExplorerViewModel: ObservableObject {
             interaction.vote = .down
         }
 
-        interactions[listing.id] = interaction
+        storeInteraction(interaction, for: listing.id)
         updateVoteScore(for: listing.id)
     }
 
@@ -301,7 +303,7 @@ class BillExplorerViewModel: ObservableObject {
         )
 
         interaction.isBookmarked.toggle()
-        interactions[listing.id] = interaction
+        storeInteraction(interaction, for: listing.id)
 
         // Re-apply filters if bookmarked filter is active
         if showBookmarkedOnly {
@@ -350,6 +352,33 @@ class BillExplorerViewModel: ObservableObject {
     private func hapticFeedback() {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
+    }
+
+    /// Store interaction with LRU eviction to prevent unbounded memory growth
+    private func storeInteraction(_ interaction: BillInteraction, for listingId: UUID) {
+        // Update access order (move to end if exists, or add to end)
+        interactionAccessOrder.removeAll { $0 == listingId }
+        interactionAccessOrder.append(listingId)
+
+        // Store the interaction
+        interactions[listingId] = interaction
+
+        // Evict oldest interactions if over limit (preserve bookmarked items)
+        while interactions.count > maxInteractionsInMemory {
+            guard let oldestId = interactionAccessOrder.first else { break }
+
+            // Don't evict bookmarked items
+            if interactions[oldestId]?.isBookmarked == true {
+                // Move to end of access order (keep it longer)
+                interactionAccessOrder.removeFirst()
+                interactionAccessOrder.append(oldestId)
+                continue
+            }
+
+            // Evict the oldest non-bookmarked interaction
+            interactionAccessOrder.removeFirst()
+            interactions.removeValue(forKey: oldestId)
+        }
     }
 }
 
