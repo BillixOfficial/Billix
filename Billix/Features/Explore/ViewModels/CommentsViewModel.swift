@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 @MainActor
 class CommentsViewModel: ObservableObject {
@@ -20,12 +21,17 @@ class CommentsViewModel: ObservableObject {
     @Published var error: String?
     @Published var newCommentText = ""
     @Published var replyingTo: CommunityComment?
+    @Published var mentionText: String = ""  // Pre-filled @mention for nested replies
+    @Published var replyParentId: UUID?  // The actual parent for the reply (top-level comment)
+    @Published var commentCount: Int = 0  // Stored property for reliable SwiftUI updates
+    @Published var isAnonymous: Bool = false  // Whether to post the comment anonymously
 
     // MARK: - Private Properties
 
     private let service = CommunityService.shared
     private let postId: UUID
     private var currentUserId: UUID?
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Computed Properties
 
@@ -42,10 +48,6 @@ class CommentsViewModel: ObservableObject {
         return topLevel
     }
 
-    var commentCount: Int {
-        comments.count
-    }
-
     var inputPlaceholder: String {
         if let replyingTo = replyingTo {
             return "Reply to \(replyingTo.authorUsername)..."
@@ -57,6 +59,19 @@ class CommentsViewModel: ObservableObject {
 
     init(postId: UUID) {
         self.postId = postId
+
+        // Keep commentCount in sync with comments array
+        // Using Combine ensures SwiftUI always sees changes
+        $comments
+            .map { $0.count }
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] count in
+                guard let self = self else { return }
+                print("[CommentsViewModel] Combine: comments.count changed to \(count)")
+                self.commentCount = count
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Public Methods
@@ -101,27 +116,40 @@ class CommentsViewModel: ObservableObject {
 
         isSending = true
 
+        // Use replyParentId (for nested replies goes to top-level parent)
+        let parentId = replyParentId ?? replyingTo?.id
+        let postAnonymously = isAnonymous
+        print("[CommentsViewModel] sendComment:")
+        print("  - Content: \(text)")
+        print("  - replyParentId: \(replyParentId?.uuidString ?? "nil")")
+        print("  - replyingTo?.id: \(replyingTo?.id.uuidString ?? "nil")")
+        print("  - Final parentId: \(parentId?.uuidString ?? "nil (top-level comment)")")
+        print("  - isAnonymous: \(postAnonymously)")
+
         // Optimistic update
         let tempId = UUID()
         let tempComment = CommunityComment(
             id: tempId,
             authorId: currentUserId,
-            authorName: "You",
-            authorUsername: "@you",
+            authorName: postAnonymously ? "Anonymous (You)" : "You",
+            authorUsername: postAnonymously ? "" : "@you",
             content: text,
             timestamp: Date(),
             likeCount: 0,
-            parentCommentId: replyingTo?.id,
+            parentCommentId: parentId,
             replies: [],
             isLiked: false,
-            isOwnComment: true
+            isOwnComment: true,
+            isAnonymous: postAnonymously
         )
 
         // Add optimistically
         comments.append(tempComment)
         newCommentText = ""
-        let parentId = replyingTo?.id
+        mentionText = ""
+        replyParentId = nil
         replyingTo = nil
+        isAnonymous = false  // Reset after posting
 
         // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
@@ -131,7 +159,8 @@ class CommentsViewModel: ObservableObject {
             let dbComment = try await service.createComment(
                 postId: postId,
                 content: text,
-                parentCommentId: parentId
+                parentCommentId: parentId,
+                isAnonymous: postAnonymously
             )
 
             // Replace temp comment with real one
@@ -156,8 +185,13 @@ class CommentsViewModel: ObservableObject {
     func deleteComment(_ comment: CommunityComment) async {
         guard comment.isOwnComment else { return }
 
-        // Optimistic removal
-        comments.removeAll { $0.id == comment.id }
+        // Store removed comments for potential rollback
+        let removedComments = comments.filter { $0.id == comment.id || $0.parentCommentId == comment.id }
+        let removedCount = removedComments.count
+
+        // Optimistic removal - remove the comment AND its children (cascade)
+        comments.removeAll { $0.id == comment.id || $0.parentCommentId == comment.id }
+        print("[CommentsViewModel] deleteComment - Optimistically removed \(removedCount) comments (parent + children)")
 
         // Haptic feedback
         let generator = UINotificationFeedbackGenerator()
@@ -168,7 +202,7 @@ class CommentsViewModel: ObservableObject {
             print("[CommentsViewModel] Comment deleted successfully")
         } catch {
             // Restore on failure
-            comments.append(comment)
+            comments.append(contentsOf: removedComments)
             self.error = "Failed to delete comment"
             print("[CommentsViewModel] Error deleting comment: \(error)")
         }
@@ -200,8 +234,33 @@ class CommentsViewModel: ObservableObject {
         }
     }
 
-    func startReply(to comment: CommunityComment) {
+    /// Start a reply to a comment
+    /// - Parameters:
+    ///   - comment: The comment being replied to
+    ///   - isNestedReply: Whether this is a reply to a nested comment (reply to a reply)
+    ///   - topLevelParentId: For nested replies, the ID of the top-level parent comment
+    func startReply(to comment: CommunityComment, isNestedReply: Bool = false, topLevelParentId: UUID? = nil) {
         replyingTo = comment
+
+        print("[CommentsViewModel] startReply called:")
+        print("  - Replying to: \(comment.authorUsername) (id: \(comment.id))")
+        print("  - isNestedReply: \(isNestedReply)")
+        print("  - topLevelParentId: \(topLevelParentId?.uuidString ?? "nil")")
+        print("  - comment.parentCommentId: \(comment.parentCommentId?.uuidString ?? "nil")")
+
+        if isNestedReply {
+            // Reply goes to top-level parent, but @mention the nested user
+            replyParentId = topLevelParentId ?? comment.parentCommentId
+            mentionText = "\(comment.authorUsername) "
+            newCommentText = mentionText
+            print("  - NESTED REPLY: Auto-filled '\(mentionText)', replyParentId: \(replyParentId?.uuidString ?? "nil")")
+        } else {
+            // Direct reply to top-level comment
+            replyParentId = comment.id
+            mentionText = ""
+            print("  - TOP-LEVEL REPLY: replyParentId set to comment.id: \(replyParentId?.uuidString ?? "nil")")
+        }
+
         // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
@@ -209,6 +268,9 @@ class CommentsViewModel: ObservableObject {
 
     func cancelReply() {
         replyingTo = nil
+        replyParentId = nil
+        mentionText = ""
+        newCommentText = ""
     }
 
     // MARK: - Private Methods

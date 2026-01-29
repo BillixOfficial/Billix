@@ -22,6 +22,7 @@ struct CommunityComment: Identifiable {
     var replies: [CommunityComment]  // Child comments
     var isLiked: Bool
     var isOwnComment: Bool
+    let isAnonymous: Bool  // Whether the comment was submitted anonymously
 
     init(
         id: UUID = UUID(),
@@ -34,7 +35,8 @@ struct CommunityComment: Identifiable {
         parentCommentId: UUID? = nil,
         replies: [CommunityComment] = [],
         isLiked: Bool = false,
-        isOwnComment: Bool = false
+        isOwnComment: Bool = false,
+        isAnonymous: Bool = false
     ) {
         self.id = id
         self.authorId = authorId
@@ -47,6 +49,7 @@ struct CommunityComment: Identifiable {
         self.replies = replies
         self.isLiked = isLiked
         self.isOwnComment = isOwnComment
+        self.isAnonymous = isAnonymous
     }
 
     var timeAgo: String {
@@ -77,6 +80,7 @@ struct CommunityPost: Identifiable {
     var isSaved: Bool  // Whether the current user has saved/bookmarked this post
     var userReaction: String?  // The current user's reaction type (e.g., "heart", "fire", "thumbsUp")
     var isOwnPost: Bool  // Whether the current user is the author of this post
+    let isAnonymous: Bool  // Whether the post was submitted anonymously
 
     init(
         id: UUID = UUID(),
@@ -96,7 +100,8 @@ struct CommunityPost: Identifiable {
         topComment: CommunityComment? = nil,
         isSaved: Bool = false,
         userReaction: String? = nil,
-        isOwnPost: Bool = false
+        isOwnPost: Bool = false,
+        isAnonymous: Bool = false
     ) {
         self.id = id
         self.authorName = authorName
@@ -116,6 +121,7 @@ struct CommunityPost: Identifiable {
         self.isSaved = isSaved
         self.userReaction = userReaction
         self.isOwnPost = isOwnPost
+        self.isAnonymous = isAnonymous
     }
 }
 

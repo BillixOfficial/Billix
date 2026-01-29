@@ -64,7 +64,8 @@ struct CommentsSheetView: View {
         .task {
             await viewModel.loadComments()
         }
-        .onChange(of: viewModel.commentCount) { _, newCount in
+        .onChange(of: viewModel.commentCount) { oldCount, newCount in
+            print("[CommentsSheetView] .onChange fired - commentCount changed from \(oldCount) to \(newCount)")
             onCommentCountChanged(newCount)
         }
     }
@@ -78,18 +79,34 @@ struct CommentsSheetView: View {
                     CommentRowView(
                         comment: comment,
                         isReply: false,
-                        onLike: {
+                        onLike: { likedComment in
                             Task {
-                                await viewModel.toggleLike(for: comment)
+                                await viewModel.toggleLike(for: likedComment)
                             }
                         },
-                        onReply: {
-                            viewModel.startReply(to: comment)
+                        onReply: { replyToComment in
+                            // Check if this is a nested reply (has parentCommentId)
+                            print("[CommentsSheetView] Reply tapped on: \(replyToComment.authorUsername)")
+                            print("  - parentCommentId: \(replyToComment.parentCommentId?.uuidString ?? "nil")")
+
+                            if let parentId = replyToComment.parentCommentId {
+                                // Nested reply - auto-fill @mention, reply goes to top-level parent
+                                print("  - Detected as NESTED REPLY, calling startReply with isNestedReply=true")
+                                viewModel.startReply(
+                                    to: replyToComment,
+                                    isNestedReply: true,
+                                    topLevelParentId: parentId
+                                )
+                            } else {
+                                // Top-level comment - normal reply
+                                print("  - Detected as TOP-LEVEL COMMENT, calling startReply with isNestedReply=false")
+                                viewModel.startReply(to: replyToComment, isNestedReply: false)
+                            }
                             isInputFocused = true
                         },
-                        onDelete: {
+                        onDelete: { deletedComment in
                             Task {
-                                await viewModel.deleteComment(comment)
+                                await viewModel.deleteComment(deletedComment)
                             }
                         }
                     )
@@ -115,7 +132,7 @@ struct CommentsSheetView: View {
             // Reply indicator
             if let replyingTo = viewModel.replyingTo {
                 HStack {
-                    Text("Replying to \(replyingTo.authorUsername)")
+                    Text("Replying to \(replyingTo.authorUsername.isEmpty ? "Anonymous" : replyingTo.authorUsername)")
                         .font(.system(size: 13))
                         .foregroundColor(secondaryColor)
 
@@ -134,14 +151,35 @@ struct CommentsSheetView: View {
                 .background(Color(hex: "#F3F4F6"))
             }
 
+            // Anonymous toggle row
+            HStack(spacing: 8) {
+                Image(systemName: "eye.slash.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(viewModel.isAnonymous ? accentColor : secondaryColor)
+
+                Text("Post anonymously")
+                    .font(.system(size: 13))
+                    .foregroundColor(viewModel.isAnonymous ? accentColor : secondaryColor)
+
+                Spacer()
+
+                Toggle("", isOn: $viewModel.isAnonymous)
+                    .toggleStyle(SwitchToggleStyle(tint: accentColor))
+                    .labelsHidden()
+                    .scaleEffect(0.8)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(Color(hex: "#F9FAFB"))
+
             // Input field
             HStack(spacing: 12) {
-                // Avatar
+                // Avatar (show anonymous icon if toggle is on)
                 Circle()
                     .fill(Color(hex: "#E5E7EB"))
                     .frame(width: 36, height: 36)
                     .overlay(
-                        Image(systemName: "person.fill")
+                        Image(systemName: viewModel.isAnonymous ? "person.fill.questionmark" : "person.fill")
                             .font(.system(size: 16))
                             .foregroundColor(secondaryColor)
                     )

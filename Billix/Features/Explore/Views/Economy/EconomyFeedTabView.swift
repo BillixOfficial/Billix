@@ -16,8 +16,7 @@ struct EconomyFeedTabView: View {
     @State private var isButtonExpanded = true
     @State private var lastOffsetY: CGFloat = 0
     @State private var showCreatePostSheet = false
-    @State private var showCommentsSheet = false
-    @State private var selectedPostForComments: CommunityPost?
+    @State private var selectedPostForComments: CommunityPost?  // Used with .sheet(item:)
 
     private let backgroundColor = Color(hex: "#F5F5F7")
 
@@ -89,8 +88,7 @@ struct EconomyFeedTabView: View {
                                     post: post,
                                     onLikeTapped: { viewModel.toggleLike(for: post) },
                                     onCommentTapped: {
-                                        selectedPostForComments = post
-                                        showCommentsSheet = true
+                                        selectedPostForComments = post  // Sheet opens automatically via .sheet(item:)
                                     },
                                     onSaveTapped: { viewModel.toggleSave(for: post) },
                                     onReactionSelected: { reaction in
@@ -135,17 +133,15 @@ struct EconomyFeedTabView: View {
             CreatePostSheet(
                 availableGroups: viewModel.groups,
                 preselectedGroup: nil
-            ) { content, topic, group in
+            ) { content, topic, group, isAnonymous in
                 Task {
-                    _ = await viewModel.createPost(content: content, topic: topic, groupId: group?.id)
+                    _ = await viewModel.createPost(content: content, topic: topic, groupId: group?.id, isAnonymous: isAnonymous)
                 }
             }
         }
-        .sheet(isPresented: $showCommentsSheet) {
-            if let post = selectedPostForComments {
-                CommentsSheetView(post: post) { newCount in
-                    viewModel.updateCommentCount(for: post.id, count: newCount)
-                }
+        .sheet(item: $selectedPostForComments) { post in
+            CommentsSheetView(post: post) { newCount in
+                viewModel.updateCommentCount(for: post.id, count: newCount)
             }
         }
         .task {

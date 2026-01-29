@@ -22,6 +22,7 @@ struct CommunityPostDB: Codable, Identifiable {
     let isTrending: Bool
     let isPinned: Bool
     let isDeleted: Bool
+    let isAnonymous: Bool
     let createdAt: Date
     let updatedAt: Date
 
@@ -41,6 +42,7 @@ struct CommunityPostDB: Codable, Identifiable {
         case isTrending = "is_trending"
         case isPinned = "is_pinned"
         case isDeleted = "is_deleted"
+        case isAnonymous = "is_anonymous"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case author = "profiles"
@@ -101,6 +103,7 @@ struct CommunityCommentDB: Codable, Identifiable {
     let content: String
     let likeCount: Int
     let isDeleted: Bool
+    let isAnonymous: Bool
     let createdAt: Date
     let updatedAt: Date
 
@@ -114,6 +117,7 @@ struct CommunityCommentDB: Codable, Identifiable {
         case content
         case likeCount = "like_count"
         case isDeleted = "is_deleted"
+        case isAnonymous = "is_anonymous"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case author = "profiles"
@@ -192,11 +196,25 @@ enum CommunityTopicType: String, Codable, CaseIterable {
 
 extension CommunityPostDB {
     func toUIModel(isLiked: Bool = false, isSaved: Bool = false, userReaction: String? = nil, currentUserId: UUID? = nil) -> CommunityPost {
-        CommunityPost(
+        let isOwnPost = currentUserId != nil && authorId == currentUserId
+
+        // For anonymous posts: hide author info from others, but show "(You)" to the author
+        let displayAuthorName: String
+        let displayAuthorUsername: String
+
+        if isAnonymous {
+            displayAuthorName = isOwnPost ? "Anonymous (You)" : "Anonymous"
+            displayAuthorUsername = ""
+        } else {
+            displayAuthorName = author?.displayName ?? "Anonymous"
+            displayAuthorUsername = "@\(author?.handle ?? "user")"
+        }
+
+        return CommunityPost(
             id: id,
-            authorName: author?.displayName ?? "Anonymous",
-            authorUsername: "@\(author?.handle ?? "user")",
-            authorRole: "Member", // Could be computed from user tier
+            authorName: displayAuthorName,
+            authorUsername: displayAuthorUsername,
+            authorRole: isAnonymous ? "Member" : "Member", // Could be computed from user tier
             authorAvatar: nil, // Profile avatars not yet implemented
             content: content,
             topic: CommunityTopicType(rawValue: topic)?.displayName ?? topic.capitalized,
@@ -210,25 +228,41 @@ extension CommunityPostDB {
             topComment: nil, // Loaded separately if needed
             isSaved: isSaved,
             userReaction: userReaction,
-            isOwnPost: currentUserId != nil && authorId == currentUserId
+            isOwnPost: isOwnPost,
+            isAnonymous: isAnonymous
         )
     }
 }
 
 extension CommunityCommentDB {
     func toUIModel(isLiked: Bool = false, currentUserId: UUID? = nil) -> CommunityComment {
-        CommunityComment(
+        let isOwnComment = currentUserId != nil && authorId == currentUserId
+
+        // For anonymous comments: hide author info from others, but show "(You)" to the author
+        let displayAuthorName: String
+        let displayAuthorUsername: String
+
+        if isAnonymous {
+            displayAuthorName = isOwnComment ? "Anonymous (You)" : "Anonymous"
+            displayAuthorUsername = ""
+        } else {
+            displayAuthorName = author?.displayName ?? "Anonymous"
+            displayAuthorUsername = "@\(author?.handle ?? "user")"
+        }
+
+        return CommunityComment(
             id: id,
             authorId: authorId,
-            authorName: author?.displayName ?? "Anonymous",
-            authorUsername: "@\(author?.handle ?? "user")",
+            authorName: displayAuthorName,
+            authorUsername: displayAuthorUsername,
             content: content,
             timestamp: createdAt,
             likeCount: likeCount,
             parentCommentId: parentCommentId,
             replies: [],
             isLiked: isLiked,
-            isOwnComment: currentUserId != nil && authorId == currentUserId
+            isOwnComment: isOwnComment,
+            isAnonymous: isAnonymous
         )
     }
 }
@@ -254,7 +288,7 @@ protocol CommunityServiceProtocol {
     // Posts
     func fetchFeed(filter: CommunityFeedFilter, page: Int, limit: Int) async throws -> [CommunityPost]
     func fetchGroupPosts(groupId: UUID) async throws -> [CommunityPost]
-    func createPost(content: String, topic: CommunityTopicType, groupId: UUID?) async throws -> CommunityPost
+    func createPost(content: String, topic: CommunityTopicType, groupId: UUID?, isAnonymous: Bool) async throws -> CommunityPost
     func deletePost(id: UUID) async throws
 
     // Reactions
@@ -278,7 +312,7 @@ protocol CommunityServiceProtocol {
 
     // Comments
     func fetchComments(for postId: UUID) async throws -> [CommunityCommentDB]
-    func createComment(postId: UUID, content: String, parentCommentId: UUID?) async throws -> CommunityCommentDB
+    func createComment(postId: UUID, content: String, parentCommentId: UUID?, isAnonymous: Bool) async throws -> CommunityCommentDB
     func deleteComment(id: UUID) async throws
     func likeComment(id: UUID) async throws
     func unlikeComment(id: UUID) async throws
@@ -386,8 +420,8 @@ class CommunityService: CommunityServiceProtocol {
         }
     }
 
-    func createPost(content: String, topic: CommunityTopicType, groupId: UUID? = nil) async throws -> CommunityPost {
-        print("[CommunityService] createPost called - topic: \(topic), groupId: \(groupId?.uuidString ?? "nil")")
+    func createPost(content: String, topic: CommunityTopicType, groupId: UUID? = nil, isAnonymous: Bool = false) async throws -> CommunityPost {
+        print("[CommunityService] createPost called - topic: \(topic), groupId: \(groupId?.uuidString ?? "nil"), isAnonymous: \(isAnonymous)")
 
         guard let session = try? await supabase.auth.session else {
             print("[CommunityService] createPost - Not authenticated")
@@ -398,7 +432,8 @@ class CommunityService: CommunityServiceProtocol {
         var insertData: [String: String] = [
             "author_id": session.user.id.uuidString,
             "content": content,
-            "topic": topic.rawValue
+            "topic": topic.rawValue,
+            "is_anonymous": isAnonymous ? "true" : "false"
         ]
 
         if let groupId = groupId {
@@ -617,7 +652,7 @@ class CommunityService: CommunityServiceProtocol {
 
         print("[CommunityService] fetchGroups - Got \(groups.count) groups from DB")
         for group in groups {
-            print("[CommunityService]   - \(group.name): \(group.memberCount) members")
+            print("[CommunityService]   - \(group.name): \(group.memberCount) members, \(group.postCount) posts")
         }
 
         cachedGroups = groups
@@ -813,8 +848,8 @@ class CommunityService: CommunityServiceProtocol {
         return comments
     }
 
-    func createComment(postId: UUID, content: String, parentCommentId: UUID? = nil) async throws -> CommunityCommentDB {
-        print("[CommunityService] createComment - postId: \(postId), parentId: \(parentCommentId?.uuidString ?? "nil")")
+    func createComment(postId: UUID, content: String, parentCommentId: UUID? = nil, isAnonymous: Bool = false) async throws -> CommunityCommentDB {
+        print("[CommunityService] createComment - postId: \(postId), parentId: \(parentCommentId?.uuidString ?? "nil"), isAnonymous: \(isAnonymous)")
 
         guard let session = try? await supabase.auth.session else {
             print("[CommunityService] createComment - Not authenticated")
@@ -824,7 +859,8 @@ class CommunityService: CommunityServiceProtocol {
         var insertData: [String: String] = [
             "post_id": postId.uuidString,
             "author_id": session.user.id.uuidString,
-            "content": content
+            "content": content,
+            "is_anonymous": isAnonymous ? "true" : "false"
         ]
 
         if let parentId = parentCommentId {
@@ -853,12 +889,11 @@ class CommunityService: CommunityServiceProtocol {
             throw CommunityError.notAuthenticated
         }
 
-        // Soft delete - only if user is the author
+        // Hard delete - RLS policy ensures only author can delete
         try await supabase
             .from("community_comments")
-            .update(["is_deleted": true])
+            .delete()
             .eq("id", value: id.uuidString)
-            .eq("author_id", value: session.user.id.uuidString)
             .execute()
 
         print("[CommunityService] deleteComment - SUCCESS")
@@ -888,7 +923,7 @@ class CommunityService: CommunityServiceProtocol {
                     "user_id": session.user.id.uuidString,
                     "reactable_type": "comment",
                     "reactable_id": id.uuidString,
-                    "reaction": "like"
+                    "reaction": "thumbsup"  // Must match reaction_type enum: heart, thumbsup, lightbulb, fire, clap
                 ])
                 .execute()
 

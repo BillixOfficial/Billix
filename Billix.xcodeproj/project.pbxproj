@@ -167,6 +167,9 @@
 		A66170E92F26E63300B24FD5 /* GroupDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170E82F26E63300B24FD5 /* GroupDetailView.swift */; };
 		A66170EB2F26EA0E00B24FD5 /* CreatePostSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170EA2F26EA0E00B24FD5 /* CreatePostSheet.swift */; };
 		A66170ED2F280C1800B24FD5 /* ReportPostSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66170EC2F280C1800B24FD5 /* ReportPostSheet.swift */; };
+		A66171192F29B86900B24FD5 /* CommentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171182F29B86900B24FD5 /* CommentsViewModel.swift */; };
+		A661711B2F29B88200B24FD5 /* CommentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A661711A2F29B88200B24FD5 /* CommentRowView.swift */; };
+		A661711D2F29B89C00B24FD5 /* CommentsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A661711C2F29B89C00B24FD5 /* CommentsSheetView.swift */; };
 		A69E78142F05D397004E63B4 /* StreakService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78122F05D397004E63B4 /* StreakService.swift */; };
 		A69E78152F05D397004E63B4 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78112F05D397004E63B4 /* OpenAIService.swift */; };
 		A69E78162F05D397004E63B4 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78132F05D397004E63B4 /* WeatherService.swift */; };
@@ -632,6 +635,9 @@
 		A66170E82F26E63300B24FD5 /* GroupDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupDetailView.swift; sourceTree = "<group>"; };
 		A66170EA2F26EA0E00B24FD5 /* CreatePostSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostSheet.swift; sourceTree = "<group>"; };
 		A66170EC2F280C1800B24FD5 /* ReportPostSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportPostSheet.swift; sourceTree = "<group>"; };
+		A66171182F29B86900B24FD5 /* CommentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsViewModel.swift; sourceTree = "<group>"; };
+		A661711A2F29B88200B24FD5 /* CommentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentRowView.swift; sourceTree = "<group>"; };
+		A661711C2F29B89C00B24FD5 /* CommentsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsSheetView.swift; sourceTree = "<group>"; };
 		A69E78112F05D397004E63B4 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
 		A69E78122F05D397004E63B4 /* StreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakService.swift; sourceTree = "<group>"; };
 		A69E78132F05D397004E63B4 /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
@@ -1462,6 +1468,7 @@
 		A66170CA2F25DF5800B24FD5 /* Economy */ = {
 			isa = PBXGroup;
 			children = (
+				A661711A2F29B88200B24FD5 /* CommentRowView.swift */,
 				A66170EC2F280C1800B24FD5 /* ReportPostSheet.swift */,
 				A66170C42F25DF5800B24FD5 /* CommunityPostCard.swift */,
 				A66170C52F25DF5800B24FD5 /* EconomyFilterBar.swift */,
@@ -1476,6 +1483,7 @@
 		A66170D72F25E09900B24FD5 /* Economy */ = {
 			isa = PBXGroup;
 			children = (
+				A661711C2F29B89C00B24FD5 /* CommentsSheetView.swift */,
 				A66170EA2F26EA0E00B24FD5 /* CreatePostSheet.swift */,
 				A66170E82F26E63300B24FD5 /* GroupDetailView.swift */,
 				A66170E62F26A5D900B24FD5 /* EconomyGroupsTabView.swift */,
@@ -1628,6 +1636,7 @@
 		A6FF81232ECEB3D3008330C9 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				A66171182F29B86900B24FD5 /* CommentsViewModel.swift */,
 				A66170E02F25E20C00B24FD5 /* EconomyFeedViewModel.swift */,
 				A6E5FFB72F0DC428009F1277 /* MarketTrendsViewModel.swift */,
 				A6E5FF7E2F0C3D86009F1277 /* HousingSearchViewModel.swift */,
@@ -2416,6 +2425,7 @@
 				DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */,
 				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
 				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
+				A661711D2F29B89C00B24FD5 /* CommentsSheetView.swift in Sources */,
 				04473EEB06DC470B82DCA7F2 /* Billix/Utilities/TypographyStyles.swift in Sources */,
 				08D120758A2C45E38383DC5F /* Billix/Utilities/AnimationModifiers.swift in Sources */,
 				45ACBFCDBB434C6481C55A3D /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift in Sources */,
@@ -2628,6 +2638,7 @@
 				A6FF82612EDE3AD4008330C9 /* GlassCard.swift in Sources */,
 				A6FF82622EDE3AD4008330C9 /* GeoGameFlowView.swift in Sources */,
 				A6E5FF582F0B23C6009F1277 /* LocationModels.swift in Sources */,
+				A66171192F29B86900B24FD5 /* CommentsViewModel.swift in Sources */,
 				A69E78142F05D397004E63B4 /* StreakService.swift in Sources */,
 				A69E78152F05D397004E63B4 /* OpenAIService.swift in Sources */,
 				A69E78342F06E7E4004E63B4 /* TaskModels.swift in Sources */,
@@ -2781,6 +2792,7 @@
 				3B2C5926D24417EDCAC377EF /* ChatConversationView.swift in Sources */,
 				39E9FF59B6EEAF996EE99B07 /* NewChatView.swift in Sources */,
 				7696D021CF0CAF08BA7CB01C /* ChatHubViewModel.swift in Sources */,
+				A661711B2F29B88200B24FD5 /* CommentRowView.swift in Sources */,
 				A80DD4338C08AB7818C90F2E /* ChatConversationViewModel.swift in Sources */,
 				D14E81F86E052867C4D044AF /* ConversationRow.swift in Sources */,
 				B58344C54B69A1D84AF6D692 /* MessageBubble.swift in Sources */,

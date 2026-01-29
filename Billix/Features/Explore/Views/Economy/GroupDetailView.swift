@@ -16,6 +16,7 @@ struct GroupDetailView: View {
     @State private var lastOffsetY: CGFloat = 0
     @State private var isJoined: Bool
     @State private var showCreatePostSheet = false
+    @State private var selectedPostForComments: CommunityPost?  // For comments sheet
 
     private let backgroundColor = Color(hex: "#F5F5F7")
 
@@ -92,11 +93,16 @@ struct GroupDetailView: View {
             CreatePostSheet(
                 availableGroups: [group],
                 preselectedGroup: group
-            ) { content, topic, _ in
+            ) { content, topic, _, isAnonymous in
                 // Create post via shared viewModel (syncs across views)
                 Task {
-                    _ = await viewModel.createPost(content: content, topic: topic, groupId: group.id)
+                    _ = await viewModel.createPost(content: content, topic: topic, groupId: group.id, isAnonymous: isAnonymous)
                 }
+            }
+        }
+        .sheet(item: $selectedPostForComments) { post in
+            CommentsSheetView(post: post) { newCount in
+                viewModel.updateCommentCount(for: post.id, count: newCount)
             }
         }
         .task {
@@ -200,7 +206,7 @@ struct GroupDetailView: View {
                         CommunityPostCard(
                             post: post,
                             onLikeTapped: { viewModel.toggleLike(for: post) },
-                            onCommentTapped: { /* Future: Show comments */ },
+                            onCommentTapped: { selectedPostForComments = post },
                             onSaveTapped: { viewModel.toggleSave(for: post) },
                             onReactionSelected: { reaction in
                                 viewModel.setReaction(for: post, reaction: reaction.stringValue)

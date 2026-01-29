@@ -11,27 +11,40 @@ import SwiftUI
 struct CommentRowView: View {
     let comment: CommunityComment
     let isReply: Bool
-    let onLike: () -> Void
-    let onReply: () -> Void
-    let onDelete: () -> Void
+    let onLike: (CommunityComment) -> Void
+    let onReply: (CommunityComment) -> Void
+    let onDelete: (CommunityComment) -> Void
 
     @State private var showDeleteConfirmation = false
+    @State private var showAllReplies = false
 
+    private let maxVisibleReplies = 2
     private let textColor = Color(hex: "#1A1A1A")
     private let secondaryColor = Color(hex: "#6B7280")
     private let accentColor = Color.billixDarkTeal
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Avatar
-            Circle()
-                .fill(Color(hex: "#E5E7EB"))
-                .frame(width: isReply ? 32 : 40, height: isReply ? 32 : 40)
-                .overlay(
-                    Text(comment.authorName.prefix(1).uppercased())
-                        .font(.system(size: isReply ? 14 : 16, weight: .semibold))
-                        .foregroundColor(secondaryColor)
-                )
+            // Avatar (anonymous shows question mark icon)
+            if comment.isAnonymous {
+                Circle()
+                    .fill(Color(hex: "#E5E7EB"))
+                    .frame(width: isReply ? 32 : 40, height: isReply ? 32 : 40)
+                    .overlay(
+                        Image(systemName: "person.fill.questionmark")
+                            .font(.system(size: isReply ? 12 : 14))
+                            .foregroundColor(Color(hex: "#9CA3AF"))
+                    )
+            } else {
+                Circle()
+                    .fill(Color(hex: "#E5E7EB"))
+                    .frame(width: isReply ? 32 : 40, height: isReply ? 32 : 40)
+                    .overlay(
+                        Text(comment.authorName.prefix(1).uppercased())
+                            .font(.system(size: isReply ? 14 : 16, weight: .semibold))
+                            .foregroundColor(secondaryColor)
+                    )
+            }
 
             VStack(alignment: .leading, spacing: 6) {
                 // Author info
@@ -40,12 +53,15 @@ struct CommentRowView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(textColor)
 
-                    Text(comment.authorUsername)
-                        .font(.system(size: 13))
-                        .foregroundColor(secondaryColor)
+                    // Only show username if not anonymous
+                    if !comment.isAnonymous && !comment.authorUsername.isEmpty {
+                        Text(comment.authorUsername)
+                            .font(.system(size: 13))
+                            .foregroundColor(secondaryColor)
 
-                    Text("·")
-                        .foregroundColor(secondaryColor)
+                        Text("·")
+                            .foregroundColor(secondaryColor)
+                    }
 
                     Text(comment.timeAgo)
                         .font(.system(size: 12))
@@ -61,7 +77,7 @@ struct CommentRowView: View {
                 // Actions row
                 HStack(spacing: 20) {
                     // Like button
-                    Button(action: onLike) {
+                    Button { onLike(comment) } label: {
                         HStack(spacing: 4) {
                             Image(systemName: comment.isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
                                 .font(.system(size: 14))
@@ -76,15 +92,13 @@ struct CommentRowView: View {
                     }
                     .buttonStyle(.plain)
 
-                    // Reply button (only for top-level comments)
-                    if !isReply {
-                        Button(action: onReply) {
-                            Text("Reply")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(secondaryColor)
-                        }
-                        .buttonStyle(.plain)
+                    // Reply button (available on ALL comments including replies)
+                    Button { onReply(comment) } label: {
+                        Text("Reply")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(secondaryColor)
                     }
+                    .buttonStyle(.plain)
 
                     Spacer()
 
@@ -102,17 +116,41 @@ struct CommentRowView: View {
                 }
                 .padding(.top, 4)
 
-                // Nested replies
+                // Nested replies (collapsed by default)
                 if !comment.replies.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        ForEach(comment.replies) { reply in
+                        // Show limited or all replies
+                        let visibleReplies = showAllReplies
+                            ? comment.replies
+                            : Array(comment.replies.prefix(maxVisibleReplies))
+
+                        ForEach(visibleReplies) { reply in
                             CommentRowView(
                                 comment: reply,
                                 isReply: true,
                                 onLike: onLike,
-                                onReply: {},  // No nested replies
+                                onReply: onReply,
                                 onDelete: onDelete
                             )
+                        }
+
+                        // "View X more replies" button
+                        if !showAllReplies && comment.replies.count > maxVisibleReplies {
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    showAllReplies = true
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "arrow.turn.down.right")
+                                        .font(.system(size: 12))
+                                    Text("View \(comment.replies.count - maxVisibleReplies) more replies")
+                                        .font(.system(size: 13, weight: .medium))
+                                }
+                                .foregroundColor(accentColor)
+                                .padding(.top, 4)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     .padding(.top, 12)
@@ -127,11 +165,14 @@ struct CommentRowView: View {
             titleVisibility: .visible
         ) {
             Button("Delete", role: .destructive) {
-                onDelete()
+                onDelete(comment)
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Are you sure you want to delete this comment?")
+        }
+        .onTapGesture {
+            // Prevent taps from propagating
         }
     }
 }
@@ -159,9 +200,9 @@ struct CommentRowView: View {
                 isLiked: true
             ),
             isReply: false,
-            onLike: {},
-            onReply: {},
-            onDelete: {}
+            onLike: { _ in },
+            onReply: { _ in },
+            onDelete: { _ in }
         )
 
         Divider()
@@ -176,9 +217,9 @@ struct CommentRowView: View {
                 isOwnComment: true
             ),
             isReply: false,
-            onLike: {},
-            onReply: {},
-            onDelete: {}
+            onLike: { _ in },
+            onReply: { _ in },
+            onDelete: { _ in }
         )
     }
     .padding()
