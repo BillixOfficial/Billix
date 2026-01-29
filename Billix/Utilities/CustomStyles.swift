@@ -104,6 +104,10 @@ struct ShimmerEffect: ViewModifier {
                     phase = 400
                 }
             }
+            .onDisappear {
+                // Stop the repeating animation when view disappears
+                phase = -200
+            }
     }
 }
 
@@ -127,6 +131,10 @@ struct PulsingGlow: ViewModifier {
                     isGlowing = true
                 }
             }
+            .onDisappear {
+                // Stop the repeating animation when view disappears
+                isGlowing = false
+            }
     }
 }
 
@@ -145,6 +153,10 @@ struct FloatingAnimation: ViewModifier {
                 ) {
                     isFloating = true
                 }
+            }
+            .onDisappear {
+                // Stop the repeating animation when view disappears
+                isFloating = false
             }
     }
 }

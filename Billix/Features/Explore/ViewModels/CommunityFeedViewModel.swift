@@ -37,6 +37,7 @@ class CommunityFeedViewModel: ObservableObject {
     private let service: CommunityServiceProtocol
     private var currentPage = 0
     private let pageSize = 20
+    private let maxPostsInMemory = 100  // Prevent unbounded memory growth
 
     // MARK: - Initialization
 
@@ -92,7 +93,7 @@ class CommunityFeedViewModel: ObservableObject {
         isRefreshing = false
     }
 
-    /// Load more posts (pagination)
+    /// Load more posts (pagination with memory cap)
     func loadMorePosts() async {
         guard !isLoading, hasMorePages else { return }
 
@@ -105,6 +106,12 @@ class CommunityFeedViewModel: ObservableObject {
                 limit: pageSize
             )
             posts.append(contentsOf: morePosts)
+
+            // Cap posts to prevent unbounded memory growth (windowed pagination)
+            if posts.count > maxPostsInMemory {
+                posts.removeFirst(posts.count - maxPostsInMemory)
+            }
+
             hasMorePages = morePosts.count >= pageSize
         } catch {
             currentPage -= 1 // Revert page on error
