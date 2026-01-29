@@ -28,7 +28,6 @@ struct ExploreLandingView: View {
             }
             .onChange(of: navigationDestination) { oldValue, newValue in
                 if newValue != nil {
-                    print("🚀 Navigation destination changed to: \(String(describing: newValue))")
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                         isNavigating = true
                     }
@@ -45,7 +44,6 @@ struct ExploreLandingView: View {
 
             // Overlay destination view when navigating
             if isNavigating, let destination = navigationDestination {
-                let _ = print("🎯 Building view for: \(destination)")
                 ZStack {
                     // Black background
                     Color.black
@@ -114,7 +112,7 @@ struct ExploreLandingView: View {
                     }
 
             case .bills:
-                BillsExploreView()
+                BillExplorerFeedView()
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button {

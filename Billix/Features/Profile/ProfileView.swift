@@ -133,7 +133,6 @@ struct ProfileView: View {
                     userEmail = session.user.email ?? ""
                 }
             } catch {
-                print("Failed to fetch user email: \(error)")
             }
         }
     }
@@ -204,15 +203,17 @@ struct ProfileView: View {
     @StateObject private var tokenService = TokenService.shared
 
     // Trust & Points
-    private var userTrustScore: Int {
-        authService.currentUser?.vault.trustScore ?? 0
-    }
-    @State private var userBillixPoints: Int = 100  // Start with 100 points
+    @StateObject private var activityScoreService = ActivityScoreService.shared
+    @State private var userBillixPoints: Int = 0
+    private let rewardsService = RewardsService.shared
 
-    // Username states
+    // Username state
     @State private var username: String = ""
-    @State private var showEditUsernameSheet = false
-    @State private var editingUsername = ""
+
+    // Referral code states
+    @State private var referralCodeInput: String = ""
+    @State private var isRedeemingCode = false
+    @State private var referralCodeRedeemed = false
 
     // StoreKit
     @StateObject private var storeKit = StoreKitService.shared
@@ -254,12 +255,13 @@ struct ProfileView: View {
             .onAppear {
                 fetchUserEmail()
                 loadUsernameFromProfile()
+                loadUserPoints()
+                Task {
+                    await activityScoreService.fetchAndCalculateScore()
+                }
             }
             .sheet(isPresented: $showBioEditor) {
                 bioEditorSheet
-            }
-            .sheet(isPresented: $showEditUsernameSheet) {
-                usernameEditorSheet
             }
         }
     }
@@ -324,75 +326,11 @@ struct ProfileView: View {
                 await MainActor.run {
                     isSavingBio = false
                 }
-                print("Failed to save bio: \(error)")
             }
         }
     }
 
-    // MARK: - Username Editor Sheet
-
-    private var usernameEditorSheet: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("Choose your unique username")
-                    .font(.headline)
-                    .foregroundColor(darkTextColor)
-
-                HStack {
-                    Text("@")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(grayTextColor)
-
-                    TextField("username", text: $editingUsername)
-                        .font(.system(size: 18))
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                }
-                .padding(16)
-                .background(Color(hex: "#F5F7F6"))
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                )
-
-                Text("Username must be 3-20 characters, letters and numbers only")
-                    .font(.caption)
-                    .foregroundColor(grayTextColor)
-
-                Button {
-                    generateNewRandomUsername()
-                } label: {
-                    HStack {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                        Text("Generate Random")
-                    }
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(selectedTabColor)
-                }
-
-                Spacer()
-            }
-            .padding(20)
-            .navigationTitle("Username")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        showEditUsernameSheet = false
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveUsername()
-                    }
-                    .disabled(editingUsername.count < 3 || editingUsername.count > 20)
-                }
-            }
-        }
-        .presentationDetents([.medium])
-        .presentationBackground(Color(hex: "#F5F7F6"))
-    }
+    // MARK: - Username Loading
 
     private func loadUsernameFromProfile() {
         // First try to load from database
@@ -405,10 +343,6 @@ struct ProfileView: View {
         }
     }
 
-    private func generateNewRandomUsername() {
-        editingUsername = generateRandomUsername()
-    }
-
     private func generateRandomUsername() -> String {
         let adjectives = ["Swift", "Clever", "Savvy", "Smart", "Thrifty", "Lucky", "Happy", "Bright", "Cool", "Epic"]
         let nouns = ["Saver", "Guru", "Pro", "Star", "Champ", "Hero", "Ninja", "Ace", "Boss", "Whiz"]
@@ -418,22 +352,26 @@ struct ProfileView: View {
         return "\(adjective)\(noun)\(randomNumber)"
     }
 
-    private func saveUsername() {
-        // Validate username
-        let cleaned = editingUsername.filter { $0.isLetter || $0.isNumber }
-        if cleaned.count >= 3 && cleaned.count <= 20 {
-            username = cleaned
-            saveUsernameToDatabase(cleaned)
-            showEditUsernameSheet = false
-        }
-    }
-
     private func saveUsernameToDatabase(_ newUsername: String) {
         Task {
             do {
                 try await authService.updateHandle(newUsername)
             } catch {
-                print("Failed to save username: \(error)")
+            }
+        }
+    }
+
+    // MARK: - Points Loading
+
+    private func loadUserPoints() {
+        guard let userId = authService.currentUser?.id else { return }
+        Task {
+            do {
+                let points = try await rewardsService.getUserPoints(userId: userId)
+                await MainActor.run {
+                    userBillixPoints = points
+                }
+            } catch {
             }
         }
     }
@@ -476,7 +414,6 @@ struct ProfileView: View {
                 showPhotoError = true
                 UINotificationFeedbackGenerator().notificationOccurred(.error)
             }
-            print("Failed to upload photo: \(error)")
         }
     }
 
@@ -717,34 +654,35 @@ struct ProfileView: View {
             // BILLIX STATS Card
             ProfileCard(title: "BILLIX STATS") {
                 VStack(spacing: 14) {
-                    // Trust Score (out of 5)
+                    // Billix Score (out of 100)
                     HStack(spacing: 14) {
                         ZStack {
                             Circle()
-                                .fill(Color(hex: "#E8F5E9"))
+                                .fill(activityScoreService.scoreColor.opacity(0.15))
                                 .frame(width: 42, height: 42)
 
-                            Image(systemName: "shield.checkered")
+                            Image(systemName: "chart.line.uptrend.xyaxis")
                                 .font(.system(size: 18))
-                                .foregroundColor(Color(hex: "#4CAF50"))
+                                .foregroundColor(activityScoreService.scoreColor)
                         }
 
                         VStack(alignment: .leading, spacing: 3) {
-                            Text("TRUST SCORE")
+                            Text("BILLIX SCORE")
                                 .font(.system(size: 10, weight: .semibold, design: .rounded))
                                 .foregroundColor(lightGrayText)
                                 .tracking(0.8)
-                            HStack(spacing: 4) {
-                                // Show filled and empty stars for trust score out of 5
-                                ForEach(0..<5, id: \.self) { index in
-                                    Image(systemName: index < userTrustScore ? "star.fill" : "star")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(index < userTrustScore ? Color(hex: "#4CAF50") : Color(hex: "#E0E0E0"))
-                                }
-                                Text("\(userTrustScore)/5")
+                            HStack(spacing: 6) {
+                                Text("\(activityScoreService.score)")
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                                    .foregroundColor(activityScoreService.scoreColor)
+                                Text("/ 100")
                                     .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(darkTextColor)
-                                    .padding(.leading, 4)
+                                    .foregroundColor(grayTextColor)
+                                Text("•")
+                                    .foregroundColor(grayTextColor)
+                                Text(activityScoreService.scoreLabel)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(activityScoreService.scoreColor)
                             }
                         }
 
@@ -861,23 +799,13 @@ struct ProfileView: View {
 
                     Divider().padding(.leading, 52)
 
-                    // Email - Editable
-                    Button {
-                        editingEmail = userEmail
-                        showEditEmailSheet = true
-                    } label: {
-                        AccountRowView(icon: "envelope.fill", iconColor: .blue, title: "Email", value: profileData.email)
-                    }
+                    // Email - Display only
+                    AccountRowView(icon: "envelope.fill", iconColor: .blue, title: "Email", value: profileData.email, showChevron: false)
 
                     Divider().padding(.leading, 52)
 
-                    // Username - Editable
-                    Button {
-                        editingUsername = username
-                        showEditUsernameSheet = true
-                    } label: {
-                        AccountRowView(icon: "at", iconColor: .purple, title: "Username", value: username.isEmpty ? "Not set" : "@\(username)")
-                    }
+                    // Username - Display only
+                    AccountRowView(icon: "at", iconColor: .purple, title: "Username", value: username.isEmpty ? "Not set" : "@\(username)", showChevron: false)
 
                     Divider().padding(.leading, 52)
 
@@ -968,37 +896,70 @@ struct ProfileView: View {
 
             // Referral Card
             ProfileCard(title: "INVITE & EARN") {
-                HStack(spacing: 12) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.purple.opacity(0.15))
-                            .frame(width: 40, height: 40)
-                        Image(systemName: "gift.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(.purple)
+                VStack(spacing: 16) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.purple.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "gift.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.purple)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Enter Referral Code")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(darkTextColor)
+                            Text("Get bonus points when you use a friend's code")
+                                .font(.system(size: 12))
+                                .foregroundColor(grayTextColor)
+                        }
+
+                        Spacer()
                     }
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Referral Code")
-                            .font(.system(size: 15))
-                            .foregroundColor(darkTextColor)
-                        Text("BILLIX-2024")
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(.purple)
-                    }
+                    if referralCodeRedeemed {
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Code redeemed successfully!")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.green)
+                        }
+                        .padding(.vertical, 8)
+                    } else {
+                        HStack(spacing: 10) {
+                            TextField("Enter code", text: $referralCodeInput)
+                                .font(.system(size: 15, design: .monospaced))
+                                .textInputAutocapitalization(.characters)
+                                .autocorrectionDisabled()
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                                .background(Color(hex: "#F5F7F6"))
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                )
 
-                    Spacer()
-
-                    Button {
-                        UIPasteboard.general.string = "BILLIX-2024"
-                        UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    } label: {
-                        Text("Copy")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Capsule().fill(Color.purple))
+                            Button {
+                                redeemReferralCode()
+                            } label: {
+                                if isRedeemingCode {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .frame(width: 70, height: 38)
+                                } else {
+                                    Text("Redeem")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .frame(width: 70, height: 38)
+                                }
+                            }
+                            .background(Capsule().fill(referralCodeInput.isEmpty ? Color.gray : Color.purple))
+                            .disabled(referralCodeInput.isEmpty || isRedeemingCode)
+                        }
                     }
                 }
             }
@@ -1538,7 +1499,6 @@ struct ProfileView: View {
                     }
                 }
             } catch {
-                print("Failed to load household: \(error)")
             }
         }
     }
@@ -1695,6 +1655,33 @@ struct ProfileView: View {
             } catch {
                 await MainActor.run {
                     accountErrorMessage = error.localizedDescription
+                    showAccountError = true
+                }
+            }
+        }
+    }
+
+    private func redeemReferralCode() {
+        guard !referralCodeInput.isEmpty else { return }
+
+        isRedeemingCode = true
+        Task {
+            do {
+                // Simulate API call to validate and redeem code
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+
+                // TODO: Add actual referral code redemption logic with Supabase
+                // For now, just mark as redeemed
+                await MainActor.run {
+                    isRedeemingCode = false
+                    referralCodeRedeemed = true
+                    referralCodeInput = ""
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            } catch {
+                await MainActor.run {
+                    isRedeemingCode = false
+                    accountErrorMessage = "Failed to redeem code. Please try again."
                     showAccountError = true
                 }
             }
@@ -1925,7 +1912,6 @@ struct ProfileView: View {
                 .eq("user_id", value: userId.uuidString)
                 .execute()
         } catch {
-            print("Failed to update verified only mode: \(error)")
         }
     }
 
@@ -1946,7 +1932,6 @@ struct ProfileView: View {
                 }
             }
         } catch {
-            print("Failed to load verified only mode: \(error)")
         }
     }
 
@@ -2011,7 +1996,6 @@ struct ProfileView: View {
                                     UINotificationFeedbackGenerator().notificationOccurred(.success)
                                 }
                             } catch {
-                                print("Token purchase failed: \(error)")
                             }
                         }
                     } label: {
@@ -2663,6 +2647,7 @@ struct AccountRowView: View {
     let iconColor: Color
     let title: String
     let value: String?
+    var showChevron: Bool = true
 
     private let darkTextColor = Color(hex: "#2D3436")
     private let grayTextColor = Color(hex: "#636E72")
@@ -2691,9 +2676,15 @@ struct AccountRowView: View {
                     .lineLimit(1)
             }
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "#CBD5E0"))
+            if showChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "#CBD5E0"))
+            } else {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: "#B2BEC3"))
+            }
         }
         .padding(.vertical, 6)
     }

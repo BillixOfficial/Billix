@@ -54,7 +54,6 @@ class AuthService: ObservableObject {
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 3_000_000_000)
             if self.isLoading {
-                print("⚠️ Auth timeout - no session event received")
                 self.isLoading = false
             }
         }
@@ -117,7 +116,6 @@ class AuthService: ObservableObject {
 
             if !userExists {
                 // User was deleted but session is cached - sign out
-                print("⚠️ User no longer exists, signing out cached session")
                 try? await supabase.auth.signOut()
                 self.currentUser = nil
                 self.isAuthenticated = false
@@ -144,7 +142,6 @@ class AuthService: ObservableObject {
                 self.needsOnboarding = true
             }
         } catch {
-            print("❌ Error handling session: \(error)")
             self.isAuthenticated = false
             self.needsOnboarding = false
         }
@@ -159,7 +156,6 @@ class AuthService: ObservableObject {
             _ = try await supabase.auth.user()
             return true
         } catch {
-            print("⚠️ User verification failed: \(error)")
             return false
         }
     }
@@ -248,7 +244,6 @@ class AuthService: ObservableObject {
         needsOnboarding = false
         isGuestMode = false
         appleProvidedName = nil
-        print("✅ User signed out")
     }
 
     // MARK: - Apple Sign In
@@ -277,9 +272,25 @@ class AuthService: ObservableObject {
             )
 
             await handleSession(session)
-            print("✅ Apple Sign In successful")
         } catch {
             throw AuthError.appleSignInFailed(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Google Sign In
+
+    /// Sign in with Google using Supabase OAuth
+    func signInWithGoogle() async throws {
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            try await supabase.auth.signInWithOAuth(
+                provider: .google,
+                redirectTo: URL(string: "billix://auth-callback")
+            )
+        } catch {
+            throw AuthError.googleSignInFailed(error.localizedDescription)
         }
     }
 
@@ -300,7 +311,6 @@ class AuthService: ObservableObject {
                 password: password
             )
             await handleSession(session)
-            print("✅ Email sign in successful")
         } catch {
             throw AuthError.signInFailed(error.localizedDescription)
         }
@@ -329,7 +339,6 @@ class AuthService: ObservableObject {
 
             if let session = response.session {
                 await handleSession(session)
-                print("✅ Sign up successful - user signed in")
                 return false // No email confirmation needed
             } else {
                 // If no session returned, attempt automatic sign-in
@@ -340,11 +349,9 @@ class AuthService: ObservableObject {
                         password: password
                     )
                     await handleSession(signInSession)
-                    print("✅ Sign up successful - auto signed in")
                     return false
                 } catch {
                     // Email confirmation truly required - show verification screen
-                    print("✅ Sign up successful - awaiting email verification")
                     self.pendingVerificationEmail = email
                     self.pendingVerificationPassword = password
                     self.awaitingEmailVerification = true
@@ -370,7 +377,6 @@ class AuthService: ObservableObject {
         try? await Task.sleep(nanoseconds: 300_000_000)
 
         self.isLoading = false
-        print("✅ Guest mode activated - user can explore app without account")
     }
 
     // MARK: - Email Verification
@@ -400,8 +406,7 @@ class AuthService: ObservableObject {
                 // Still waiting for email confirmation
                 return false
             }
-            // Some other error - still return false but log it
-            print("⚠️ Email verification check error: \(error.localizedDescription)")
+            // Some other error - still return false
             return false
         }
     }
@@ -413,7 +418,6 @@ class AuthService: ObservableObject {
                 email: email,
                 type: .signup
             )
-            print("✅ Verification email resent to \(email)")
         } catch {
             throw AuthError.emailVerificationFailed(error.localizedDescription)
         }
@@ -527,8 +531,6 @@ class AuthService: ObservableObject {
             self.needsOnboarding = false
             self.appleProvidedName = nil
             self.isLoading = false
-
-            print("✅ Onboarding completed - profile created with handle @\(handle)")
         } catch {
             isLoading = false
             throw error
@@ -566,7 +568,6 @@ class AuthService: ObservableObject {
 
         do {
             try await supabase.auth.resetPasswordForEmail(email)
-            print("✅ Password reset email sent")
         } catch {
             throw AuthError.passwordResetFailed(error.localizedDescription)
         }
@@ -583,7 +584,6 @@ class AuthService: ObservableObject {
 
         do {
             try await supabase.auth.update(user: UserAttributes(password: newPassword))
-            print("✅ Password updated")
         } catch {
             throw AuthError.passwordUpdateFailed(error.localizedDescription)
         }
@@ -607,7 +607,6 @@ class AuthService: ObservableObject {
 
             return results.isEmpty
         } catch {
-            print("⚠️ Error checking handle availability: \(error)")
             // On error, assume it's available to let server-side validation handle it
             return true
         }
@@ -656,7 +655,6 @@ class AuthService: ObservableObject {
     /// Update bio only
     func updateBio(_ bio: String) async throws {
         try await updateProfile(bio: bio)
-        print("✅ Bio updated")
     }
 
     /// Update handle/username
@@ -674,7 +672,6 @@ class AuthService: ObservableObject {
         // Refresh user data
         let user = try await fetchUserData(userId: userId)
         self.currentUser = user
-        print("✅ Handle updated to: \(handle)")
     }
 
     /// Update avatar
@@ -722,6 +719,7 @@ enum AuthError: LocalizedError {
     case otpSendFailed(String)
     case otpVerificationFailed(String)
     case appleSignInFailed(String)
+    case googleSignInFailed(String)
     case passwordResetFailed(String)
     case passwordUpdateFailed(String)
     case emailVerificationFailed(String)
@@ -752,6 +750,8 @@ enum AuthError: LocalizedError {
             return "Verification failed: \(message)"
         case .appleSignInFailed(let message):
             return "Apple Sign In failed: \(message)"
+        case .googleSignInFailed(let message):
+            return "Google Sign In failed: \(message)"
         case .passwordResetFailed(let message):
             return "Password reset failed: \(message)"
         case .passwordUpdateFailed(let message):

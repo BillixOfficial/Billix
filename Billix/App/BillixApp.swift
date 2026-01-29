@@ -66,6 +66,12 @@ struct BillixApp: App {
             RootView()
                 .environmentObject(authService)
                 .environmentObject(notificationService)
+                .onOpenURL { url in
+                    // Handle OAuth callback from Google/Facebook sign-in
+                    Task {
+                        await handleOAuthCallback(url)
+                    }
+                }
                 .task {
                     // Check notification permission status on launch
                     await notificationService.checkPermissionStatus()
@@ -91,6 +97,19 @@ struct BillixApp: App {
                     try? await streakService.fetchStreak()
                 }
             }
+        }
+    }
+
+    // MARK: - OAuth Callback Handler
+
+    /// Handle OAuth callback URLs from social sign-in providers (Google, Facebook)
+    private func handleOAuthCallback(_ url: URL) async {
+        do {
+            // Supabase processes the OAuth callback and establishes the session
+            // The auth state listener in AuthService will automatically pick up the new session
+            try await SupabaseService.shared.client.auth.session(from: url)
+        } catch {
+            print("OAuth callback error: \(error.localizedDescription)")
         }
     }
 }

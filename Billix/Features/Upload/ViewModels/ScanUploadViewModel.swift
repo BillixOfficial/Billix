@@ -218,17 +218,14 @@ class ScanUploadViewModel: ObservableObject {
                 sourceId: billId
             )
 
-            print("✅ Bill upload tracked successfully")
-
             // Post notification for TasksViewModel to refresh
-            print("📤 Posting BillUploadCompleted notification with billId: \(billId.uuidString)")
             NotificationCenter.default.post(
                 name: NSNotification.Name("BillUploadCompleted"),
                 object: nil,
                 userInfo: ["billId": billId]
             )
         } catch {
-            print("❌ Error tracking bill upload: \(error)")
+            // Silently fail - task tracking is non-critical
         }
     }
 

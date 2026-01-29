@@ -308,7 +308,6 @@ struct InviteEarnBannerNew: View {
 
     var body: some View {
         Button {
-            print("🔵 Invite button tapped")
             loadReferralData()
         } label: {
             HStack(spacing: 12) {
@@ -385,7 +384,6 @@ struct InviteEarnBannerNew: View {
     }
 
     private func loadReferralData() {
-        print("🔵 loadReferralData() called")
         isLoading = true
 
         // Generate referral code and message
@@ -396,7 +394,6 @@ struct InviteEarnBannerNew: View {
             shareMessage = "Join me on Billix and save money on your bills! Use my code: \(referralCode) to get started. Download now!"
         }
 
-        print("🟢 Generated code: \(referralCode)")
         isLoading = false
         showInviteSheet = true
     }

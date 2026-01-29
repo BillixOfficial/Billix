@@ -77,7 +77,6 @@ struct MarketTrendsView: View {
                     ? housingViewModel.searchAddress
                     : housingViewModel.activeLocation
                 if !location.isEmpty {
-                    print("🔍 [MARKET TRENDS] Loading data for: \(location)")
                     await viewModel.loadMarketTrends(for: location)
                 }
             }
@@ -85,7 +84,6 @@ struct MarketTrendsView: View {
         .onChange(of: housingViewModel.activeLocation) { newLocation in
             // Sync when user searches a new location in Housing tab
             if !newLocation.isEmpty && newLocation != viewModel.currentLocation {
-                print("🔍 [MARKET TRENDS] Location changed to: \(newLocation)")
                 Task {
                     await viewModel.loadMarketTrends(for: newLocation)
                 }
@@ -183,7 +181,6 @@ struct MarketTrendsView: View {
         locationManager: LocationManager.preview(),
         housingViewModel: HousingSearchViewModel(),
         onSwitchToHousing: {
-            print("Navigate to Housing tab")
         }
     )
 }

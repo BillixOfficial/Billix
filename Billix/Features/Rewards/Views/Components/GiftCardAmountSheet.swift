@@ -822,7 +822,6 @@ struct CustomAffordabilityIndicator: View {
         ],
         userPoints: 25000,
         onSelectAmount: { reward in
-            print("Selected: \(reward.title)")
         }
     )
 }

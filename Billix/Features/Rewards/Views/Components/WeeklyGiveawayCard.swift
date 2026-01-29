@@ -478,12 +478,8 @@ struct PulseButtonStyle: ButtonStyle {
                 totalEntries: 1240,
                 currentTier: .silver,
                 isComingSoon: false,
-                onBuyEntries: {
-                    print("Buy entries")
-                },
-                onHowToEarn: {
-                    print("How to earn")
-                }
+                onBuyEntries: {},
+                onHowToEarn: {}
             )
             .padding(.top, 20)
         }

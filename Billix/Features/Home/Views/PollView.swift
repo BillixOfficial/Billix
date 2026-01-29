@@ -381,44 +381,33 @@ class PollViewModel: ObservableObject {
 
             // 3. Track task completion AND auto-claim
             if let userId = authService.currentUser?.id {
-                print("🔄 [POLL DEBUG] Tracking task completion for user: \(userId.uuidString)")
-
                 // Mark as completed
-                print("🔄 [POLL DEBUG] Calling incrementTaskProgress for daily_poll_vote...")
-                let progressResult = try await taskService.incrementTaskProgress(
+                _ = try await taskService.incrementTaskProgress(
                     userId: userId,
                     taskKey: "daily_poll_vote",
                     sourceId: pollId
                 )
-                print("✅ [POLL DEBUG] Progress result - currentCount: \(progressResult.currentCount), isCompleted: \(progressResult.isCompleted)")
 
                 // Auto-claim points
-                print("🔄 [POLL DEBUG] Calling claimTaskReward for daily_poll_vote...")
                 let claimResult = try await taskService.claimTaskReward(
                     userId: userId,
                     taskKey: "daily_poll_vote"
                 )
-                print("✅ [POLL DEBUG] Claim result - success: \(claimResult.success), pointsAwarded: \(claimResult.pointsAwarded)")
 
                 if claimResult.success {
-                    print("🔄 [POLL DEBUG] Awarding \(claimResult.pointsAwarded) points via RewardsService...")
                     // Award points via RewardsService
-                    try await rewardsService.addPoints(
+                    _ = try await rewardsService.addPoints(
                         userId: userId,
                         amount: claimResult.pointsAwarded,
                         type: "task_completion",
-                        description: "Daily poll vote",
-                        source: "daily_poll_vote"
+                        description: "Daily poll vote"
                     )
 
                     // Notify RewardsViewModel to refresh
-                    print("📤 [POLL DEBUG] Posting PointsUpdated notification")
                     NotificationCenter.default.post(
                         name: NSNotification.Name("PointsUpdated"),
                         object: nil
                     )
-
-                    print("✅ [POLL DEBUG] Poll completed and claimed: +\(claimResult.pointsAwarded) pts")
 
                     // Show toast notification
                     showToast = true
@@ -428,11 +417,7 @@ class PollViewModel: ObservableObject {
                         try? await Task.sleep(nanoseconds: 2_000_000_000)
                         showToast = false
                     }
-                } else {
-                    print("❌ [POLL DEBUG] Claim failed - message: \(claimResult.message)")
                 }
-            } else {
-                print("❌ [POLL DEBUG] No authenticated user - cannot track task")
             }
 
             // Haptic feedback

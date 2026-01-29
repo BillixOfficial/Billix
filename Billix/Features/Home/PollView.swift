@@ -396,12 +396,11 @@ class PollViewModel: ObservableObject {
 
                 if claimResult.success {
                     // Award points via RewardsService
-                    try await rewardsService.addPoints(
+                    _ = try await rewardsService.addPoints(
                         userId: userId,
                         amount: claimResult.pointsAwarded,
                         type: "task_completion",
-                        description: "Daily poll vote",
-                        source: "daily_poll_vote"
+                        description: "Daily poll vote"
                     )
 
                     // Notify RewardsViewModel to refresh
@@ -409,8 +408,6 @@ class PollViewModel: ObservableObject {
                         name: NSNotification.Name("PointsUpdated"),
                         object: nil
                     )
-
-                    print("✅ Poll completed and claimed: +\(claimResult.pointsAwarded) pts")
 
                     // Show toast notification
                     showToast = true

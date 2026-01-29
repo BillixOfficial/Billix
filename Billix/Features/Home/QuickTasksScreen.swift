@@ -69,15 +69,12 @@ struct QuickTasksScreen: View {
         }
         // Notification listeners for navigation
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToPoll"))) { _ in
-            print("📥 RECEIVED NavigateToPoll notification")
             showPollView = true
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToQuiz"))) { _ in
-            print("📥 RECEIVED NavigateToQuiz notification")
             showQuizView = true
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToTip"))) { _ in
-            print("📥 RECEIVED NavigateToTip notification")
             showTipView = true
         }
         // Sheet presentations
@@ -92,7 +89,6 @@ struct QuickTasksScreen: View {
         }
         // Listen for task updates (when poll/quiz/tip/social is completed)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PointsUpdated"))) { _ in
-            print("📥 [QUICK EARNINGS] PointsUpdated notification received - refreshing tasks")
             Task {
                 await viewModel.loadTasks()
             }

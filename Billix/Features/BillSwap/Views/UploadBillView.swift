@@ -788,14 +788,10 @@ extension UploadBillViewModel {
 // MARK: - Preview
 
 #Preview("Upload Bill View") {
-    UploadBillView {
-        print("Upload complete")
-    }
+    UploadBillView { }
 }
 
 #Preview("Upload Bill - Dark Mode") {
-    UploadBillView {
-        print("Upload complete")
-    }
+    UploadBillView { }
     .preferredColorScheme(.dark)
 }

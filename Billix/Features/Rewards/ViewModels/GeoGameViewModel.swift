@@ -50,7 +50,9 @@ class GeoGameViewModel: ObservableObject {
 
     // MARK: - Timer System
 
-    @Published var timeRemaining: Double = 0
+    // Note: timeRemaining is NOT @Published to avoid 4x/sec view rebuilds
+    // UI should observe displayTimeRemaining instead (only changes once per second)
+    var timeRemaining: Double = 0
     @Published var displayTimeRemaining: Int = 0  // Stable integer for display (prevents flickering)
     @Published var isTimerCritical: Bool = false  // True when <= 5 seconds (for pulse animation)
     @Published var isTimerActive: Bool = false
@@ -270,8 +272,8 @@ class GeoGameViewModel: ObservableObject {
         timerEndDate = Date().addingTimeInterval(timeLimit)
         isTimerActive = true
 
-        // Create timer that fires every 0.1 seconds for smooth animation
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        // Create timer that fires every 0.5 seconds (2x/sec is enough for responsive second-based countdown)
+        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             Task { @MainActor [weak self] in
                 self?.updateTimer()

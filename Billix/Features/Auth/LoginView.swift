@@ -5,91 +5,31 @@ struct LoginView: View {
     @EnvironmentObject var authService: AuthService
     @State private var email = ""
     @State private var password = ""
-    @State private var confirmPassword = ""
     @State private var isSecured = true
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showError = false
-    @State private var isSignUpMode = false
+    @State private var isGoogleLoading = false
+    @State private var showEnrollmentSheet = false
     @FocusState private var focusedField: Field?
 
     enum Field {
-        case email, password, confirmPassword
+        case email, password
     }
 
     var body: some View {
         ZStack {
-            // Enhanced green gradient background with depth
-            LinearGradient(
-                colors: [
-                    Color.billixLoginGreen.opacity(0.9),
-                    Color.billixLoginGreen,
-                    Color.billixLoginGreen.opacity(0.95)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            .onTapGesture {
-                hideKeyboard()
-                focusedField = nil
-            }
-
-            // Subtle overlay for depth (reduced brightness)
-            RadialGradient(
-                colors: [
-                    Color.white.opacity(0.08),
-                    Color.clear
-                ],
-                center: .top,
-                startRadius: 100,
-                endRadius: 500
-            )
-            .ignoresSafeArea()
-
-            // Wave and line texture patterns
-            GeometryReader { geometry in
-                ZStack {
-                    // Diagonal lines pattern (sandpaper effect)
-                    ForEach(0..<50, id: \.self) { i in
-                        Rectangle()
-                            .fill(Color.white.opacity(0.04))
-                            .frame(width: 1, height: geometry.size.height * 1.5)
-                            .rotationEffect(.degrees(45))
-                            .offset(x: CGFloat(i * 15) - 200)
-                    }
-
-                    // Wave patterns at top
-                    WaveShape(phase: 0)
-                        .fill(Color.white.opacity(0.06))
-                        .frame(height: 120)
-                        .offset(y: 100)
-
-                    WaveShape(phase: 0.5)
-                        .fill(Color.white.opacity(0.04))
-                        .frame(height: 100)
-                        .offset(y: 150)
-
-                    // Wave patterns at bottom
-                    WaveShape(phase: 0.3)
-                        .fill(Color.white.opacity(0.05))
-                        .frame(height: 150)
-                        .offset(y: geometry.size.height - 150)
-
-                    // Subtle horizontal lines for texture
-                    ForEach(0..<15, id: \.self) { i in
-                        Rectangle()
-                            .fill(Color.white.opacity(0.02))
-                            .frame(height: 1)
-                            .offset(y: CGFloat(i * 60))
-                    }
+            // Lighter sage green background
+            Color(hex: "#6B9B7A")
+                .ignoresSafeArea()
+                .onTapGesture {
+                    hideKeyboard()
+                    focusedField = nil
                 }
-            }
-            .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
-                    .frame(height: 80)
+                    .frame(height: 50)
 
                 // Logo and branding section
                 VStack(spacing: 12) {
@@ -97,19 +37,18 @@ struct LoginView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 160, height: 160)
-                        .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
+                        .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
 
                     Text("Billix")
-                        .font(.system(size: 42, weight: .bold))
-                        .foregroundColor(.billixLoginTeal)
-                        .shadow(color: Color.white.opacity(0.8), radius: 3, x: 0, y: 0)
-                        .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                        .font(.system(size: 44, weight: .bold))
+                        .foregroundColor(.white)
+                        .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
                 }
 
                 Spacer()
                     .frame(height: 36)
 
-                // Login form
+                // Login form - Sign In ONLY
                 VStack(spacing: 16) {
                     // Apple Sign In
                     SignInWithAppleButton(.signIn) { request in
@@ -117,33 +56,40 @@ struct LoginView: View {
                     } onCompletion: { result in
                         handleAppleSignIn(result)
                     }
-                    .signInWithAppleButtonStyle(.black)
-                    .frame(height: 50)
-                    .cornerRadius(16)
-                    .disabled(isLoading)
+                    .signInWithAppleButtonStyle(.white)
+                    .frame(height: 56)
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    .disabled(isLoading || isGoogleLoading)
+
+                    // Google Sign In
+                    GoogleSignInButton(
+                        isLoading: isGoogleLoading,
+                        action: handleGoogleSignIn
+                    )
+                    .disabled(isLoading || isGoogleLoading)
 
                     // Divider
                     HStack(spacing: 12) {
                         Rectangle()
-                            .fill(Color.gray.opacity(0.5))
+                            .fill(Color.white.opacity(0.4))
                             .frame(height: 1)
                         Text("or")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.billixDarkGray)
-                            .shadow(color: Color.white.opacity(0.5), radius: 1, x: 0, y: 0)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.8))
                         Rectangle()
-                            .fill(Color.gray.opacity(0.5))
+                            .fill(Color.white.opacity(0.4))
                             .frame(height: 1)
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 6)
 
                     // Email
                     ZStack(alignment: .leading) {
                         if email.isEmpty {
                             Text("Email")
-                                .font(.system(size: 16))
-                                .foregroundColor(.black.opacity(0.5))
-                                .padding(.leading, 16)
+                                .font(.system(size: 17))
+                                .foregroundColor(Color(hex: "#9CA3AF"))
+                                .padding(.leading, 18)
                         }
                         TextField("", text: $email)
                             .focused($focusedField, equals: .email)
@@ -151,44 +97,41 @@ struct LoginView: View {
                             .textContentType(.emailAddress)
                             .autocapitalization(.none)
                             .disableAutocorrection(true)
-                            .font(.system(size: 16))
-                            .foregroundStyle(Color.black)
-                            .tint(Color.black)
-                            .padding(16)
+                            .font(.system(size: 17))
+                            .foregroundStyle(Color(hex: "#2D3B35"))
+                            .tint(Color(hex: "#3D6B4F"))
+                            .padding(18)
                     }
                     .background(Color.white)
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                    )
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
                     .disabled(isLoading)
 
                     // Password
                     ZStack(alignment: .leading) {
                         if password.isEmpty {
                             Text("Password")
-                                .font(.system(size: 16))
-                                .foregroundColor(.black.opacity(0.5))
-                                .padding(.leading, 16)
+                                .font(.system(size: 17))
+                                .foregroundColor(Color(hex: "#9CA3AF"))
+                                .padding(.leading, 18)
                         }
                         HStack {
                             if isSecured {
                                 SecureField("", text: $password)
                                     .focused($focusedField, equals: .password)
-                                    .textContentType(isSignUpMode ? .newPassword : .password)
-                                    .font(.system(size: 16))
-                                    .foregroundStyle(Color.black)
-                                    .tint(Color.black)
+                                    .textContentType(.password)
+                                    .font(.system(size: 17))
+                                    .foregroundStyle(Color(hex: "#2D3B35"))
+                                    .tint(Color(hex: "#3D6B4F"))
                             } else {
                                 TextField("", text: $password)
                                     .focused($focusedField, equals: .password)
-                                    .textContentType(isSignUpMode ? .newPassword : .password)
+                                    .textContentType(.password)
                                     .autocapitalization(.none)
                                     .disableAutocorrection(true)
-                                    .font(.system(size: 16))
-                                    .foregroundStyle(Color.black)
-                                    .tint(Color.black)
+                                    .font(.system(size: 17))
+                                    .foregroundStyle(Color(hex: "#2D3B35"))
+                                    .tint(Color(hex: "#3D6B4F"))
                             }
 
                             Button(action: {
@@ -197,150 +140,65 @@ struct LoginView: View {
                                 }
                             }) {
                                 Image(systemName: isSecured ? "eye.slash" : "eye")
-                                    .foregroundStyle(Color.gray)
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color(hex: "#9CA3AF"))
                             }
                         }
-                        .padding(16)
+                        .padding(18)
                     }
                     .background(Color.white)
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                    )
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
                     .disabled(isLoading)
 
-                    // Confirm Password (only in sign-up mode)
-                    if isSignUpMode {
-                        ZStack(alignment: .leading) {
-                            if confirmPassword.isEmpty {
-                                Text("Confirm Password")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.black.opacity(0.5))
-                                    .padding(.leading, 16)
-                            }
-                            HStack {
-                                if isSecured {
-                                    SecureField("", text: $confirmPassword)
-                                        .focused($focusedField, equals: .confirmPassword)
-                                        .textContentType(.newPassword)
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(Color.black)
-                                        .tint(Color.black)
-                                } else {
-                                    TextField("", text: $confirmPassword)
-                                        .focused($focusedField, equals: .confirmPassword)
-                                        .textContentType(.newPassword)
-                                        .autocapitalization(.none)
-                                        .disableAutocorrection(true)
-                                        .font(.system(size: 16))
-                                        .foregroundStyle(Color.black)
-                                        .tint(Color.black)
-                                }
-                            }
-                            .padding(16)
-                        }
-                        .background(Color.white)
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                        )
-                        .disabled(isLoading)
-                    }
-
-                    // Forgot Password (only in sign-in mode)
-                    if !isSignUpMode {
-                        HStack {
-                            Spacer()
-                            Button("Forgot password?") {
-                                handleForgotPassword()
-                            }
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.billixLoginTeal)
-                            .disabled(isLoading)
-                        }
-                    }
-
-                    // Sign In / Sign Up Button
-                    Button(action: {
-                        print("🔘 Button pressed - isSignUpMode: \(isSignUpMode)")
-                        if isSignUpMode {
-                            handleSignUp()
-                        } else {
-                            handleLogin()
-                        }
-                    }) {
+                    // Sign In Button - white with dark green text
+                    Button(action: handleLogin) {
                         HStack(spacing: 8) {
                             if isLoading {
                                 ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#3D6B4F")))
                             }
-                            Text(isSignUpMode ? "Create Account" : "Sign In")
-                                .font(.system(size: 16, weight: .semibold))
+                            Text("Sign In")
+                                .font(.system(size: 18, weight: .semibold))
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(Color(hex: "#3D6B4F"))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(isLoading ? Color.billixLoginTeal.opacity(0.7) : Color.billixLoginTeal)
-                        .cornerRadius(16)
+                        .frame(height: 56)
+                        .background(Color.white)
+                        .cornerRadius(14)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
                     }
                     .buttonStyle(ScaleButtonStyle())
-                    .padding(.top, 8)
                     .disabled(isLoading)
+                    .opacity(isLoading ? 0.7 : 1)
 
-                    // Guest Sign In Button (temporary for testing)
-                    if !isSignUpMode {
-                        Button(action: handleGuestLogin) {
-                            Text("Continue as Guest")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.billixLoginTeal)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                                .background(Color.white.opacity(0.9))
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color.billixLoginTeal.opacity(0.5), lineWidth: 1)
-                                )
-                        }
-                        .buttonStyle(ScaleButtonStyle())
-                        .padding(.top, 8)
-                        .disabled(isLoading)
+                    // Forgot Password - below sign in
+                    Button("Forgot password?") {
+                        handleForgotPassword()
                     }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+                    .padding(.top, 4)
+                    .disabled(isLoading)
                 }
-                .id(isSignUpMode) // Force SwiftUI to re-render when mode changes
-                .animation(.easeInOut(duration: 0.2), value: isSignUpMode)
-                .padding(.horizontal, 32)
+                .padding(.horizontal, 28)
 
                 Spacer()
 
-                // Toggle between Sign In / Sign Up
-                HStack(spacing: 4) {
-                    Text(isSignUpMode ? "Already have an account?" : "Don't have an account?")
-                        .font(.system(size: 14))
-                        .foregroundColor(.billixDarkGray)
-                        .shadow(color: Color.white.opacity(0.5), radius: 1, x: 0, y: 0)
-
-                    Button(isSignUpMode ? "Sign in" : "Sign up") {
-                        // Toggle without withAnimation to ensure SwiftUI properly re-renders
-                        isSignUpMode.toggle()
-                        // Clear fields when switching modes
-                        password = ""
-                        confirmPassword = ""
-                    }
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.billixLoginTeal)
-                    .shadow(color: Color.white.opacity(0.6), radius: 2, x: 0, y: 0)
-                    .disabled(isLoading)
-                }
-                .padding(.bottom, 30)
+                // Bottom quick links
+                LoginQuickLinks(onEnroll: {
+                    showEnrollmentSheet = true
+                })
             }
         }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(errorMessage ?? "An error occurred")
+        }
+        .sheet(isPresented: $showEnrollmentSheet) {
+            EnrollmentMethodView()
+                .environmentObject(authService)
         }
     }
 
@@ -359,7 +217,6 @@ struct LoginView: View {
             Task {
                 do {
                     try await authService.signInWithApple(credential: credential)
-                    // Navigation handled by RootView
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
                 } catch {
@@ -371,7 +228,6 @@ struct LoginView: View {
             }
 
         case .failure(let error):
-            // Don't show error for user cancellation
             if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
                 showErrorMessage(error.localizedDescription)
             }
@@ -379,11 +235,9 @@ struct LoginView: View {
     }
 
     private func handleLogin() {
-        // Dismiss keyboard
         hideKeyboard()
         focusedField = nil
 
-        // Validate
         guard !email.isEmpty, !password.isEmpty else {
             showErrorMessage("Please enter email and password")
             return
@@ -394,67 +248,9 @@ struct LoginView: View {
         Task {
             do {
                 try await authService.signIn(email: email, password: password)
-                // Navigation handled by RootView
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
             } catch {
-                showErrorMessage(error.localizedDescription)
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.error)
-            }
-            isLoading = false
-        }
-    }
-
-    private func handleSignUp() {
-        print("🔐 handleSignUp() called")
-        // Dismiss keyboard
-        hideKeyboard()
-        focusedField = nil
-
-        // Validate email
-        guard !email.isEmpty else {
-            showErrorMessage("Please enter your email")
-            return
-        }
-
-        guard email.contains("@") && email.contains(".") else {
-            showErrorMessage("Please enter a valid email address")
-            return
-        }
-
-        // Validate password
-        guard !password.isEmpty else {
-            showErrorMessage("Please enter a password")
-            return
-        }
-
-        guard password.count >= 6 else {
-            showErrorMessage("Password must be at least 6 characters")
-            return
-        }
-
-        // Validate passwords match
-        guard password == confirmPassword else {
-            showErrorMessage("Passwords do not match")
-            return
-        }
-
-        isLoading = true
-        print("🔐 Starting signup with email: \(email)")
-
-        Task {
-            do {
-                // AuthService handles the flow:
-                // - If email verification needed: shows EmailVerificationView
-                // - If no verification needed: proceeds to onboarding
-                let needsVerification = try await authService.signUp(email: email, password: password)
-                print("🔐 Signup completed - needsVerification: \(needsVerification)")
-                print("🔐 AuthService state - isAuthenticated: \(authService.isAuthenticated), needsOnboarding: \(authService.needsOnboarding), awaitingEmailVerification: \(authService.awaitingEmailVerification)")
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
-            } catch {
-                print("🔐 Signup ERROR: \(error.localizedDescription)")
                 showErrorMessage(error.localizedDescription)
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.error)
@@ -482,14 +278,14 @@ struct LoginView: View {
         }
     }
 
-    private func handleGuestLogin() {
+    private func handleGoogleSignIn() {
         hideKeyboard()
         focusedField = nil
-        isLoading = true
+        isGoogleLoading = true
 
         Task {
             do {
-                try await authService.signInAsGuest()
+                try await authService.signInWithGoogle()
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
             } catch {
@@ -497,7 +293,7 @@ struct LoginView: View {
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.error)
             }
-            isLoading = false
+            isGoogleLoading = false
         }
     }
 
@@ -511,35 +307,555 @@ struct LoginView: View {
     }
 }
 
-// MARK: - Wave Shape for Background Pattern
+// MARK: - Google Sign In Button with Google Colors
 
-struct WaveShape: Shape {
-    let phase: Double
+struct GoogleSignInButton: View {
+    let isLoading: Bool
+    let action: () -> Void
 
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let width = rect.width
-        let height = rect.height
-        let midHeight = height / 2
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                if isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#5A6B64")))
+                } else {
+                    GoogleColoredG()
+                        .frame(width: 18, height: 18)
+                }
+                Text("Sign in with Google")
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundColor(Color(hex: "#1F1F1F"))
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(Color.white)
+            .cornerRadius(14)
+        }
+        .buttonStyle(ScaleButtonStyle())
+        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+    }
+}
 
-        path.move(to: CGPoint(x: 0, y: midHeight))
+// MARK: - Google Colored G Logo
 
-        // Create smooth wave using quadratic curves
-        for i in stride(from: 0, to: width, by: 40) {
-            let x = i
-            let relativeX = x / width
-            let sine = sin((relativeX * .pi * 4) + (phase * .pi * 2))
-            let y = midHeight + (sine * 20)
+struct GoogleColoredG: View {
+    var body: some View {
+        Canvas { context, size in
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            let radius = min(size.width, size.height) / 2 - 2
+            let lineWidth: CGFloat = 4
 
-            path.addLine(to: CGPoint(x: x, y: y))
+            // Colors
+            let blue = Color(hex: "#4285F4")
+            let green = Color(hex: "#34A853")
+            let yellow = Color(hex: "#FBBC05")
+            let red = Color(hex: "#EA4335")
+
+            // Draw the G shape using arcs
+            // Red arc (top-left, from ~135° to ~225°)
+            var redPath = Path()
+            redPath.addArc(center: center, radius: radius, startAngle: .degrees(135), endAngle: .degrees(225), clockwise: false)
+            context.stroke(redPath, with: .color(red), lineWidth: lineWidth)
+
+            // Yellow arc (bottom-left, from ~225° to ~270°)
+            var yellowPath = Path()
+            yellowPath.addArc(center: center, radius: radius, startAngle: .degrees(225), endAngle: .degrees(280), clockwise: false)
+            context.stroke(yellowPath, with: .color(yellow), lineWidth: lineWidth)
+
+            // Green arc (bottom, from ~270° to ~360°)
+            var greenPath = Path()
+            greenPath.addArc(center: center, radius: radius, startAngle: .degrees(280), endAngle: .degrees(360), clockwise: false)
+            context.stroke(greenPath, with: .color(green), lineWidth: lineWidth)
+
+            // Blue arc (right side, from 0° to ~135°) - this creates the G opening
+            var bluePath = Path()
+            bluePath.addArc(center: center, radius: radius, startAngle: .degrees(0), endAngle: .degrees(135), clockwise: false)
+            context.stroke(bluePath, with: .color(blue), lineWidth: lineWidth)
+
+            // Blue horizontal bar (the G's crossbar)
+            let barRect = CGRect(
+                x: center.x - 1,
+                y: center.y - lineWidth / 2,
+                width: radius + 2,
+                height: lineWidth
+            )
+            context.fill(Path(barRect), with: .color(blue))
+        }
+    }
+}
+
+// MARK: - Bottom Quick Links
+
+struct LoginQuickLinks: View {
+    let onEnroll: () -> Void
+
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 0) {
+                QuickLinkButton(icon: "person.circle", label: "ENROLL", action: onEnroll)
+                QuickLinkButton(icon: "questionmark.circle", label: "HELP", action: openHelp)
+                QuickLinkButton(icon: "lock.shield", label: "SECURITY", action: openSecurity)
+                QuickLinkButton(icon: "globe", label: "BILLIX.COM", action: openWebsite)
+            }
+
+            Text("App Version 1.0.0")
+                .font(.system(size: 13))
+                .foregroundColor(.white.opacity(0.8))
+        }
+        .padding(.vertical, 24)
+        .background(Color(hex: "#5A8A69"))
+    }
+
+    private func openHelp() {
+        if let url = URL(string: "https://billixapp.com/help") {
+            UIApplication.shared.open(url)
+        }
+    }
+
+    private func openSecurity() {
+        if let url = URL(string: "https://billixapp.com/security") {
+            UIApplication.shared.open(url)
+        }
+    }
+
+    private func openWebsite() {
+        if let url = URL(string: "https://billixapp.com") {
+            UIApplication.shared.open(url)
+        }
+    }
+}
+
+struct QuickLinkButton: View {
+    let icon: String
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 32))
+                    .foregroundColor(.white)
+                Text(label)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+// MARK: - Enrollment Method View (Sign Up Options)
+
+struct EnrollmentMethodView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var authService: AuthService
+    @State private var showEmailSignUp = false
+    @State private var isGoogleLoading = false
+    @State private var isAppleLoading = false
+    @State private var errorMessage: String?
+    @State private var showError = false
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(hex: "#6B9B7A")
+                    .ignoresSafeArea()
+
+                VStack(spacing: 32) {
+                    Spacer()
+                        .frame(height: 40)
+
+                    // Header
+                    VStack(spacing: 12) {
+                        Image(systemName: "person.badge.plus")
+                            .font(.system(size: 60))
+                            .foregroundColor(.white)
+
+                        Text("Create Your Account")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundColor(.white)
+
+                        Text("Choose how you'd like to sign up")
+                            .font(.system(size: 18))
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+
+                    Spacer()
+                        .frame(height: 20)
+
+                    // Sign up options
+                    VStack(spacing: 16) {
+                        // Sign up with Apple
+                        SignInWithAppleButton(.signUp) { request in
+                            request.requestedScopes = [.fullName, .email]
+                        } onCompletion: { result in
+                            handleAppleSignUp(result)
+                        }
+                        .signInWithAppleButtonStyle(.white)
+                        .frame(height: 56)
+                        .cornerRadius(14)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .disabled(isAppleLoading || isGoogleLoading)
+
+                        // Sign up with Google
+                        Button(action: handleGoogleSignUp) {
+                            HStack(spacing: 10) {
+                                if isGoogleLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#5A6B64")))
+                                } else {
+                                    GoogleColoredG()
+                                        .frame(width: 18, height: 18)
+                                }
+                                Text("Sign up with Google")
+                                    .font(.system(size: 19, weight: .semibold))
+                                    .foregroundColor(Color(hex: "#1F1F1F"))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.white)
+                            .cornerRadius(14)
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .disabled(isAppleLoading || isGoogleLoading)
+
+                        // Sign up with Email
+                        Button(action: { showEmailSignUp = true }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: "#3D6B4F"))
+                                Text("Sign up with Email")
+                                    .font(.system(size: 19, weight: .semibold))
+                                    .foregroundColor(Color(hex: "#3D6B4F"))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.white)
+                            .cornerRadius(14)
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        .disabled(isAppleLoading || isGoogleLoading)
+                    }
+                    .padding(.horizontal, 28)
+
+                    Spacer()
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.white)
+                }
+            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "An error occurred")
+        }
+        .sheet(isPresented: $showEmailSignUp) {
+            EmailSignUpView()
+                .environmentObject(authService)
+        }
+    }
+
+    private func handleAppleSignUp(_ result: Result<ASAuthorization, Error>) {
+        switch result {
+        case .success(let authorization):
+            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+                showErrorMessage("Invalid Apple credential")
+                return
+            }
+
+            isAppleLoading = true
+
+            Task {
+                do {
+                    try await authService.signInWithApple(credential: credential)
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.success)
+                    dismiss()
+                } catch {
+                    showErrorMessage(error.localizedDescription)
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.error)
+                }
+                isAppleLoading = false
+            }
+
+        case .failure(let error):
+            if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
+                showErrorMessage(error.localizedDescription)
+            }
+        }
+    }
+
+    private func handleGoogleSignUp() {
+        isGoogleLoading = true
+
+        Task {
+            do {
+                try await authService.signInWithGoogle()
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+                dismiss()
+            } catch {
+                showErrorMessage(error.localizedDescription)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+            }
+            isGoogleLoading = false
+        }
+    }
+
+    private func showErrorMessage(_ message: String) {
+        errorMessage = message
+        showError = true
+    }
+}
+
+// MARK: - Email Sign Up View
+
+struct EmailSignUpView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var authService: AuthService
+    @State private var email = ""
+    @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var isSecured = true
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var showError = false
+    @FocusState private var focusedField: EmailSignUpField?
+
+    enum EmailSignUpField {
+        case email, password, confirmPassword
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(hex: "#6B9B7A")
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        focusedField = nil
+                    }
+
+                VStack(spacing: 24) {
+                    Spacer()
+                        .frame(height: 40)
+
+                    // Header
+                    VStack(spacing: 12) {
+                        Image(systemName: "envelope.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.white)
+
+                        Text("Sign Up with Email")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+
+                    Spacer()
+                        .frame(height: 20)
+
+                    // Form
+                    VStack(spacing: 16) {
+                        // Email
+                        ZStack(alignment: .leading) {
+                            if email.isEmpty {
+                                Text("Email")
+                                    .font(.system(size: 17))
+                                    .foregroundColor(Color(hex: "#9CA3AF"))
+                                    .padding(.leading, 18)
+                            }
+                            TextField("", text: $email)
+                                .focused($focusedField, equals: .email)
+                                .keyboardType(.emailAddress)
+                                .textContentType(.emailAddress)
+                                .autocapitalization(.none)
+                                .disableAutocorrection(true)
+                                .font(.system(size: 17))
+                                .foregroundStyle(Color(hex: "#2D3B35"))
+                                .tint(Color(hex: "#3D6B4F"))
+                                .padding(18)
+                        }
+                        .background(Color.white)
+                        .cornerRadius(14)
+                        .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
+
+                        // Password
+                        ZStack(alignment: .leading) {
+                            if password.isEmpty {
+                                Text("Password")
+                                    .font(.system(size: 17))
+                                    .foregroundColor(Color(hex: "#9CA3AF"))
+                                    .padding(.leading, 18)
+                            }
+                            HStack {
+                                if isSecured {
+                                    SecureField("", text: $password)
+                                        .focused($focusedField, equals: .password)
+                                        .textContentType(.newPassword)
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(Color(hex: "#2D3B35"))
+                                        .tint(Color(hex: "#3D6B4F"))
+                                } else {
+                                    TextField("", text: $password)
+                                        .focused($focusedField, equals: .password)
+                                        .textContentType(.newPassword)
+                                        .autocapitalization(.none)
+                                        .disableAutocorrection(true)
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(Color(hex: "#2D3B35"))
+                                        .tint(Color(hex: "#3D6B4F"))
+                                }
+
+                                Button(action: { isSecured.toggle() }) {
+                                    Image(systemName: isSecured ? "eye.slash" : "eye")
+                                        .font(.system(size: 18))
+                                        .foregroundStyle(Color(hex: "#9CA3AF"))
+                                }
+                            }
+                            .padding(18)
+                        }
+                        .background(Color.white)
+                        .cornerRadius(14)
+                        .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
+
+                        // Confirm Password
+                        ZStack(alignment: .leading) {
+                            if confirmPassword.isEmpty {
+                                Text("Confirm Password")
+                                    .font(.system(size: 17))
+                                    .foregroundColor(Color(hex: "#9CA3AF"))
+                                    .padding(.leading, 18)
+                            }
+                            HStack {
+                                if isSecured {
+                                    SecureField("", text: $confirmPassword)
+                                        .focused($focusedField, equals: .confirmPassword)
+                                        .textContentType(.newPassword)
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(Color(hex: "#2D3B35"))
+                                        .tint(Color(hex: "#3D6B4F"))
+                                } else {
+                                    TextField("", text: $confirmPassword)
+                                        .focused($focusedField, equals: .confirmPassword)
+                                        .textContentType(.newPassword)
+                                        .autocapitalization(.none)
+                                        .disableAutocorrection(true)
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(Color(hex: "#2D3B35"))
+                                        .tint(Color(hex: "#3D6B4F"))
+                                }
+                            }
+                            .padding(18)
+                        }
+                        .background(Color.white)
+                        .cornerRadius(14)
+                        .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
+
+                        // Create Account Button
+                        Button(action: handleSignUp) {
+                            HStack(spacing: 8) {
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#3D6B4F")))
+                                }
+                                Text("Create Account")
+                                    .font(.system(size: 18, weight: .semibold))
+                            }
+                            .foregroundColor(Color(hex: "#3D6B4F"))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.white)
+                            .cornerRadius(14)
+                            .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .padding(.top, 8)
+                        .disabled(isLoading)
+                        .opacity(isLoading ? 0.7 : 1)
+                    }
+                    .padding(.horizontal, 28)
+
+                    Spacer()
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Back") {
+                        dismiss()
+                    }
+                    .foregroundColor(.white)
+                }
+            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "An error occurred")
+        }
+    }
+
+    private func handleSignUp() {
+        focusedField = nil
+
+        guard !email.isEmpty else {
+            showErrorMessage("Please enter your email")
+            return
         }
 
-        // Complete the shape
-        path.addLine(to: CGPoint(x: width, y: height))
-        path.addLine(to: CGPoint(x: 0, y: height))
-        path.closeSubpath()
+        guard email.contains("@") && email.contains(".") else {
+            showErrorMessage("Please enter a valid email address")
+            return
+        }
 
-        return path
+        guard !password.isEmpty else {
+            showErrorMessage("Please enter a password")
+            return
+        }
+
+        guard password.count >= 6 else {
+            showErrorMessage("Password must be at least 6 characters")
+            return
+        }
+
+        guard password == confirmPassword else {
+            showErrorMessage("Passwords do not match")
+            return
+        }
+
+        isLoading = true
+
+        Task {
+            do {
+                _ = try await authService.signUp(email: email, password: password)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+                dismiss()
+            } catch {
+                showErrorMessage(error.localizedDescription)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+            }
+            isLoading = false
+        }
+    }
+
+    private func showErrorMessage(_ message: String) {
+        errorMessage = message
+        showError = true
     }
 }
 

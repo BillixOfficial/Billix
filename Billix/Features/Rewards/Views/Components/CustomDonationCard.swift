@@ -110,7 +110,6 @@ struct CustomDonationCard: View {
 
         CustomDonationCard(
             onStartRequest: {
-                print("Start donation request")
             }
         )
         .padding(20)

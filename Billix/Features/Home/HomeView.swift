@@ -151,8 +151,8 @@ struct HomeView: View {
                 // Primary Actions
                 QuickActionsZone()
 
-                // Your Bills (with empty state if no bills)
-                BillsListZone()
+                // Name Your Price - Tell us what you want to pay
+                NameYourPriceZone(userState: userState)
 
                 // Market Context - National Averages
                 BillTickerZone(zipCode: userZip, state: userState)
@@ -673,7 +673,7 @@ private struct UpcomingEstimatesZone: View {
                 billCategories: ["Electric", "Gas", "Internet", "Water"]
             )
         } catch {
-            print("❌ Failed to load upcoming estimates: \(error)")
+            print("❌ Error: Failed to load upcoming estimates: \(error)")
             // Fallback estimates are returned by the service
         }
 
@@ -1184,12 +1184,12 @@ private struct WeatherTipZone: View {
                             billTypes: ["Electric", "Gas"]
                         )
                     } catch {
-                        print("❌ Failed to generate AI tip: \(error)")
+                        print("❌ Error: Failed to generate AI tip: \(error)")
                     }
                     isLoadingTip = false
                 }
             } catch {
-                print("❌ Failed to fetch weather: \(error)")
+                print("❌ Error: Failed to fetch weather: \(error)")
             }
         }
     }
@@ -1364,7 +1364,7 @@ private struct BillTickerZone: View {
                 averages = try await openAIService.getNationalAverages(zipCode: zipCode)
                 isLoading = false
             } catch {
-                print("❌ Failed to load national averages: \(error)")
+                print("❌ Error: Failed to load national averages: \(error)")
                 isLoading = false
             }
         }
@@ -1895,7 +1895,7 @@ private struct DailyBillBrief: View {
                 upcomingBillDays: upcomingBillDays
             )
         } catch {
-            print("❌ Failed to generate AI brief: \(error)")
+            print("❌ Error: Failed to generate AI brief: \(error)")
         }
     }
 }
@@ -2237,7 +2237,7 @@ private struct BillsListZone: View {
             // Use a default ZIP for now - in real app, get from user profile
             zipAverages = try await openAIService.getNationalAverages(zipCode: "07060")
         } catch {
-            print("❌ Failed to load ZIP averages: \(error)")
+            print("❌ Error: Failed to load ZIP averages: \(error)")
         }
 
         isLoading = false

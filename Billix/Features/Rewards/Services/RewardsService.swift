@@ -3,7 +3,7 @@
 //  Billix
 //
 //  Handles all point-related operations with Supabase backend
-//  Industry best practices: Event sourcing, real-time updates, atomic transactions
+//  Simplified to use user_profiles.points column directly
 //
 
 import Foundation
@@ -11,6 +11,8 @@ import Supabase
 
 /// Service for managing rewards points with Supabase backend
 class RewardsService {
+    static let shared = RewardsService()
+
     private let client: SupabaseClient
 
     init() {
@@ -19,160 +21,67 @@ class RewardsService {
 
     // MARK: - User Points
 
-    /// Fetch user's current point balance
-    func getUserPoints(userId: UUID) async throws -> UserPointsDTO {
-        let response: UserPointsDTO = try await client
-            .from("user_points")
-            .select()
-            .eq("user_id", value: userId.uuidString)
+    /// Fetch user's current point balance from user_profiles
+    func getUserPoints(userId: UUID) async throws -> Int {
+        struct ProfilePoints: Codable {
+            let points: Int
+        }
+
+        let response: ProfilePoints = try await client
+            .from("user_profiles")
+            .select("points")
+            .eq("id", value: userId.uuidString)
             .single()
             .execute()
             .value
 
-        return response
+        return response.points
     }
 
-    /// Add points using database function (atomic operation)
+    /// Add points by updating user_profiles.points directly
     func addPoints(
         userId: UUID,
         amount: Int,
-        type: String,
-        description: String,
-        source: String = "manual",
-        metadata: Data? = nil
-    ) async throws -> PointTransactionDTO {
-        struct AddPointsParams: Encodable {
-            let p_user_id: String
-            let p_amount: Int
-            let p_type: String
-            let p_description: String
-            let p_source: String
-            let p_metadata: Data?
-        }
+        type: String = "manual",
+        description: String = ""
+    ) async throws -> Int {
+        // First get current points
+        let currentPoints = try await getUserPoints(userId: userId)
+        let newPoints = currentPoints + amount
 
-        let params = AddPointsParams(
-            p_user_id: userId.uuidString,
-            p_amount: amount,
-            p_type: type,
-            p_description: description,
-            p_source: source,
-            p_metadata: metadata
-        )
-
-        let response: PointTransactionDTO = try await client
-            .rpc("add_points", params: params)
-            .single()
+        // Update the points
+        try await client
+            .from("user_profiles")
+            .update(["points": newPoints])
+            .eq("id", value: userId.uuidString)
             .execute()
-            .value
 
-        return response
+        return newPoints
     }
 
-    // MARK: - Transactions
+    /// Deduct points (for redemptions)
+    func deductPoints(userId: UUID, amount: Int) async throws -> Int {
+        let currentPoints = try await getUserPoints(userId: userId)
+        let newPoints = max(0, currentPoints - amount) // Don't go below 0
 
-    /// Fetch user's transaction history
+        try await client
+            .from("user_profiles")
+            .update(["points": newPoints])
+            .eq("id", value: userId.uuidString)
+            .execute()
+
+        return newPoints
+    }
+
+    // MARK: - Transactions (Simplified - no history)
+
+    /// Transaction history is no longer stored
+    /// Returns empty array for backwards compatibility
     func getTransactions(
         userId: UUID,
         limit: Int = 50,
         offset: Int = 0
-    ) async throws -> [PointTransactionDTO] {
-        let response: [PointTransactionDTO] = try await client
-            .from("point_transactions")
-            .select()
-            .eq("user_id", value: userId.uuidString)
-            .eq("reversed", value: false)
-            .order("created_at", ascending: false)
-            .limit(limit)
-            .range(from: offset, to: offset + limit - 1)
-            .execute()
-            .value
-
-        return response
-    }
-
-    // MARK: - Real-time Subscriptions
-
-    /// Subscribe to point balance changes (real-time updates)
-    func subscribeToPointUpdates(userId: UUID, onChange: @escaping (UserPointsDTO) -> Void) async throws {
-        // TODO: Implement real-time subscription when needed
-        // Supabase Realtime is available for live updates
-    }
-}
-
-// MARK: - Data Transfer Objects (DTOs)
-
-/// Matches user_points table structure
-struct UserPointsDTO: Codable {
-    let id: UUID
-    let userId: UUID
-    var balance: Int
-    var lifetimeEarned: Int
-    let createdAt: Date
-    let updatedAt: Date
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case userId = "user_id"
-        case balance
-        case lifetimeEarned = "lifetime_earned"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-    }
-
-    /// Convert to app model
-    func toRewardsPoints(transactions: [PointTransaction] = []) -> RewardsPoints {
-        return RewardsPoints(
-            balance: balance,
-            lifetimeEarned: lifetimeEarned,
-            transactions: transactions
-        )
-    }
-}
-
-/// Matches point_transactions table structure
-struct PointTransactionDTO: Codable {
-    let id: UUID
-    let userId: UUID
-    let type: String
-    let amount: Int
-    let description: String
-    let metadata: Data?
-    let createdAt: Date
-    let source: String
-    let reversed: Bool
-    let reversalOf: UUID?
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case userId = "user_id"
-        case type
-        case amount
-        case description
-        case metadata
-        case createdAt = "created_at"
-        case source
-        case reversed
-        case reversalOf = "reversal_of"
-    }
-
-    /// Convert to app model
-    func toPointTransaction() -> PointTransaction {
-        let transactionType: PointTransactionType
-        switch type {
-        case "game_win": transactionType = .gameWin
-        case "daily_bonus": transactionType = .dailyBonus
-        case "redemption": transactionType = .redemption
-        case "referral": transactionType = .referral
-        case "achievement": transactionType = .achievement
-        default: transactionType = .gameWin
-        }
-
-        return PointTransaction(
-            id: id,
-            type: transactionType,
-            amount: amount,
-            description: description,
-            createdAt: createdAt
-        )
+    ) async throws -> [PointTransaction] {
+        return []
     }
 }

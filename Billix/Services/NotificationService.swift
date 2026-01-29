@@ -247,7 +247,6 @@ class NotificationService: NSObject, ObservableObject {
 
         // Subscribe to channel
         await swapChannel?.subscribe()
-        print("Subscribed to swap updates for user \(userId)")
     }
 
     /// Unsubscribe from swap updates
@@ -373,8 +372,6 @@ class NotificationService: NSObject, ObservableObject {
         let tokenString = tokenData.map { String(format: "%02.2hhx", $0) }.joined()
         deviceToken = tokenString
 
-        print("APNs Device Token: \(tokenString)")
-
         // Store token in Supabase
         await storeDeviceToken(tokenString)
     }
@@ -382,7 +379,6 @@ class NotificationService: NSObject, ObservableObject {
     /// Store device token in Supabase for push notifications
     private func storeDeviceToken(_ token: String) async {
         guard let userId = AuthService.shared.currentUser?.id else {
-            print("Cannot store device token: No authenticated user")
             return
         }
 
@@ -398,7 +394,6 @@ class NotificationService: NSObject, ObservableObject {
                 .upsert(record, onConflict: "user_id")
                 .execute()
 
-            print("Device token stored successfully")
         } catch {
             print("Failed to store device token: \(error)")
         }
@@ -416,7 +411,6 @@ class NotificationService: NSObject, ObservableObject {
                 .execute()
 
             deviceToken = nil
-            print("Device token removed")
         } catch {
             print("Failed to remove device token: \(error)")
         }

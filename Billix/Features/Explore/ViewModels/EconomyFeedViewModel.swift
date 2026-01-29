@@ -107,7 +107,6 @@ class EconomyFeedViewModel: ObservableObject {
             featuredNews = featured
             feedArticles = feed
         } catch {
-            print("Error loading economy articles: \(error)")
             errorMessage = "Unable to load articles. Please try again later."
         }
 

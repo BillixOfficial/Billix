@@ -51,7 +51,6 @@ class MockDataService {
     func updateProfile(_ profile: UserProfile) async throws {
         try await simulateNetworkDelay()
         self.mockProfile = profile
-        print("✅ Mock: Profile updated")
     }
 
     /// Upload avatar image
@@ -60,7 +59,6 @@ class MockDataService {
         // In a real app, this would upload to cloud storage
         let avatarURL = "https://example.com/avatars/\(UUID().uuidString).jpg"
         mockProfile.avatarURL = avatarURL
-        print("✅ Mock: Avatar uploaded to \(avatarURL)")
         return avatarURL
     }
 
@@ -86,8 +84,6 @@ class MockDataService {
 
         mockCredits.transactions.insert(transaction, at: 0)
         mockCredits.balance += amount
-
-        print("✅ Mock: Credit transaction added: \(description) (\(amount))")
     }
 
     /// Update earn task status
@@ -107,8 +103,6 @@ class MockDataService {
                     description: "Completed: \(mockCredits.earnTasks[index].title)"
                 )
             }
-
-            print("✅ Mock: Earn task updated")
         }
     }
 
@@ -128,7 +122,6 @@ class MockDataService {
         mockBillHealth.overallScore = Int.random(in: 70...95)
         mockBillHealth.estimatedSavings = Double.random(in: 30...100)
 
-        print("✅ Mock: Bill health refreshed")
         return mockBillHealth
     }
 
@@ -146,7 +139,6 @@ class MockDataService {
 
         if let index = mockFocusAreas.firstIndex(where: { $0.id == id }) {
             mockFocusAreas[index].isEnabled = isEnabled
-            print("✅ Mock: Focus area updated")
         }
     }
 
@@ -160,7 +152,6 @@ class MockDataService {
     func updateSavingsGoal(targetAmount: Double) async throws {
         try await simulateNetworkDelay()
         mockSavingsGoal.targetAmount = targetAmount
-        print("✅ Mock: Savings goal updated to $\(targetAmount)")
     }
 
     // MARK: - Data Connections Methods
@@ -183,14 +174,12 @@ class MockDataService {
         )
 
         mockDataConnection.bankConnections.append(newConnection)
-        print("✅ Mock: Bank connection added: \(institutionName)")
     }
 
     /// Remove bank connection
     func removeBankConnection(id: UUID) async throws {
         try await simulateNetworkDelay()
         mockDataConnection.bankConnections.removeAll { $0.id == id }
-        print("✅ Mock: Bank connection removed")
     }
 
     // MARK: - Marketplace Settings Methods
@@ -205,7 +194,6 @@ class MockDataService {
     func updateMarketplaceSettings(_ settings: MarketplaceSettings) async throws {
         try await simulateNetworkDelay()
         self.mockMarketplaceSettings = settings
-        print("✅ Mock: Marketplace settings updated")
     }
 
     // MARK: - Notification Preferences Methods
@@ -220,7 +208,6 @@ class MockDataService {
     func updateNotificationPreferences(_ prefs: NotificationPreferences) async throws {
         try await simulateNetworkDelay()
         self.mockNotificationPrefs = prefs
-        print("✅ Mock: Notification preferences updated")
     }
 
     // MARK: - Security & Account Methods
@@ -237,7 +224,6 @@ class MockDataService {
         mockSecurityAccount.email = email
         mockProfile.email = email
         mockProfile.isEmailVerified = false // Requires re-verification
-        print("✅ Mock: Email updated to \(email)")
     }
 
     /// Update phone number
@@ -246,14 +232,12 @@ class MockDataService {
         mockSecurityAccount.phoneNumber = phone
         mockProfile.phoneNumber = phone
         mockProfile.isPhoneVerified = false // Requires re-verification
-        print("✅ Mock: Phone number updated to \(phone)")
     }
 
     /// Enable/disable two-factor authentication
     func updateTwoFactorAuth(enabled: Bool) async throws {
         try await simulateNetworkDelay(duration: 1.5)
         mockSecurityAccount.isTwoFactorEnabled = enabled
-        print("✅ Mock: Two-factor auth \(enabled ? "enabled" : "disabled")")
     }
 
     /// Logout from other devices
@@ -263,7 +247,6 @@ class MockDataService {
         if let currentDevice = mockSecurityAccount.loggedInDevices.first {
             mockSecurityAccount.loggedInDevices = [currentDevice]
         }
-        print("✅ Mock: Logged out from other devices")
     }
 
     // MARK: - Email Verification Methods
@@ -278,7 +261,6 @@ class MockDataService {
         }
 
         mockProfile.isEmailVerified = true
-        print("✅ Mock: Email verified")
     }
 
     /// Verify phone with code
@@ -291,7 +273,6 @@ class MockDataService {
         }
 
         mockProfile.isPhoneVerified = true
-        print("✅ Mock: Phone verified")
     }
 
     // MARK: - Helper Methods
@@ -312,7 +293,6 @@ class MockDataService {
         self.mockMarketplaceSettings = .preview
         self.mockNotificationPrefs = .default
         self.mockSecurityAccount = .preview
-        print("✅ Mock: All data reset to defaults")
     }
 }
 

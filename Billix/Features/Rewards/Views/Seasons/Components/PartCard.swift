@@ -162,7 +162,7 @@ struct PartCard: View {
                     hasPassed: false
                 ),
                 isUnlocked: true,
-                onTap: { print("Tapped Part 1") }
+                onTap: {  }
             )
             .padding(.horizontal, 20)
 
@@ -185,7 +185,7 @@ struct PartCard: View {
                     hasPassed: false
                 ),
                 isUnlocked: true,
-                onTap: { print("Tapped Part 1") }
+                onTap: {  }
             )
             .padding(.horizontal, 20)
 
@@ -208,7 +208,7 @@ struct PartCard: View {
                     hasPassed: true
                 ),
                 isUnlocked: true,
-                onTap: { print("Tapped Part 1") }
+                onTap: {  }
             )
             .padding(.horizontal, 20)
 
@@ -231,7 +231,7 @@ struct PartCard: View {
                     hasPassed: false
                 ),
                 isUnlocked: false,
-                onTap: { print("Locked!") }
+                onTap: {  }
             )
             .padding(.horizontal, 20)
         }
@@ -263,7 +263,7 @@ struct PartCard: View {
                     hasPassed: nil
                 ),
                 isUnlocked: true,
-                onTap: { print("Tapped Part 1") }
+                onTap: {  }
             )
             .padding(.horizontal, 20)
 
@@ -286,7 +286,7 @@ struct PartCard: View {
                     hasPassed: nil
                 ),
                 isUnlocked: true,
-                onTap: { print("Tapped Part 2") }
+                onTap: {  }
             )
             .padding(.horizontal, 20)
 
@@ -309,7 +309,7 @@ struct PartCard: View {
                     hasPassed: nil
                 ),
                 isUnlocked: false,
-                onTap: { print("Locked!") }
+                onTap: {  }
             )
             .padding(.horizontal, 20)
         }

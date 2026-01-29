@@ -320,9 +320,7 @@ private struct UserSearchRowEnhanced: View {
 #if DEBUG
 struct NewChatView_Previews: PreviewProvider {
     static var previews: some View {
-        NewChatView { user in
-            print("Selected: \(user.formattedHandle)")
-        }
+        NewChatView { _ in }
     }
 }
 #endif

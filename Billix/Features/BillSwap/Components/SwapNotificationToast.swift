@@ -104,7 +104,7 @@ extension View {
                 swapId: UUID(),
                 message: "A $150 swap is available. Tap to view details."
             ),
-            onTap: { print("Tapped!") },
+            onTap: { },
             isShowing: .constant(true)
         )
     }
@@ -138,7 +138,7 @@ extension View {
                 swapId: UUID(),
                 message: "Your partner paid your $85 bill!"
             ),
-            onTap: { print("Tapped!") },
+            onTap: { },
             isShowing: .constant(true)
         )
     }

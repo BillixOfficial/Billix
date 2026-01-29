@@ -217,7 +217,7 @@ struct DailyBillBrief: View {
                 upcomingBillDays: upcomingBillDays
             )
         } catch {
-            print("Failed to generate AI brief: \(error)")
+            print("❌ Error: Failed to generate AI brief: \(error)")
         }
     }
 }

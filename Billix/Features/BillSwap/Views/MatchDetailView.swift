@@ -47,6 +47,8 @@ private struct ChatUnlockedUpdate: Encodable {
 struct MatchDetailView: View {
     @StateObject private var viewModel: SwapDetailViewModel
     @StateObject private var tokenService = TokenService.shared
+    @StateObject private var dealService = DealService.shared
+    @StateObject private var extensionService = ExtensionService.shared
     @Environment(\.dismiss) private var dismiss
 
     @State private var showProofPicker = false
@@ -55,6 +57,15 @@ struct MatchDetailView: View {
     @State private var showDisclaimer = false
     @State private var showChat = false
     @State private var showTokenPurchase = false
+
+    // New Deal Builder states
+    @State private var showDealBuilder = false
+    @State private var showExtensionRequest = false
+    @State private var showExtensionResponse = false
+    @State private var showTimeline = false
+    @State private var currentDeal: SwapDeal?
+    @State private var pendingExtension: ExtensionRequest?
+    @State private var recentEvents: [SwapEvent] = []
 
     init(swapId: UUID) {
         _viewModel = StateObject(wrappedValue: SwapDetailViewModel(swapId: swapId))
@@ -103,6 +114,48 @@ struct MatchDetailView: View {
                     showChat = true
                 }
             }
+            .sheet(isPresented: $showDealBuilder) {
+                if let swap = viewModel.swap {
+                    DealBuilderSheet(
+                        swap: swap,
+                        existingDeal: currentDeal
+                    ) { newDeal in
+                        currentDeal = newDeal
+                        Task { await loadDealAndEvents() }
+                    }
+                }
+            }
+            .sheet(isPresented: $showExtensionRequest) {
+                if let swap = viewModel.swap, let deal = currentDeal {
+                    let isUserA = swap.isUserA(userId: viewModel.currentUserId ?? UUID())
+                    let deadline = isUserA ? deal.deadlineA : deal.deadlineB
+                    ExtensionRequestSheet(
+                        swapId: swap.id,
+                        currentDeadline: deadline
+                    ) {
+                        Task { await loadDealAndEvents() }
+                    }
+                }
+            }
+            .sheet(isPresented: $showExtensionResponse) {
+                if let extension_ = pendingExtension {
+                    ExtensionResponseSheet(request: extension_) { approved in
+                        Task { await loadDealAndEvents() }
+                    }
+                }
+            }
+            .sheet(isPresented: $showTimeline) {
+                if let swap = viewModel.swap {
+                    NavigationStack {
+                        SwapTimelineView(swapId: swap.id)
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button("Done") { showTimeline = false }
+                                }
+                            }
+                    }
+                }
+            }
             .navigationDestination(isPresented: $showChat) {
                 chatDestination
             }
@@ -120,8 +173,23 @@ struct MatchDetailView: View {
                         loadingView
                     } else if let swap = viewModel.swap {
                         statusHeader(swap: swap)
+
+                        // Deal Card Section (new)
+                        dealSection(swap: swap)
+
+                        // Extension Alert (if pending)
+                        if let ext = pendingExtension {
+                            extensionAlertCard(extension_: ext)
+                        }
+
                         progressSection(swap: swap)
                         billsComparisonSection
+
+                        // Recent Activity (new)
+                        if !recentEvents.isEmpty {
+                            recentActivitySection
+                        }
+
                         actionSection(swap: swap)
                     }
                 }
@@ -132,20 +200,225 @@ struct MatchDetailView: View {
         }
     }
 
+    // MARK: - Deal Section
+
+    @ViewBuilder
+    private func dealSection(swap: BillSwapTransaction) -> some View {
+        if let deal = currentDeal {
+            VStack(spacing: 12) {
+                DealCardView(
+                    deal: deal,
+                    swap: swap,
+                    onAccept: {
+                        Task {
+                            try? await DealService.shared.acceptDeal(dealId: deal.id)
+                            await loadDealAndEvents()
+                        }
+                    },
+                    onReject: {
+                        Task {
+                            try? await DealService.shared.rejectDeal(dealId: deal.id)
+                            await loadDealAndEvents()
+                        }
+                    },
+                    onCounter: {
+                        showDealBuilder = true
+                    }
+                )
+
+                // Extension button (only for active deals)
+                if deal.status == .accepted {
+                    extensionButton
+                }
+            }
+        } else if swap.status == .pending || swap.status == .active {
+            // No deal yet - show propose button
+            proposeTermsButton
+        }
+    }
+
+    private var proposeTermsButton: some View {
+        Button {
+            showDealBuilder = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "doc.text.fill")
+                    .font(.system(size: 24))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Propose Swap Terms")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Set amounts, deadlines, and proof requirements")
+                        .font(.system(size: 12))
+                        .foregroundColor(DetailTheme.secondaryText)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14))
+            }
+            .foregroundColor(DetailTheme.primaryText)
+            .padding(16)
+            .background(DetailTheme.cardBackground)
+            .cornerRadius(DetailTheme.cornerRadius)
+            .shadow(color: DetailTheme.shadowColor, radius: DetailTheme.shadowRadius, x: 0, y: 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: DetailTheme.cornerRadius)
+                    .stroke(DetailTheme.accent, lineWidth: 2)
+            )
+        }
+    }
+
+    private var extensionButton: some View {
+        Button {
+            showExtensionRequest = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "calendar.badge.plus")
+                    .font(.system(size: 14))
+                Text("Request Extension")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .foregroundColor(DetailTheme.warning)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(DetailTheme.warning.opacity(0.1))
+            .cornerRadius(20)
+        }
+    }
+
+    // MARK: - Extension Alert Card
+
+    private func extensionAlertCard(extension_: ExtensionRequest) -> some View {
+        let canRespond = extension_.canRespond(userId: viewModel.currentUserId ?? UUID())
+
+        return VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "calendar.badge.clock")
+                    .font(.system(size: 24))
+                    .foregroundColor(DetailTheme.warning)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(canRespond ? "Extension Request" : "Your Extension Request")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(DetailTheme.primaryText)
+
+                    Text(extension_.formattedExtensionDuration)
+                        .font(.system(size: 13))
+                        .foregroundColor(DetailTheme.secondaryText)
+
+                    if let remaining = extension_.formattedTimeRemaining {
+                        Text(remaining)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(DetailTheme.warning)
+                    }
+                }
+
+                Spacer()
+
+                if canRespond {
+                    Button {
+                        showExtensionResponse = true
+                    } label: {
+                        Text("Respond")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(DetailTheme.accent)
+                            .cornerRadius(8)
+                    }
+                } else {
+                    Text("Pending")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(DetailTheme.warning)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(DetailTheme.warning.opacity(0.1))
+                        .cornerRadius(6)
+                }
+            }
+        }
+        .padding(16)
+        .background(DetailTheme.warning.opacity(0.08))
+        .cornerRadius(DetailTheme.cornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: DetailTheme.cornerRadius)
+                .stroke(DetailTheme.warning.opacity(0.3), lineWidth: 1)
+        )
+    }
+
+    // MARK: - Recent Activity Section
+
+    private var recentActivitySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("RECENT ACTIVITY")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(DetailTheme.secondaryText)
+                    .tracking(0.5)
+
+                Spacer()
+
+                Button {
+                    showTimeline = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("View All")
+                            .font(.system(size: 12, weight: .medium))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10))
+                    }
+                    .foregroundColor(DetailTheme.accent)
+                }
+            }
+
+            CompactSwapTimeline(events: recentEvents, maxEvents: 3)
+        }
+    }
+
     // MARK: - Toolbar Content
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
-            Menu {
-                Button(role: .destructive) {
-                    showDisputeSheet = true
+            HStack(spacing: 12) {
+                // Timeline button
+                Button {
+                    showTimeline = true
                 } label: {
-                    Label("Report Issue", systemImage: "exclamationmark.triangle")
+                    Image(systemName: "clock.arrow.circlepath")
+                        .foregroundColor(DetailTheme.accent)
                 }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .foregroundColor(DetailTheme.accent)
+
+                // More options menu
+                Menu {
+                    Button {
+                        showChat = true
+                    } label: {
+                        Label("Open Chat", systemImage: "message")
+                    }
+
+                    if currentDeal?.status == .accepted {
+                        Button {
+                            showExtensionRequest = true
+                        } label: {
+                            Label("Request Extension", systemImage: "calendar.badge.plus")
+                        }
+                    }
+
+                    Divider()
+
+                    Button(role: .destructive) {
+                        showDisputeSheet = true
+                    } label: {
+                        Label("Report Issue", systemImage: "exclamationmark.triangle")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundColor(DetailTheme.accent)
+                }
             }
         }
     }
@@ -172,6 +445,21 @@ struct MatchDetailView: View {
         await viewModel.loadSwap()
         await viewModel.loadFreeSwapCount()
         await tokenService.loadBalance()
+        await loadDealAndEvents()
+    }
+
+    private func loadDealAndEvents() async {
+        guard let swap = viewModel.swap else { return }
+
+        // Load current deal
+        currentDeal = try? await DealService.shared.getCurrentDeal(for: swap.id)
+
+        // Load pending extension
+        pendingExtension = try? await ExtensionService.shared.getPendingRequest(for: swap.id)
+
+        // Load recent events
+        let events = try? await SwapEventService.shared.getEvents(for: swap.id)
+        recentEvents = Array((events ?? []).suffix(5))
     }
 
     // MARK: - Loading View
@@ -1279,9 +1567,7 @@ struct BillInfoCard: View {
 }
 
 #Preview("Dispute Sheet") {
-    DisputeSheetView { reason in
-        print("Dispute: \(reason)")
-    }
+    DisputeSheetView { _ in }
 }
 
 // MARK: - Disclaimer Sheet View
@@ -1406,7 +1692,5 @@ private struct DisclaimerBullet: View {
 }
 
 #Preview("Disclaimer Sheet") {
-    DisclaimerSheetView {
-        print("Accepted")
-    }
+    DisclaimerSheetView { }
 }

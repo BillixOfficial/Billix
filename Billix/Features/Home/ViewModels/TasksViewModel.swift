@@ -121,7 +121,7 @@ class TasksViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    private init(
+    private nonisolated init(
         taskTrackingService: TaskTrackingService = TaskTrackingService(),
         rewardsService: RewardsService = RewardsService(),
         authService: AuthService = AuthService.shared,
@@ -132,27 +132,22 @@ class TasksViewModel: ObservableObject {
         self.authService = authService
         self.streakService = streakService
 
-        print("🔧 [TASKS VM] TasksViewModel initialized - setting up notification observers")
-        setupNotificationObservers()
+        Task { @MainActor in
+            setupNotificationObservers()
+        }
     }
 
     // MARK: - Setup
 
     private func setupNotificationObservers() {
-        print("🔧 [TASKS VM] Setting up notification observers...")
-
         // Listen for bill upload completions
         NotificationCenter.default.publisher(for: NSNotification.Name("BillUploadCompleted"))
             .sink { [weak self] notification in
-                print("📤 [BILL UPLOAD DEBUG] BillUploadCompleted notification received")
-                print("📦 [BILL UPLOAD DEBUG] Notification userInfo: \(notification.userInfo ?? [:])")
                 guard let billId = notification.userInfo?["billId"] as? UUID else {
-                    print("❌ [BILL UPLOAD DEBUG] No billId found in notification userInfo")
+                    print("❌ Error: No billId found in notification userInfo")
                     return
                 }
-                print("✅ [BILL UPLOAD DEBUG] Bill ID extracted: \(billId.uuidString)")
                 Task { @MainActor [weak self] in
-                    print("🔄 [BILL UPLOAD DEBUG] Calling trackBillUpload...")
                     await self?.trackBillUpload(billId: billId)
                 }
             }
@@ -161,16 +156,12 @@ class TasksViewModel: ObservableObject {
         // Listen for game completions
         NotificationCenter.default.publisher(for: NSNotification.Name("GameCompleted"))
             .sink { [weak self] notification in
-                print("📤 [GAME DEBUG] GameCompleted notification received")
-                print("📦 [GAME DEBUG] Notification userInfo: \(notification.userInfo ?? [:])")
                 guard let sessionId = notification.userInfo?["sessionId"] as? UUID,
                       let pointsEarned = notification.userInfo?["pointsEarned"] as? Int else {
-                    print("❌ [GAME DEBUG] Missing sessionId or pointsEarned in notification")
+                    print("❌ Error: Missing sessionId or pointsEarned in notification")
                     return
                 }
-                print("✅ [GAME DEBUG] Session ID: \(sessionId.uuidString), Points: \(pointsEarned)")
                 Task { @MainActor [weak self] in
-                    print("🔄 [GAME DEBUG] Calling trackGameCompletion...")
                     await self?.trackGameCompletion(sessionId: sessionId, pointsEarned: pointsEarned)
                 }
             }
@@ -179,21 +170,17 @@ class TasksViewModel: ObservableObject {
         // Listen for points updates (Quick Earnings completions)
         NotificationCenter.default.publisher(for: NSNotification.Name("PointsUpdated"))
             .sink { [weak self] _ in
-                print("📤 [POINTS DEBUG] PointsUpdated notification received - reloading tasks")
                 Task { @MainActor [weak self] in
                     await self?.loadTasks()
                 }
             }
             .store(in: &cancellables)
-
-        print("✅ [TASKS VM] Notification observers set up successfully")
     }
 
     // MARK: - Public Methods
 
     /// Load all tasks for current user
     func loadTasks() async {
-        print("🔄 [STREAK DEBUG] loadTasks() called - START")
         isLoading = true
         errorMessage = nil
 
@@ -201,11 +188,9 @@ class TasksViewModel: ObservableObject {
             guard let userId = authService.currentUser?.id else {
                 errorMessage = "No authenticated user"
                 isLoading = false
-                print("❌ [STREAK DEBUG] No authenticated user")
+                print("❌ Error: No authenticated user")
                 return
             }
-
-            print("✅ [STREAK DEBUG] User ID: \(userId.uuidString)")
 
             // Fetch tasks from Supabase
             let taskDTOs = try await taskTrackingService.getUserTasks(userId: userId)
@@ -217,27 +202,21 @@ class TasksViewModel: ObservableObject {
             weeklyCheckIns = try await taskTrackingService.getWeeklyCheckIns(userId: userId)
 
             // CRITICAL FIX: Fetch current streak from StreakService
-            print("🔄 [STREAK DEBUG] Calling streakService.fetchStreak()...")
             try await streakService.fetchStreak()
 
             // Update local currentStreak from StreakService
             currentStreak = streakService.currentStreak
-            print("✅ [STREAK DEBUG] Streak fetched and updated! currentStreak = \(currentStreak)")
-            print("📊 [STREAK DEBUG] StreakService values - current: \(streakService.currentStreak), longest: \(streakService.longestStreak)")
 
             isLoading = false
-            print("✅ [STREAK DEBUG] loadTasks() completed successfully")
         } catch {
             errorMessage = "Failed to load tasks: \(error.localizedDescription)"
             isLoading = false
-            print("❌ [STREAK DEBUG] Error loading tasks: \(error)")
+            print("❌ Error loading tasks: \(error)")
         }
     }
 
     /// Handle task tap - routes to start/claim based on button state
     func handleTaskTap(_ task: UserTask) {
-        print("🔵 TASK TAPPED: \(task.taskKey) - Type: \(task.taskType) - Button State: \(task.buttonState)")
-
         // Check-in is special - always performs check-in regardless of button state
         if task.taskType == .checkIn {
             Task {
@@ -248,15 +227,12 @@ class TasksViewModel: ObservableObject {
 
         switch task.buttonState {
         case .start:
-            print("🔵 Button state is START - calling startTask()")
             startTask(task)
         case .claim:
-            print("🔵 Button state is CLAIM - calling claimTask()")
             Task {
                 await claimTask(task)
             }
         case .completed:
-            print("🔵 Button state is COMPLETED - doing nothing")
             // Do nothing - task already claimed
             break
         }
@@ -264,8 +240,6 @@ class TasksViewModel: ObservableObject {
 
     /// Start a task - navigate to appropriate screen
     private func startTask(_ task: UserTask) {
-        print("🔵 START TASK CALLED for: \(task.taskType)")
-
         // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
@@ -277,59 +251,35 @@ class TasksViewModel: ObservableObject {
                 await performCheckIn()
             }
         case .billUpload:
-            print("📤 Posting NavigateToUpload notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToUpload"), object: nil)
         case .poll:
-            print("📤 Posting NavigateToPoll notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToPoll"), object: nil)
         case .quiz:
-            print("📤 Posting NavigateToQuiz notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToQuiz"), object: nil)
         case .tip:
-            print("📤 Posting NavigateToTip notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToTip"), object: nil)
         case .game:
-            print("📤 Posting NavigateToGame notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToGame"), object: nil)
         case .referral:
-            print("📤 Posting ShowReferralSheet notification")
             NotificationCenter.default.post(name: NSNotification.Name("ShowReferralSheet"), object: nil)
         case .social:
-            print("📤 Posting NavigateToSocial notification")
             NotificationCenter.default.post(name: NSNotification.Name("NavigateToSocial"), object: nil)
         }
     }
 
     /// Perform daily check-in
     func performCheckIn() async {
-        print("🔵 CHECK-IN FUNCTION ENTERED")
-        print("🔵 AuthService: \(authService)")
-        print("🔵 AuthService.currentUser: \(String(describing: authService.currentUser))")
-        print("🔵 AuthService.isAuthenticated: \(authService.isAuthenticated)")
-
         guard let userId = authService.currentUser?.id else {
-            print("❌ CHECK-IN FAILED - No user ID")
-            print("❌ authService.currentUser is nil!")
+            print("❌ Error: No user ID for check-in")
             return
         }
 
-        print("🔵 CHECK-IN BUTTON TAPPED - Starting performCheckIn()")
-        print("✅ User ID found: \(userId.uuidString)")
-
-        print("✅ User ID found: \(userId.uuidString)")
-
         do {
-            print("🌐 Calling check_in_daily RPC function...")
             let result = try await taskTrackingService.checkInDaily(userId: userId)
 
-            print("📦 Result received - success: \(result.success), points: \(result.pointsAwarded), message: \(result.message)")
-
             if result.success {
-                print("✅ CHECK-IN SUCCESS!")
-
                 // Update streak
                 currentStreak = result.currentStreak
-                print("🔥 Streak updated to: \(result.currentStreak)")
 
                 // Show success feedback
                 checkInStreak = CheckInStreak(
@@ -339,47 +289,36 @@ class TasksViewModel: ObservableObject {
                     milestoneReached: result.milestoneReached
                 )
                 showCheckInSuccess = true
-                print("🎉 showCheckInSuccess = true")
 
                 // Award points via RewardsViewModel
                 if result.pointsAwarded > 0 {
-                    print("💰 Awarding \(result.pointsAwarded) points...")
-                    try await rewardsService.addPoints(
+                    _ = try await rewardsService.addPoints(
                         userId: userId,
                         amount: result.pointsAwarded,
                         type: "task_completion",
-                        description: "Daily check-in",
-                        source: "daily_check_in"
+                        description: "Daily check-in"
                     )
 
                     // Notify RewardsViewModel to refresh balance
-                    print("📤 Posting PointsUpdated notification (check-in: \(result.pointsAwarded) pts)")
                     NotificationCenter.default.post(name: NSNotification.Name("PointsUpdated"), object: nil)
 
                     // Show claim feedback
                     claimedPoints = result.pointsAwarded
                     claimedTaskTitle = "Daily Check-In"
                     showClaimSuccess = true
-                    print("🎊 showClaimSuccess = true")
-                } else {
-                    print("⚠️ No points awarded (pointsAwarded = 0)")
                 }
 
                 // Refresh tasks
-                print("🔄 Refreshing task list...")
                 await loadTasks()
 
                 // Haptic feedback
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
-                print("✅ CHECK-IN COMPLETE!")
 
             } else {
-                print("❌ CHECK-IN FAILED - Message: \(result.message)")
                 errorMessage = result.message
             }
         } catch {
-            print("❌ CHECK-IN ERROR - \(error.localizedDescription)")
             errorMessage = "Check-in failed: \(error.localizedDescription)"
             print("❌ Error during check-in: \(error)")
         }
@@ -397,16 +336,14 @@ class TasksViewModel: ObservableObject {
 
             if result.success {
                 // Award points via RewardsService
-                try await rewardsService.addPoints(
+                _ = try await rewardsService.addPoints(
                     userId: userId,
                     amount: result.pointsAwarded,
                     type: "task_completion",
-                    description: result.taskTitle,
-                    source: task.taskKey
+                    description: result.taskTitle
                 )
 
                 // Notify RewardsViewModel to refresh balance
-                print("📤 Posting PointsUpdated notification (task claim: \(result.pointsAwarded) pts - \(result.taskTitle))")
                 NotificationCenter.default.post(name: NSNotification.Name("PointsUpdated"), object: nil)
 
                 // Show success feedback
@@ -434,47 +371,31 @@ class TasksViewModel: ObservableObject {
 
     /// Track bill upload completion
     private func trackBillUpload(billId: UUID) async {
-        print("🔄 [BILL UPLOAD DEBUG] trackBillUpload() called - START")
-        print("📋 [BILL UPLOAD DEBUG] Bill ID: \(billId.uuidString)")
-
         guard let userId = authService.currentUser?.id else {
-            print("❌ [BILL UPLOAD DEBUG] No authenticated user - cannot track")
+            print("❌ Error: No authenticated user - cannot track bill upload")
             return
         }
 
-        print("✅ [BILL UPLOAD DEBUG] User ID: \(userId.uuidString)")
-
         do {
             // Track daily_upload_bill task
-            print("🔄 [BILL UPLOAD DEBUG] Tracking daily_upload_bill task...")
-            let dailyResult = try await taskTrackingService.incrementTaskProgress(
+            _ = try await taskTrackingService.incrementTaskProgress(
                 userId: userId,
                 taskKey: "daily_upload_bill",
                 sourceId: billId
             )
-            print("✅ [BILL UPLOAD DEBUG] Daily task - currentCount: \(dailyResult.currentCount), isCompleted: \(dailyResult.isCompleted)")
 
             // Track weekly_upload_5_bills task
-            print("🔄 [BILL UPLOAD DEBUG] Tracking weekly_upload_5_bills task...")
-            let weeklyResult = try await taskTrackingService.incrementTaskProgress(
+            _ = try await taskTrackingService.incrementTaskProgress(
                 userId: userId,
                 taskKey: "weekly_upload_5_bills",
                 sourceId: billId
             )
-            print("✅ [BILL UPLOAD DEBUG] Weekly task - currentCount: \(weeklyResult.currentCount)/\(weeklyResult.requiredCount), isCompleted: \(weeklyResult.isCompleted)")
-
-            // Show completion celebration if just completed weekly task
-            if weeklyResult.justCompleted {
-                print("🎉 [BILL UPLOAD DEBUG] Weekly task just completed: Upload 5 bills!")
-            }
 
             // Refresh tasks
-            print("🔄 [BILL UPLOAD DEBUG] Refreshing tasks...")
             await loadTasks()
-            print("✅ [BILL UPLOAD DEBUG] trackBillUpload() completed successfully")
 
         } catch {
-            print("❌ [BILL UPLOAD DEBUG] Error tracking bill upload: \(error)")
+            print("❌ Error tracking bill upload: \(error)")
         }
     }
 
@@ -490,11 +411,6 @@ class TasksViewModel: ObservableObject {
                 sourceId: sessionId,
                 metadata: ["points_earned": pointsEarned]
             )
-
-            // Show completion celebration if just completed
-            if result.justCompleted {
-                print("🎉 Weekly task completed: Play 7 games!")
-            }
 
             // Refresh tasks
             await loadTasks()

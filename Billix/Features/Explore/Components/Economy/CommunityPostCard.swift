@@ -531,7 +531,6 @@ struct CommunityPostCard: View {
                     label: "Save",
                     color: post.isSaved ? Color.billixGoldenAmber : metadataGrey,
                     action: {
-                        print("[CommunityPostCard] Save tapped - post: \(post.id), currently saved: \(post.isSaved)")
                         onSaveTapped()
                     }
                 )
@@ -617,30 +616,24 @@ struct CommunityPostCard: View {
     }
 
     private func selectReaction(_ reaction: PostReaction) {
-        print("[CommunityPostCard] 🎨 selectReaction called - reaction: \(reaction.label), current: \(selectedReaction?.label ?? "none")")
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
         impactFeedback.impactOccurred()
 
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             if selectedReaction == reaction {
                 // Tapping same reaction = remove it
-                print("[CommunityPostCard] 🎨 Same reaction tapped - removing")
                 selectedReaction = nil
                 onLikeTapped() // This will remove the reaction
             } else {
-                print("[CommunityPostCard] 🎨 New reaction selected: \(reaction.label)")
                 selectedReaction = reaction
                 // Use onReactionSelected if available, otherwise fall back to onLikeTapped
                 if let onReactionSelected = onReactionSelected {
-                    print("[CommunityPostCard] 🎨 Calling onReactionSelected")
                     onReactionSelected(reaction)
                 } else if !post.isLiked {
-                    print("[CommunityPostCard] 🎨 Falling back to onLikeTapped")
                     onLikeTapped()
                 }
             }
             showReactions = false
-            print("[CommunityPostCard] 🎨 selectReaction DONE")
         }
     }
 

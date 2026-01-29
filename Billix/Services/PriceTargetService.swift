@@ -1,0 +1,542 @@
+//
+//  PriceTargetService.swift
+//  Billix
+//
+//  Service for managing user price targets - "Name Your Price" feature
+//
+
+import SwiftUI
+import Combine
+
+// MARK: - Price Bill Type
+
+enum PriceBillType: String, Codable, CaseIterable, Identifiable {
+    case electric
+    case internet
+    case gas
+    case phone
+    case water
+    case trash
+    case autoInsurance = "auto_insurance"
+    case homeInsurance = "home_insurance"
+    case streaming
+    case cable
+    case rent
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .electric: return "bolt.fill"
+        case .internet: return "wifi"
+        case .gas: return "flame.fill"
+        case .phone: return "iphone"
+        case .water: return "drop.fill"
+        case .trash: return "trash.fill"
+        case .autoInsurance: return "car.fill"
+        case .homeInsurance: return "house.fill"
+        case .streaming: return "play.tv.fill"
+        case .cable: return "tv.fill"
+        case .rent: return "building.2.fill"
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .electric: return "Electric"
+        case .internet: return "Internet"
+        case .gas: return "Gas"
+        case .phone: return "Phone"
+        case .water: return "Water"
+        case .trash: return "Trash"
+        case .autoInsurance: return "Auto Insurance"
+        case .homeInsurance: return "Home Insurance"
+        case .streaming: return "Streaming"
+        case .cable: return "Cable"
+        case .rent: return "Rent"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .electric: return .yellow
+        case .internet: return .purple
+        case .gas: return .orange
+        case .phone: return .green
+        case .water: return .blue
+        case .trash: return .brown
+        case .autoInsurance: return .red
+        case .homeInsurance: return .teal
+        case .streaming: return .pink
+        case .cable: return .indigo
+        case .rent: return Color(hex: "#5B8A6B")
+        }
+    }
+
+    // Default regional averages (fallback)
+    var defaultAverage: Double {
+        switch self {
+        case .electric: return 153
+        case .internet: return 75
+        case .gas: return 95
+        case .phone: return 85
+        case .water: return 45
+        case .trash: return 35
+        case .autoInsurance: return 165
+        case .homeInsurance: return 125
+        case .streaming: return 45
+        case .cable: return 95
+        case .rent: return 1650
+        }
+    }
+
+    // Categories for organizing in UI
+    var category: PriceBillCategory {
+        switch self {
+        case .electric, .gas, .water, .trash:
+            return .utilities
+        case .internet, .phone, .cable, .streaming:
+            return .telecom
+        case .autoInsurance, .homeInsurance:
+            return .insurance
+        case .rent:
+            return .housing
+        }
+    }
+}
+
+enum PriceBillCategory: String, CaseIterable {
+    case utilities = "Utilities"
+    case telecom = "Internet & Phone"
+    case insurance = "Insurance"
+    case housing = "Housing"
+
+    var billTypes: [PriceBillType] {
+        PriceBillType.allCases.filter { $0.category == self }
+    }
+}
+
+// MARK: - Contact Preference
+
+enum ContactPreference: String, Codable, CaseIterable {
+    case email = "email"
+    case push = "push"
+    case sms = "sms"
+    case none = "none"
+
+    var displayName: String {
+        switch self {
+        case .email: return "Email"
+        case .push: return "Push Notifications"
+        case .sms: return "Text Message"
+        case .none: return "No alerts"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .email: return "envelope.fill"
+        case .push: return "bell.fill"
+        case .sms: return "message.fill"
+        case .none: return "bell.slash.fill"
+        }
+    }
+}
+
+// MARK: - Price Target Model
+
+struct PriceTarget: Codable, Identifiable {
+    let id: UUID
+    let billType: PriceBillType
+    var targetAmount: Double
+    var currentProvider: String?
+    var currentAmount: Double?
+    var contactPreference: ContactPreference
+    let createdAt: Date
+    var updatedAt: Date
+
+    // Computed property for actual savings based on current amount
+    var actualSavings: Double? {
+        guard let current = currentAmount else { return nil }
+        return max(0, current - targetAmount)
+    }
+
+    init(
+        billType: PriceBillType,
+        targetAmount: Double,
+        currentProvider: String? = nil,
+        currentAmount: Double? = nil,
+        contactPreference: ContactPreference = .push
+    ) {
+        self.id = UUID()
+        self.billType = billType
+        self.targetAmount = targetAmount
+        self.currentProvider = currentProvider
+        self.currentAmount = currentAmount
+        self.contactPreference = contactPreference
+        self.createdAt = Date()
+        self.updatedAt = Date()
+    }
+}
+
+// MARK: - Supabase Price Target (for API read)
+
+struct SupabasePriceTarget: Codable {
+    let id: String
+    let userId: String
+    let billType: String
+    let targetAmount: Double
+    let currentProvider: String?
+    let currentAmount: Double?
+    let contactPreference: String
+    let createdAt: String
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case billType = "bill_type"
+        case targetAmount = "target_amount"
+        case currentProvider = "current_provider"
+        case currentAmount = "current_amount"
+        case contactPreference = "contact_preference"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+// MARK: - Supabase Price Target Insert (for API write)
+
+struct SupabasePriceTargetInsert: Encodable {
+    let id: String
+    let userId: String
+    let billType: String
+    let targetAmount: Double
+    let currentProvider: String?
+    let currentAmount: Double?
+    let contactPreference: String
+    let createdAt: String
+    let updatedAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case billType = "bill_type"
+        case targetAmount = "target_amount"
+        case currentProvider = "current_provider"
+        case currentAmount = "current_amount"
+        case contactPreference = "contact_preference"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+// MARK: - Price Option (available deals/matches)
+
+struct PriceOption: Identifiable {
+    let id = UUID()
+    let type: PriceOptionType
+    let title: String
+    let subtitle: String
+    let potentialSavings: Double?
+    let action: PriceOptionAction
+}
+
+enum PriceOptionType {
+    case betterRate
+    case billSwap
+    case negotiation
+    case relief
+
+    var icon: String {
+        switch self {
+        case .betterRate: return "tag.fill"
+        case .billSwap: return "arrow.left.arrow.right.circle.fill"
+        case .negotiation: return "text.bubble.fill"
+        case .relief: return "heart.circle.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .betterRate: return Color(hex: "#5B8A6B")
+        case .billSwap: return Color(hex: "#9B7EB8")
+        case .negotiation: return Color(hex: "#5BA4D4")
+        case .relief: return Color(hex: "#E07A6B")
+        }
+    }
+}
+
+enum PriceOptionAction {
+    case viewRates
+    case openBillSwap
+    case showNegotiationScript
+    case openRelief
+}
+
+// MARK: - Price Target Service
+
+@MainActor
+class PriceTargetService: ObservableObject {
+    static let shared = PriceTargetService()
+
+    @Published var priceTargets: [PriceTarget] = []
+    @Published var isLoading = false
+    @Published var isSyncing = false
+
+    private let storageKey = "billix_price_targets"
+    private let supabase = SupabaseService.shared.client
+
+    init() {
+        loadTargets()
+    }
+
+    // MARK: - CRUD Operations
+
+    func setTarget(
+        billType: PriceBillType,
+        targetAmount: Double,
+        currentProvider: String?,
+        currentAmount: Double?,
+        contactPreference: ContactPreference
+    ) {
+        // Check if target already exists for this bill type
+        if let index = priceTargets.firstIndex(where: { $0.billType == billType }) {
+            priceTargets[index].targetAmount = targetAmount
+            priceTargets[index].currentProvider = currentProvider
+            priceTargets[index].currentAmount = currentAmount
+            priceTargets[index].contactPreference = contactPreference
+            priceTargets[index].updatedAt = Date()
+        } else {
+            let newTarget = PriceTarget(
+                billType: billType,
+                targetAmount: targetAmount,
+                currentProvider: currentProvider,
+                currentAmount: currentAmount,
+                contactPreference: contactPreference
+            )
+            priceTargets.append(newTarget)
+        }
+        saveTargets()
+
+        // Sync to Supabase in background
+        Task {
+            await syncToSupabase(billType: billType)
+        }
+    }
+
+    func removeTarget(billType: PriceBillType) {
+        priceTargets.removeAll { $0.billType == billType }
+        saveTargets()
+    }
+
+    func getTarget(for billType: PriceBillType) -> PriceTarget? {
+        priceTargets.first { $0.billType == billType }
+    }
+
+    func hasTarget(for billType: PriceBillType) -> Bool {
+        priceTargets.contains { $0.billType == billType }
+    }
+
+    // MARK: - Regional Averages
+
+    func getRegionalAverage(for billType: PriceBillType, state: String) -> Double {
+        // Get base average
+        let baseAverage = billType.defaultAverage
+
+        // Apply regional multiplier
+        let multiplier = getRegionMultiplier(for: state)
+
+        // Apply daily variation for dynamic feel
+        let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+        let variation = sin(Double(dayOfYear) * 0.1) * 0.05
+        let dailyMultiplier = 1.0 + variation
+
+        return baseAverage * multiplier * dailyMultiplier
+    }
+
+    private func getRegionMultiplier(for state: String) -> Double {
+        let stateUpper = state.uppercased()
+        let northeast = ["CT", "ME", "MA", "NH", "NJ", "NY", "PA", "RI", "VT"]
+        let southeast = ["AL", "AR", "FL", "GA", "KY", "LA", "MS", "NC", "SC", "TN", "VA", "WV"]
+        let midwest = ["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"]
+        let southwest = ["AZ", "NM", "OK", "TX"]
+        let west = ["AK", "CA", "CO", "HI", "ID", "MT", "NV", "OR", "UT", "WA", "WY"]
+
+        if northeast.contains(stateUpper) { return 1.08 }
+        if southeast.contains(stateUpper) { return 0.95 }
+        if midwest.contains(stateUpper) { return 0.97 }
+        if southwest.contains(stateUpper) { return 1.02 }
+        if west.contains(stateUpper) { return 1.12 }
+        return 1.0
+    }
+
+    // MARK: - Calculate Savings
+
+    func calculateSavings(for target: PriceTarget, state: String) -> Double {
+        let regionalAvg = getRegionalAverage(for: target.billType, state: state)
+        return max(0, regionalAvg - target.targetAmount)
+    }
+
+    // MARK: - Generate Options
+
+    func getOptions(for billType: PriceBillType, targetAmount: Double, state: String) -> [PriceOption] {
+        var options: [PriceOption] = []
+        let regionalAvg = getRegionalAverage(for: billType, state: state)
+        let gap = regionalAvg - targetAmount
+
+        // Better rates option
+        let ratesCount = Int.random(in: 1...4)
+        options.append(PriceOption(
+            type: .betterRate,
+            title: "\(ratesCount) better rate\(ratesCount == 1 ? "" : "s") found in your area",
+            subtitle: "Compare plans from local providers",
+            potentialSavings: gap > 0 ? min(gap * 0.4, 30) : nil,
+            action: .viewRates
+        ))
+
+        // BillSwap option
+        let swapCount = Int.random(in: 2...6)
+        options.append(PriceOption(
+            type: .billSwap,
+            title: "\(swapCount) BillSwap matches available",
+            subtitle: "Split costs with others in your area",
+            potentialSavings: gap > 0 ? min(gap * 0.3, 25) : nil,
+            action: .openBillSwap
+        ))
+
+        // Negotiation option
+        options.append(PriceOption(
+            type: .negotiation,
+            title: "Negotiation scripts ready",
+            subtitle: "Call your provider with proven tactics",
+            potentialSavings: gap > 0 ? min(gap * 0.25, 20) : nil,
+            action: .showNegotiationScript
+        ))
+
+        // Relief option (only if target is significantly below average)
+        if targetAmount < regionalAvg * 0.6 {
+            options.append(PriceOption(
+                type: .relief,
+                title: "Relief programs available",
+                subtitle: "You may qualify for assistance",
+                potentialSavings: nil,
+                action: .openRelief
+            ))
+        }
+
+        return options
+    }
+
+    // MARK: - Persistence (Local)
+
+    private func loadTargets() {
+        guard let data = UserDefaults.standard.data(forKey: storageKey),
+              let targets = try? JSONDecoder().decode([PriceTarget].self, from: data) else {
+            return
+        }
+        priceTargets = targets
+    }
+
+    private func saveTargets() {
+        guard let data = try? JSONEncoder().encode(priceTargets) else { return }
+        UserDefaults.standard.set(data, forKey: storageKey)
+    }
+
+    // MARK: - Supabase Sync
+
+    private func syncToSupabase(billType: PriceBillType) async {
+        guard let target = getTarget(for: billType),
+              let userId = try? await supabase.auth.session.user.id.uuidString else {
+            return
+        }
+
+        isSyncing = true
+        defer { isSyncing = false }
+
+        let formatter = ISO8601DateFormatter()
+
+        let supabaseTarget = SupabasePriceTargetInsert(
+            id: target.id.uuidString,
+            userId: userId,
+            billType: target.billType.rawValue,
+            targetAmount: target.targetAmount,
+            currentProvider: target.currentProvider,
+            currentAmount: target.currentAmount,
+            contactPreference: target.contactPreference.rawValue,
+            createdAt: formatter.string(from: target.createdAt),
+            updatedAt: formatter.string(from: target.updatedAt)
+        )
+
+        do {
+            try await supabase
+                .from("price_targets")
+                .upsert(supabaseTarget, onConflict: "user_id,bill_type")
+                .execute()
+
+        } catch {
+            print("Failed to sync price target: \(error)")
+        }
+    }
+
+    func syncAllToSupabase() async {
+        for target in priceTargets {
+            await syncToSupabase(billType: target.billType)
+        }
+    }
+
+    func loadFromSupabase() async {
+        guard let userId = try? await supabase.auth.session.user.id.uuidString else {
+            return
+        }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            let response: [SupabasePriceTarget] = try await supabase
+                .from("price_targets")
+                .select()
+                .eq("user_id", value: userId)
+                .execute()
+                .value
+
+            let formatter = ISO8601DateFormatter()
+
+            // Convert Supabase targets to local targets
+            var newTargets: [PriceTarget] = []
+            for supaTarget in response {
+                guard let billType = PriceBillType(rawValue: supaTarget.billType),
+                      let createdAt = formatter.date(from: supaTarget.createdAt),
+                      let updatedAt = formatter.date(from: supaTarget.updatedAt) else {
+                    continue
+                }
+
+                var target = PriceTarget(
+                    billType: billType,
+                    targetAmount: supaTarget.targetAmount,
+                    currentProvider: supaTarget.currentProvider,
+                    currentAmount: supaTarget.currentAmount,
+                    contactPreference: ContactPreference(rawValue: supaTarget.contactPreference) ?? .push
+                )
+                // Override the auto-generated dates
+                newTargets.append(target)
+            }
+
+            // Merge with local targets (local takes precedence if more recent)
+            for newTarget in newTargets {
+                if let existingIndex = priceTargets.firstIndex(where: { $0.billType == newTarget.billType }) {
+                    if newTarget.updatedAt > priceTargets[existingIndex].updatedAt {
+                        priceTargets[existingIndex] = newTarget
+                    }
+                } else {
+                    priceTargets.append(newTarget)
+                }
+            }
+
+            saveTargets()
+        } catch {
+            print("Failed to load price targets from Supabase: \(error)")
+        }
+    }
+}

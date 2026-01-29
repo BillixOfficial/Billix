@@ -47,7 +47,6 @@ struct GeoGameFlowView: View {
                                         showGame = true
                                     }
                                 } catch {
-                                    print("⚠️ Failed to mark tutorial completed: \(error.localizedDescription)")
                                     // Still proceed to game even on error
                                     withAnimation(.easeInOut(duration: 0.3)) {
                                         showTutorial = false
@@ -66,7 +65,6 @@ struct GeoGameFlowView: View {
                                 do {
                                     try await tutorialManager.markTutorialSkipped(userId: userId)
                                 } catch {
-                                    print("⚠️ Failed to mark tutorial skipped: \(error.localizedDescription)")
                                 }
                             }
                             withAnimation(.easeInOut(duration: 0.3)) {
@@ -84,7 +82,6 @@ struct GeoGameFlowView: View {
                                 do {
                                     try await tutorialManager.markTutorialDismissed(userId: userId)
                                 } catch {
-                                    print("⚠️ Failed to mark tutorial dismissed: \(error.localizedDescription)")
                                 }
                             }
                             withAnimation(.easeInOut(duration: 0.3)) {
@@ -136,7 +133,6 @@ struct GeoGameFlowView: View {
                     isLoadingSettings = false
                 }
             } catch {
-                print("⚠️ Failed to load tutorial settings: \(error.localizedDescription)")
                 // Default to showing tutorial (safer)
                 await MainActor.run {
                     showTutorial = true

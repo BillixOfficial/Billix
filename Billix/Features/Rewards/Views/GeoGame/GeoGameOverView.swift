@@ -264,8 +264,7 @@ struct GeoGameOverView: View {
     }
 
     var body: some View {
-        let _ = print("") // Force compiler to re-evaluate
-        return ZStack {
+        ZStack {
             // Dynamic gradient background
             backgroundGradient
                 .ignoresSafeArea()
