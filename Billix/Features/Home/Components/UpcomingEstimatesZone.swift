@@ -13,7 +13,7 @@ struct UpcomingEstimatesZone: View {
     @State private var estimates: [UpcomingEstimate] = []
     @State private var isLoading = true
 
-    @StateObject private var weatherService = WeatherService.shared
+    @ObservedObject private var weatherService = WeatherService.shared
     private let openAIService = OpenAIService.shared
 
     var body: some View {

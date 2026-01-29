@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BillixScoreDetailSheet: View {
-    @StateObject private var scoreService = ActivityScoreService.shared
+    @ObservedObject private var scoreService = ActivityScoreService.shared
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {

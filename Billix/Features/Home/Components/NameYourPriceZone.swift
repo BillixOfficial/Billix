@@ -10,7 +10,7 @@ import SwiftUI
 struct NameYourPriceZone: View {
     let userState: String
 
-    @StateObject private var priceTargetService = PriceTargetService.shared
+    @ObservedObject private var priceTargetService = PriceTargetService.shared
     @State private var selectedBillType: PriceBillType?
     @State private var editingTarget: PriceTarget?
     @State private var viewingOptionsFor: PriceTarget?

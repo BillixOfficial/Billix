@@ -148,7 +148,7 @@ enum MainGoalOption: String, CaseIterable, Identifiable {
 
 struct HomeSetupQuestionsView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var authService = AuthService.shared
+    @ObservedObject private var authService = AuthService.shared
 
     @State private var currentStep = 1
     @State private var selectedBillTypes: Set<BillTypeOption> = []
