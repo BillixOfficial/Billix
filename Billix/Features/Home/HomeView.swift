@@ -71,9 +71,6 @@ private extension View {
 // MARK: - Home View
 
 struct HomeView: View {
-    // Set to true to show the Accessible Routing Demo for screenshots
-    @State private var showRoutingDemo = false
-
     // Real user data from AuthService
     @ObservedObject private var authService = AuthService.shared
     @ObservedObject private var streakService = StreakService.shared
@@ -296,7 +293,7 @@ private struct AllClearBanner: View {
 // MARK: - Utility News Banner (Today's News)
 
 private struct UtilityNewsBanner: View {
-    @StateObject private var newsService = UtilityNewsService.shared
+    @ObservedObject private var newsService = UtilityNewsService.shared
     @State private var isExpanded = false
 
     var body: some View {
@@ -584,7 +581,7 @@ private struct UpcomingEstimatesZone: View {
     @State private var estimates: [UpcomingEstimate] = []
     @State private var isLoading = true
 
-    @StateObject private var weatherService = WeatherService.shared
+    @ObservedObject private var weatherService = WeatherService.shared
     private let openAIService = OpenAIService.shared
 
     var body: some View {
@@ -1016,8 +1013,8 @@ private struct AchievementDetailCard: View {
 private struct WeatherTipZone: View {
     let zipCode: String
 
-    @StateObject private var weatherService = WeatherService.shared
-    @StateObject private var openAIService = OpenAIService.shared
+    @ObservedObject private var weatherService = WeatherService.shared
+    @ObservedObject private var openAIService = OpenAIService.shared
     @State private var isExpanded = false
     @State private var aiTip: String?
     @State private var isLoadingTip = false
@@ -1238,7 +1235,7 @@ private struct BillTickerZone: View {
     let zipCode: String
     let state: String
 
-    @StateObject private var openAIService = OpenAIService.shared
+    @ObservedObject private var openAIService = OpenAIService.shared
     @State private var averages: [BillAverage] = []
     @State private var isLoading = true
     @State private var showAIDisclaimer = false
@@ -1670,9 +1667,9 @@ private struct MicroTaskCard: View {
 private struct DailyBillBrief: View {
     let zipCode: String
 
-    @StateObject private var openAIService = OpenAIService.shared
-    @StateObject private var weatherService = WeatherService.shared
-    @StateObject private var authService = AuthService.shared
+    @ObservedObject private var openAIService = OpenAIService.shared
+    @ObservedObject private var weatherService = WeatherService.shared
+    @ObservedObject private var authService = AuthService.shared
     @State private var aiBrief: String?
     @State private var isLoading = false
     @State private var isExpanded = false
@@ -2140,7 +2137,12 @@ private struct BillsListZone: View {
     @State private var isLoading = true
     @State private var hasNoBills = false
 
+    @ObservedObject private var authService = AuthService.shared
     private let openAIService = OpenAIService.shared
+
+    private var userZipCode: String {
+        authService.currentUser?.zipCode ?? "10001" // Default NYC ZIP
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -2234,8 +2236,7 @@ private struct BillsListZone: View {
 
         // Fetch ZIP averages for comparison
         do {
-            // Use a default ZIP for now - in real app, get from user profile
-            zipAverages = try await openAIService.getNationalAverages(zipCode: "07060")
+            zipAverages = try await openAIService.getNationalAverages(zipCode: userZipCode)
         } catch {
             print("❌ Error: Failed to load ZIP averages: \(error)")
         }
