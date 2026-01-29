@@ -14,16 +14,17 @@ struct CreatePostSheet: View {
     @State private var postContent = ""
     @State private var selectedTopic: PostTopic = .general
     @State private var selectedGroup: CommunityGroup?
+    @State private var isAnonymous = false
     @FocusState private var isTextFieldFocused: Bool
 
     let availableGroups: [CommunityGroup]
     let preselectedGroup: CommunityGroup?
-    let onPost: (String, PostTopic, CommunityGroup?) -> Void
+    let onPost: (String, PostTopic, CommunityGroup?, Bool) -> Void
 
     init(
         availableGroups: [CommunityGroup] = CommunityGroup.mockGroups,
         preselectedGroup: CommunityGroup? = nil,
-        onPost: @escaping (String, PostTopic, CommunityGroup?) -> Void
+        onPost: @escaping (String, PostTopic, CommunityGroup?, Bool) -> Void
     ) {
         self.availableGroups = availableGroups
         self.preselectedGroup = preselectedGroup
@@ -57,6 +58,9 @@ struct CreatePostSheet: View {
                         if availableGroups.count > 1 {
                             groupSelectionSection
                         }
+
+                        // Anonymous Toggle
+                        anonymousToggleSection
                     }
                     .padding(20)
                 }
@@ -86,7 +90,7 @@ struct CreatePostSheet: View {
 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Post") {
-                        onPost(postContent, selectedTopic, selectedGroup)
+                        onPost(postContent, selectedTopic, selectedGroup, isAnonymous)
                         dismiss()
                     }
                     .font(.system(size: 16, weight: .semibold))
@@ -216,6 +220,42 @@ struct CreatePostSheet: View {
         }
         .buttonStyle(.plain)
     }
+
+    // MARK: - Anonymous Toggle Section
+
+    private var anonymousToggleSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                // Icon
+                Image(systemName: "eye.slash.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(isAnonymous ? Color.billixDarkTeal : Color(hex: "#9CA3AF"))
+                    .frame(width: 24)
+
+                // Text
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Post anonymously")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(Color(hex: "#374151"))
+
+                    Text("Your name will be hidden from others")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: "#9CA3AF"))
+                }
+
+                Spacer()
+
+                // Toggle
+                Toggle("", isOn: $isAnonymous)
+                    .toggleStyle(SwitchToggleStyle(tint: Color.billixDarkTeal))
+                    .labelsHidden()
+            }
+            .padding(16)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        }
+    }
 }
 
 // MARK: - Post Topic Enum
@@ -246,6 +286,7 @@ enum PostTopic: String, CaseIterable {
     CreatePostSheet(
         availableGroups: CommunityGroup.mockGroups,
         preselectedGroup: nil
-    ) { content, topic, group in
+    ) { content, topic, group, isAnonymous in
+        print("Posted: \(content), topic: \(topic.rawValue), group: \(group?.name ?? "General"), anonymous: \(isAnonymous)")
     }
 }

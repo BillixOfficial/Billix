@@ -12,26 +12,44 @@ import Foundation
 
 struct CommunityComment: Identifiable {
     let id: UUID
+    let authorId: UUID?
     let authorName: String
     let authorUsername: String
     let content: String
     let timestamp: Date
     var likeCount: Int
+    let parentCommentId: UUID?  // For nested replies
+    var replies: [CommunityComment]  // Child comments
+    var isLiked: Bool
+    var isOwnComment: Bool
+    let isAnonymous: Bool  // Whether the comment was submitted anonymously
 
     init(
         id: UUID = UUID(),
+        authorId: UUID? = nil,
         authorName: String,
         authorUsername: String,
         content: String,
         timestamp: Date,
-        likeCount: Int = 0
+        likeCount: Int = 0,
+        parentCommentId: UUID? = nil,
+        replies: [CommunityComment] = [],
+        isLiked: Bool = false,
+        isOwnComment: Bool = false,
+        isAnonymous: Bool = false
     ) {
         self.id = id
+        self.authorId = authorId
         self.authorName = authorName
         self.authorUsername = authorUsername
         self.content = content
         self.timestamp = timestamp
         self.likeCount = likeCount
+        self.parentCommentId = parentCommentId
+        self.replies = replies
+        self.isLiked = isLiked
+        self.isOwnComment = isOwnComment
+        self.isAnonymous = isAnonymous
     }
 
     var timeAgo: String {
@@ -62,6 +80,7 @@ struct CommunityPost: Identifiable {
     var isSaved: Bool  // Whether the current user has saved/bookmarked this post
     var userReaction: String?  // The current user's reaction type (e.g., "heart", "fire", "thumbsUp")
     var isOwnPost: Bool  // Whether the current user is the author of this post
+    let isAnonymous: Bool  // Whether the post was submitted anonymously
 
     init(
         id: UUID = UUID(),
@@ -81,7 +100,8 @@ struct CommunityPost: Identifiable {
         topComment: CommunityComment? = nil,
         isSaved: Bool = false,
         userReaction: String? = nil,
-        isOwnPost: Bool = false
+        isOwnPost: Bool = false,
+        isAnonymous: Bool = false
     ) {
         self.id = id
         self.authorName = authorName
@@ -101,6 +121,7 @@ struct CommunityPost: Identifiable {
         self.isSaved = isSaved
         self.userReaction = userReaction
         self.isOwnPost = isOwnPost
+        self.isAnonymous = isAnonymous
     }
 }
 

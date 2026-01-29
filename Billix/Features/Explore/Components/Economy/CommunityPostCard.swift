@@ -313,15 +313,28 @@ struct CommunityPostCard: View {
 
     private var authorSection: some View {
         HStack(spacing: 12) {
-            // Avatar with tier ring
+            // Avatar with tier ring (or anonymous avatar)
             ZStack {
-                Circle()
-                    .stroke(tierGradient, lineWidth: 2.5)
-                    .frame(width: 46, height: 46)
+                if post.isAnonymous {
+                    // Anonymous avatar - neutral gray circle with question mark
+                    Circle()
+                        .fill(Color(hex: "#E5E7EB"))
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Image(systemName: "person.fill.questionmark")
+                                .font(.system(size: 18))
+                                .foregroundColor(Color(hex: "#9CA3AF"))
+                        )
+                } else {
+                    // Normal avatar with tier ring
+                    Circle()
+                        .stroke(tierGradient, lineWidth: 2.5)
+                        .frame(width: 46, height: 46)
 
-                avatarImage
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
+                    avatarImage
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
+                }
             }
 
             // Author Info
@@ -331,8 +344,8 @@ struct CommunityPostCard: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(headlineBlack)
 
-                    // Verified badge for Budget Pro
-                    if post.authorRole == "Budget Pro" {
+                    // Verified badge for Budget Pro (not shown for anonymous)
+                    if !post.isAnonymous && post.authorRole == "Budget Pro" {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 12))
                             .foregroundColor(Color.billixDarkTeal)
@@ -340,12 +353,14 @@ struct CommunityPostCard: View {
                 }
 
                 HStack(spacing: 6) {
-                    // Tier Badge
-                    tierBadge
+                    // Username/Tier Badge (not shown for anonymous unless it's own post)
+                    if !post.isAnonymous {
+                        tierBadge
 
-                    Text("•")
-                        .font(.system(size: 8))
-                        .foregroundColor(metadataGrey)
+                        Text("•")
+                            .font(.system(size: 8))
+                            .foregroundColor(metadataGrey)
+                    }
 
                     Text(post.timeAgo)
                         .font(.system(size: 13))
@@ -364,11 +379,13 @@ struct CommunityPostCard: View {
 
                 Divider()
 
-                // Report
-                Button(role: .destructive, action: {
-                    showReportSheet = true
-                }) {
-                    Label("Report", systemImage: "flag")
+                // Report (not for own posts)
+                if !post.isOwnPost {
+                    Button(role: .destructive, action: {
+                        showReportSheet = true
+                    }) {
+                        Label("Report", systemImage: "flag")
+                    }
                 }
 
                 // Delete (only for own posts)
@@ -461,11 +478,16 @@ struct CommunityPostCard: View {
 
             Spacer()
 
-            // Comments count
+            // Comments count - tappable to open comments
             if post.commentCount > 0 {
-                Text("\(post.commentCount) Comments")
-                    .font(.system(size: 13))
-                    .foregroundColor(metadataGrey)
+                Button {
+                    onCommentTapped()
+                } label: {
+                    Text("\(post.commentCount) \(post.commentCount == 1 ? "Comment" : "Comments")")
+                        .font(.system(size: 13))
+                        .foregroundColor(metadataGrey)
+                }
+                .buttonStyle(.plain)
             }
         }
     }

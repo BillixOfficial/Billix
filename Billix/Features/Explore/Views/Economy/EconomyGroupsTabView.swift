@@ -83,8 +83,11 @@ struct EconomyGroupsTabView: View {
                 CreatePostSheet(
                     availableGroups: viewModel.groups,
                     preselectedGroup: nil
-                ) { content, topic, group in
-                    // Post created - would be added to feed
+                ) { content, topic, group, isAnonymous in
+                    // Create post via shared viewModel
+                    Task {
+                        _ = await viewModel.createPost(content: content, topic: topic, groupId: group?.id, isAnonymous: isAnonymous)
+                    }
                 }
             }
             .task {
@@ -122,6 +125,8 @@ struct EconomyGroupsTabView: View {
                             joinedGroupCard(group)
                         }
                         .buttonStyle(.plain)
+                        // Force re-render when counts change
+                        .id("\(group.id)-\(group.postCount)-\(group.memberCount)")
                     }
                 }
                 .padding(.horizontal, 16)
@@ -192,6 +197,8 @@ struct EconomyGroupsTabView: View {
                                 toggleJoin(for: group)
                             }
                         )
+                        // Force re-render when postCount or memberCount changes
+                        .id("\(group.id)-\(group.postCount)-\(group.memberCount)")
                     }
                 }
                 .padding(.horizontal, 16)
@@ -262,6 +269,7 @@ struct GroupCard: View {
     let onJoinTapped: () -> Void
 
     var body: some View {
+        let _ = print("[GroupCard] 📊 RENDER - \(group.name): \(group.postCount) posts, \(group.memberCount) members")
         Button(action: {
             onCardTapped()
         }) {

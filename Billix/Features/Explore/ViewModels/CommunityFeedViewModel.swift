@@ -59,7 +59,13 @@ class CommunityFeedViewModel: ObservableObject {
 
         do {
             // Always reload groups to get fresh isJoined status (for CreatePostSheet)
-            groups = try await service.fetchGroups()
+            print("[CommunityFeedViewModel] loadPosts - Loading groups")
+            let fetchedGroups = try await service.fetchGroups()
+            print("[CommunityFeedViewModel] loadPosts - Got \(fetchedGroups.count) groups")
+            for g in fetchedGroups {
+                print("[CommunityFeedViewModel] loadPosts -   \(g.name): \(g.postCount) posts")
+            }
+            groups = fetchedGroups
 
             let fetchedPosts = try await service.fetchFeed(
                 filter: selectedFilter,
@@ -70,15 +76,14 @@ class CommunityFeedViewModel: ObservableObject {
             hasMorePages = fetchedPosts.count >= pageSize
         } catch {
             self.error = error.localizedDescription
-            // Fall back to mock data if fetch fails
-            if selectedFilter == .recent {
-                posts = CommunityPost.mockPosts
-            } else {
-                posts = []
+            // Keep existing posts on error rather than clearing or showing mock data
+            // Only clear if there was no data before
+            if posts.isEmpty {
+                print("[CommunityFeedViewModel] loadPosts - No posts to show, keeping empty state")
             }
-            // Fall back to mock groups if needed
+            // Keep existing groups on error
             if groups.isEmpty {
-                groups = CommunityGroup.mockGroups
+                print("[CommunityFeedViewModel] loadPosts - No groups loaded yet")
             }
         }
 
@@ -134,10 +139,9 @@ class CommunityFeedViewModel: ObservableObject {
         do {
             groups = try await service.fetchGroups()
         } catch {
-            // Fall back to mock data if fetch fails
-            if groups.isEmpty {
-                groups = CommunityGroup.mockGroups
-            }
+            print("[CommunityFeedViewModel] loadGroups - Error: \(error)")
+            self.error = error.localizedDescription
+            // Keep existing groups on error - no mock data fallback
         }
 
         isLoadingGroups = false
@@ -352,14 +356,17 @@ class CommunityFeedViewModel: ObservableObject {
     }
 
     /// Create a new post
-    func createPost(content: String, topic: PostTopic, groupId: UUID? = nil) async -> Bool {
+    func createPost(content: String, topic: PostTopic, groupId: UUID? = nil, isAnonymous: Bool = false) async -> Bool {
+        print("[CommunityFeedViewModel] createPost - content: \(content.prefix(50))..., topic: \(topic), isAnonymous: \(isAnonymous)")
+
         do {
             let topicType = CommunityTopicType(rawValue: topic.rawValue.lowercased()) ?? .general
 
             let newPost = try await service.createPost(
                 content: content,
                 topic: topicType,
-                groupId: groupId
+                groupId: groupId,
+                isAnonymous: isAnonymous
             )
             // Insert at top of feed
             posts.insert(newPost, at: 0)
@@ -418,6 +425,41 @@ class CommunityFeedViewModel: ObservableObject {
             groups = originalGroups
             self.error = error.localizedDescription
             return false
+        }
+    }
+
+    /// Update comment count for a post (called from CommentsSheetView)
+    func updateCommentCount(for postId: UUID, count: Int) {
+        print("[CommunityFeedViewModel] updateCommentCount called - postId: \(postId), newCount: \(count)")
+
+        // Explicitly notify SwiftUI that we're about to change
+        objectWillChange.send()
+
+        // Update in main posts array - create new copy to trigger SwiftUI update
+        if let index = posts.firstIndex(where: { $0.id == postId }) {
+            let oldCount = posts[index].commentCount
+            guard oldCount != count else {
+                print("[CommunityFeedViewModel] updateCommentCount - No change needed, already \(count)")
+                return
+            }
+            // Create a new copy and replace to ensure SwiftUI detects the change
+            var updatedPost = posts[index]
+            updatedPost.commentCount = count
+            posts[index] = updatedPost
+            print("[CommunityFeedViewModel] updateCommentCount - Updated posts[\(index)] from \(oldCount) to \(count) ✅")
+        } else {
+            print("[CommunityFeedViewModel] updateCommentCount - Post not found in posts array!")
+        }
+
+        // Also update in groupPosts to keep views in sync
+        for (groupId, var groupPostList) in groupPosts {
+            if let index = groupPostList.firstIndex(where: { $0.id == postId }) {
+                var updatedPost = groupPostList[index]
+                updatedPost.commentCount = count
+                groupPostList[index] = updatedPost
+                groupPosts[groupId] = groupPostList
+                print("[CommunityFeedViewModel] updateCommentCount - Updated groupPosts[\(groupId)][\(index)] ✅")
+            }
         }
     }
 
