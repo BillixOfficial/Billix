@@ -23,8 +23,9 @@ struct EmailVerificationView: View {
     @State private var isResending: Bool = false
     @State private var showResendSuccess: Bool = false
 
-    // Timer for animation loop
-    @State private var animationTimer: Timer?
+    // Tasks for animation and polling (auto-cancelled on view disappear)
+    @State private var animationTask: Task<Void, Never>?
+    @State private var pollingTask: Task<Void, Never>?
 
     var body: some View {
         ZStack {
@@ -148,7 +149,9 @@ struct EmailVerificationView: View {
             startPollingForVerification()
         }
         .onDisappear {
-            animationTimer?.invalidate()
+            // Cancel all tasks to prevent memory leaks
+            animationTask?.cancel()
+            pollingTask?.cancel()
         }
     }
 
@@ -228,9 +231,13 @@ struct EmailVerificationView: View {
         // Initial animation
         runLetterAnimation()
 
-        // Loop every 4 seconds
-        animationTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
-            runLetterAnimation()
+        // Loop every 4 seconds using Task (auto-cancellable)
+        animationTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 4_000_000_000) // 4 seconds
+                if Task.isCancelled { break }
+                runLetterAnimation()
+            }
         }
     }
 
@@ -248,7 +255,8 @@ struct EmailVerificationView: View {
         }
 
         // Letter drops into mailbox
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 800_000_000)
             withAnimation(.easeIn(duration: 0.3)) {
                 letterOpacity = 0
             }
@@ -260,7 +268,8 @@ struct EmailVerificationView: View {
         }
 
         // Flag goes up
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_100_000_000)
             withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
                 mailboxRotation = 0
                 flagUp = true
@@ -271,15 +280,16 @@ struct EmailVerificationView: View {
     // MARK: - Verification Polling
 
     private func startPollingForVerification() {
-        // Poll every 3 seconds to check if user verified
-        Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { timer in
-            Task {
+        // Poll every 3 seconds using Task (auto-cancellable)
+        pollingTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+                if Task.isCancelled { break }
+
                 let isVerified = await authService.checkEmailVerification()
                 if isVerified {
-                    timer.invalidate()
-                    await MainActor.run {
-                        showSuccessAnimation()
-                    }
+                    showSuccessAnimation()
+                    break // Stop polling once verified
                 }
             }
         }
@@ -291,7 +301,8 @@ struct EmailVerificationView: View {
         }
 
         // Auto transition after confetti
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
             // AuthService will handle the transition via signedIn event
         }
     }

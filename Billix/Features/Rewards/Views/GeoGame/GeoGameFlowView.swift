@@ -36,31 +36,29 @@ struct GeoGameFlowView: View {
                 GeoGameHowToPlayView(
                     onStart: {
                         // User completed tutorial - start game
-                        Task {
+                        Task { @MainActor in
                             if let userId = currentUserId {
                                 do {
                                     try await tutorialManager.markTutorialCompleted(userId: userId, pagesViewed: 4)
                                     withAnimation(.easeInOut(duration: 0.3)) {
                                         showTutorial = false
                                     }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        showGame = true
-                                    }
+                                    try? await Task.sleep(nanoseconds: 300_000_000)
+                                    showGame = true
                                 } catch {
                                     // Still proceed to game even on error
                                     withAnimation(.easeInOut(duration: 0.3)) {
                                         showTutorial = false
                                     }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        showGame = true
-                                    }
+                                    try? await Task.sleep(nanoseconds: 300_000_000)
+                                    showGame = true
                                 }
                             }
                         }
                     },
                     onSkip: {
                         // User skipped for now - will see it next time
-                        Task {
+                        Task { @MainActor in
                             if let userId = currentUserId {
                                 do {
                                     try await tutorialManager.markTutorialSkipped(userId: userId)
@@ -70,14 +68,13 @@ struct GeoGameFlowView: View {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 showTutorial = false
                             }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                showGame = true
-                            }
+                            try? await Task.sleep(nanoseconds: 300_000_000)
+                            showGame = true
                         }
                     },
                     onSkipAndDontShowAgain: {
                         // User chose to never see it again - save preference
-                        Task {
+                        Task { @MainActor in
                             if let userId = currentUserId {
                                 do {
                                     try await tutorialManager.markTutorialDismissed(userId: userId)
@@ -87,9 +84,8 @@ struct GeoGameFlowView: View {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 showTutorial = false
                             }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                showGame = true
-                            }
+                            try? await Task.sleep(nanoseconds: 300_000_000)
+                            showGame = true
                         }
                     },
                     onPageChanged: { pageNumber in

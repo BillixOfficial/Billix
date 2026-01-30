@@ -84,9 +84,11 @@ class RewardsViewModel: ObservableObject {
     @Published var showAllRewards: Bool = false
     @Published var errorMessage: String?
 
-    // MARK: - Animation
+    // MARK: - Animation & Task Management
 
-    private var animationWorkItem: DispatchWorkItem?
+    private var animationTask: Task<Void, Never>?
+    private var loadTask: Task<Void, Never>?
+    private var pointsTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -119,7 +121,10 @@ class RewardsViewModel: ObservableObject {
     }
 
     deinit {
-        animationWorkItem?.cancel()
+        // Cancel all running tasks to prevent memory leaks
+        animationTask?.cancel()
+        loadTask?.cancel()
+        pointsTask?.cancel()
         NotificationCenter.default.removeObserver(self)
     }
 
@@ -172,7 +177,7 @@ class RewardsViewModel: ObservableObject {
 
     func animateBalanceChange(to newBalance: Int) {
         // Cancel any previous animation to prevent stacking
-        animationWorkItem?.cancel()
+        animationTask?.cancel()
 
         let startBalance = displayedBalance
         let difference = newBalance - startBalance
@@ -184,64 +189,70 @@ class RewardsViewModel: ObservableObject {
         }
 
         let steps = 20
-        let stepDuration: TimeInterval = 0.03
+        let stepDurationNs: UInt64 = 30_000_000 // 30ms in nanoseconds
 
-        // Create a single work item that performs all steps
-        let workItem = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
-
+        // Create a cancellable Task for animation
+        animationTask = Task { [weak self] in
             for i in 0...steps {
-                // Check if cancelled between steps
-                if self.animationWorkItem?.isCancelled == true { return }
+                // Check for cancellation
+                if Task.isCancelled { return }
 
                 let progress = Double(i) / Double(steps)
                 let easedProgress = 1 - pow(1 - progress, 3) // Ease out cubic
 
-                DispatchQueue.main.async { [weak self] in
+                await MainActor.run { [weak self] in
                     self?.displayedBalance = startBalance + Int(Double(difference) * easedProgress)
                 }
 
-                // Sleep between steps (non-blocking on background thread)
+                // Use Task.sleep instead of Thread.sleep (non-blocking)
                 if i < steps {
-                    Thread.sleep(forTimeInterval: stepDuration)
+                    try? await Task.sleep(nanoseconds: stepDurationNs)
                 }
             }
 
             // Ensure final value is exact
-            DispatchQueue.main.async { [weak self] in
+            await MainActor.run { [weak self] in
                 self?.displayedBalance = newBalance
             }
         }
-
-        animationWorkItem = workItem
-        DispatchQueue.global(qos: .userInteractive).async(execute: workItem)
     }
 
     func addPoints(_ amount: Int, description: String, type: PointTransactionType = .gameWin) {
-        Task {
+        // Cancel any previous points operation
+        pointsTask?.cancel()
+
+        pointsTask = Task { [weak self] in
+            guard let self = self else { return }
+
             do {
                 guard let userId = self.authService.currentUser?.id else {
                     return
                 }
 
+                // Check for cancellation before network call
+                if Task.isCancelled { return }
+
                 // Add points via Supabase service
-                let newBalance = try await rewardsService.addPoints(
+                let newBalance = try await self.rewardsService.addPoints(
                     userId: userId,
                     amount: amount,
                     type: type.rawValue,
                     description: description
                 )
 
-                await MainActor.run {
-                    points.balance = newBalance
-                    points.lifetimeEarned = newBalance
+                // Check for cancellation after network call
+                if Task.isCancelled { return }
 
-                    // Animate the balance change
-                    animateBalanceChange(to: points.balance)
-                }
+                self.points.balance = newBalance
+                self.points.lifetimeEarned = newBalance
+
+                // Animate the balance change
+                self.animateBalanceChange(to: self.points.balance)
 
             } catch {
-                print("❌ Failed to add points: \(error)")
+                if !Task.isCancelled {
+                    print("❌ Failed to add points: \(error)")
+                }
             }
         }
     }
@@ -261,27 +272,37 @@ class RewardsViewModel: ObservableObject {
     func redeemReward(_ reward: Reward) {
         guard canAffordReward(reward) else { return }
 
-        Task {
+        // Cancel any previous points operation
+        pointsTask?.cancel()
+
+        pointsTask = Task { [weak self] in
+            guard let self = self else { return }
+
             do {
                 guard let userId = self.authService.currentUser?.id else {
                     return
                 }
 
+                // Check for cancellation
+                if Task.isCancelled { return }
+
                 // Deduct points via deductPoints service
-                let newBalance = try await rewardsService.deductPoints(
+                let newBalance = try await self.rewardsService.deductPoints(
                     userId: userId,
                     amount: reward.pointsCost
                 )
 
-                await MainActor.run {
-                    points.balance = newBalance
+                // Check for cancellation
+                if Task.isCancelled { return }
 
-                    animateBalanceChange(to: points.balance)
-                    showRedeemSheet = false
-                }
+                self.points.balance = newBalance
+                self.animateBalanceChange(to: self.points.balance)
+                self.showRedeemSheet = false
 
             } catch {
-                print("❌ Failed to redeem reward: \(error)")
+                if !Task.isCancelled {
+                    print("❌ Failed to redeem reward: \(error)")
+                }
             }
         }
     }

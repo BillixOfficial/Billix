@@ -63,7 +63,8 @@ struct Phase1LocationView: View {
                     action: {
                         viewModel.selectLocation(choice.displayLabel)
                         // Auto-submit after 0.5s delay for visual feedback
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 500_000_000)
                             if !hasSubmitted && !isInFeedbackPhase {
                                 viewModel.submitLocationGuess()
                             }

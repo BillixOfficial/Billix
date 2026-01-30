@@ -110,7 +110,8 @@ struct EconomyNewsTabView: View {
                 category: viewModel.selectedCategory,
                 onArticleTap: { article in
                     showAllArticlesModal = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 300_000_000)
                         viewModel.selectArticle(article)
                     }
                 }

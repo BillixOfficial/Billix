@@ -16,6 +16,7 @@ struct ComboUnlockAnimation: View {
     @State private var scale: CGFloat = 0.3
     @State private var opacity: Double = 0
     @State private var glowOpacity: Double = 0
+    @State private var animationTask: Task<Void, Never>?
 
     var multiplier: Double {
         // Combo system removed - return 1.0 (this view is no longer used)
@@ -83,6 +84,9 @@ struct ComboUnlockAnimation: View {
         .onAppear {
             performAnimation()
         }
+        .onDisappear {
+            animationTask?.cancel()
+        }
     }
 
     private func performAnimation() {
@@ -93,25 +97,25 @@ struct ComboUnlockAnimation: View {
             glowOpacity = 1.0
         }
 
-        // Phase 2: Pulse (0.6s - 1.2s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        // Phase 2-4: Sequential animations
+        animationTask = Task { @MainActor in
+            // Phase 2: Pulse (0.6s - 1.2s)
+            try? await Task.sleep(nanoseconds: 600_000_000)
             withAnimation(.easeInOut(duration: 0.3).repeatCount(2, autoreverses: true)) {
                 scale = 1.1
                 glowOpacity = 0.7
             }
-        }
 
-        // Phase 3: Shrink and fade out (1.5s - 1.8s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            // Phase 3: Shrink and fade out (1.5s - 1.8s)
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             withAnimation(.easeInOut(duration: 0.3)) {
                 scale = 0.3
                 opacity = 0
                 glowOpacity = 0
             }
-        }
 
-        // Complete and dismiss (2.0s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            // Complete and dismiss (2.0s)
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
             onComplete()
         }
     }

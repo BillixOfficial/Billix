@@ -17,7 +17,7 @@ struct WeeklyGiveawayCard: View {
     let onHowToEarn: () -> Void
 
     @State private var timeRemaining: TimeInterval = 0
-    @State private var timer: Timer?
+    @State private var timerTask: Task<Void, Never>?
     @State private var ticketCount: Int = 1
     @State private var shimmerOffset: CGFloat = -300
     @State private var showOfficialRules: Bool = false
@@ -50,7 +50,7 @@ struct WeeklyGiveawayCard: View {
             }
         }
         .onDisappear {
-            timer?.invalidate()
+            timerTask?.cancel()
         }
     }
 
@@ -405,11 +405,15 @@ struct WeeklyGiveawayCard: View {
     }
 
     func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-            } else {
-                calculateTimeRemaining()
+        timerTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                if Task.isCancelled { break }
+                if timeRemaining > 0 {
+                    timeRemaining -= 1
+                } else {
+                    calculateTimeRemaining()
+                }
             }
         }
     }

@@ -213,7 +213,8 @@ struct QuickTasksScreen: View {
         .transition(.opacity)
         .onAppear {
             // Auto-dismiss after 2 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
                 viewModel.dismissClaimSuccess()
             }
         }
@@ -267,7 +268,8 @@ struct QuickTasksScreen: View {
         .transition(.opacity)
         .onAppear {
             // Auto-dismiss after 2.5 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 2_500_000_000)
                 viewModel.dismissCheckInSuccess()
             }
         }

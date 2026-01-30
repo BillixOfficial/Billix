@@ -69,7 +69,8 @@ struct TotalSurvivalBadge: View {
         isLoading = true
 
         // Simulate brief loading state
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 300_000_000)
             isLoading = false
             displayedAmount = 0
 

@@ -83,7 +83,8 @@ struct QuickAddStep4Result: View {
             }
 
             // Trigger confetti after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 300_000_000)
                 showConfetti = true
                 triggerHapticFeedback()
             }

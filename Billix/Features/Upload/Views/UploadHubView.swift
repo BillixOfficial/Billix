@@ -113,7 +113,8 @@ struct UploadHubView: View {
                 },
 onSwitchToFullAnalysis: {
                     // Dismiss Quick Add and navigate to upload method selection after a short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 300_000_000)
                         navigateToUploadMethods = true
                     }
                 }

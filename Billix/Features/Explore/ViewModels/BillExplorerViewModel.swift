@@ -87,9 +87,10 @@ class BillExplorerViewModel: ObservableObject {
         isLoading = true
 
         // Simulate network delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        Task { @MainActor [weak self] in
             guard let self = self else { return }
 
+            try? await Task.sleep(nanoseconds: 500_000_000)
             self.allListings = ExploreBillListing.mockListings
             self.applyRotationAlgorithm()
             self.applyFilters()

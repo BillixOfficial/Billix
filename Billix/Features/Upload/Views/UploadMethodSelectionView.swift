@@ -233,7 +233,8 @@ private struct BenefitRow: View {
         .padding(.vertical, 12)
         .onAppear {
             // Stagger the animation start
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0...0.5)) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: UInt64(Double.random(in: 0...0.5) * 1_000_000_000))
                 isAnimating = true
             }
         }

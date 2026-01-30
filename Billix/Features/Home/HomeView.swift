@@ -191,7 +191,8 @@ struct HomeView: View {
                 // Show setup questions for first-time users
                 if let user = authService.currentUser, user.needsHomeSetup {
                     // Delay slightly to let the main view settle
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 500_000_000)
                         showSetupQuestions = true
                     }
                 }

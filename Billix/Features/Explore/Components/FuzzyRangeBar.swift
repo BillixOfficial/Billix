@@ -140,7 +140,8 @@ struct FuzzyRangeBar: View {
                     }
 
                     // Auto-hide after 2s
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
                         withAnimation(.easeInOut(duration: 0.5)) {
                             isRevealed = false
                         }
@@ -149,7 +150,8 @@ struct FuzzyRangeBar: View {
         )
         .onAppear {
             // Hide hint after 3 seconds if not interacted
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
                 withAnimation {
                     showHint = false
                 }

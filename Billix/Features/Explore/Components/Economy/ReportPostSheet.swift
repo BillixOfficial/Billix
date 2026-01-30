@@ -260,7 +260,8 @@ struct ReportPostSheet: View {
         onSubmit(reason, details)
 
         // Show confirmation after a brief delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
             isSubmitting = false
             showConfirmation = true
         }

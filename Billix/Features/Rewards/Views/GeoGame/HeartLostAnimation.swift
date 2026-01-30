@@ -16,6 +16,7 @@ struct HeartLostAnimation: View {
     @State private var opacity: Double = 0
     @State private var heartScale: CGFloat = 1.0
     @State private var crackOffset: CGFloat = 0
+    @State private var animationTask: Task<Void, Never>?
 
     var body: some View {
         ZStack {
@@ -61,6 +62,9 @@ struct HeartLostAnimation: View {
         .onAppear {
             performAnimation()
         }
+        .onDisappear {
+            animationTask?.cancel()
+        }
     }
 
     private func performAnimation() {
@@ -70,24 +74,24 @@ struct HeartLostAnimation: View {
             opacity = 1.0
         }
 
-        // Phase 2: Heart break effect (0.3s - 0.6s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        // Phase 2-4: Sequential animations
+        animationTask = Task { @MainActor in
+            // Phase 2: Heart break effect (0.3s - 0.6s)
+            try? await Task.sleep(nanoseconds: 300_000_000)
             withAnimation(.easeOut(duration: 0.3)) {
                 crackOffset = 20
                 heartScale = 1.1
             }
-        }
 
-        // Phase 3: Fade out (0.8s - 1.1s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            // Phase 3: Fade out (0.8s - 1.1s)
+            try? await Task.sleep(nanoseconds: 800_000_000)
             withAnimation(.easeInOut(duration: 0.3)) {
                 scale = 0.8
                 opacity = 0
             }
-        }
 
-        // Complete and dismiss (1.2s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            // Complete and dismiss (1.2s)
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
             onComplete()
         }
     }

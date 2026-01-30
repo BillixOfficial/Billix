@@ -250,7 +250,6 @@ struct StreakStatsCarousel: View {
     let currentTier: RewardsTier
 
     @State private var currentIndex: Int = 0
-    @State private var timer: Timer?
 
     // Week days (Monday to Sunday)
     private let weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -263,6 +262,9 @@ struct StreakStatsCarousel: View {
         }
     }
 
+    // Use TimelineView for automatic carousel - no Timer memory leak risk
+    private let autoScrollInterval: TimeInterval = 4.5
+
     var body: some View {
         HStack(spacing: 8) {
             // Left Arrow
@@ -272,7 +274,6 @@ struct StreakStatsCarousel: View {
                 }
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
-                resetTimer()
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 16, weight: .bold))
@@ -301,7 +302,6 @@ struct StreakStatsCarousel: View {
                 }
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
-                resetTimer()
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 16, weight: .bold))
@@ -310,26 +310,23 @@ struct StreakStatsCarousel: View {
             .buttonStyle(ScaleButtonStyle(scale: 0.9))
         }
         .padding(.horizontal, 4)
-        .onAppear {
-            startTimer()
-        }
-        .onDisappear {
-            timer?.invalidate()
-            timer = nil
+        .task {
+            // Use structured concurrency for auto-scroll - automatically cancelled when view disappears
+            await autoScrollLoop()
         }
     }
 
-    private func startTimer() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 4.5, repeats: true) { _ in
+    @MainActor
+    private func autoScrollLoop() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: UInt64(autoScrollInterval * 1_000_000_000))
+
+            if Task.isCancelled { break }
+
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 currentIndex = currentIndex == 0 ? 1 : 0
             }
         }
-    }
-
-    private func resetTimer() {
-        startTimer()
     }
 }
 
@@ -447,7 +444,8 @@ struct WeeklyProgressSlide: View {
             // Trigger animation on appear for days that are part of the current streak
             for i in 0..<progress.count {
                 if shouldShowCheckmark(at: i) {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 100_000_000)
                         animatedChecks[i] = true
                     }
                 }
@@ -534,6 +532,7 @@ struct RollingNumberView: View {
     let color: Color
 
     @State private var displayedValue: Int = 0
+    @State private var animationTask: Task<Void, Never>?
 
     var body: some View {
         Text("\(displayedValue)")
@@ -545,18 +544,31 @@ struct RollingNumberView: View {
             .onAppear {
                 displayedValue = value
             }
+            .onDisappear {
+                // Cancel animation when view disappears
+                animationTask?.cancel()
+            }
     }
 
     private func animateValueChange(from oldValue: Int, to newValue: Int) {
+        // Cancel any existing animation
+        animationTask?.cancel()
+
         let difference = newValue - oldValue
         let steps = min(abs(difference), 30)
-        let stepDuration: TimeInterval = 0.5 / Double(max(steps, 1))
+        let stepDurationNs: UInt64 = UInt64(500_000_000 / max(steps, 1)) // 0.5s total
 
-        for i in 0...steps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) {
+        animationTask = Task { @MainActor in
+            for i in 0...steps {
+                if Task.isCancelled { break }
+
                 let progress = Double(i) / Double(max(steps, 1))
                 let easedProgress = 1 - pow(1 - progress, 3) // Ease out cubic
                 displayedValue = oldValue + Int(Double(difference) * easedProgress)
+
+                if i < steps {
+                    try? await Task.sleep(nanoseconds: stepDurationNs)
+                }
             }
         }
     }

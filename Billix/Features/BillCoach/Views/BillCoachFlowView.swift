@@ -80,7 +80,8 @@ struct BillCoachFlowView: View {
         .onChange(of: session.currentStep) { _, newStep in
             if newStep == .confidenceScore {
                 showConfetti = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
                     showConfetti = false
                 }
             }
@@ -329,7 +330,8 @@ private struct BillWalkthroughView: View {
         }
         .onAppear {
             // Auto-show first tip after a moment
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 500_000_000)
                 withAnimation {
                     showTip = true
                 }
@@ -628,7 +630,8 @@ private struct DecisionQuizView: View {
                                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
 
                                     // Auto-reveal after selection
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    Task { @MainActor in
+                                        try? await Task.sleep(nanoseconds: 300_000_000)
                                         withAnimation {
                                             showResult = true
                                             isCorrect = index == currentQuestion.correctIndex
