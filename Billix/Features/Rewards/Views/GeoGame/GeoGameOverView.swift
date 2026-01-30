@@ -21,6 +21,7 @@ struct GeoGameOverView: View {
     @State private var animatedAccuracy = 0.0
     @State private var showConfetti = false
     @State private var pulseButton = false
+    @State private var animationTask: Task<Void, Never>?
 
     var didWin: Bool {
         session.hasWon
@@ -430,6 +431,9 @@ struct GeoGameOverView: View {
         .onAppear {
             startAnimationSequence()
         }
+        .onDisappear {
+            animationTask?.cancel()
+        }
     }
 
     // MARK: - Animation Sequence
@@ -440,31 +444,30 @@ struct GeoGameOverView: View {
             showContent = true
         }
 
-        // 2. Show stars with delay
-        if didWin {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        // 2-6. Sequential animations in a single Task
+        animationTask = Task { @MainActor in
+            // 2. Show stars with delay
+            if didWin {
+                try? await Task.sleep(nanoseconds: 300_000_000)
                 withAnimation {
                     showStars = true
                 }
                 // Trigger confetti
                 showConfetti = true
             }
-        }
 
-        // 3. Show stats card
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // 3. Show stats card
+            try? await Task.sleep(nanoseconds: 500_000_000)
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 showStats = true
             }
 
             // 4. Animate accuracy count-up
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                animateAccuracy()
-            }
-        }
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            animateAccuracy()
 
-        // 6. Pulse the play again button
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            // 6. Pulse the play again button
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
                 pulseButton = true
             }
@@ -476,8 +479,9 @@ struct GeoGameOverView: View {
         let steps = 20
         let increment = accuracy / Double(steps)
 
-        for i in 0...steps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + (duration / Double(steps)) * Double(i)) {
+        Task { @MainActor in
+            for i in 0...steps {
+                try? await Task.sleep(nanoseconds: UInt64((duration / Double(steps)) * Double(i) * 1_000_000_000))
                 animatedAccuracy = min(increment * Double(i), accuracy)
             }
         }

@@ -74,6 +74,7 @@ extension View {
 
 struct ShimmerEffect: ViewModifier {
     @State private var phase: CGFloat = 0
+    @State private var isAnimating = false
 
     func body(content: Content) -> some View {
         content
@@ -94,12 +95,19 @@ struct ShimmerEffect: ViewModifier {
                 .mask(content)
             )
             .onAppear {
+                isAnimating = true
                 withAnimation(
                     .linear(duration: 2.0)
                     .repeatForever(autoreverses: false)
                 ) {
-                    phase = 1
+                    if isAnimating {
+                        phase = 1
+                    }
                 }
+            }
+            .onDisappear {
+                isAnimating = false
+                phase = 0
             }
     }
 }
@@ -127,6 +135,9 @@ struct BounceAnimation: ViewModifier {
                 ) {
                     isAnimating = true
                 }
+            }
+            .onDisappear {
+                isAnimating = false
             }
     }
 }

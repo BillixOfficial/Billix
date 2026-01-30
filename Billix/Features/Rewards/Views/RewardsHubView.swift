@@ -358,6 +358,7 @@ struct DailyGameHeroCard: View {
     @State private var badgePulse = false
     @State private var isPressed = false
     @State private var tickerOffset: CGFloat = 0
+    @State private var viewIsVisible = false
 
     // Mock streak data (TODO: Connect to actual streak tracking)
     private let streakDays = 4
@@ -550,6 +551,7 @@ struct DailyGameHeroCard: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Daily Price Guessr game. Guess prices around the world. Test your price knowledge.")
         .onAppear {
+            viewIsVisible = true
             // Start animations
             withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
                 isAnimating = true
@@ -563,6 +565,12 @@ struct DailyGameHeroCard: View {
             withAnimation(.linear(duration: 2.5).repeatForever(autoreverses: false)) {
                 shimmerOffset = 400
             }
+        }
+        .onDisappear {
+            viewIsVisible = false
+            isAnimating = false
+            badgePulse = false
+            shimmerOffset = -200
         }
     }
 
@@ -1414,7 +1422,8 @@ struct RewardRedeemSheet: View {
                     let generator = UIImpactFeedbackGenerator(style: .medium)
                     generator.impactOccurred()
 
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 500_000_000)
                         onRedeem()
                         dismiss()
                     }

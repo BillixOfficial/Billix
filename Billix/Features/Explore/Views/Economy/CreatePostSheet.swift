@@ -99,7 +99,8 @@ struct CreatePostSheet: View {
                 }
             }
             .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 300_000_000)
                     isTextFieldFocused = true
                 }
             }

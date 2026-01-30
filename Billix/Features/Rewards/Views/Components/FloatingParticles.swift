@@ -46,6 +46,7 @@ struct FloatingParticle: View {
     @State private var yOffset: CGFloat = 0
     @State private var xOffset: CGFloat = 0
     @State private var opacity: Double = 0.0
+    @State private var isAnimating = false
 
     // Randomized properties
     private let size: CGFloat = CGFloat.random(in: 4...6)
@@ -76,47 +77,73 @@ struct FloatingParticle: View {
                 y: startY + yOffset
             )
             .onAppear {
-                // Upward drift
-                withAnimation(
-                    .linear(duration: duration)
-                    .repeatForever(autoreverses: false)
-                    .delay(delay)
-                ) {
-                    yOffset = -(geometry.size.height + 40)
-                }
-
-                // Horizontal waver (sine wave effect)
-                withAnimation(
-                    .easeInOut(duration: duration / 3)
-                    .repeatForever(autoreverses: true)
-                    .delay(delay)
-                ) {
-                    xOffset = waveAmplitude
-                }
-
-                // Fade in/out
-                withAnimation(
-                    .easeIn(duration: 1.0)
-                    .delay(delay)
-                ) {
-                    opacity = finalOpacity
-                }
-
-                // Fade out at the end
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay + duration - 1.5) {
-                    withAnimation(.easeOut(duration: 1.5)) {
-                        opacity = 0.0
-                    }
-                }
-
-                // Restart particle after it completes
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay + duration + 0.5) {
-                    restartParticle()
-                }
+                isAnimating = true
+                startAnimations()
+            }
+            .onDisappear {
+                isAnimating = false
+                // Reset state to stop animations
+                yOffset = 0
+                xOffset = 0
+                opacity = 0.0
             }
     }
 
+    private func startAnimations() {
+        guard isAnimating else { return }
+
+        // Upward drift
+        withAnimation(
+            .linear(duration: duration)
+            .repeatForever(autoreverses: false)
+            .delay(delay)
+        ) {
+            if isAnimating {
+                yOffset = -(geometry.size.height + 40)
+            }
+        }
+
+        // Horizontal waver (sine wave effect)
+        withAnimation(
+            .easeInOut(duration: duration / 3)
+            .repeatForever(autoreverses: true)
+            .delay(delay)
+        ) {
+            if isAnimating {
+                xOffset = waveAmplitude
+            }
+        }
+
+        // Fade in/out
+        withAnimation(
+            .easeIn(duration: 1.0)
+            .delay(delay)
+        ) {
+            if isAnimating {
+                opacity = finalOpacity
+            }
+        }
+
+        // Fade out at the end
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64((delay + duration - 1.5) * 1_000_000_000))
+            guard isAnimating else { return }
+            withAnimation(.easeOut(duration: 1.5)) {
+                opacity = 0.0
+            }
+        }
+
+        // Restart particle after it completes
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64((delay + duration + 0.5) * 1_000_000_000))
+            guard isAnimating else { return }
+            restartParticle()
+        }
+    }
+
     private func restartParticle() {
+        guard isAnimating else { return }
+
         // Reset to starting position
         yOffset = 0
         xOffset = 0
@@ -127,29 +154,39 @@ struct FloatingParticle: View {
             .linear(duration: duration)
             .repeatForever(autoreverses: false)
         ) {
-            yOffset = -(geometry.size.height + 40)
+            if isAnimating {
+                yOffset = -(geometry.size.height + 40)
+            }
         }
 
         withAnimation(
             .easeInOut(duration: duration / 3)
             .repeatForever(autoreverses: true)
         ) {
-            xOffset = waveAmplitude
+            if isAnimating {
+                xOffset = waveAmplitude
+            }
         }
 
         withAnimation(.easeIn(duration: 1.0)) {
-            opacity = finalOpacity
+            if isAnimating {
+                opacity = finalOpacity
+            }
         }
 
         // Schedule fade out
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration - 1.5) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64((duration - 1.5) * 1_000_000_000))
+            guard isAnimating else { return }
             withAnimation(.easeOut(duration: 1.5)) {
                 opacity = 0.0
             }
         }
 
         // Schedule next restart
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.5) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64((duration + 0.5) * 1_000_000_000))
+            guard isAnimating else { return }
             restartParticle()
         }
     }

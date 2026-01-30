@@ -65,7 +65,8 @@ struct QuickAddStep2Provider: View {
             }
             // Only auto-focus ZIP input if it's empty
             if viewModel.zipCode.isEmpty {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 500_000_000)
                     isZipFocused = true
                 }
             }

@@ -1256,7 +1256,8 @@ struct ProfileView: View {
     private func submitErrorReport() {
         isSubmittingFeedback = true
         // In production, this would send to your backend
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             isSubmittingFeedback = false
             showReportErrorSheet = false
             showFeedbackSuccess = true
@@ -1267,7 +1268,8 @@ struct ProfileView: View {
     private func submitFeatureSuggestion() {
         isSubmittingFeedback = true
         // In production, this would send to your backend
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             isSubmittingFeedback = false
             showSuggestFeatureSheet = false
             showFeedbackSuccess = true

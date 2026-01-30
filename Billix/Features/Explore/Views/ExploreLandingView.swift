@@ -72,7 +72,8 @@ struct ExploreLandingView: View {
                                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                                     isNavigating = false
                                 }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                Task { @MainActor in
+                                    try? await Task.sleep(nanoseconds: 500_000_000)
                                     navigationDestination = nil
                                 }
                             } label: {
@@ -96,7 +97,8 @@ struct ExploreLandingView: View {
                                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                                     isNavigating = false
                                 }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                Task { @MainActor in
+                                    try? await Task.sleep(nanoseconds: 500_000_000)
                                     navigationDestination = nil
                                 }
                             } label: {
@@ -119,7 +121,8 @@ struct ExploreLandingView: View {
                                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                                     isNavigating = false
                                 }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                Task { @MainActor in
+                                    try? await Task.sleep(nanoseconds: 500_000_000)
                                     navigationDestination = nil
                                 }
                             } label: {

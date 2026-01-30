@@ -155,6 +155,7 @@ struct TimerDisplay: View {
     let isCritical: Bool
 
     @State private var isPulsing: Bool = false
+    @State private var isViewVisible = false
 
     var body: some View {
         HStack(spacing: 6) {
@@ -169,6 +170,7 @@ struct TimerDisplay: View {
         }
         .scaleEffect(isPulsing ? 1.05 : 1.0)
         .onChange(of: isCritical) { _, newValue in
+            guard isViewVisible else { return }
             if newValue {
                 // Start pulsing animation
                 withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
@@ -182,12 +184,17 @@ struct TimerDisplay: View {
             }
         }
         .onAppear {
+            isViewVisible = true
             // Initialize pulsing state
             if isCritical {
                 withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
                     isPulsing = true
                 }
             }
+        }
+        .onDisappear {
+            isViewVisible = false
+            isPulsing = false
         }
     }
 }

@@ -239,13 +239,15 @@ struct TierUpCelebrationView: View {
         }
 
         // Show content after badge animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
             withAnimation(.easeOut(duration: 0.4)) {
                 showContent = true
             }
 
             // Stagger benefits
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 200_000_000)
                 benefitsOpacity = 1.0
             }
         }
