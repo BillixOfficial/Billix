@@ -58,7 +58,12 @@ struct BillsListZone: View {
     @State private var isLoading = true
     @State private var hasNoBills = false
 
+    @ObservedObject private var authService = AuthService.shared
     private let openAIService = OpenAIService.shared
+
+    private var userZipCode: String {
+        authService.currentUser?.zipCode ?? "10001" // Default NYC ZIP
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -138,7 +143,7 @@ struct BillsListZone: View {
         hasNoBills = true
 
         do {
-            zipAverages = try await openAIService.getNationalAverages(zipCode: "07060")
+            zipAverages = try await openAIService.getNationalAverages(zipCode: userZipCode)
         } catch {
             print("❌ Error: Failed to load ZIP averages: \(error)")
         }

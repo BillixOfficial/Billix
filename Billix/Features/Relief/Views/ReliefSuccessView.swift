@@ -142,7 +142,8 @@ struct ReliefSuccessView: View {
         }
         .background(Color(hex: "#F7F9F8").ignoresSafeArea())
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 300_000_000)
                 showConfetti = true
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
             }

@@ -142,7 +142,8 @@ struct PriceOptionsSheet: View {
         case .viewRates:
             // Navigate to Explore tab
             dismiss()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 300_000_000)
                 NotificationCenter.default.post(
                     name: NSNotification.Name("NavigateToUpload"),
                     object: nil
@@ -323,7 +324,8 @@ private struct NegotiationScriptCard: View {
                     haptic()
                     UIPasteboard.general.string = script
                     isCopied = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
                         isCopied = false
                     }
                 } label: {

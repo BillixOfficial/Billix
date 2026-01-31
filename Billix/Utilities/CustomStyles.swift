@@ -77,6 +77,7 @@ struct NeumorphicStyle: ViewModifier {
 
 struct ShimmerEffect: ViewModifier {
     @State private var phase: CGFloat = 0
+    @State private var isAnimating = false
 
     func body(content: Content) -> some View {
         content
@@ -97,15 +98,19 @@ struct ShimmerEffect: ViewModifier {
                 .mask(content)
             )
             .onAppear {
+                isAnimating = true
                 withAnimation(
                     .linear(duration: 2)
                     .repeatForever(autoreverses: false)
                 ) {
-                    phase = 400
+                    if isAnimating {
+                        phase = 400
+                    }
                 }
             }
             .onDisappear {
                 // Stop the repeating animation when view disappears
+                isAnimating = false
                 phase = -200
             }
     }
@@ -113,6 +118,7 @@ struct ShimmerEffect: ViewModifier {
 
 struct PulsingGlow: ViewModifier {
     @State private var isGlowing = false
+    @State private var isAnimating = false
     let color: Color
 
     func body(content: Content) -> some View {
@@ -124,15 +130,19 @@ struct PulsingGlow: ViewModifier {
                 y: 0
             )
             .onAppear {
+                isAnimating = true
                 withAnimation(
                     .easeInOut(duration: 1.5)
                     .repeatForever(autoreverses: true)
                 ) {
-                    isGlowing = true
+                    if isAnimating {
+                        isGlowing = true
+                    }
                 }
             }
             .onDisappear {
                 // Stop the repeating animation when view disappears
+                isAnimating = false
                 isGlowing = false
             }
     }
@@ -140,22 +150,27 @@ struct PulsingGlow: ViewModifier {
 
 struct FloatingAnimation: ViewModifier {
     @State private var isFloating = false
+    @State private var isAnimating = false
     let delay: Double
 
     func body(content: Content) -> some View {
         content
             .offset(y: isFloating ? -10 : 0)
             .onAppear {
+                isAnimating = true
                 withAnimation(
                     .easeInOut(duration: 2)
                     .repeatForever(autoreverses: true)
                     .delay(delay)
                 ) {
-                    isFloating = true
+                    if isAnimating {
+                        isFloating = true
+                    }
                 }
             }
             .onDisappear {
                 // Stop the repeating animation when view disappears
+                isAnimating = false
                 isFloating = false
             }
     }
@@ -173,7 +188,8 @@ struct ScaleOnTap: ViewModifier {
                     isPressed = true
                 }
 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 100_000_000)
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                         isPressed = false
                     }

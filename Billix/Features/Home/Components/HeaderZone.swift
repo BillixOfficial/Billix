@@ -15,7 +15,7 @@ struct HeaderZone: View {
     let streak: Int
     @ObservedObject var notificationService: NotificationService
 
-    @StateObject private var scoreService = ActivityScoreService.shared
+    @ObservedObject private var scoreService = ActivityScoreService.shared
     @State private var showNotifications = false
     @State private var showAreaInsights = false
     @State private var showScoreDetail = false

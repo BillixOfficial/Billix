@@ -21,7 +21,7 @@ struct TickerItem: Identifiable {
 struct BillTickerZone: View {
     let zipCode: String
 
-    @StateObject private var openAIService = OpenAIService.shared
+    @ObservedObject private var openAIService = OpenAIService.shared
     @State private var averages: [BillAverage] = []
     @State private var isLoading = true
 

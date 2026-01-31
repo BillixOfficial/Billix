@@ -36,7 +36,8 @@ class HomeViewModel: ObservableObject {
         // Simulate loading data
         isLoading = true
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
             guard let self = self else { return }
 
             self.userName = "Sarah"

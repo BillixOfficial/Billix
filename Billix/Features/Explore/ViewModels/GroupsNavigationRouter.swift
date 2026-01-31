@@ -39,7 +39,8 @@ class GroupsNavigationRouter: ObservableObject {
         selectedGroup = group
 
         // Reset isPresenting after animation completes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
             self?.isPresenting = false
         }
     }

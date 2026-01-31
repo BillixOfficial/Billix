@@ -366,7 +366,8 @@ struct InviteEarnBannerNew: View {
                 shareMessage: shareMessage,
                 onShare: {
                     showInviteSheet = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 300_000_000)
                         showNativeShareSheet = true
                     }
                 },
@@ -489,7 +490,8 @@ private struct InviteOptionsSheet: View {
                 Button {
                     onCopy()
                     codeCopied = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
                         codeCopied = false
                     }
                 } label: {

@@ -37,6 +37,7 @@ struct PriceGuessrIcon: View {
         }
         .frame(width: 178, height: 178)
         .onAppear {
+            isAnimating = true
             // Vertical bob
             withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
                 isAnimating = true
@@ -46,6 +47,10 @@ struct PriceGuessrIcon: View {
             withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
                 tagOffset = -3
             }
+        }
+        .onDisappear {
+            isAnimating = false
+            tagOffset = 0
         }
     }
 }

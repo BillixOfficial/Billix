@@ -217,7 +217,8 @@ class GeoGameViewModel: ObservableObject {
         }
 
         // Start the game
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
             self.startCurrentQuestion()
         }
     }
@@ -392,7 +393,8 @@ class GeoGameViewModel: ObservableObject {
 
         // Check game over
         if session.health <= 0 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
                 self.questionPhase = .gameOver
                 self.endGame()
             }
@@ -423,11 +425,6 @@ class GeoGameViewModel: ObservableObject {
 
         case .hintToken:
             activateHintToken()
-        }
-
-        // Hide feedback after delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            self.showPowerUpFeedback = nil
         }
     }
 
@@ -480,6 +477,12 @@ class GeoGameViewModel: ObservableObject {
 
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
+
+        // Hide feedback after delay
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            self.showPowerUpFeedback = nil
+        }
     }
 
     func dismissPowerUpFeedback() {
@@ -630,7 +633,8 @@ class GeoGameViewModel: ObservableObject {
 
             if session.health <= 0 {
                 // Show feedback briefly before game over
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
                     self?.questionPhase = .gameOver
                     self?.endGame()
                 }
@@ -718,7 +722,8 @@ class GeoGameViewModel: ObservableObject {
 
         // Check game over
         if session.health <= 0 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
                 self?.questionPhase = .gameOver
                 self?.endGame()
             }
@@ -782,7 +787,8 @@ class GeoGameViewModel: ObservableObject {
         questionPhase = .loading
 
         // Start the new game
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
             self.startCurrentQuestion()
         }
     }

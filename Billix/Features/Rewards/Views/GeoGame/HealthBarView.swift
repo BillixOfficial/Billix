@@ -16,6 +16,7 @@ struct HealthBarView: View {
     @State private var shake: CGFloat = 0
     @State private var previousHealth: Int?
     @State private var heartScales: [CGFloat] = [1.0, 1.0, 1.0]
+    @State private var heartbeatTask: Task<Void, Never>?
 
     var body: some View {
         HStack(spacing: 4) {
@@ -48,7 +49,8 @@ struct HealthBarView: View {
                 withAnimation(.easeOut(duration: 0.2)) {
                     heartScales[lostHeartIndex] = 1.5
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 200_000_000)
                     withAnimation(.easeIn(duration: 0.1)) {
                         heartScales[lostHeartIndex] = 1.0
                     }
@@ -59,7 +61,8 @@ struct HealthBarView: View {
                 generator.notificationOccurred(.error)
 
                 // Reset shake after animation
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 300_000_000)
                     shake = 0
                 }
             } else if let prev = previousHealth, newValue > prev {
@@ -68,7 +71,8 @@ struct HealthBarView: View {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                     heartScales[gainedHeartIndex] = 1.2
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 400_000_000)
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         heartScales[gainedHeartIndex] = 1.0
                     }
@@ -81,18 +85,27 @@ struct HealthBarView: View {
             // Pulse animation for active hearts
             startHeartbeatAnimation()
         }
+        .onDisappear {
+            heartbeatTask?.cancel()
+        }
     }
 
     private func startHeartbeatAnimation() {
-        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-            guard currentHealth > 0 else { return }
+        heartbeatTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                if Task.isCancelled { break }
+                guard currentHealth > 0 else { continue }
 
-            // Subtle heartbeat for all active hearts
-            for i in 0..<currentHealth {
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    heartScales[i] = 1.1
+                // Subtle heartbeat for all active hearts
+                for i in 0..<currentHealth {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        heartScales[i] = 1.1
+                    }
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                try? await Task.sleep(nanoseconds: 150_000_000) // 0.15 seconds
+                if Task.isCancelled { break }
+                for i in 0..<currentHealth {
                     withAnimation(.easeInOut(duration: 0.15)) {
                         heartScales[i] = 1.0
                     }

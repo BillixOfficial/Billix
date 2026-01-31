@@ -10,7 +10,7 @@ import SwiftUI
 struct NameYourPriceZone: View {
     let userState: String
 
-    @StateObject private var priceTargetService = PriceTargetService.shared
+    @ObservedObject private var priceTargetService = PriceTargetService.shared
     @State private var selectedBillType: PriceBillType?
     @State private var editingTarget: PriceTarget?
     @State private var viewingOptionsFor: PriceTarget?
@@ -169,7 +169,8 @@ struct NameYourPriceZone: View {
                 priceTargetService: priceTargetService,
                 onSelect: { billType in
                     showAllBillTypes = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 300_000_000)
                         selectedBillType = billType
                     }
                 }

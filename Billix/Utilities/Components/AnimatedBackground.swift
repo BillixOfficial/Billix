@@ -78,6 +78,7 @@ struct CoinView: View {
     @State private var offset: CGFloat = 0
     @State private var rotation: Double = 0
     @State private var opacity: Double = 0.1
+    @State private var isAnimating = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -118,12 +119,15 @@ struct CoinView: View {
                     y: coin.y * geometry.size.height + offset
                 )
                 .onAppear {
+                    isAnimating = true
                     withAnimation(
                         .linear(duration: coin.duration)
                         .repeatForever(autoreverses: false)
                         .delay(coin.delay)
                     ) {
-                        offset = -geometry.size.height - 100
+                        if isAnimating {
+                            offset = -geometry.size.height - 100
+                        }
                     }
 
                     withAnimation(
@@ -131,15 +135,25 @@ struct CoinView: View {
                         .repeatForever(autoreverses: true)
                         .delay(coin.delay)
                     ) {
-                        rotation = 360
+                        if isAnimating {
+                            rotation = 360
+                        }
                     }
 
                     withAnimation(
                         .easeInOut(duration: 2)
                         .delay(coin.delay)
                     ) {
-                        opacity = coin.isGold ? 0.2 : 0.15
+                        if isAnimating {
+                            opacity = coin.isGold ? 0.2 : 0.15
+                        }
                     }
+                }
+                .onDisappear {
+                    isAnimating = false
+                    offset = 0
+                    rotation = 0
+                    opacity = 0.1
                 }
         }
     }
@@ -198,7 +212,8 @@ struct MoneyParticlesEffect: View {
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
             particles.removeAll()
         }
     }

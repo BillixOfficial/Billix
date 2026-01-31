@@ -150,7 +150,8 @@ struct AnimatedExploreCarousel: View {
                 impactFeedback.impactOccurred()
 
                 // Delay navigation to show button animation
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 150_000_000)
                     navigationDestination = card.destination
                 }
             }

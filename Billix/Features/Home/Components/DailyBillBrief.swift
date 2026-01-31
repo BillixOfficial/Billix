@@ -10,9 +10,9 @@ import SwiftUI
 struct DailyBillBrief: View {
     let zipCode: String
 
-    @StateObject private var openAIService = OpenAIService.shared
-    @StateObject private var weatherService = WeatherService.shared
-    @StateObject private var authService = AuthService.shared
+    @ObservedObject private var openAIService = OpenAIService.shared
+    @ObservedObject private var weatherService = WeatherService.shared
+    @ObservedObject private var authService = AuthService.shared
     @State private var aiBrief: String?
     @State private var isLoading = false
     @State private var isExpanded = false
