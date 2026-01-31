@@ -11,6 +11,7 @@ struct BillListingCard: View {
     let listing: ExploreBillListing
     let userVote: VoteType?
     let isBookmarked: Bool
+    var displayedVoteScore: Int?  // Optional: if nil, uses listing.voteScore
 
     let onTap: () -> Void
     let onUpvote: () -> Void
@@ -18,66 +19,61 @@ struct BillListingCard: View {
     let onBookmark: () -> Void
     let onMessage: () -> Void
 
-    @State private var isPressed = false
+    private var effectiveVoteScore: Int {
+        displayedVoteScore ?? listing.voteScore
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header
-            headerSection
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Header
+                headerSection
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
 
-            // Amount & Percentile
-            amountSection
-                .padding(.horizontal, 16)
-                .padding(.bottom, 12)
-
-            // Context tags
-            if hasContextInfo {
-                contextSection
+                // Amount & Percentile
+                amountSection
                     .padding(.horizontal, 16)
                     .padding(.bottom, 12)
-            }
 
-            // User note (if exists)
-            if let note = listing.userNote, !note.isEmpty {
-                noteSection(note)
+                // Category-specific metrics (usage, rate, daily avg ranges)
+                if hasMetricsInfo {
+                    metricsSection
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
+                }
+
+                // User note (if exists)
+                if let note = listing.userNote, !note.isEmpty {
+                    noteSection(note)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
+                }
+
+                // Divider
+                Divider()
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
-            }
 
-            // Divider
-            Divider()
+                // Interaction bar
+                CompactInteractionBar(
+                    voteScore: effectiveVoteScore,
+                    tipCount: listing.tipCount,
+                    userVote: userVote,
+                    isBookmarked: isBookmarked,
+                    onUpvote: onUpvote,
+                    onDownvote: onDownvote,
+                    onBookmark: onBookmark,
+                    onMessage: onMessage
+                )
                 .padding(.horizontal, 16)
-
-            // Interaction bar
-            CompactInteractionBar(
-                voteScore: listing.voteScore,
-                tipCount: listing.tipCount,
-                userVote: userVote,
-                isBookmarked: isBookmarked,
-                onUpvote: onUpvote,
-                onDownvote: onDownvote,
-                onBookmark: onBookmark,
-                onMessage: onMessage
-            )
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+                .padding(.vertical, 12)
+            }
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
         }
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(isPressed ? 0.10 : 0.06), radius: isPressed ? 6 : 12, x: 0, y: isPressed ? 2 : 4)
-        .scaleEffect(isPressed ? 0.97 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
-        .onTapGesture {
-            onTap()
-        }
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in isPressed = true }
-                .onEnded { _ in isPressed = false }
-        )
+        .buttonStyle(CardPressButtonStyle())
     }
 
     // MARK: - Header Section
@@ -211,36 +207,104 @@ struct BillListingCard: View {
         }
     }
 
-    // MARK: - Context Section
+    // MARK: - Metrics Section (Usage, Rate, Daily Avg Ranges)
 
-    private var hasContextInfo: Bool {
-        listing.housingType != nil || listing.occupants != nil || listing.squareFootage != nil
+    /// Whether card has any metrics to display
+    /// Note: Usage/Rate/DailyAvg ranges only apply to metered utilities (electric, gas, water)
+    private var hasMetricsInfo: Bool {
+        // Metered utility metrics (only for electric, gas, water)
+        let hasMeteredMetrics = listing.isMeteredUtility && (
+            listing.usageRangeText != nil ||
+            listing.rateRangeText != nil ||
+            listing.dailyAvgRangeText != nil
+        )
+
+        // Non-metered metrics (plan name, speed, lines, tier)
+        let hasOtherMetrics = listing.planName != nil ||
+            listing.additionalDetails?["tier"] != nil ||
+            listing.additionalDetails?["speed"] != nil ||
+            listing.additionalDetails?["lines"] != nil
+
+        return hasMeteredMetrics || hasOtherMetrics
     }
 
-    private var contextSection: some View {
-        HStack(spacing: 8) {
-            if let housing = listing.housingType {
-                contextTag(housing.rawValue)
+    private var metricsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Context header - explains where the data comes from (only for metered utilities)
+            if listing.isMeteredUtility && (listing.usageRangeText != nil || listing.rateRangeText != nil || listing.dailyAvgRangeText != nil) {
+                HStack(spacing: 4) {
+                    Image(systemName: listing.meetsKAnonymity ? "checkmark.shield.fill" : "eye.slash.fill")
+                        .font(.system(size: 10))
+
+                    if listing.meetsKAnonymity {
+                        Text("Based on \(listing.providerBillCount) Billix \(listing.provider) bills")
+                            .font(.system(size: 10, weight: .medium))
+                    } else {
+                        Text("Based on Billix community data (limited)")
+                            .font(.system(size: 10, weight: .medium))
+                    }
+                }
+                .foregroundColor(Color(hex: "#8B9A94"))
+                .padding(.bottom, 4)
             }
 
-            if let occupants = listing.occupants {
-                contextTag(occupants.rawValue)
+            // Usage Range (ONLY for metered utilities: Electric, Gas, Water)
+            if listing.isMeteredUtility, let usageRange = listing.usageRangeText {
+                metricRow(icon: "chart.bar.fill", label: "Usage Range", value: usageRange)
             }
 
-            if let sqft = listing.squareFootage {
-                contextTag(sqft.rawValue)
+            // Rate Range (ONLY for metered utilities: Electric, Gas, Water)
+            if listing.isMeteredUtility, let rateRange = listing.rateRangeText {
+                metricRow(icon: "dollarsign.circle.fill", label: "Rate Range", value: rateRange)
+            }
+
+            // Daily Avg Range (ONLY for metered utilities: Electric, Gas)
+            if listing.isMeteredUtility, let dailyAvgRange = listing.dailyAvgRangeText {
+                metricRow(icon: "calendar.badge.clock", label: "Daily Avg Range", value: dailyAvgRange)
+            }
+
+            // Water Tier
+            if let tier = listing.additionalDetails?["tier"] {
+                metricRow(icon: "drop.fill", label: "Tier", value: tier)
+            }
+
+            // Internet Speed
+            if let speed = listing.additionalDetails?["speed"] {
+                metricRow(icon: "arrow.down.circle.fill", label: "Speed", value: speed)
+            }
+
+            // Plan Name (for Internet, Phone)
+            if let plan = listing.planName {
+                metricRow(icon: "tag.fill", label: "Plan", value: plan)
+            }
+
+            // Lines Count (for Phone - from additionalDetails)
+            if let lines = listing.additionalDetails?["lines"] {
+                metricRow(icon: "phone.fill", label: "Lines", value: lines)
             }
         }
+        .padding(12)
+        .background(Color(hex: "#F7F9F8"))
+        .cornerRadius(10)
     }
 
-    private func contextTag(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 11, weight: .medium))
-            .foregroundColor(Color(hex: "#5B8A6B"))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color(hex: "#5B8A6B").opacity(0.1))
-            .cornerRadius(6)
+    private func metricRow(icon: String, label: String, value: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundColor(Color(hex: listing.billType.color))
+                .frame(width: 16)
+
+            Text(label)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(Color(hex: "#8B9A94"))
+
+            Spacer()
+
+            Text(value)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "#2D3B35"))
+        }
     }
 
     // MARK: - Note Section
@@ -295,9 +359,9 @@ struct ExploreBillListingCard: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 12)
 
-            // Context
-            if listing.housingType != nil || listing.occupants != nil || listing.userNote != nil {
-                contextSection
+            // User note
+            if listing.userNote != nil {
+                userNoteSection
                     .padding(.horizontal, 16)
                     .padding(.bottom, 12)
             }
@@ -395,17 +459,8 @@ struct ExploreBillListingCard: View {
         }
     }
 
-    private var contextSection: some View {
+    private var userNoteSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                if let housing = listing.housingType {
-                    contextTag(text: housing.rawValue, icon: "house.fill")
-                }
-                if let occupants = listing.occupants {
-                    contextTag(text: occupants.rawValue, icon: "person.2.fill")
-                }
-            }
-
             if let note = listing.userNote {
                 HStack(alignment: .top, spacing: 6) {
                     Image(systemName: "quote.opening")
@@ -422,19 +477,22 @@ struct ExploreBillListingCard: View {
             }
         }
     }
+}
 
-    private func contextTag(text: String, icon: String) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 10))
-            Text(text)
-                .font(.system(size: 12, weight: .medium))
-        }
-        .foregroundColor(Color(hex: "#6B7280"))
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(Color(hex: "#F3F4F6"))
-        .cornerRadius(8)
+// MARK: - Card Press Button Style
+
+/// Custom button style that provides press feedback without blocking scroll gestures
+struct CardPressButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .shadow(
+                color: Color.black.opacity(configuration.isPressed ? 0.10 : 0.06),
+                radius: configuration.isPressed ? 6 : 12,
+                x: 0,
+                y: configuration.isPressed ? 2 : 4
+            )
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 

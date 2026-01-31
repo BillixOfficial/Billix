@@ -57,13 +57,17 @@ struct BillTypeDetailsCard: View {
 
     private var electricDetails: some View {
         VStack(spacing: 12) {
-            detailRow(
-                icon: "bolt.fill",
-                label: "Usage",
-                value: listing.usageDisplayText ?? "N/A",
-                color: "#F59E0B"
-            )
+            // Usage (k-anonymity aware - shows fuzzy range if < 5 bills from provider)
+            if let usageText = listing.usageDisplayText {
+                detailRow(
+                    icon: "bolt.fill",
+                    label: "Usage",
+                    value: usageText,
+                    color: "#F59E0B"
+                )
+            }
 
+            // Rate (k-anonymity aware)
             if let rate = listing.rateDisplayText {
                 detailRow(
                     icon: "dollarsign.circle.fill",
@@ -73,12 +77,12 @@ struct BillTypeDetailsCard: View {
                 )
             }
 
-            if let usage = listing.usageAmount {
-                let dailyAvg = usage / 30
+            // Daily Average (k-anonymity aware)
+            if let dailyAvgText = listing.dailyAvgDisplayText {
                 detailRow(
                     icon: "calendar",
                     label: "Daily Avg",
-                    value: String(format: "%.1f \(listing.usageUnit ?? "kWh")/day", dailyAvg),
+                    value: dailyAvgText,
                     color: "#8B9A94"
                 )
             }
@@ -100,13 +104,17 @@ struct BillTypeDetailsCard: View {
 
     private var gasDetails: some View {
         VStack(spacing: 12) {
-            detailRow(
-                icon: "flame.fill",
-                label: "Usage",
-                value: listing.usageDisplayText ?? "N/A",
-                color: "#EF4444"
-            )
+            // Usage (k-anonymity aware)
+            if let usageText = listing.usageDisplayText {
+                detailRow(
+                    icon: "flame.fill",
+                    label: "Usage",
+                    value: usageText,
+                    color: "#EF4444"
+                )
+            }
 
+            // Rate (k-anonymity aware)
             if let rate = listing.rateDisplayText {
                 detailRow(
                     icon: "dollarsign.circle.fill",
@@ -116,12 +124,12 @@ struct BillTypeDetailsCard: View {
                 )
             }
 
-            if let usage = listing.usageAmount {
-                let dailyAvg = usage / 30
+            // Daily Average (k-anonymity aware)
+            if let dailyAvgText = listing.dailyAvgDisplayText {
                 detailRow(
                     icon: "calendar",
                     label: "Daily Avg",
-                    value: String(format: "%.1f \(listing.usageUnit ?? "therms")/day", dailyAvg),
+                    value: dailyAvgText,
                     color: "#8B9A94"
                 )
             }
@@ -132,13 +140,17 @@ struct BillTypeDetailsCard: View {
 
     private var waterDetails: some View {
         VStack(spacing: 12) {
-            detailRow(
-                icon: "drop.fill",
-                label: "Usage",
-                value: listing.usageDisplayText ?? "N/A",
-                color: "#3B82F6"
-            )
+            // Usage (k-anonymity aware)
+            if let usageText = listing.usageDisplayText {
+                detailRow(
+                    icon: "drop.fill",
+                    label: "Usage",
+                    value: usageText,
+                    color: "#3B82F6"
+                )
+            }
 
+            // Rate (k-anonymity aware)
             if let rate = listing.rateDisplayText {
                 detailRow(
                     icon: "dollarsign.circle.fill",
@@ -165,44 +177,41 @@ struct BillTypeDetailsCard: View {
 
     private var internetDetails: some View {
         VStack(spacing: 12) {
-            if let details = listing.additionalDetails {
-                if let speed = details["speed"] {
-                    detailRow(
-                        icon: "arrow.down.circle.fill",
-                        label: "Speed",
-                        value: speed,
-                        color: "#8B5CF6"
-                    )
-                }
+            // Speed (from usage_metrics.speed_mbps)
+            if let details = listing.additionalDetails, let speed = details["speed"] {
+                detailRow(
+                    icon: "arrow.down.circle.fill",
+                    label: "Speed",
+                    value: speed,
+                    color: "#8B5CF6"
+                )
+            }
 
-                if let plan = listing.planName {
-                    detailRow(
-                        icon: "checkmark.seal.fill",
-                        label: "Plan",
-                        value: plan,
-                        color: "#5B8A6B"
-                    )
-                }
+            // Plan name
+            if let plan = listing.planName {
+                detailRow(
+                    icon: "checkmark.seal.fill",
+                    label: "Plan",
+                    value: plan,
+                    color: "#5B8A6B"
+                )
+            }
 
-                if let contract = details["contract"] {
-                    detailRow(
-                        icon: "doc.text.fill",
-                        label: "Contract",
-                        value: contract,
-                        color: "#8B9A94"
-                    )
-                }
-            } else {
-                if let plan = listing.planName {
-                    detailRow(
-                        icon: "checkmark.seal.fill",
-                        label: "Plan",
-                        value: plan,
-                        color: "#5B8A6B"
-                    )
-                } else {
-                    noDataAvailable
-                }
+            // Data usage (if available)
+            if let details = listing.additionalDetails, let dataUsage = details["dataUsage"] {
+                detailRow(
+                    icon: "arrow.up.arrow.down.circle.fill",
+                    label: "Data Used",
+                    value: dataUsage,
+                    color: "#3B82F6"
+                )
+            }
+
+            // Show empty state if no data at all
+            if listing.planName == nil &&
+               (listing.additionalDetails?["speed"] == nil) &&
+               (listing.additionalDetails?["dataUsage"] == nil) {
+                noDataAvailable
             }
         }
     }

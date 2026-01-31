@@ -21,6 +21,11 @@ enum ExploreBillType: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// Bill types shown in Bill Explorer (excludes rent and insurance)
+    static var explorerTypes: [ExploreBillType] {
+        [.electric, .gas, .water, .internet, .phone]
+    }
+
     var displayName: String { rawValue }
 
     var icon: String {
@@ -220,6 +225,7 @@ struct ExploreBillListing: Identifiable {
 
     // Comparison data
     let percentile: Int  // 0-100, lower percentile = lower bill (better)
+    var categoryBillCount: Int = 10  // Number of bills in same category for comparison
     let historicalMin: Double
     let historicalMax: Double
     let trend: BillTrend
@@ -249,9 +255,19 @@ struct ExploreBillListing: Identifiable {
     var usageAmount: Double?       // e.g., 892 (kWh for electric)
     var usageUnit: String?         // e.g., "kWh", "therms", "gallons"
     var ratePerUnit: Double?       // e.g., 0.12 ($/kWh)
+    var dailyAverage: Double?      // e.g., 4.9 (kWh/day)
     var areaAverageUsage: Double?  // e.g., 1200 (for comparison)
     var areaMinUsage: Double?      // e.g., 400 (lowest in dataset)
     var areaMaxUsage: Double?      // e.g., 2500 (highest in dataset)
+
+    // Provider-level stats (for k-anonymity)
+    var providerBillCount: Int = 0
+    var providerMinUsage: Double?
+    var providerMaxUsage: Double?
+    var providerMinRate: Double?
+    var providerMaxRate: Double?
+    var providerMinDailyAvg: Double?
+    var providerMaxDailyAvg: Double?
 
     // Bill-type specific details
     var planName: String?          // e.g., "Performance Plus"
@@ -278,11 +294,11 @@ struct ExploreBillListing: Identifiable {
 
     var percentileText: String {
         if percentile <= 30 {
-            return "Lower than \(100 - percentile)% of similar households"
+            return "Lower than \(100 - percentile)% of Billix bills"
         } else if percentile >= 70 {
-            return "Higher than \(percentile)% of similar households"
+            return "Higher than \(percentile)% of Billix bills"
         } else {
-            return "Around average for similar households"
+            return "Around average for Billix bills"
         }
     }
 
@@ -302,39 +318,90 @@ struct ExploreBillListing: Identifiable {
 
     // New computed properties for Bill Explorer feed
     var timeAgoDisplay: String {
-        let seconds = Date().timeIntervalSince(lastUpdated)
-        if seconds < 3600 {
-            return "\(Int(seconds / 60))m ago"
-        } else if seconds < 86400 {
-            return "\(Int(seconds / 3600))h ago"
-        } else {
-            return "\(Int(seconds / 86400))d ago"
-        }
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: lastUpdated)
+        return String(year)
     }
 
     var locationDisplay: String {
-        "\(city), \(state)"
+        if !city.isEmpty {
+            return "\(city), \(state)"
+        }
+        return state
     }
 
     var percentileDescription: String? {
-        if percentile <= 25 {
-            return "Lower than \(100 - percentile)% of similar homes"
-        } else if percentile >= 75 {
-            return "Higher than \(percentile)% of similar homes"
+        // Require minimum 5 bills in category to show percentile
+        guard categoryBillCount >= 5 else { return nil }
+
+        // Cap at 99% to avoid showing "100%"
+        let cappedPercentile = min(percentile, 99)
+
+        if cappedPercentile <= 25 {
+            return "Lower than \(100 - cappedPercentile)% of \(categoryBillCount) Billix bills"
+        } else if cappedPercentile >= 75 {
+            return "Higher than \(cappedPercentile)% of \(categoryBillCount) Billix bills"
         } else {
-            return "Around average for similar homes"
+            return "Around average of \(categoryBillCount) Billix bills"
         }
     }
 
-    // Usage comparison computed properties
-    var usageDisplayText: String? {
-        guard let usage = usageAmount, let unit = usageUnit else { return nil }
-        return "\(Int(usage)) \(unit)"
+    // MARK: - K-Anonymity Privacy Protection
+
+    /// K-anonymity threshold - minimum bills needed from same provider+category+state
+    static let kAnonymityThreshold = 5
+
+    /// Whether this listing has enough similar bills to show exact values
+    var meetsKAnonymity: Bool {
+        providerBillCount >= Self.kAnonymityThreshold
     }
 
+    /// Create a fuzzy range around a value (±10%, rounded to nearest bucket)
+    private func fuzzyRange(for value: Double, roundTo: Double = 10) -> (min: Int, max: Int) {
+        let buffer = value * 0.10  // 10% buffer
+        let minVal = ((value - buffer) / roundTo).rounded(.down) * roundTo
+        let maxVal = ((value + buffer) / roundTo).rounded(.up) * roundTo
+        return (Int(max(0, minVal)), Int(maxVal))
+    }
+
+    // MARK: - Usage Display (K-Anonymity Aware)
+
+    /// Usage display - exact or fuzzy based on k-anonymity
+    var usageDisplayText: String? {
+        guard let usage = usageAmount, let unit = usageUnit else { return nil }
+        if meetsKAnonymity {
+            return "\(Int(usage)) \(unit)"  // Exact: "146 kWh"
+        } else {
+            let range = fuzzyRange(for: usage, roundTo: 10)
+            return "~\(range.min)-\(range.max) \(unit)"  // Fuzzy: "~130-160 kWh"
+        }
+    }
+
+    /// Rate display - exact or fuzzy based on k-anonymity
     var rateDisplayText: String? {
         guard let rate = ratePerUnit, let unit = usageUnit else { return nil }
-        return String(format: "$%.2f/\(unit)", rate)
+        if meetsKAnonymity {
+            return String(format: "$%.2f/\(unit)", rate)  // Exact: "$0.29/kWh"
+        } else {
+            let minRate = rate * 0.90
+            let maxRate = rate * 1.10
+            return String(format: "~$%.2f-$%.2f/\(unit)", minRate, maxRate)  // Fuzzy: "~$0.26-$0.32/kWh"
+        }
+    }
+
+    /// Daily average display - exact or fuzzy based on k-anonymity
+    var dailyAvgDisplayText: String? {
+        guard let unit = usageUnit else { return nil }
+        // Calculate daily average from usage if not provided
+        let dailyAvg = dailyAverage ?? (usageAmount.map { $0 / 30 })
+        guard let avg = dailyAvg else { return nil }
+
+        if meetsKAnonymity {
+            return String(format: "%.1f \(unit)/day", avg)  // Exact: "4.9 kWh/day"
+        } else {
+            let range = fuzzyRange(for: avg, roundTo: 1)
+            return "~\(range.min)-\(range.max) \(unit)/day"  // Fuzzy: "~4-6 kWh/day"
+        }
     }
 
     var usagePercentageDiff: Double? {
@@ -346,11 +413,11 @@ struct ExploreBillListing: Identifiable {
         guard let diff = usagePercentageDiff else { return nil }
         let absDiff = abs(Int(diff))
         if diff < -5 {
-            return "\(absDiff)% below area average"
+            return "\(absDiff)% below Billix average"
         } else if diff > 5 {
-            return "\(absDiff)% above area average"
+            return "\(absDiff)% above Billix average"
         } else {
-            return "Around area average"
+            return "Around Billix average"
         }
     }
 
@@ -361,6 +428,369 @@ struct ExploreBillListing: Identifiable {
     // Region computed from state
     var region: USRegion {
         USRegion.region(for: state)
+    }
+}
+
+// MARK: - Database Response Model
+
+/// Codable struct to decode from `bill_explorer_listings` Supabase view
+struct BillExplorerRow: Codable {
+    let id: UUID
+    let provider: String
+    let amount: Double
+    let subcategory: String
+    let state: String
+    let zipPrefix: String
+    let postedDate: String
+    let createdAt: String
+    let usageMetrics: UsageMetrics?
+    let confidenceScore: Int?
+    let percentile: Int?
+
+    // Provider-level stats (for k-anonymity)
+    let providerBillCount: Int?
+    let providerMinUsage: Double?
+    let providerMaxUsage: Double?
+    let providerMinRate: Double?
+    let providerMaxRate: Double?
+    let providerMinDailyAvg: Double?
+    let providerMaxDailyAvg: Double?
+
+    // Category-level stats (fallback)
+    let categoryBillCount: Int?
+
+    // Area amount stats
+    let areaMinAmount: Double?
+    let areaMaxAmount: Double?
+    let areaAvgAmount: Double?
+
+    // Area usage stats
+    let areaMinUsage: Double?
+    let areaMaxUsage: Double?
+    let areaAvgUsage: Double?
+
+    // Area rate stats
+    let areaMinRate: Double?
+    let areaMaxRate: Double?
+    let areaAvgRate: Double?
+
+    // Area daily avg stats
+    let areaMinDailyAvg: Double?
+    let areaMaxDailyAvg: Double?
+    let areaAvgDailyAvg: Double?
+
+    // Engagement
+    let voteScore: Int
+    let upvotes: Int
+    let downvotes: Int
+
+    struct UsageMetrics: Codable {
+        let type: String?
+        let usage: Double?
+        let rate: Double?
+        let dailyAvg: Double?
+        let monthlyCost: Double?
+        let tierRange: String?  // For water bills
+        let planName: String?   // For internet/phone
+        let linesCount: Int?    // For phone
+        let planType: String?   // For phone
+        let speedMbps: Int?     // For internet (download speed)
+        let unit: String?       // For internet (GB for data usage)
+        let package: String?    // For cable TV
+
+        enum CodingKeys: String, CodingKey {
+            case type, usage, rate, dailyAvg, monthlyCost, tierRange
+            case planName, linesCount, planType
+            case speedMbps = "speed_mbps"
+            case unit, package
+        }
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, provider, amount, subcategory, state
+        case zipPrefix = "zip_prefix"
+        case postedDate = "posted_date"
+        case createdAt = "created_at"
+        case usageMetrics = "usage_metrics"
+        case confidenceScore = "confidence_score"
+        case percentile
+        case providerBillCount = "provider_bill_count"
+        case providerMinUsage = "provider_min_usage"
+        case providerMaxUsage = "provider_max_usage"
+        case providerMinRate = "provider_min_rate"
+        case providerMaxRate = "provider_max_rate"
+        case providerMinDailyAvg = "provider_min_daily_avg"
+        case providerMaxDailyAvg = "provider_max_daily_avg"
+        case categoryBillCount = "category_bill_count"
+        case areaMinAmount = "area_min_amount"
+        case areaMaxAmount = "area_max_amount"
+        case areaAvgAmount = "area_avg_amount"
+        case areaMinUsage = "area_min_usage"
+        case areaMaxUsage = "area_max_usage"
+        case areaAvgUsage = "area_avg_usage"
+        case areaMinRate = "area_min_rate"
+        case areaMaxRate = "area_max_rate"
+        case areaAvgRate = "area_avg_rate"
+        case areaMinDailyAvg = "area_min_daily_avg"
+        case areaMaxDailyAvg = "area_max_daily_avg"
+        case areaAvgDailyAvg = "area_avg_daily_avg"
+        case voteScore = "vote_score"
+        case upvotes, downvotes
+    }
+}
+
+// MARK: - ExploreBillType Mapping
+
+extension ExploreBillType {
+    /// Map database subcategory to ExploreBillType
+    static func from(subcategory: String) -> ExploreBillType {
+        switch subcategory.lowercased() {
+        case "electricity", "electric":
+            return .electric
+        case "natural_gas", "gas":
+            return .gas
+        case "water":
+            return .water
+        case "internet":
+            return .internet
+        case "phone", "mobile":
+            return .phone
+        case "rent":
+            return .rent
+        case "insurance", "auto_insurance", "home_insurance":
+            return .insurance
+        default:
+            return .electric  // Default fallback
+        }
+    }
+
+    /// Get the unit string for usage display
+    var usageUnit: String {
+        switch self {
+        case .electric: return "kWh"
+        case .gas: return "therms"
+        case .water: return "gal"
+        default: return ""
+        }
+    }
+}
+
+// MARK: - Initialize from Database Row
+
+extension ExploreBillListing {
+    /// Create ExploreBillListing from database row
+    init(from row: BillExplorerRow) {
+        self.id = row.id
+        self.billType = ExploreBillType.from(subcategory: row.subcategory)
+        self.provider = row.provider
+        self.amount = row.amount
+        self.billingPeriod = Self.formatBillingPeriod(from: row.postedDate)
+        self.city = ""  // Not available in DB yet
+        self.state = row.state
+
+        // Household context not available from DB
+        self.housingType = nil
+        self.occupants = nil
+        self.squareFootage = nil
+
+        // Comparison data from aggregations
+        self.percentile = row.percentile ?? 50
+        self.categoryBillCount = row.categoryBillCount ?? 0
+        self.historicalMin = row.areaMinAmount ?? row.amount * 0.8
+        self.historicalMax = row.areaMaxAmount ?? row.amount * 1.2
+        // Calculate trend based on percentile:
+        // - Lower percentile (≤30) = bill is cheaper than most = "Decreased" (green, good)
+        // - Mid percentile (31-69) = around average = "Stable" (gray)
+        // - Higher percentile (≥70) = bill is more expensive than most = "Increased" (red, concerning)
+        let pct = row.percentile ?? 50
+        if pct <= 30 {
+            self.trend = .decreased
+        } else if pct >= 70 {
+            self.trend = .increased
+        } else {
+            self.trend = .stable
+        }
+        self.volatility = .stable
+
+        // User note not available
+        self.userNote = nil
+
+        // Trust signals
+        self.isVerified = (row.confidenceScore ?? 0) >= 90
+        self.lastUpdated = Self.parseDate(from: row.createdAt) ?? Date()
+        self.anonymizedId = "User #\(abs(row.id.hashValue) % 10000)"
+
+        // Legacy engagement (empty)
+        self.reactions = [:]
+        self.commentCount = 0
+
+        // New engagement from DB
+        self.voteScore = row.voteScore
+        self.tipCount = 0  // Tips table not implemented yet
+        self.viewCount = 0
+        self.lastBoostedAt = nil
+
+        // Usage data from usage_metrics JSONB
+        self.usageAmount = row.usageMetrics?.usage
+        self.usageUnit = billType.usageUnit
+        self.ratePerUnit = row.usageMetrics?.rate
+        self.dailyAverage = row.usageMetrics?.dailyAvg
+
+        // Area stats from aggregations
+        self.areaAverageUsage = row.areaAvgUsage
+        self.areaMinUsage = row.areaMinUsage
+        self.areaMaxUsage = row.areaMaxUsage
+
+        // Provider-level stats (for k-anonymity)
+        self.providerBillCount = row.providerBillCount ?? 0
+        self.providerMinUsage = row.providerMinUsage
+        self.providerMaxUsage = row.providerMaxUsage
+        self.providerMinRate = row.providerMinRate
+        self.providerMaxRate = row.providerMaxRate
+        self.providerMinDailyAvg = row.providerMinDailyAvg
+        self.providerMaxDailyAvg = row.providerMaxDailyAvg
+
+        // Additional area stats (store in additionalDetails for now)
+        var details: [String: String] = [:]
+        if let minRate = row.areaMinRate, let maxRate = row.areaMaxRate {
+            details["areaRateRange"] = String(format: "$%.2f-$%.2f", minRate, maxRate)
+        }
+        if let minDaily = row.areaMinDailyAvg, let maxDaily = row.areaMaxDailyAvg {
+            details["areaDailyAvgRange"] = String(format: "%.1f-%.1f", minDaily, maxDaily)
+        }
+        if let dailyAvg = row.usageMetrics?.dailyAvg {
+            details["dailyAvg"] = String(format: "%.1f", dailyAvg)
+        }
+        if let tierRange = row.usageMetrics?.tierRange {
+            details["tier"] = tierRange
+        }
+
+        // Internet-specific: map speed_mbps to display format
+        if let speedMbps = row.usageMetrics?.speedMbps {
+            details["speed"] = "\(speedMbps) Mbps"
+        }
+
+        // Internet-specific: data usage
+        if let dataUsage = row.usageMetrics?.usage, let unit = row.usageMetrics?.unit {
+            details["dataUsage"] = "\(Int(dataUsage)) \(unit)"
+        }
+
+        // Cable TV: package name
+        if let package = row.usageMetrics?.package {
+            details["package"] = package
+        }
+
+        self.planName = row.usageMetrics?.planName ?? row.usageMetrics?.package
+        self.additionalDetails = details.isEmpty ? nil : details
+    }
+
+    /// Parse ISO date string to Date
+    private static func parseDate(from string: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = formatter.date(from: string) {
+            return date
+        }
+        // Try without fractional seconds
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: string)
+    }
+
+    /// Format posted date to billing period string
+    private static func formatBillingPeriod(from dateString: String) -> String {
+        guard let date = parseDate(from: dateString) ?? parseDateOnly(from: dateString) else {
+            return "Recent"
+        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        return formatter.string(from: date)
+    }
+
+    /// Parse date-only string (YYYY-MM-DD)
+    private static func parseDateOnly(from string: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: string)
+    }
+}
+
+// MARK: - Additional Computed Properties for Ranges
+
+extension ExploreBillListing {
+    /// Bill types that have metered usage (kWh, therms, gallons)
+    /// Used to determine whether to show usage ranges, rate ranges, and usage comparison bars
+    var isMeteredUtility: Bool {
+        switch billType {
+        case .electric, .gas, .water:
+            return true
+        case .internet, .phone, .rent, .insurance:
+            return false
+        }
+    }
+
+    /// Usage range display - uses provider-level if k-anonymity met, otherwise fuzzy range
+    /// Only shown for metered utilities (electric, gas, water)
+    var usageRangeText: String? {
+        // Only show for metered utilities, not for internet/phone/rent/insurance
+        guard isMeteredUtility else { return nil }
+        guard let unit = usageUnit, !unit.isEmpty else { return nil }
+
+        if meetsKAnonymity, let pMin = providerMinUsage, let pMax = providerMaxUsage {
+            // Provider-specific range (safe to show exact)
+            return "\(Int(pMin))-\(Int(pMax)) \(unit)"
+        } else if let usage = usageAmount {
+            // K-anonymity NOT met - show fuzzy range (±10%) to protect privacy
+            let fuzzy = fuzzyRange(for: usage, roundTo: max(10, usage * 0.05))
+            return "~\(fuzzy.min)-\(fuzzy.max) \(unit)"
+        }
+        return nil
+    }
+
+    /// Rate range display - uses provider-level if k-anonymity met, otherwise fuzzy range
+    /// Only shown for metered utilities (electric, gas, water)
+    var rateRangeText: String? {
+        guard isMeteredUtility else { return nil }
+        guard let unit = usageUnit, !unit.isEmpty else { return nil }
+
+        if meetsKAnonymity, let pMin = providerMinRate, let pMax = providerMaxRate {
+            // Provider-specific range (safe to show exact)
+            return String(format: "$%.2f-$%.2f/\(unit)", pMin, pMax)
+        } else if let rate = ratePerUnit {
+            // K-anonymity NOT met - show fuzzy range (±10%)
+            let minRate = rate * 0.90
+            let maxRate = rate * 1.10
+            return String(format: "~$%.2f-$%.2f/\(unit)", minRate, maxRate)
+        }
+        return nil
+    }
+
+    /// Daily average range display - uses provider-level if k-anonymity met, otherwise fuzzy range
+    /// Only shown for metered utilities (electric, gas, water)
+    var dailyAvgRangeText: String? {
+        guard isMeteredUtility else { return nil }
+        guard let unit = usageUnit, !unit.isEmpty else { return nil }
+
+        if meetsKAnonymity, let pMin = providerMinDailyAvg, let pMax = providerMaxDailyAvg {
+            // Provider-specific range (safe to show exact)
+            return String(format: "%.1f-%.1f \(unit)/day", pMin, pMax)
+        } else if let usage = usageAmount {
+            // K-anonymity NOT met - show fuzzy range
+            let dailyAvg = usage / 30
+            let minAvg = dailyAvg * 0.90
+            let maxAvg = dailyAvg * 1.10
+            return String(format: "~%.0f-%.0f \(unit)/day", minAvg, maxAvg)
+        }
+        return nil
+    }
+
+    /// User's daily average display (k-anonymity aware - use dailyAvgDisplayText instead)
+    var dailyAvgText: String? {
+        return dailyAvgDisplayText
+    }
+
+    /// Amount range display (e.g., "$40-$80/mo")
+    var amountRangeText: String? {
+        return "$\(Int(historicalMin))-$\(Int(historicalMax))/mo"
     }
 }
 

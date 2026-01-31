@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BillExplorerFeedView: View {
-    @StateObject private var viewModel = BillExplorerViewModel()
+    @ObservedObject private var viewModel = BillExplorerViewModel.shared
     @State private var showFilterSheet = false
 
     var body: some View {
@@ -17,28 +17,31 @@ struct BillExplorerFeedView: View {
             Color(hex: "#F7F9F8")
                 .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                // Header
-                headerSection
+            // Single ScrollView containing all content for proper scrolling
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Header
+                    headerSection
 
-                // Region tabs
-                regionTabsSection
+                    // Region tabs
+                    regionTabsSection
 
-                // State chips (when region selected)
-                if viewModel.hasRegionFilter {
-                    stateChipsSection
-                }
+                    // State chips (when region selected)
+                    if viewModel.hasRegionFilter {
+                        stateChipsSection
+                    }
 
-                // Bill type filter chips
-                filterChipsSection
+                    // Bill type filter chips
+                    filterChipsSection
 
-                // Content
-                if viewModel.isLoading {
-                    loadingView
-                } else if viewModel.filteredListings.isEmpty {
-                    emptyStateView
-                } else {
-                    listingsScrollView
+                    // Content area
+                    if viewModel.isLoading {
+                        loadingView
+                    } else if viewModel.filteredListings.isEmpty {
+                        emptyStateView
+                    } else {
+                        listingsContent
+                    }
                 }
             }
         }
@@ -47,11 +50,9 @@ struct BillExplorerFeedView: View {
                 listing: listing,
                 userVote: viewModel.getUserVote(for: listing.id),
                 isBookmarked: viewModel.isBookmarked(listing.id),
-                questions: [], // TODO: Load from Supabase
                 onUpvote: { viewModel.upvote(listing) },
                 onDownvote: { viewModel.downvote(listing) },
                 onBookmark: { viewModel.toggleBookmark(listing) },
-                onAskQuestion: { _ in /* TODO: Implement */ },
                 onGetSimilarRates: { /* TODO: Implement */ },
                 onNegotiationScript: { /* TODO: Implement */ },
                 onFindSwapMatch: { /* TODO: Implement */ }
@@ -187,55 +188,50 @@ struct BillExplorerFeedView: View {
         }
     }
 
-    // MARK: - Listings Scroll View
+    // MARK: - Listings Content
 
-    private var listingsScrollView: some View {
-        ScrollView {
-            LazyVStack(spacing: 16) {
-                ForEach(viewModel.filteredListings) { listing in
-                    BillListingCard(
-                        listing: listing,
-                        userVote: viewModel.getUserVote(for: listing.id),
-                        isBookmarked: viewModel.isBookmarked(listing.id),
-                        onTap: { viewModel.showDetail(for: listing) },
-                        onUpvote: { viewModel.upvote(listing) },
-                        onDownvote: { viewModel.downvote(listing) },
-                        onBookmark: { viewModel.toggleBookmark(listing) },
-                        onMessage: { viewModel.showDetail(for: listing) }
-                    )
-                }
-
-                // Bottom padding for tab bar
-                Color.clear.frame(height: 100)
+    private var listingsContent: some View {
+        LazyVStack(spacing: 16) {
+            ForEach(viewModel.filteredListings) { listing in
+                BillListingCard(
+                    listing: listing,
+                    userVote: viewModel.getUserVote(for: listing.id),
+                    isBookmarked: viewModel.isBookmarked(listing.id),
+                    displayedVoteScore: viewModel.getEffectiveVoteScore(for: listing),
+                    onTap: { viewModel.showDetail(for: listing) },
+                    onUpvote: { viewModel.upvote(listing) },
+                    onDownvote: { viewModel.downvote(listing) },
+                    onBookmark: { viewModel.toggleBookmark(listing) },
+                    onMessage: { viewModel.showDetail(for: listing) }
+                )
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
+
+            // Bottom padding for tab bar
+            Color.clear.frame(height: 100)
         }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
     }
 
     // MARK: - Loading View
 
     private var loadingView: some View {
         VStack(spacing: 16) {
-            Spacer()
-
             ProgressView()
                 .scaleEffect(1.2)
 
             Text("Loading bills...")
                 .font(.system(size: 14))
                 .foregroundColor(Color(hex: "#8B9A94"))
-
-            Spacer()
         }
+        .frame(height: 300)
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Empty State View
 
     private var emptyStateView: some View {
         VStack(spacing: 16) {
-            Spacer()
-
             Image(systemName: viewModel.showBookmarkedOnly ? "bookmark.slash" : "doc.text.magnifyingglass")
                 .font(.system(size: 48))
                 .foregroundColor(Color(hex: "#C4CCC8"))
@@ -263,9 +259,9 @@ struct BillExplorerFeedView: View {
                 }
                 .padding(.top, 8)
             }
-
-            Spacer()
         }
+        .frame(height: 300)
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, 40)
     }
 }

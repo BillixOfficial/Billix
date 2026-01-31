@@ -27,8 +27,8 @@ enum AppEnvironment {
 /// All environments now use the real API at billixapp.com
 class BillUploadServiceFactory {
 
-    /// Production API URL
-    private static let productionURL = "https://billixapp.com/api/v1"
+    /// Production API URL (must use www to avoid 308 redirect)
+    private static let productionURL = "https://www.billixapp.com/api/v1"
 
     /// Create a bill upload service based on current environment
     /// - Returns: Real service for all environments
