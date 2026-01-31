@@ -14,8 +14,17 @@ struct UsageComparisonBar: View {
     let areaMax: Double
     let unit: String
     let valuePrefix: String  // "$" for money, "" for usage
+    var stateCode: String = ""  // e.g., "MI" - if provided, shows "MI Avg" instead of "Area Avg"
 
     // Computed properties
+    private var avgLabel: String {
+        stateCode.isEmpty ? "Billix Avg" : "Billix \(stateCode) Avg"
+    }
+
+    private var rangeLabel: String {
+        stateCode.isEmpty ? "Billix Range" : "Billix \(stateCode) Range"
+    }
+
     private var percentageDiff: Double {
         guard areaAverage > 0 else { return 0 }
         return ((userValue - areaAverage) / areaAverage) * 100
@@ -33,12 +42,13 @@ struct UsageComparisonBar: View {
 
     private var comparisonText: String {
         let absDiff = abs(Int(percentageDiff))
+        let avgText = stateCode.isEmpty ? "Billix average" : "Billix \(stateCode) average"
         if percentageDiff < -5 {
-            return "\(absDiff)% below area average"
+            return "\(absDiff)% below \(avgText)"
         } else if percentageDiff > 5 {
-            return "\(absDiff)% above area average"
+            return "\(absDiff)% above \(avgText)"
         } else {
-            return "Around area average"
+            return "Around \(avgText)"
         }
     }
 
@@ -76,7 +86,7 @@ struct UsageComparisonBar: View {
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("Area Avg")
+                        Text(avgLabel)
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(hex: "#8B9A94"))
                         Text("\(valuePrefix)\(formatValue(areaAverage)) \(unit)")
@@ -137,62 +147,6 @@ struct UsageComparisonBar: View {
                         .foregroundColor(comparisonColor)
                 }
             }
-
-            // Divider
-            Rectangle()
-                .fill(Color(hex: "#E5E9E7"))
-                .frame(height: 1)
-
-            // Min-Max range display
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Area Range")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(hex: "#8B9A94"))
-
-                GeometryReader { geometry in
-                    let barWidth = geometry.size.width
-                    let userPos = min(max(userPosition, 0), 1) * barWidth
-
-                    ZStack(alignment: .leading) {
-                        // Gradient track showing range
-                        LinearGradient(
-                            colors: [Color(hex: "#4CAF7A"), Color(hex: "#F5A623"), Color(hex: "#E07A6B")],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .frame(height: 6)
-                        .cornerRadius(3)
-                        .opacity(0.3)
-
-                        // User position marker
-                        VStack(spacing: 2) {
-                            UsageBarTriangle()
-                                .fill(Color(hex: "#2D3B35"))
-                                .frame(width: 10, height: 6)
-
-                            Text("You")
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundColor(Color(hex: "#2D3B35"))
-                        }
-                        .offset(x: userPos - 5, y: -16)
-                    }
-                }
-                .frame(height: 6)
-                .padding(.top, 20)
-
-                // Min/Max labels
-                HStack {
-                    Text("\(valuePrefix)\(formatValue(areaMin))")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(hex: "#4CAF7A"))
-
-                    Spacer()
-
-                    Text("\(valuePrefix)\(formatValue(areaMax))")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(hex: "#E07A6B"))
-                }
-            }
         }
         .padding(16)
         .background(Color.white)
@@ -208,19 +162,6 @@ struct UsageComparisonBar: View {
         } else {
             return String(format: "%.0f", value)
         }
-    }
-}
-
-// MARK: - Usage Bar Triangle Shape
-
-struct UsageBarTriangle: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.closeSubpath()
-        return path
     }
 }
 
