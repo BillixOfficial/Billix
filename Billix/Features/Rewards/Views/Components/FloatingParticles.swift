@@ -43,27 +43,33 @@ struct FloatingParticle: View {
     let color: Color
     let delay: Double
 
+    // Read tab active state from environment to pause animations when tab is hidden
+    @Environment(\.isRewardsTabActive) private var isTabActive
+
     @State private var yOffset: CGFloat = 0
     @State private var xOffset: CGFloat = 0
     @State private var opacity: Double = 0.0
-    @State private var isAnimating = false
 
-    // Randomized properties
-    private let size: CGFloat = CGFloat.random(in: 4...6)
+    // Randomized properties (computed once at init)
+    private let size: CGFloat
     private let startX: CGFloat
     private let startY: CGFloat
-    private let duration: Double = Double.random(in: 6...10)
-    private let waveAmplitude: CGFloat = CGFloat.random(in: 5...15)
-    private let finalOpacity: Double = Double.random(in: 0.15...0.25)
+    private let duration: Double
+    private let waveAmplitude: CGFloat
+    private let finalOpacity: Double
 
     init(geometry: GeometryProxy, color: Color, delay: Double) {
         self.geometry = geometry
         self.color = color
         self.delay = delay
 
-        // Random starting position
+        // Random starting position - computed once
+        self.size = CGFloat.random(in: 4...6)
         self.startX = CGFloat.random(in: 0...geometry.size.width)
         self.startY = geometry.size.height + 20 // Start below view
+        self.duration = Double.random(in: 6...10)
+        self.waveAmplitude = CGFloat.random(in: 5...15)
+        self.finalOpacity = Double.random(in: 0.15...0.25)
     }
 
     var body: some View {
@@ -76,119 +82,81 @@ struct FloatingParticle: View {
                 x: startX + xOffset,
                 y: startY + yOffset
             )
-            .onAppear {
-                isAnimating = true
-                startAnimations()
+            .task(id: isTabActive) {
+                // Only run animations when tab is active
+                guard isTabActive else {
+                    PerformanceMonitor.shared.taskCancelled("animationLoop", in: "FloatingParticle-\(delay) (tab inactive)")
+                    // Reset state when tab becomes inactive
+                    yOffset = 0
+                    xOffset = 0
+                    opacity = 0.0
+                    return
+                }
+
+                PerformanceMonitor.shared.viewAppeared("FloatingParticle-\(delay)")
+                PerformanceMonitor.shared.taskStarted("animationLoop", in: "FloatingParticle-\(delay)")
+
+                // Use structured concurrency - all child tasks automatically cancelled when this task is cancelled
+                await withTaskGroup(of: Void.self) { group in
+                    // Initial delay before starting
+                    try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+
+                    // Main animation loop task
+                    group.addTask { @MainActor in
+                        while !Task.isCancelled {
+                            // Reset position for new cycle
+                            yOffset = 0
+                            xOffset = 0
+                            opacity = 0.0
+
+                            guard !Task.isCancelled else { return }
+
+                            // Start upward drift animation
+                            withAnimation(.linear(duration: duration)) {
+                                yOffset = -(geometry.size.height + 40)
+                            }
+
+                            // Fade in
+                            withAnimation(.easeIn(duration: 1.0)) {
+                                opacity = finalOpacity
+                            }
+
+                            // Wait until near end of animation for fade out
+                            try? await Task.sleep(nanoseconds: UInt64((duration - 1.5) * 1_000_000_000))
+                            guard !Task.isCancelled else { return }
+
+                            // Fade out
+                            withAnimation(.easeOut(duration: 1.5)) {
+                                opacity = 0.0
+                            }
+
+                            // Wait for animation to complete before restarting
+                            try? await Task.sleep(nanoseconds: UInt64(2.0 * 1_000_000_000))
+                        }
+                    }
+
+                    // Wave animation task (horizontal movement)
+                    group.addTask { @MainActor in
+                        var goingRight = true
+                        while !Task.isCancelled {
+                            withAnimation(.easeInOut(duration: duration / 6)) {
+                                xOffset = goingRight ? waveAmplitude : -waveAmplitude
+                            }
+                            goingRight.toggle()
+                            try? await Task.sleep(nanoseconds: UInt64((duration / 6) * 1_000_000_000))
+                        }
+                    }
+                }
+
+                PerformanceMonitor.shared.taskCancelled("animationLoop", in: "FloatingParticle-\(delay)")
             }
             .onDisappear {
-                isAnimating = false
-                // Reset state to stop animations
+                PerformanceMonitor.shared.viewDisappeared("FloatingParticle-\(delay)")
+                // Reset state
                 yOffset = 0
                 xOffset = 0
                 opacity = 0.0
             }
-    }
-
-    private func startAnimations() {
-        guard isAnimating else { return }
-
-        // Upward drift
-        withAnimation(
-            .linear(duration: duration)
-            .repeatForever(autoreverses: false)
-            .delay(delay)
-        ) {
-            if isAnimating {
-                yOffset = -(geometry.size.height + 40)
-            }
-        }
-
-        // Horizontal waver (sine wave effect)
-        withAnimation(
-            .easeInOut(duration: duration / 3)
-            .repeatForever(autoreverses: true)
-            .delay(delay)
-        ) {
-            if isAnimating {
-                xOffset = waveAmplitude
-            }
-        }
-
-        // Fade in/out
-        withAnimation(
-            .easeIn(duration: 1.0)
-            .delay(delay)
-        ) {
-            if isAnimating {
-                opacity = finalOpacity
-            }
-        }
-
-        // Fade out at the end
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: UInt64((delay + duration - 1.5) * 1_000_000_000))
-            guard isAnimating else { return }
-            withAnimation(.easeOut(duration: 1.5)) {
-                opacity = 0.0
-            }
-        }
-
-        // Restart particle after it completes
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: UInt64((delay + duration + 0.5) * 1_000_000_000))
-            guard isAnimating else { return }
-            restartParticle()
-        }
-    }
-
-    private func restartParticle() {
-        guard isAnimating else { return }
-
-        // Reset to starting position
-        yOffset = 0
-        xOffset = 0
-        opacity = 0.0
-
-        // Restart animations
-        withAnimation(
-            .linear(duration: duration)
-            .repeatForever(autoreverses: false)
-        ) {
-            if isAnimating {
-                yOffset = -(geometry.size.height + 40)
-            }
-        }
-
-        withAnimation(
-            .easeInOut(duration: duration / 3)
-            .repeatForever(autoreverses: true)
-        ) {
-            if isAnimating {
-                xOffset = waveAmplitude
-            }
-        }
-
-        withAnimation(.easeIn(duration: 1.0)) {
-            if isAnimating {
-                opacity = finalOpacity
-            }
-        }
-
-        // Schedule fade out
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: UInt64((duration - 1.5) * 1_000_000_000))
-            guard isAnimating else { return }
-            withAnimation(.easeOut(duration: 1.5)) {
-                opacity = 0.0
-            }
-        }
-
-        // Schedule next restart
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: UInt64((duration + 0.5) * 1_000_000_000))
-            guard isAnimating else { return }
-            restartParticle()
-        }
     }
 }
 

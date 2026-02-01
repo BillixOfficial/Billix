@@ -9,7 +9,25 @@
 
 import SwiftUI
 
+// MARK: - Environment Key for Tab Active State
+// This allows child views to know when the Rewards tab is active/inactive
+// for pausing animations when the tab is hidden
+
+struct RewardsTabActiveKey: EnvironmentKey {
+    static let defaultValue: Bool = true
+}
+
+extension EnvironmentValues {
+    var isRewardsTabActive: Bool {
+        get { self[RewardsTabActiveKey.self] }
+        set { self[RewardsTabActiveKey.self] = newValue }
+    }
+}
+
 struct RewardsHubView: View {
+
+    // Tab active state - passed from MainTabView to control animations when tab is hidden
+    var isTabActive: Bool = true
 
     @StateObject private var viewModel = RewardsViewModel(authService: AuthService.shared)
     @ObservedObject private var tasksViewModel = TasksViewModel.shared
@@ -59,6 +77,7 @@ struct RewardsHubView: View {
             }
             .navigationBarHidden(true)
         }
+        .environment(\.isRewardsTabActive, isTabActive)
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active && appeared {
                 Task {
@@ -68,12 +87,33 @@ struct RewardsHubView: View {
             }
         }
         .onAppear {
+            PerformanceMonitor.shared.viewAppeared("RewardsHubView")
+            // Print status after a short delay to capture all child view registrations
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                PerformanceMonitor.shared.printStatus()
+            }
             Task {
                 await viewModel.loadRewardsData()
                 await tasksViewModel.loadTasks()
             }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 appeared = true
+            }
+        }
+        .onChange(of: isTabActive) { _, isActive in
+            if isActive {
+                PerformanceMonitor.shared.viewAppeared("RewardsHubView (tab activated)")
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    PerformanceMonitor.shared.printStatus()
+                }
+            } else {
+                PerformanceMonitor.shared.viewDisappeared("RewardsHubView (tab deactivated)")
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    PerformanceMonitor.shared.printStatus()
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToGame"))) { _ in
@@ -354,6 +394,9 @@ struct DailyGameHeroCard: View {
     let gamesPlayedToday: Int
     let onPlay: () -> Void
 
+    // Read tab active state from environment
+    @Environment(\.isRewardsTabActive) private var isTabActive
+
     @State private var isAnimating = false
     @State private var shimmerOffset: CGFloat = -200
     @State private var badgePulse = false
@@ -551,27 +594,60 @@ struct DailyGameHeroCard: View {
         .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Daily Price Guessr game. Guess prices around the world. Test your price knowledge.")
-        .onAppear {
+        .task(id: isTabActive) {
+            // Only run animations when tab is active
+            guard isTabActive else {
+                PerformanceMonitor.shared.viewDisappeared("DailyGameHeroCard (tab inactive)")
+                viewIsVisible = false
+                isAnimating = false
+                badgePulse = false
+                shimmerOffset = -200
+                return
+            }
+
+            // Task-based animations that auto-cancel when view disappears or tab changes
+            PerformanceMonitor.shared.viewAppeared("DailyGameHeroCard")
             viewIsVisible = true
-            // Start animations
-            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-                isAnimating = true
-            }
 
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                badgePulse = true
-            }
+            // Use withTaskGroup for proper structured concurrency - all child tasks are cancelled when parent is cancelled
+            await withTaskGroup(of: Void.self) { group in
+                // Pulse animation task
+                group.addTask { @MainActor in
+                    PerformanceMonitor.shared.animationStarted("pulse", in: "DailyGameHeroCard")
+                    defer { PerformanceMonitor.shared.animationStopped("pulse", in: "DailyGameHeroCard") }
+                    while !Task.isCancelled {
+                        withAnimation(.easeInOut(duration: 2.0)) {
+                            isAnimating.toggle()
+                        }
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    }
+                }
 
-            // Shimmer animation
-            withAnimation(.linear(duration: 2.5).repeatForever(autoreverses: false)) {
-                shimmerOffset = 400
+                // Badge pulse animation task
+                group.addTask { @MainActor in
+                    PerformanceMonitor.shared.animationStarted("badgePulse", in: "DailyGameHeroCard")
+                    defer { PerformanceMonitor.shared.animationStopped("badgePulse", in: "DailyGameHeroCard") }
+                    while !Task.isCancelled {
+                        withAnimation(.easeInOut(duration: 1.2)) {
+                            badgePulse.toggle()
+                        }
+                        try? await Task.sleep(nanoseconds: 1_200_000_000)
+                    }
+                }
+
+                // Shimmer animation task
+                group.addTask { @MainActor in
+                    PerformanceMonitor.shared.animationStarted("shimmer", in: "DailyGameHeroCard")
+                    defer { PerformanceMonitor.shared.animationStopped("shimmer", in: "DailyGameHeroCard") }
+                    while !Task.isCancelled {
+                        shimmerOffset = -200
+                        withAnimation(.linear(duration: 2.5)) {
+                            shimmerOffset = 400
+                        }
+                        try? await Task.sleep(nanoseconds: 2_500_000_000)
+                    }
+                }
             }
-        }
-        .onDisappear {
-            viewIsVisible = false
-            isAnimating = false
-            badgePulse = false
-            shimmerOffset = -200
         }
     }
 
@@ -618,8 +694,8 @@ struct DailyTasksSection: View {
     @State private var showQuickTasks = false
     @State private var currentTime = Date()
 
-    // Timer to update countdown
-    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    // Read tab active state from environment to pause timer when tab is hidden
+    @Environment(\.isRewardsTabActive) private var isTabActive
 
     // Calculate time until midnight
     private var timeUntilReset: String {
@@ -699,11 +775,30 @@ struct DailyTasksSection: View {
                 }
             }
         }
+        .onAppear {
+            PerformanceMonitor.shared.viewAppeared("DailyTasksSection")
+        }
+        .onDisappear {
+            PerformanceMonitor.shared.timerStopped("countdownTimer", in: "DailyTasksSection")
+            PerformanceMonitor.shared.viewDisappeared("DailyTasksSection")
+        }
         .task {
             await tasksViewModel.loadTasks()
         }
-        .onReceive(timer) { _ in
-            currentTime = Date()
+        .task(id: isTabActive) {
+            // Only run timer when tab is active
+            guard isTabActive else {
+                PerformanceMonitor.shared.timerStopped("countdownTimer", in: "DailyTasksSection (tab inactive)")
+                return
+            }
+            // Task-based timer that auto-cancels when view disappears or tab changes
+            PerformanceMonitor.shared.timerStarted("countdownTimer", in: "DailyTasksSection", interval: 60)
+            while !Task.isCancelled && isTabActive {
+                try? await Task.sleep(nanoseconds: 60_000_000_000) // 60 seconds
+                if Task.isCancelled || !isTabActive { break }
+                currentTime = Date()
+            }
+            PerformanceMonitor.shared.timerStopped("countdownTimer", in: "DailyTasksSection")
         }
         .sheet(isPresented: $showQuickTasks) {
             QuickTasksScreen()
@@ -775,8 +870,8 @@ struct WeeklyTasksSection: View {
     @ObservedObject var tasksViewModel: TasksViewModel
     @State private var currentTime = Date()
 
-    // Timer to update countdown
-    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    // Read tab active state from environment to pause timer when tab is hidden
+    @Environment(\.isRewardsTabActive) private var isTabActive
 
     // Calculate time until Sunday midnight EST
     private var timeUntilReset: String {
@@ -847,11 +942,30 @@ struct WeeklyTasksSection: View {
                 }
             }
         }
+        .onAppear {
+            PerformanceMonitor.shared.viewAppeared("WeeklyTasksSection")
+        }
+        .onDisappear {
+            PerformanceMonitor.shared.timerStopped("countdownTimer", in: "WeeklyTasksSection")
+            PerformanceMonitor.shared.viewDisappeared("WeeklyTasksSection")
+        }
         .task {
             await tasksViewModel.loadTasks()
         }
-        .onReceive(timer) { _ in
-            currentTime = Date()
+        .task(id: isTabActive) {
+            // Only run timer when tab is active
+            guard isTabActive else {
+                PerformanceMonitor.shared.timerStopped("countdownTimer", in: "WeeklyTasksSection (tab inactive)")
+                return
+            }
+            // Task-based timer that auto-cancels when view disappears or tab changes
+            PerformanceMonitor.shared.timerStarted("countdownTimer", in: "WeeklyTasksSection", interval: 60)
+            while !Task.isCancelled && isTabActive {
+                try? await Task.sleep(nanoseconds: 60_000_000_000) // 60 seconds
+                if Task.isCancelled || !isTabActive { break }
+                currentTime = Date()
+            }
+            PerformanceMonitor.shared.timerStopped("countdownTimer", in: "WeeklyTasksSection")
         }
     }
 }

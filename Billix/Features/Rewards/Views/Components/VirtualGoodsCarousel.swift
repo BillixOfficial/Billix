@@ -51,9 +51,9 @@ struct VirtualGoodsCarousel: View {
             }
             .padding(.horizontal, 20)
 
-            // Horizontal scroll
+            // Horizontal scroll - LazyHStack for deferred rendering
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 14) {
+                LazyHStack(spacing: 14) {
                     ForEach(virtualGoods.prefix(6)) { item in
                         VirtualGoodCard(
                             item: item,

@@ -22,7 +22,7 @@ struct MainTabView: View {
                     .opacity(selectedTab == 2 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 2)
 
-                RewardsHubView()
+                RewardsHubView(isTabActive: selectedTab == 3)
                     .opacity(selectedTab == 3 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 3)
 

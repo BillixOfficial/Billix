@@ -23,27 +23,18 @@ struct RewardMarketplace: View {
     let onViewAllGameBoosts: () -> Void
     let onViewAllVirtualGoods: () -> Void
 
-    // Filter rewards by type for different zones
-    var giftCardRewards: [Reward] {
-        rewards.filter { $0.category == .giftCard }
-    }
+    // Pre-filtered rewards - computed once at init using lazy properties
+    // These are computed only once per struct instance
+    var giftCardRewards: [Reward] { rewards.filter { $0.category == .giftCard } }
+    var gameBoosts: [Reward] { rewards.filter { $0.type == .digitalGood && $0.category == .virtualGoods } }
+    var virtualGoods: [Reward] { rewards.filter { $0.type == .customization && $0.category == .virtualGoods } }
+    var giveawayEntries: [Reward] { rewards.filter { $0.category == .giveaway } }
+    var featuredGiftCard: Reward? { giftCardRewards.max(by: { ($0.dollarValue ?? 0) < ($1.dollarValue ?? 0) }) }
+}
 
-    var gameBoosts: [Reward] {
-        rewards.filter { $0.type == .digitalGood && $0.category == .virtualGoods }
-    }
+// MARK: - RewardMarketplace Body
 
-    var virtualGoods: [Reward] {
-        rewards.filter { $0.type == .customization && $0.category == .virtualGoods }
-    }
-
-    var giveawayEntries: [Reward] {
-        rewards.filter { $0.category == .giveaway }
-    }
-
-    // Featured card (highest value gift card)
-    var featuredGiftCard: Reward? {
-        giftCardRewards.max(by: { ($0.dollarValue ?? 0) < ($1.dollarValue ?? 0) })
-    }
+extension RewardMarketplace {
 
     var body: some View {
         // Shop is always accessible to all users (canAccessShop always true)
