@@ -18,6 +18,7 @@ struct EconomyTabView: View {
     @StateObject private var newsViewModel = EconomyFeedViewModel()
     @StateObject private var communityViewModel = CommunityFeedViewModel()
     @StateObject private var groupsRouter = GroupsNavigationRouter()  // Router survives view recreation
+    @ObservedObject private var authService = AuthService.shared
     @State private var selectedTab: EconomyTab = .feed
     @State private var showProfileSheet = false
     @State private var isSearching = false
@@ -109,14 +110,26 @@ struct EconomyTabView: View {
             } label: {
                 HStack(spacing: 12) {
                     // Profile Avatar
-                    Circle()
-                        .fill(accentBlue.opacity(0.2))
+                    if let avatarUrl = authService.currentUser?.profile.avatarUrl,
+                       let url = URL(string: avatarUrl) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 44, height: 44)
+                                    .clipShape(Circle())
+                            case .failure, .empty:
+                                profileInitialCircle
+                            @unknown default:
+                                profileInitialCircle
+                            }
+                        }
                         .frame(width: 44, height: 44)
-                        .overlay(
-                            Text(String(newsViewModel.userName.prefix(1)).uppercased())
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(accentBlue)
-                        )
+                    } else {
+                        profileInitialCircle
+                    }
 
                     // Greeting Text
                     VStack(alignment: .leading, spacing: 2) {
@@ -159,9 +172,23 @@ struct EconomyTabView: View {
         .padding(.horizontal, 20)
         .padding(.top, 8)
         .padding(.bottom, isSearching ? 8 : 16)
-        .sheet(isPresented: $showProfileSheet) {
-            ProfileView()
+        .fullScreenCover(isPresented: $showProfileSheet) {
+            ProfileView(isModal: true)
+                .environmentObject(AuthService.shared)
         }
+    }
+
+    // MARK: - Profile Initial Circle (Fallback)
+
+    private var profileInitialCircle: some View {
+        Circle()
+            .fill(accentBlue.opacity(0.2))
+            .frame(width: 44, height: 44)
+            .overlay(
+                Text(String(newsViewModel.userName.prefix(1)).uppercased())
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(accentBlue)
+            )
     }
 
     // MARK: - Search Bar

@@ -141,6 +141,23 @@ struct PollView: View {
                         }
                         .buttonStyle(.bordered)
                     }
+                } else {
+                    // No poll available today
+                    VStack(spacing: 16) {
+                        Image(systemName: "calendar.badge.clock")
+                            .font(.system(size: 48))
+                            .foregroundColor(Color(hex: "#6B7280"))
+
+                        Text("No Poll Today")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(Color(hex: "#1F2937"))
+
+                        Text("Check back tomorrow for a new daily poll!")
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#6B7280"))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
                 }
 
                 // Toast notification

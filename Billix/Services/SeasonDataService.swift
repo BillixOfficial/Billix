@@ -223,8 +223,8 @@ class SeasonDataService {
                 .execute()
         }
 
-        // Award points to user profile
-        try await awardPointsToProfile(userId: userId, points: newProgress.pointsEarned)
+        // Points are only awarded via weekly tasks, not per-game
+        // try await awardPointsToProfile(userId: userId, points: newProgress.pointsEarned)
     }
 
     /// Check if a part is unlocked based on completion requirements
@@ -410,8 +410,8 @@ class SeasonDataService {
             .insert(insert)
             .execute()
 
-        // Award points to user profile
-        try await awardPointsToProfile(userId: userId, points: progress.pointsEarned)
+        // Points are only awarded via weekly tasks, not per-game
+        // try await awardPointsToProfile(userId: userId, points: progress.pointsEarned)
     }
 
     // MARK: - User Settings
@@ -528,9 +528,9 @@ class SeasonDataService {
         }
 
         let current: ProfilePoints = try await supabase
-            .from("user_profiles")
+            .from("profiles")
             .select("points")
-            .eq("id", value: userId.uuidString)
+            .eq("user_id", value: userId.uuidString)
             .single()
             .execute()
             .value
@@ -539,9 +539,9 @@ class SeasonDataService {
 
         // Update profile with new points total
         try await supabase
-            .from("user_profiles")
+            .from("profiles")
             .update(["points": newTotal])
-            .eq("id", value: userId.uuidString)
+            .eq("user_id", value: userId.uuidString)
             .execute()
     }
 }

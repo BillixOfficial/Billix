@@ -51,9 +51,9 @@ final class RewardsService: Sendable {
 
         do {
             let response: ProfilePoints = try await client
-                .from("user_profiles")
+                .from("profiles")
                 .select("points")
-                .eq("id", value: userId.uuidString)
+                .eq("user_id", value: userId.uuidString)
                 .single()
                 .execute()
                 .value
@@ -97,15 +97,41 @@ final class RewardsService: Sendable {
             // Fallback to read-then-write (less safe but works without RPC)
             print("⚠️ RPC not available, using fallback method")
             let currentPoints = try await getUserPoints(userId: userId)
+            let currentLifetime = try await getLifetimePoints(userId: userId)
             let newPoints = currentPoints + amount
+            let newLifetime = currentLifetime + amount
 
             try await client
-                .from("user_profiles")
-                .update(["points": newPoints])
-                .eq("id", value: userId.uuidString)
+                .from("profiles")
+                .update([
+                    "points": newPoints,
+                    "lifetime_points": newLifetime
+                ])
+                .eq("user_id", value: userId.uuidString)
                 .execute()
 
             return newPoints
+        }
+    }
+
+    /// Fetch user's lifetime points from profiles
+    func getLifetimePoints(userId: UUID) async throws -> Int {
+        struct ProfileLifetime: Codable {
+            let lifetime_points: Int?
+        }
+
+        do {
+            let response: ProfileLifetime = try await client
+                .from("profiles")
+                .select("lifetime_points")
+                .eq("user_id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+
+            return response.lifetime_points ?? 0
+        } catch {
+            throw RewardsServiceError.networkError(error)
         }
     }
 
@@ -146,9 +172,9 @@ final class RewardsService: Sendable {
             let newPoints = max(0, currentPoints - amount)
 
             try await client
-                .from("user_profiles")
+                .from("profiles")
                 .update(["points": newPoints])
-                .eq("id", value: userId.uuidString)
+                .eq("user_id", value: userId.uuidString)
                 .execute()
 
             return newPoints
@@ -165,5 +191,85 @@ final class RewardsService: Sendable {
         offset: Int = 0
     ) async throws -> [PointTransaction] {
         return []
+    }
+
+    // MARK: - Leaderboard
+
+    /// Fetch leaderboard entries from profiles with show_on_leaderboard = true
+    /// Returns top users sorted by lifetime points (all-time earnings)
+    func fetchLeaderboard(currentUserId: UUID, limit: Int = 50) async throws -> (entries: [LeaderboardEntry], currentUserEntry: LeaderboardEntry?) {
+        struct LeaderboardProfile: Codable {
+            let user_id: String
+            let handle: String?
+            let lifetime_points: Int?
+        }
+
+        do {
+            // Fetch all users who opted into leaderboard, sorted by lifetime points
+            let profiles: [LeaderboardProfile] = try await client
+                .from("profiles")
+                .select("user_id, handle, lifetime_points")
+                .eq("show_on_leaderboard", value: true)
+                .gt("lifetime_points", value: 0)
+                .order("lifetime_points", ascending: false)
+                .limit(limit)
+                .execute()
+                .value
+
+            var entries: [LeaderboardEntry] = []
+            var currentUserEntry: LeaderboardEntry?
+
+            for (index, profile) in profiles.enumerated() {
+                let isCurrentUser = profile.user_id == currentUserId.uuidString
+                let handle = profile.handle ?? "anonymous"
+                let displayHandle = "@\(handle)"
+
+                // Get initials from handle (first 2 chars uppercase)
+                let initials = String(handle.prefix(2)).uppercased()
+
+                let entry = LeaderboardEntry(
+                    id: UUID(uuidString: profile.user_id) ?? UUID(),
+                    rank: index + 1,
+                    displayName: displayHandle,
+                    avatarInitials: initials,
+                    pointsThisWeek: profile.lifetime_points ?? 0, // All-time points
+                    isCurrentUser: isCurrentUser
+                )
+
+                entries.append(entry)
+
+                if isCurrentUser {
+                    currentUserEntry = entry
+                }
+            }
+
+            // If current user is not in the leaderboard (opted out or no points),
+            // fetch their data separately
+            if currentUserEntry == nil {
+                let userProfile: LeaderboardProfile? = try? await client
+                    .from("profiles")
+                    .select("user_id, handle, lifetime_points")
+                    .eq("user_id", value: currentUserId.uuidString)
+                    .single()
+                    .execute()
+                    .value
+
+                if let userProfile = userProfile {
+                    let handle = userProfile.handle ?? "anonymous"
+                    currentUserEntry = LeaderboardEntry(
+                        id: currentUserId,
+                        rank: entries.count + 1, // Position after all visible entries
+                        displayName: "@\(handle)",
+                        avatarInitials: String(handle.prefix(2)).uppercased(),
+                        pointsThisWeek: userProfile.lifetime_points ?? 0,
+                        isCurrentUser: true
+                    )
+                }
+            }
+
+            return (entries, currentUserEntry)
+        } catch {
+            throw RewardsServiceError.networkError(error)
+        }
     }
 }

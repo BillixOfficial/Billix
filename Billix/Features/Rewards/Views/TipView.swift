@@ -176,6 +176,23 @@ struct TipView: View {
                         }
                         .buttonStyle(.bordered)
                     }
+                } else {
+                    // No tip available today
+                    VStack(spacing: 16) {
+                        Image(systemName: "lightbulb.slash")
+                            .font(.system(size: 48))
+                            .foregroundColor(Color(hex: "#6B7280"))
+
+                        Text("No Tip Today")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(Color(hex: "#1F2937"))
+
+                        Text("Check back tomorrow for a new money-saving tip!")
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#6B7280"))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
                 }
 
                 // Toast notification
