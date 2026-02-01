@@ -357,15 +357,39 @@ struct WeeklyProgressSlide: View {
         // Only show checkmarks for the current streak period
         guard actualStreak > 0 else { return false }
 
-        // Calculate which days are part of current streak (last N consecutive days ending today)
-        let streakStartIndex = todayWeekdayIndex - actualStreak + 1
+        // Find the last check-in day (streak end) - don't assume it's today
+        // Start from today and work backwards to find the most recent check-in
+        var streakEndIndex = todayWeekdayIndex
+
+        // If today hasn't been checked in yet, find the last checked day
+        if !progress[todayWeekdayIndex] {
+            // Search backwards from today to find the last check-in
+            for i in stride(from: todayWeekdayIndex - 1, through: 0, by: -1) {
+                if progress[i] {
+                    streakEndIndex = i
+                    break
+                }
+            }
+            // Also check if streak ended last week (wrap around)
+            if streakEndIndex == todayWeekdayIndex && !progress[todayWeekdayIndex] {
+                for i in stride(from: 6, through: todayWeekdayIndex + 1, by: -1) {
+                    if progress[i] {
+                        streakEndIndex = i
+                        break
+                    }
+                }
+            }
+        }
+
+        // Calculate streak start based on the actual streak end
+        let streakStartIndex = streakEndIndex - actualStreak + 1
 
         // Handle week wrap-around (e.g., streak started last week)
         if streakStartIndex < 0 {
             // Streak spans from previous week
-            return (index >= (7 + streakStartIndex) || index <= todayWeekdayIndex) && progress[index]
+            return (index >= (7 + streakStartIndex) || index <= streakEndIndex) && progress[index]
         } else {
-            return index >= streakStartIndex && index <= todayWeekdayIndex && progress[index]
+            return index >= streakStartIndex && index <= streakEndIndex && progress[index]
         }
     }
 

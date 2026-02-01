@@ -119,6 +119,7 @@ class TaskTrackingService {
     }
 
     /// Fetch weekly check-in history for the current week (Monday to Sunday)
+    /// Uses 3 AM EST as day boundary to accommodate late-night users and other US timezones
     func getWeeklyCheckIns(userId: UUID) async throws -> [Bool] {
         // Use EST timezone to match task reset logic
         var calendar = Calendar.current
@@ -130,16 +131,23 @@ class TaskTrackingService {
 
         let now = Date()
 
-        // Use rolling 7-day window instead of calendar week
-        // Go back 6 days from today to get last 7 days (today + 6 previous days)
-        guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -6, to: calendar.startOfDay(for: now)) else {
+        // Calculate "streak day" start using 3 AM EST boundary
+        // If before 3 AM, counts as previous day
+        let todayStreakDay = streakDay(for: now, calendar: calendar)
+
+        // Use rolling 7-day window based on streak days
+        guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -6, to: todayStreakDay) else {
             return Array(repeating: false, count: 7)
         }
 
-        let windowStart = sevenDaysAgo
+        // Window start is 3 AM EST, 7 days ago
+        guard let windowStart = calendar.date(bySettingHour: 3, minute: 0, second: 0, of: sevenDaysAgo) else {
+            return Array(repeating: false, count: 7)
+        }
 
-        // Window end is tomorrow at 00:00:00 EST (to include all of today)
-        guard let windowEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)) else {
+        // Window end is 3 AM EST tomorrow (to include all of today's streak day)
+        guard let tomorrowStreakDay = calendar.date(byAdding: .day, value: 1, to: todayStreakDay),
+              let windowEnd = calendar.date(bySettingHour: 3, minute: 0, second: 0, of: tomorrowStreakDay) else {
             return Array(repeating: false, count: 7)
         }
 
@@ -167,7 +175,9 @@ class TaskTrackingService {
         var weekProgress = Array(repeating: false, count: 7)
 
         for completion in completions {
-            let weekday = calendar.component(.weekday, from: completion.completedAt)
+            // Get the "streak day" for this completion (accounts for 3 AM boundary)
+            let completionStreakDay = streakDay(for: completion.completedAt, calendar: calendar)
+            let weekday = calendar.component(.weekday, from: completionStreakDay)
             // weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
             // Convert to our index: 0 = Monday, 6 = Sunday
             let index = weekday == 1 ? 6 : weekday - 2
@@ -177,6 +187,22 @@ class TaskTrackingService {
         }
 
         return weekProgress
+    }
+
+    /// Calculate the "streak day" for a given date
+    /// Uses 3 AM EST as the day boundary - any time before 3 AM counts as the previous day
+    /// This accommodates night owls and aligns better with other US timezones (3 AM EST = midnight PST)
+    private func streakDay(for date: Date, calendar: Calendar) -> Date {
+        let hour = calendar.component(.hour, from: date)
+
+        // If before 3 AM EST, this counts as the previous day
+        if hour < 3 {
+            if let previousDay = calendar.date(byAdding: .day, value: -1, to: date) {
+                return calendar.startOfDay(for: previousDay)
+            }
+        }
+
+        return calendar.startOfDay(for: date)
     }
 }
 
