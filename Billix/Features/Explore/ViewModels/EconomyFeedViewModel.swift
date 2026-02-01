@@ -8,6 +8,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 /// ViewModel for the Economy by AI news feed
 /// Manages article data, filtering, and selection state
@@ -22,10 +23,12 @@ class EconomyFeedViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var searchText = ""
     @Published var errorMessage: String?
+    @Published private(set) var userName: String = "User"
 
     // MARK: - Private Properties
 
     private let newsService = EconomyNewsService.shared
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Computed Properties
 
@@ -59,15 +62,6 @@ class EconomyFeedViewModel: ObservableObject {
         filteredArticles.count > 5
     }
 
-    var userName: String {
-        // Get user's display name from AuthService
-        let displayName = AuthService.shared.currentUser?.displayName ?? "User"
-        if !displayName.isEmpty && displayName != "User" {
-            return displayName.components(separatedBy: " ").first ?? displayName
-        }
-        return "User"
-    }
-
     var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -85,8 +79,30 @@ class EconomyFeedViewModel: ObservableObject {
     // MARK: - Initialization
 
     init() {
+        // Subscribe to user changes for reactive name updates
+        AuthService.shared.$currentUser
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] user in
+                self?.updateUserName(from: user)
+            }
+            .store(in: &cancellables)
+
+        // Set initial user name
+        updateUserName(from: AuthService.shared.currentUser)
+
         Task {
             await loadArticles()
+        }
+    }
+
+    // MARK: - Private Methods
+
+    private func updateUserName(from user: CombinedUser?) {
+        let displayName = user?.displayName ?? "User"
+        if !displayName.isEmpty && displayName != "User" {
+            userName = displayName.components(separatedBy: " ").first ?? displayName
+        } else {
+            userName = "User"
         }
     }
 

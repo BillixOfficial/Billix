@@ -15,7 +15,6 @@ struct WalletHeaderView: View {
     let tierProgress: Double  // 0.0 to 1.0 progress to next tier
     let streakCount: Int  // Real check-in streak from TasksViewModel
     let weeklyCheckIns: [Bool]  // Actual check-in days (Mon-Sun)
-    let onHistoryTapped: () -> Void
 
     @State private var animatedPoints: Int = 0
     @State private var showShimmer = false
@@ -90,20 +89,6 @@ struct WalletHeaderView: View {
                 }
 
                 Spacer()
-
-                // History Button
-                Button(action: onHistoryTapped) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.billixDarkGreen.opacity(0.1))
-                            .frame(width: 44, height: 44)
-
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.billixDarkGreen)
-                    }
-                }
-                .buttonStyle(ScaleButtonStyle(scale: 0.9))
             }
             .padding(.horizontal, 20)
             .padding(.top, 12)
@@ -584,8 +569,7 @@ struct RollingNumberView: View {
             currentTier: .bronze,
             tierProgress: 0.18,  // 1,450 / 8,000 = ~18%
             streakCount: 3,
-            weeklyCheckIns: [false, false, false, false, true, true, true],  // Thu-Fri-Sat checked
-            onHistoryTapped: {}
+            weeklyCheckIns: [false, false, false, false, true, true, true]  // Thu-Fri-Sat checked
         )
 
         Spacer()
@@ -601,8 +585,7 @@ struct RollingNumberView: View {
             currentTier: .silver,
             tierProgress: 0.18,  // 4,000 / 22,000 = ~18%
             streakCount: 5,
-            weeklyCheckIns: [false, false, true, true, true, true, true],  // Wed-Sun checked
-            onHistoryTapped: {}
+            weeklyCheckIns: [false, false, true, true, true, true, true]  // Wed-Sun checked
         )
 
         Spacer()
@@ -618,8 +601,7 @@ struct RollingNumberView: View {
             currentTier: .gold,
             tierProgress: 0.21,  // 15,000 / 70,000 = ~21%
             streakCount: 7,
-            weeklyCheckIns: [true, true, true, true, true, true, true],  // Full week checked
-            onHistoryTapped: {}
+            weeklyCheckIns: [true, true, true, true, true, true, true]  // Full week checked
         )
 
         Spacer()

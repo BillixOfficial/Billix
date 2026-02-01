@@ -12,6 +12,10 @@ import StoreKit
 // MARK: - Profile View
 
 struct ProfileView: View {
+    // Modal presentation support
+    var isModal: Bool = false
+    @Environment(\.dismiss) private var dismiss
+
     @EnvironmentObject var authService: AuthService
     @StateObject private var viewModel = ProfileViewModel()
     @State private var selectedTab: ProfileTab = .about
@@ -74,6 +78,7 @@ struct ProfileView: View {
     @State private var isUploadingPhoto = false
     @State private var showPhotoError = false
     @State private var photoErrorMessage = ""
+    @State private var avatarCacheBuster = Date() // Force AsyncImage refresh after upload
 
     // Settings states
     @State private var biometricLock = false
@@ -176,6 +181,19 @@ struct ProfileView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if isModal {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(.gray.opacity(0.6), Color(hex: "#F5F7F6"))
+                        }
+                    }
+                }
+            }
             .onAppear {
                 fetchUserEmail()
                 loadUsernameFromProfile()
@@ -327,10 +345,20 @@ struct ProfileView: View {
             await MainActor.run {
                 isUploadingPhoto = false
                 selectedPhotoItem = nil
+
+                // Clear URL cache to force fresh image load
+                URLCache.shared.removeAllCachedResponses()
+
+                avatarCacheBuster = Date() // Force AsyncImage to reload
+
+                print("[ProfileView] Upload complete. Current avatarUrl: \(authService.currentUser?.profile.avatarUrl ?? "nil")")
+                print("[ProfileView] Cache buster updated to: \(avatarCacheBuster)")
+
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
             }
 
         } catch {
+            print("[ProfileView] Upload error: \(error.localizedDescription)")
             await MainActor.run {
                 isUploadingPhoto = false
                 selectedPhotoItem = nil
@@ -415,7 +443,7 @@ struct ProfileView: View {
 
                 // Profile image or initials
                 if let avatarUrl = authService.currentUser?.profile.avatarUrl,
-                   let url = URL(string: avatarUrl) {
+                   let url = URL(string: "\(avatarUrl)?v=\(Int(avatarCacheBuster.timeIntervalSince1970))") {
                     AsyncImage(url: url) { phase in
                         switch phase {
                         case .success(let image):
@@ -1280,6 +1308,7 @@ struct ProfileView: View {
     // MARK: - Account Update Functions
 
     private func saveNameChange() {
+        print("🔵 saveNameChange called")
         isSavingAccount = true
         Task {
             do {
@@ -1297,9 +1326,19 @@ struct ProfileView: View {
                 // Refresh user data to reflect changes in UI
                 try await authService.refreshUserData()
 
+                // Dismiss sheet first
+                print("🔵 Dismissing sheet...")
                 await MainActor.run {
                     isSavingAccount = false
                     showEditNameSheet = false
+                }
+
+                // Wait for sheet dismissal animation before showing alert
+                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+                // Show success alert
+                print("🔵 Showing alert...")
+                await MainActor.run {
                     accountSuccessMessage = "Name updated successfully!"
                     showAccountSuccess = true
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -1315,15 +1354,26 @@ struct ProfileView: View {
     }
 
     private func saveEmailChange() {
+        print("🔵 saveEmailChange called")
         isSavingAccount = true
         Task {
             do {
                 // Update email in Supabase Auth
                 try await SupabaseService.shared.client.auth.update(user: .init(email: editingEmail))
 
+                // Dismiss sheet first
+                print("🔵 Dismissing sheet...")
                 await MainActor.run {
                     isSavingAccount = false
                     showEditEmailSheet = false
+                }
+
+                // Wait for sheet dismissal animation before showing alert
+                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+                // Show success alert
+                print("🔵 Showing alert...")
+                await MainActor.run {
                     accountSuccessMessage = "A confirmation email has been sent to your new email address. Please verify to complete the change."
                     showAccountSuccess = true
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -1351,18 +1401,29 @@ struct ProfileView: View {
             return
         }
 
+        print("🔵 savePasswordChange called")
         isSavingAccount = true
         Task {
             do {
                 // Update password in Supabase Auth
                 try await SupabaseService.shared.client.auth.update(user: .init(password: newPassword))
 
+                // Dismiss sheet first
+                print("🔵 Dismissing sheet...")
                 await MainActor.run {
                     isSavingAccount = false
                     showChangePasswordSheet = false
                     currentPassword = ""
                     newPassword = ""
                     confirmPassword = ""
+                }
+
+                // Wait for sheet dismissal animation before showing alert
+                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+                // Show success alert
+                print("🔵 Showing alert...")
+                await MainActor.run {
                     accountSuccessMessage = "Password changed successfully!"
                     showAccountSuccess = true
                     UINotificationFeedbackGenerator().notificationOccurred(.success)

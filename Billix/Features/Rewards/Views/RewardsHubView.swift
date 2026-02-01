@@ -32,10 +32,7 @@ struct RewardsHubView: View {
                         currentTier: viewModel.currentTier,
                         tierProgress: viewModel.tierProgress,
                         streakCount: tasksViewModel.currentStreak,
-                        weeklyCheckIns: tasksViewModel.weeklyCheckIns,
-                        onHistoryTapped: {
-                            viewModel.showHistory = true
-                        }
+                        weeklyCheckIns: tasksViewModel.weeklyCheckIns
                     )
                     .opacity(appeared ? 1 : 0)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
@@ -86,12 +83,6 @@ struct RewardsHubView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DismissToRewards"))) { _ in
             // Dismiss season selection when returning from game
             viewModel.showSeasonSelection = false
-        }
-        .sheet(isPresented: $viewModel.showHistory) {
-            PointsHistoryView(transactions: viewModel.points.transactions)
-                .presentationDetents([.medium, .large])
-                .presentationBackground(Color(hex: "#F5F7F6"))
-                .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $viewModel.showAmountSheet) {
             if let brandGroup = viewModel.selectedBrandGroup {
@@ -152,6 +143,15 @@ struct RewardsHubView: View {
                         )
                     }
                 }
+            )
+            .presentationDetents([.large])
+            .presentationBackground(Color(hex: "#F5F7F6"))
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $viewModel.showFullLeaderboard) {
+            FullLeaderboardSheet(
+                entries: viewModel.topSavers,
+                currentUser: viewModel.currentUserRank
             )
             .presentationDetents([.large])
             .presentationBackground(Color(hex: "#F5F7F6"))
@@ -292,7 +292,8 @@ struct EarnPointsTabView: View {
                 // Leaderboard Teaser
                 LeaderboardTeaser(
                     topSavers: viewModel.topSavers,
-                    currentUser: viewModel.currentUserRank
+                    currentUser: viewModel.currentUserRank,
+                    onSeeAll: { viewModel.showFullLeaderboard = true }
                 )
                 .padding(.horizontal, 20)
                 .opacity(appeared ? 1 : 0)
@@ -962,7 +963,7 @@ struct TaskCard: View {
                                 RoundedRectangle(cornerRadius: 4)
                                     .fill(Color.billixMoneyGreen)
                                     .frame(
-                                        width: geometry.size.width * CGFloat(progress) / CGFloat(total),
+                                        width: geometry.size.width * min(1.0, CGFloat(progress) / CGFloat(total)),
                                         height: 4
                                     )
                             }
@@ -1052,6 +1053,7 @@ struct TaskCard: View {
 struct LeaderboardTeaser: View {
     let topSavers: [LeaderboardEntry]
     let currentUser: LeaderboardEntry?
+    var onSeeAll: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -1062,18 +1064,34 @@ struct LeaderboardTeaser: View {
 
                 Spacer()
 
-                Button {
-                    // Show full leaderboard
-                } label: {
-                    Text("See all")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.billixChartBlue)
+                if topSavers.count > 3 {
+                    Button {
+                        onSeeAll?()
+                    } label: {
+                        Text("See all")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.billixChartBlue)
+                    }
                 }
             }
 
-            VStack(spacing: 8) {
-                ForEach(Array(topSavers.prefix(3))) { entry in
-                    LeaderboardMiniRow(entry: entry)
+            if topSavers.isEmpty {
+                // Empty state
+                VStack(spacing: 8) {
+                    Image(systemName: "trophy")
+                        .font(.system(size: 32))
+                        .foregroundColor(.billixMediumGreen.opacity(0.5))
+                    Text("No leaderboard data yet")
+                        .font(.system(size: 14))
+                        .foregroundColor(.billixMediumGreen)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(Array(topSavers.prefix(3))) { entry in
+                        LeaderboardMiniRow(entry: entry)
+                    }
                 }
             }
         }
@@ -1126,6 +1144,141 @@ struct LeaderboardMiniRow: View {
             }
         }
         .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Full Leaderboard Sheet
+
+struct FullLeaderboardSheet: View {
+    let entries: [LeaderboardEntry]
+    let currentUser: LeaderboardEntry?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Header stats
+                    if let currentUser = currentUser {
+                        VStack(spacing: 8) {
+                            Text("Your Rank")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.billixMediumGreen)
+
+                            Text("#\(currentUser.rank)")
+                                .font(.system(size: 48, weight: .bold))
+                                .foregroundColor(.billixDarkGreen)
+
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.billixArcadeGold)
+                                Text("\(currentUser.pointsThisWeek) pts")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.billixDarkGreen)
+                            }
+                        }
+                        .padding(.vertical, 24)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.billixMoneyGreen.opacity(0.1))
+                        )
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                    }
+
+                    // Leaderboard list
+                    LazyVStack(spacing: 0) {
+                        ForEach(entries) { entry in
+                            FullLeaderboardRow(entry: entry)
+                            if entry.id != entries.last?.id {
+                                Divider()
+                                    .padding(.horizontal, 20)
+                            }
+                        }
+                    }
+                    .padding(.top, 16)
+                }
+                .padding(.bottom, 40)
+            }
+            .background(Color(hex: "#F5F7F6"))
+            .navigationTitle("Leaderboard")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(.billixDarkGreen)
+                }
+            }
+        }
+    }
+}
+
+struct FullLeaderboardRow: View {
+    let entry: LeaderboardEntry
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Rank
+            ZStack {
+                if entry.rank <= 3 {
+                    Circle()
+                        .fill(entry.rankBadgeColor)
+                        .frame(width: 36, height: 36)
+
+                    Text("\(entry.rank)")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                } else {
+                    Text("#\(entry.rank)")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.billixMediumGreen)
+                        .frame(width: 36)
+                }
+            }
+
+            // Avatar
+            Circle()
+                .fill(entry.rankBadgeColor.opacity(0.2))
+                .frame(width: 40, height: 40)
+                .overlay(
+                    Text(entry.avatarInitials)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(entry.rankBadgeColor)
+                )
+
+            // Handle
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.displayName)
+                    .font(.system(size: 15, weight: entry.isCurrentUser ? .bold : .medium))
+                    .foregroundColor(entry.isCurrentUser ? .billixMoneyGreen : .billixDarkGreen)
+
+                if entry.isCurrentUser {
+                    Text("That's you!")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.billixMoneyGreen)
+                }
+            }
+
+            Spacer()
+
+            // Points
+            HStack(spacing: 4) {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(.billixArcadeGold)
+
+                Text("\(entry.pointsThisWeek)")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(entry.isCurrentUser ? Color.billixMoneyGreen.opacity(0.08) : Color.clear)
     }
 }
 

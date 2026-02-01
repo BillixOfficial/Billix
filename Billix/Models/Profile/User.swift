@@ -42,7 +42,7 @@ struct UserVault: Identifiable, Codable, Equatable {
 }
 
 // MARK: - User Profile (Public App Data)
-/// Matches the `user_profiles` table in Supabase
+/// Now reads from consolidated `profiles` table in Supabase
 /// Contains public-facing profile and gamification data
 
 struct UserProfileDB: Identifiable, Codable, Equatable {
@@ -67,7 +67,8 @@ struct UserProfileDB: Identifiable, Codable, Equatable {
     var updatedAt: Date
 
     enum CodingKeys: String, CodingKey {
-        case id, bio, points, badges, goal
+        case id = "user_id"  // profiles table uses user_id as primary key
+        case bio, points, badges, goal
         case displayName = "display_name"
         case avatarUrl = "avatar_url"
         case badgeLevel = "badge_level"
@@ -224,6 +225,7 @@ enum SubscriptionTier: String, Codable, Equatable {
 }
 
 enum BadgeLevel: String, Codable, Equatable {
+    case newbie  // profiles table default
     case bronze
     case silver
     case gold

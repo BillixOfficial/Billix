@@ -43,6 +43,23 @@ struct QuizView: View {
                             await viewModel.loadQuiz()
                         }
                     }
+                } else {
+                    // No quiz available today
+                    VStack(spacing: 16) {
+                        Image(systemName: "graduationcap")
+                            .font(.system(size: 48))
+                            .foregroundColor(Color(hex: "#6B7280"))
+
+                        Text("No Quiz Today")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(Color(hex: "#1F2937"))
+
+                        Text("Check back tomorrow for a new trivia quiz!")
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#6B7280"))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
                 }
 
                 // Toast notification

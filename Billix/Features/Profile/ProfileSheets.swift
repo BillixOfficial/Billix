@@ -360,7 +360,6 @@ struct EditNameSheet: View {
     @Binding var isSaving: Bool
     let onSave: () -> Void
 
-    @State private var showConfirmation = false
     private let accentColor = Color(hex: "#4A7C59")
 
     var body: some View {
@@ -398,15 +397,23 @@ struct EditNameSheet: View {
                 .padding(.horizontal, 20)
 
                 Button {
-                    showConfirmation = true
+                    print("🔵 EditNameSheet: Save button tapped")
+                    onSave()
                 } label: {
-                    Text("Save Changes")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(name.isEmpty ? Color.gray : accentColor)
-                        .cornerRadius(12)
+                    HStack {
+                        if isSaving {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text("Save Changes")
+                        }
+                    }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(name.isEmpty || isSaving ? Color.gray : accentColor)
+                    .cornerRadius(12)
                 }
                 .disabled(name.isEmpty || isSaving)
                 .padding(.horizontal, 20)
@@ -418,12 +425,6 @@ struct EditNameSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-            }
-            .alert("Confirm Name Change", isPresented: $showConfirmation) {
-                Button("Cancel", role: .cancel) {}
-                Button("Confirm") { onSave() }
-            } message: {
-                Text("Are you sure you want to change your name to \"\(name)\"?")
             }
         }
         .presentationDetents([.medium])
@@ -439,7 +440,6 @@ struct EditEmailSheet: View {
     @Binding var isSaving: Bool
     let onSave: () -> Void
 
-    @State private var showConfirmation = false
     private let accentColor = Color(hex: "#4A7C59")
 
     var isValidEmail: Bool {
@@ -498,7 +498,8 @@ struct EditEmailSheet: View {
                 .padding(.horizontal, 20)
 
                 Button {
-                    showConfirmation = true
+                    print("🔵 EditEmailSheet: Save button tapped")
+                    onSave()
                 } label: {
                     HStack {
                         if isSaving {
@@ -526,12 +527,6 @@ struct EditEmailSheet: View {
                     Button("Cancel") { dismiss() }
                 }
             }
-            .alert("Confirm Email Change", isPresented: $showConfirmation) {
-                Button("Cancel", role: .cancel) {}
-                Button("Confirm") { onSave() }
-            } message: {
-                Text("We'll send a verification link to \(email). You'll need to verify before the change takes effect.")
-            }
         }
         .presentationDetents([.medium])
         .presentationBackground(Color(hex: "#F5F7F6"))
@@ -548,8 +543,6 @@ struct ChangePasswordSheet: View {
     @Binding var isSaving: Bool
     let onSave: () -> Void
 
-    @State private var showConfirmation = false
-    @State private var showCurrentPassword = false
     @State private var showNewPassword = false
     private let accentColor = Color(hex: "#4A7C59")
 
@@ -638,7 +631,8 @@ struct ChangePasswordSheet: View {
                     .padding(.horizontal, 20)
 
                     Button {
-                        showConfirmation = true
+                        print("🔵 ChangePasswordSheet: Save button tapped")
+                        onSave()
                     } label: {
                         HStack {
                             if isSaving {
@@ -664,12 +658,6 @@ struct ChangePasswordSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-            }
-            .alert("Confirm Password Change", isPresented: $showConfirmation) {
-                Button("Cancel", role: .cancel) {}
-                Button("Change Password") { onSave() }
-            } message: {
-                Text("Are you sure you want to change your password?")
             }
         }
         .presentationDetents([.medium])

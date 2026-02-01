@@ -73,13 +73,13 @@ class RewardsViewModel: ObservableObject {
 
     // MARK: - Leaderboard
 
-    @Published var topSavers: [LeaderboardEntry] = LeaderboardEntry.previewEntries
-    @Published var currentUserRank: LeaderboardEntry = LeaderboardEntry.currentUserEntry
+    @Published var topSavers: [LeaderboardEntry] = []
+    @Published var currentUserRank: LeaderboardEntry?
+    @Published var showFullLeaderboard: Bool = false
 
     // MARK: - UI State
 
     @Published var isLoading: Bool = false
-    @Published var showHistory: Bool = false
     @Published var showRedeemSheet: Bool = false
     @Published var showAllRewards: Bool = false
     @Published var errorMessage: String?
@@ -160,7 +160,11 @@ class RewardsViewModel: ObservableObject {
                 return false
             }
 
-            topSavers = LeaderboardEntry.previewEntries
+            // Fetch real leaderboard data
+            let leaderboard = try await rewardsService.fetchLeaderboard(currentUserId: userId)
+            topSavers = leaderboard.entries
+            currentUserRank = leaderboard.currentUserEntry
+
             dailyGame = GeoGameDataService.getTodaysGame()
 
             // Animate balance on load
