@@ -140,6 +140,8 @@ struct BillAnalysis: Codable {
         let percentDiff: Double
         let zipPrefix: String
         let position: Position
+        let state: String?        // 2-letter state code (e.g., "AZ")
+        let sampleSize: Int?      // Number of bills compared against
 
         enum Position: String, Codable {
             case below

@@ -212,10 +212,10 @@ struct AnimatedComparisonBar: View {
                 .frame(height: height)
             }
 
-            // Area average bar
+            // Billix average bar
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("Area Average")
+                    Text("Billix Average")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.secondary)
                     Spacer()

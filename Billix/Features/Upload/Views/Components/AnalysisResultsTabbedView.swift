@@ -22,13 +22,11 @@ struct AnalysisResultsTabbedView: View {
     enum AnalysisTabType: String, CaseIterable {
         case summary = "Summary"
         case details = "Details"
-        case saveMoney = "Save Money"
 
         var icon: String {
             switch self {
             case .summary: return "square.grid.2x2.fill"
             case .details: return "list.bullet.rectangle.fill"
-            case .saveMoney: return "dollarsign.circle.fill"
             }
         }
     }
@@ -53,9 +51,6 @@ struct AnalysisResultsTabbedView: View {
 
                 AnalysisDetailsTab(analysis: analysis)
                     .tag(AnalysisTabType.details)
-
-                AnalysisSaveMoneyTab(analysis: analysis)
-                    .tag(AnalysisTabType.saveMoney)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: selectedTab)
@@ -323,11 +318,11 @@ struct CompactComparisonBar: View {
         let diff = abs(percentDiff)
         switch position {
         case .below:
-            return "\(String(format: "%.0f", diff))% below average"
+            return "\(String(format: "%.0f", diff))% below Billix average"
         case .average:
-            return "At area average"
+            return "At Billix average"
         case .above:
-            return "\(String(format: "%.0f", diff))% above average"
+            return "\(String(format: "%.0f", diff))% above Billix average"
         }
     }
 }
@@ -1212,9 +1207,6 @@ struct AnalysisResultsTabbedEmbeddedView: View {
 
                 AnalysisDetailsTab(analysis: analysis)
                     .tag(AnalysisResultsTabbedView.AnalysisTabType.details)
-
-                AnalysisSaveMoneyTab(analysis: analysis)
-                    .tag(AnalysisResultsTabbedView.AnalysisTabType.saveMoney)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: selectedTab)
@@ -1377,7 +1369,9 @@ struct AnalysisResultsTabbedEmbeddedView: View {
                 areaAverage: 128.00,
                 percentDiff: 11.3,
                 zipPrefix: "481",
-                position: .above
+                position: .above,
+                state: "MI",
+                sampleSize: 42
             ),
             plainEnglishSummary: nil,
             redFlags: nil,

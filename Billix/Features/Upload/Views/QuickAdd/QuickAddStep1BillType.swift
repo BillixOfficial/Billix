@@ -35,7 +35,7 @@ struct QuickAddStep1BillType: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.billixDarkGreen)
 
-                    Text("We'll compare it to your area average")
+                    Text("We'll compare it to other Billix bills")
                         .font(.system(size: 15))
                         .foregroundColor(.billixMediumGreen)
                 }

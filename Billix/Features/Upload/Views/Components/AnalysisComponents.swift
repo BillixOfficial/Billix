@@ -26,9 +26,9 @@ struct MarketplaceComparisonCard: View {
 
     private var positionText: String {
         switch comparison.position {
-        case .below: return "below average"
-        case .average: return "close to average"
-        case .above: return "above average"
+        case .below: return "below Billix average"
+        case .average: return "close to Billix average"
+        case .above: return "above Billix average"
         }
     }
 
@@ -445,7 +445,9 @@ private struct LineItemRow: View {
             areaAverage: 125.00,
             percentDiff: 16.4,
             zipPrefix: "481",
-            position: .above
+            position: .above,
+            state: "MI",
+            sampleSize: 42
         ),
         userAmount: 145.50
     )

@@ -208,7 +208,7 @@ struct AnalysisResultsSimpleView: View {
                     .padding(.horizontal, 12)
 
                 VStack(spacing: 4) {
-                    Text("Area Average")
+                    Text("Billix Average")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.billixMediumGreen)
 
@@ -216,9 +216,15 @@ struct AnalysisResultsSimpleView: View {
                         .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(.billixDarkGreen)
 
-                    Text("(ZIP \(comparison.zipPrefix)**)")
-                        .font(.system(size: 11))
-                        .foregroundColor(.billixLightGreenText)
+                    if let state = comparison.state, let sampleSize = comparison.sampleSize, sampleSize >= 5 {
+                        Text("Based on \(sampleSize) bills in \(state)")
+                            .font(.system(size: 11))
+                            .foregroundColor(.billixLightGreenText)
+                    } else {
+                        Text("(ZIP \(comparison.zipPrefix)**)")
+                            .font(.system(size: 11))
+                            .foregroundColor(.billixLightGreenText)
+                    }
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -240,15 +246,15 @@ struct AnalysisResultsSimpleView: View {
 
         switch comparison.position {
         case .below:
-            message = "You're paying \(String(format: "%.0f", diff))% less than the area average."
+            message = "You're paying \(String(format: "%.0f", diff))% less than the Billix average."
             icon = "checkmark.circle.fill"
             color = .billixMoneyGreen
         case .average:
-            message = "You're paying about the same as the area average."
+            message = "You're paying about the same as the Billix average."
             icon = "equal.circle.fill"
             color = .billixChartBlue
         case .above:
-            message = "You're paying \(String(format: "%.0f", diff))% more than the area average."
+            message = "You're paying \(String(format: "%.0f", diff))% more than the Billix average."
             icon = "exclamationmark.triangle.fill"
             color = .statusOverpaying
         }
@@ -907,7 +913,7 @@ struct AnalysisResultsSimpleEmbeddedView: View {
                     .padding(.horizontal, 12)
 
                 VStack(spacing: 4) {
-                    Text("Area Average")
+                    Text("Billix Average")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.billixMediumGreen)
 
@@ -915,9 +921,15 @@ struct AnalysisResultsSimpleEmbeddedView: View {
                         .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(.billixDarkGreen)
 
-                    Text("(ZIP \(comparison.zipPrefix)**)")
-                        .font(.system(size: 11))
-                        .foregroundColor(.billixLightGreenText)
+                    if let state = comparison.state, let sampleSize = comparison.sampleSize, sampleSize >= 5 {
+                        Text("Based on \(sampleSize) bills in \(state)")
+                            .font(.system(size: 11))
+                            .foregroundColor(.billixLightGreenText)
+                    } else {
+                        Text("(ZIP \(comparison.zipPrefix)**)")
+                            .font(.system(size: 11))
+                            .foregroundColor(.billixLightGreenText)
+                    }
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -937,15 +949,15 @@ struct AnalysisResultsSimpleEmbeddedView: View {
 
         switch comparison.position {
         case .below:
-            message = "You're paying \(String(format: "%.0f", diff))% less than the area average."
+            message = "You're paying \(String(format: "%.0f", diff))% less than the Billix average."
             icon = "checkmark.circle.fill"
             color = .billixMoneyGreen
         case .average:
-            message = "You're paying about the same as the area average."
+            message = "You're paying about the same as the Billix average."
             icon = "equal.circle.fill"
             color = .billixChartBlue
         case .above:
-            message = "You're paying \(String(format: "%.0f", diff))% more than the area average."
+            message = "You're paying \(String(format: "%.0f", diff))% more than the Billix average."
             icon = "exclamationmark.triangle.fill"
             color = .statusOverpaying
         }
@@ -1165,7 +1177,9 @@ struct AnalysisResultsSimpleEmbeddedView: View {
                 areaAverage: 128.00,
                 percentDiff: 11.3,
                 zipPrefix: "481",
-                position: .above
+                position: .above,
+                state: "MI",
+                sampleSize: 42
             ),
             plainEnglishSummary: nil,
             redFlags: nil,

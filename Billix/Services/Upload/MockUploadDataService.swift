@@ -191,11 +191,11 @@ struct MockUploadDataService {
     private static func generateResultMessage(status: QuickAddResult.Status, percentDiff: Double) -> String {
         switch status {
         case .overpaying:
-            return "You're paying \(Int(abs(percentDiff)))% more than average in your area"
+            return "You're paying \(Int(abs(percentDiff)))% more than Billix average"
         case .underpaying:
-            return "Great deal! You're paying \(Int(abs(percentDiff)))% below area average"
+            return "Great deal! You're paying \(Int(abs(percentDiff)))% below Billix average"
         case .average:
-            return "You're paying close to the area average"
+            return "You're paying close to the Billix average"
         }
     }
 
@@ -222,7 +222,9 @@ struct MockUploadDataService {
                 areaAverage: amount * 0.87,
                 percentDiff: 13.0,
                 zipPrefix: String(zipCode.prefix(3)),
-                position: .above
+                position: .above,
+                state: "MI",
+                sampleSize: 35
             ),
             plainEnglishSummary: nil,
             redFlags: nil,
