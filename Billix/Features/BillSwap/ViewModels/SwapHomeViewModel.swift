@@ -51,6 +51,10 @@ class SwapHomeViewModel: ObservableObject {
     @Published var error: Error?
     @Published var showError = false
 
+    // Tier tracking
+    @Published var currentTier: Int = 1
+    @Published var completedSwapsCount: Int = 0
+
     // MARK: - Services
     private let billService = SwapBillService.shared
     private let swapService = SwapService.shared
@@ -134,8 +138,9 @@ class SwapHomeViewModel: ObservableObject {
             async let bills: () = billService.fetchMyBills()
             async let swaps: () = swapService.fetchMySwaps()
             async let matches: () = swapService.findAllMatches()
+            async let tierInfo: () = fetchTierInfo()
 
-            _ = try await (bills, swaps, matches)
+            _ = try await (bills, swaps, matches, tierInfo)
 
             // Enrich bills with user data
             await enrichBillsWithUsers()
@@ -145,6 +150,43 @@ class SwapHomeViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    // MARK: - Tier Info
+
+    /// Fetch current user's tier information
+    func fetchTierInfo() async {
+        guard let userId = AuthService.shared.currentUser?.id else { return }
+
+        do {
+            // Fetch from swap_trust table
+            struct SwapTrust: Decodable {
+                let tier: Int
+                let successful_swaps: Int
+            }
+
+            let trustRecords: [SwapTrust] = try await supabase
+                .from("swap_trust")
+                .select("tier, successful_swaps")
+                .eq("user_id", value: userId.uuidString)
+                .limit(1)
+                .execute()
+                .value
+
+            if let trust = trustRecords.first {
+                self.currentTier = trust.tier
+                self.completedSwapsCount = trust.successful_swaps
+            } else {
+                // Default for new users
+                self.currentTier = 1
+                self.completedSwapsCount = 0
+            }
+        } catch {
+            // Default to Tier 1 on error
+            print("Failed to fetch tier info: \(error)")
+            self.currentTier = 1
+            self.completedSwapsCount = 0
+        }
     }
 
     // MARK: - User Profile Fetching

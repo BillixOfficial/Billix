@@ -130,6 +130,156 @@ enum SwapTheme {
         static let spring = Animation.spring(response: 0.35, dampingFraction: 0.7)
         static let bouncy = Animation.spring(response: 0.4, dampingFraction: 0.6)
     }
+
+    // MARK: - Icons (Professional SF Symbols)
+
+    enum Icons {
+        // Status
+        static let verified = "checkmark.seal.fill"
+        static let pending = "clock.badge"
+        static let active = "arrow.triangle.2.circlepath"
+        static let completed = "checkmark.circle.fill"
+        static let disputed = "exclamationmark.triangle.fill"
+        static let expired = "clock.badge.xmark"
+
+        // Actions
+        static let chat = "bubble.left.and.bubble.right"
+        static let upload = "arrow.up.doc"
+        static let camera = "camera.fill"
+        static let proof = "doc.text.image"
+        static let timeline = "list.bullet.clipboard"
+        static let info = "info.circle"
+        static let settings = "gearshape"
+
+        // Trust & Security
+        static let trust = "shield.checkmark"
+        static let lock = "lock.shield"
+        static let unlock = "lock.open"
+        static let warning = "exclamationmark.triangle"
+        static let safe = "checkmark.shield"
+
+        // User & Profile
+        static let user = "person.circle"
+        static let partner = "person.2"
+        static let yourTurn = "hand.point.right.fill"
+        static let waiting = "hourglass"
+
+        // Swap Flow
+        static let handshake = "hand.raised.fingers.spread"
+        static let exchange = "arrow.left.arrow.right"
+        static let pay = "creditcard"
+        static let receive = "arrow.down.circle"
+
+        // Bills
+        static let bill = "doc.text"
+        static let amount = "dollarsign.circle"
+        static let dueDate = "calendar"
+        static let provider = "building.2"
+
+        // Progress
+        static let step1 = "1.circle.fill"
+        static let step2 = "2.circle.fill"
+        static let step3 = "3.circle.fill"
+        static let step4 = "4.circle.fill"
+        static let step5 = "5.circle.fill"
+        static let stepIncomplete = "circle"
+        static let stepCurrent = "circle.dotted"
+
+        // Tier badges
+        static let tier1 = "star"
+        static let tier2 = "star.leadinghalf.filled"
+        static let tier3 = "star.fill"
+        static let tier4 = "star.circle.fill"
+    }
+
+    // MARK: - Tier Configuration
+
+    enum Tiers {
+        /// Conservative tier limits (user-approved)
+        static func maxAmount(for tier: Int) -> Decimal {
+            switch tier {
+            case 1: return 25    // New users - max $25
+            case 2: return 50    // Established - max $50
+            case 3: return 100   // Trusted - max $100
+            case 4: return 150   // Veteran - max $150
+            default: return 25
+            }
+        }
+
+        /// Required swaps to reach each tier (harder progression: 5→15→35→50)
+        static func requiredSwaps(for tier: Int) -> Int {
+            switch tier {
+            case 1: return 0    // Starting tier
+            case 2: return 5    // Need 5 successful swaps for Tier 2
+            case 3: return 15   // Need 15 successful swaps for Tier 3
+            case 4: return 35   // Need 35 successful swaps for Tier 4
+            default: return 0
+            }
+        }
+
+        /// Swaps needed to reach next tier from current tier
+        static func swapsToNextTier(currentTier: Int, completedSwaps: Int) -> Int {
+            let nextTierRequirement: Int
+            switch currentTier {
+            case 1: nextTierRequirement = 5
+            case 2: nextTierRequirement = 15
+            case 3: nextTierRequirement = 35
+            case 4: return 0 // Already max tier
+            default: nextTierRequirement = 5
+            }
+            return max(0, nextTierRequirement - completedSwaps)
+        }
+
+        static func tierName(_ tier: Int) -> String {
+            switch tier {
+            case 1: return "New"
+            case 2: return "Established"
+            case 3: return "Trusted"
+            case 4: return "Veteran"
+            default: return "New"
+            }
+        }
+
+        static func tierDescription(_ tier: Int) -> String {
+            switch tier {
+            case 1: return "Build trust with your first 5 swaps"
+            case 2: return "You've proven yourself! Keep building."
+            case 3: return "A trusted member of the community"
+            case 4: return "A role model in the BillSwap community"
+            default: return "Build trust with your first 5 swaps"
+            }
+        }
+
+        static func tierIcon(_ tier: Int) -> String {
+            switch tier {
+            case 1: return Icons.tier1
+            case 2: return Icons.tier2
+            case 3: return Icons.tier3
+            case 4: return Icons.tier4
+            default: return Icons.tier1
+            }
+        }
+
+        static func tierColor(_ tier: Int) -> Color {
+            switch tier {
+            case 1: return Colors.warning
+            case 2: return Colors.matched
+            case 3: return Colors.success
+            case 4: return Colors.gold
+            default: return Colors.warning
+            }
+        }
+
+        /// Tier-specific tips shown in advancement modal
+        static func tierTip(_ tier: Int) -> String {
+            switch tier {
+            case 2: return "You can now swap bills up to $50. Keep building trust!"
+            case 3: return "You're trusted! $100 limit unlocked. Consider verifying your ID for even higher limits."
+            case 4: return "Veteran status! Max $150 swaps. You're a role model in the community."
+            default: return "Complete swaps successfully to unlock higher limits."
+            }
+        }
+    }
 }
 
 // MARK: - View Modifiers

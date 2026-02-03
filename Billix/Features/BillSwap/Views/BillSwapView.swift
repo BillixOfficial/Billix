@@ -36,7 +36,7 @@ struct BillSwapView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: SwapTab = .home
     @State private var showUploadSheet = false
-    @State private var showInfoSheet = false
+    @State private var showHelpSheet = false
     @State private var selectedSwap: BillSwapTransaction?
     @State private var selectedBillForDetail: SwapBillWithUser?
 
@@ -63,6 +63,15 @@ struct BillSwapView: View {
                     // Header
                     swapHeader
 
+                    // Tier Status Card
+                    TierStatusCard(
+                        currentTier: viewModel.currentTier,
+                        completedSwaps: viewModel.completedSwapsCount,
+                        onLearnMore: { showHelpSheet = true }
+                    )
+                    .padding(.horizontal, SwapThemeColors.horizontalPadding)
+                    .padding(.top, 12)
+
                     // Tab selector
                     swapTabBar
                         .padding(.top, 12)
@@ -88,8 +97,8 @@ struct BillSwapView: View {
                     Task { await viewModel.loadData() }
                 }
             }
-            .sheet(isPresented: $showInfoSheet) {
-                SwapInfoSheet()
+            .sheet(isPresented: $showHelpSheet) {
+                BillSwapHelpView()
             }
             .sheet(item: $selectedBillForDetail) { billWithUser in
                 BillDetailSheet(billWithUser: billWithUser)
@@ -127,8 +136,8 @@ struct BillSwapView: View {
             Spacer()
 
             HStack(spacing: 12) {
-                Button { showInfoSheet = true } label: {
-                    Image(systemName: "info.circle")
+                Button { showHelpSheet = true } label: {
+                    Image(systemName: "questionmark.circle.fill")
                         .font(.system(size: 20))
                         .foregroundColor(SwapThemeColors.accent)
                 }
@@ -147,33 +156,64 @@ struct BillSwapView: View {
     // MARK: - Tab Bar
 
     private var swapTabBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             ForEach(SwapTab.allCases, id: \.self) { tab in
                 Button {
-                    withAnimation(.spring(response: 0.3)) {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                         selectedTab = tab
                     }
                 } label: {
                     VStack(spacing: 6) {
-                        Image(systemName: tab.icon)
-                            .font(.system(size: 18))
+                        ZStack {
+                            // Background circle for selected state
+                            if selectedTab == tab {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [SwapThemeColors.accent.opacity(0.15), SwapThemeColors.accent.opacity(0.08)],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .frame(width: 40, height: 40)
+                            }
+
+                            Image(systemName: tab.icon)
+                                .font(.system(size: selectedTab == tab ? 18 : 16, weight: selectedTab == tab ? .semibold : .regular))
+                                .foregroundColor(selectedTab == tab ? SwapThemeColors.accent : SwapThemeColors.secondaryText)
+                        }
+                        .frame(height: 40)
+
                         Text(tab.rawValue)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(.system(size: 11, weight: selectedTab == tab ? .semibold : .medium))
+                            .foregroundColor(selectedTab == tab ? SwapThemeColors.accent : SwapThemeColors.secondaryText)
                     }
-                    .foregroundColor(selectedTab == tab ? SwapThemeColors.accent : SwapThemeColors.secondaryText)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 8)
                     .background(
-                        selectedTab == tab ? SwapThemeColors.accentLight : Color.clear
+                        selectedTab == tab ?
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(SwapThemeColors.accent.opacity(0.06))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(SwapThemeColors.accent.opacity(0.12), lineWidth: 1)
+                            )
+                        : nil
                     )
-                    .cornerRadius(12)
                 }
             }
         }
-        .padding(4)
-        .background(SwapThemeColors.cardBackground)
-        .cornerRadius(14)
-        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+        .padding(6)
+        .background(
+            ZStack {
+                SwapThemeColors.cardBackground
+                // Subtle inner shadow effect
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(Color.black.opacity(0.02), lineWidth: 1)
+            }
+        )
+        .cornerRadius(18)
+        .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 3)
         .padding(.horizontal, SwapThemeColors.horizontalPadding)
     }
 }
@@ -246,49 +286,162 @@ private struct SwapHomeContent: View {
     }
 
     private var emptyBillsCard: some View {
-        Button { showUploadSheet = true } label: {
-            VStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(SwapThemeColors.accentLight)
-                        .frame(width: 64, height: 64)
+        VStack(spacing: 20) {
+            // Hero empty state card with gradient
+            Button { showUploadSheet = true } label: {
+                VStack(spacing: 20) {
+                    // Animated icon with gradient background
+                    ZStack {
+                        // Outer glow
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [SwapThemeColors.accent.opacity(0.2), SwapThemeColors.accent.opacity(0.05)],
+                                    center: .center,
+                                    startRadius: 30,
+                                    endRadius: 60
+                                )
+                            )
+                            .frame(width: 100, height: 100)
 
-                    Image(systemName: "doc.badge.plus")
-                        .font(.system(size: 28))
-                        .foregroundColor(SwapThemeColors.accent)
+                        // Inner circle
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [SwapThemeColors.accent.opacity(0.15), SwapThemeColors.accent.opacity(0.08)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 72, height: 72)
+
+                        Image(systemName: "doc.badge.plus")
+                            .font(.system(size: 32))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [SwapThemeColors.accent, SwapThemeColors.accent.opacity(0.8)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    }
+
+                    VStack(spacing: 8) {
+                        Text("Upload your first bill")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(SwapThemeColors.primaryText)
+
+                        Text("Add a bill to start finding swap partners\nand saving on your monthly expenses")
+                            .font(.system(size: 14))
+                            .foregroundColor(SwapThemeColors.secondaryText)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
+                    }
+
+                    // CTA button with gradient
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 16))
+                        Text("Upload Bill")
+                            .font(.system(size: 15, weight: .semibold))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 14)
+                    .background(
+                        LinearGradient(
+                            colors: [SwapThemeColors.accent, SwapThemeColors.accent.opacity(0.85)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(14)
+                    .shadow(color: SwapThemeColors.accent.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
-
-                VStack(spacing: 6) {
-                    Text("Upload your first bill")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(SwapThemeColors.primaryText)
-
-                    Text("Add a bill to start finding\nswap partners")
-                        .font(.system(size: 13))
-                        .foregroundColor(SwapThemeColors.secondaryText)
-                        .multilineTextAlignment(.center)
-                }
-
-                HStack(spacing: 6) {
-                    Text("Upload Bill")
-                        .font(.system(size: 14, weight: .semibold))
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 12, weight: .semibold))
-                }
-                .foregroundColor(.white)
+                .padding(.vertical, 32)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(SwapThemeColors.accent)
-                .cornerRadius(12)
+                .frame(maxWidth: .infinity)
+                .background(
+                    ZStack {
+                        SwapThemeColors.cardBackground
+                        // Subtle gradient overlay
+                        LinearGradient(
+                            colors: [SwapThemeColors.accent.opacity(0.03), Color.clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    }
+                )
+                .cornerRadius(SwapThemeColors.cornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: SwapThemeColors.cornerRadius)
+                        .stroke(
+                            LinearGradient(
+                                colors: [SwapThemeColors.accent.opacity(0.2), SwapThemeColors.accent.opacity(0.05)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
             }
-            .padding(.vertical, 30)
-            .frame(maxWidth: .infinity)
-            .background(SwapThemeColors.cardBackground)
-            .cornerRadius(SwapThemeColors.cornerRadius)
-            .shadow(color: SwapThemeColors.shadowColor, radius: SwapThemeColors.shadowRadius, x: 0, y: 2)
+            .buttonStyle(PlainButtonStyle())
+            .padding(.horizontal, SwapThemeColors.horizontalPadding)
+
+            // Quick start tips
+            quickStartTips
         }
-        .buttonStyle(PlainButtonStyle())
-        .padding(.horizontal, SwapThemeColors.horizontalPadding)
+    }
+
+    private var quickStartTips: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "lightbulb.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(SwapThemeColors.warning)
+                Text("QUICK START")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(SwapThemeColors.secondaryText)
+                    .tracking(0.5)
+            }
+            .padding(.horizontal, SwapThemeColors.horizontalPadding)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    QuickTipCard(
+                        icon: "camera.fill",
+                        iconColor: SwapThemeColors.info,
+                        title: "Scan Bills",
+                        subtitle: "Use your camera to quickly add bills"
+                    )
+
+                    QuickTipCard(
+                        icon: "person.2.fill",
+                        iconColor: SwapThemeColors.purple,
+                        title: "Find Matches",
+                        subtitle: "We match you with similar bills"
+                    )
+
+                    QuickTipCard(
+                        icon: "shield.checkerboard",
+                        iconColor: SwapThemeColors.success,
+                        title: "Stay Safe",
+                        subtitle: "All swaps are verified and tracked"
+                    )
+
+                    QuickTipCard(
+                        icon: "chart.line.uptrend.xyaxis",
+                        iconColor: SwapThemeColors.accent,
+                        title: "Level Up",
+                        subtitle: "Complete swaps to unlock higher tiers"
+                    )
+                }
+                .padding(.horizontal, SwapThemeColors.horizontalPadding)
+            }
+        }
     }
 }
 
@@ -1236,6 +1389,46 @@ private struct InfoStep: View {
         .background(SwapThemeColors.cardBackground)
         .cornerRadius(12)
         .shadow(color: SwapThemeColors.shadowColor, radius: 4, x: 0, y: 2)
+    }
+}
+
+// MARK: - Quick Tip Card
+
+private struct QuickTipCard: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(iconColor.opacity(0.12))
+                    .frame(width: 36, height: 36)
+
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(iconColor)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(SwapThemeColors.primaryText)
+
+                Text(subtitle)
+                    .font(.system(size: 12))
+                    .foregroundColor(SwapThemeColors.secondaryText)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(width: 140)
+        .padding(14)
+        .background(SwapThemeColors.cardBackground)
+        .cornerRadius(14)
+        .shadow(color: SwapThemeColors.shadowColor, radius: 6, x: 0, y: 2)
     }
 }
 

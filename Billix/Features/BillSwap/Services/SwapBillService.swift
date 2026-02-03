@@ -32,6 +32,48 @@ class SwapBillService: ObservableObject {
 
     private init() {}
 
+    // MARK: - Tier Validation
+
+    /// Get the current user's swap tier (1-4)
+    func getUserTier() async throws -> Int {
+        guard let userId = currentUserId else {
+            throw SwapBillError.notAuthenticated
+        }
+
+        struct TierResult: Decodable {
+            let tier: Int?
+        }
+
+        do {
+            let result: TierResult = try await supabase
+                .from("swap_trust")
+                .select("tier")
+                .eq("user_id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+
+            return result.tier ?? 1
+        } catch {
+            // If no record exists, user is Tier 1
+            return 1
+        }
+    }
+
+    /// Validate that the bill amount is within the user's tier limit
+    func validateTierLimit(amount: Decimal) async throws {
+        let tier = try await getUserTier()
+        let maxAllowed = SwapTheme.Tiers.maxAmount(for: tier)
+
+        guard amount <= maxAllowed else {
+            throw SwapBillError.amountExceedsTierLimit(
+                amount: amount,
+                limit: maxAllowed,
+                tier: tier
+            )
+        }
+    }
+
     // MARK: - Bill CRUD Operations
 
     /// Fetch all bills for the current user
@@ -55,6 +97,7 @@ class SwapBillService: ObservableObject {
     }
 
     /// Create a new bill
+    /// - Important: Validates bill amount against user's tier limit BEFORE creating
     func createBill(
         amount: Decimal,
         dueDate: Date?,
@@ -68,6 +111,9 @@ class SwapBillService: ObservableObject {
         guard let userId = currentUserId else {
             throw SwapBillError.notAuthenticated
         }
+
+        // TIER VALIDATION - Prevent bills above user's tier limit
+        try await validateTierLimit(amount: amount)
 
         let newBill = SwapBillInsert(
             userId: userId,
@@ -166,7 +212,7 @@ class SwapBillService: ObservableObject {
 
     // MARK: - OCR Upload (Backend API)
 
-    /// Upload bill to backend for OCR processing
+    /// Upload bill to backend for OCR processing (basic result)
     func uploadBillForOCR(image: UIImage) async throws -> BillOCRResult {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             throw SwapBillError.imageConversionFailed
@@ -198,6 +244,108 @@ class SwapBillService: ObservableObject {
 
         let result = try JSONDecoder().decode(BillOCRResult.self, from: data)
         return result
+    }
+
+    /// Upload bill for full OCR analysis using BillUploadService
+    /// Returns complete BillAnalysis with verification status
+    func uploadBillForFullAnalysis(image: UIImage) async throws -> BillAnalysis {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            throw SwapBillError.imageConversionFailed
+        }
+
+        let uploadService = BillUploadServiceFactory.create()
+        let analysis = try await uploadService.uploadAndAnalyzeBill(
+            fileData: imageData,
+            fileName: "swap_\(UUID().uuidString).jpg",
+            source: .camera
+        )
+
+        return analysis
+    }
+
+    /// Create a verified bill with full analysis data
+    /// - Important: Validates bill amount against user's tier limit BEFORE creating
+    func createVerifiedBill(
+        amount: Decimal,
+        dueDate: Date?,
+        providerName: String?,
+        category: SwapBillCategory?,
+        zipCode: String?,
+        accountNumber: String?,
+        guestPayLink: String?,
+        imageUrl: String?,
+        billAnalysis: BillAnalysis
+    ) async throws -> SwapBill {
+        guard let userId = currentUserId else {
+            throw SwapBillError.notAuthenticated
+        }
+
+        // TIER VALIDATION - Prevent bills above user's tier limit
+        try await validateTierLimit(amount: amount)
+
+        // Create BillAnalysisData from full analysis
+        let analysisData = BillAnalysisData(from: billAnalysis)
+
+        let newBill = SwapBillInsertVerified(
+            userId: userId,
+            amount: amount,
+            dueDate: dueDate,
+            providerName: providerName,
+            category: category?.rawValue,
+            zipCode: zipCode,
+            accountNumber: accountNumber,
+            guestPayLink: guestPayLink,
+            imageUrl: imageUrl,
+            billAnalysis: analysisData,
+            isVerified: true,
+            verifiedAt: Date()
+        )
+
+        let bill: SwapBill = try await supabase
+            .from("swap_bills")
+            .insert(newBill)
+            .select()
+            .single()
+            .execute()
+            .value
+
+        // Update local cache
+        myBills.insert(bill, at: 0)
+
+        return bill
+    }
+}
+
+// MARK: - Insert Model for Verified Bills
+
+/// Insert model for creating verified bills with OCR analysis
+private struct SwapBillInsertVerified: Encodable {
+    let userId: UUID
+    let amount: Decimal
+    let dueDate: Date?
+    let providerName: String?
+    let category: String?
+    let zipCode: String?
+    let accountNumber: String?
+    let guestPayLink: String?
+    let imageUrl: String?
+    let billAnalysis: BillAnalysisData?
+    let isVerified: Bool
+    let verifiedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case amount
+        case dueDate = "due_date"
+        case providerName = "provider_name"
+        case category
+        case zipCode = "zip_code"
+        case accountNumber = "account_number"
+        case guestPayLink = "guest_pay_link"
+        case imageUrl = "image_url"
+        case billAnalysis = "bill_analysis"
+        case isVerified = "is_verified"
+        case verifiedAt = "verified_at"
     }
 }
 
@@ -251,6 +399,7 @@ enum SwapBillError: LocalizedError {
     case imageConversionFailed
     case ocrFailed
     case uploadFailed
+    case amountExceedsTierLimit(amount: Decimal, limit: Decimal, tier: Int)
 
     var errorDescription: String? {
         switch self {
@@ -262,6 +411,14 @@ enum SwapBillError: LocalizedError {
             return "Failed to extract bill information"
         case .uploadFailed:
             return "Failed to upload the bill"
+        case .amountExceedsTierLimit(let amount, let limit, let tier):
+            let tierName = SwapTheme.Tiers.tierName(tier)
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            formatter.currencyCode = "USD"
+            let amountStr = formatter.string(from: amount as NSDecimalNumber) ?? "$\(amount)"
+            let limitStr = formatter.string(from: limit as NSDecimalNumber) ?? "$\(limit)"
+            return "Your bill amount (\(amountStr)) exceeds your \(tierName) tier limit of \(limitStr). Complete more swaps to increase your limit."
         }
     }
 }

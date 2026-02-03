@@ -44,9 +44,19 @@ struct UploadBillView: View {
     @State private var showPhotosPicker = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var currentStep: UploadStep = .capture
+    @State private var showHelpSheet = false
 
     private var backgroundColor: Color {
         colorScheme == .dark ? Color(.systemBackground) : Color(.systemGray6).opacity(0.5)
+    }
+
+    private var helpSectionForCurrentStep: BillSwapHelpView.HelpSection {
+        switch currentStep {
+        case .capture: return .howItWorks
+        case .details: return .tiers
+        case .payment: return .safety
+        case .review: return .overview
+        }
     }
 
     var body: some View {
@@ -59,7 +69,7 @@ struct UploadBillView: View {
                     StepProgressTracker(
                         currentStep: currentStep,
                         hasImage: viewModel.hasImage,
-                        hasDetails: viewModel.hasBasicDetails,
+                        hasDetails: viewModel.hasBasicDetails && !viewModel.isOverTierLimit,
                         hasPayment: viewModel.hasPaymentInfo
                     )
                     .padding(.horizontal)
@@ -97,6 +107,17 @@ struct UploadBillView: View {
                     }
                     .foregroundColor(.secondary)
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showHelpSheet = true
+                    } label: {
+                        Image(systemName: "questionmark.circle")
+                            .foregroundColor(.billixDarkTeal)
+                    }
+                }
+            }
+            .sheet(isPresented: $showHelpSheet) {
+                BillSwapHelpView(initialSection: helpSectionForCurrentStep)
             }
             .photosPicker(isPresented: $showPhotosPicker, selection: $selectedPhotoItem, matching: .images)
             .onChange(of: selectedPhotoItem) { oldValue, newValue in
@@ -125,6 +146,12 @@ struct UploadBillView: View {
                 if viewModel.isProcessing || viewModel.isUploading {
                     loadingOverlay
                 }
+            }
+            .task {
+                await viewModel.fetchTierInfo()
+            }
+            .onChange(of: viewModel.amount) { _, _ in
+                viewModel.amountDidChange()
             }
         }
     }
@@ -255,6 +282,13 @@ struct UploadBillView: View {
                     }
                 }
                 .padding(.vertical, 24)
+
+                // Contextual help tip
+                HelpTipCard(
+                    icon: "checkmark.shield",
+                    title: "Why do we scan your bill?",
+                    message: "OCR verification confirms your bill is authentic, protecting both you and your swap partner from fraud."
+                )
             }
         }
     }
@@ -270,20 +304,75 @@ struct UploadBillView: View {
                 icon: "doc.text.fill"
             )
 
-            // Amount
-            FormField(
-                label: "Amount",
-                icon: "dollarsign.circle.fill",
-                isRequired: true
-            ) {
+            // Tier Info Card
+            tierInfoCard
+
+            // Amount with tier limit warning
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 6) {
+                    ZStack {
+                        Circle()
+                            .stroke(viewModel.isOverTierLimit ? Color.red.opacity(0.5) : Color.billixMoneyGreen.opacity(0.5), lineWidth: 1.5)
+                            .frame(width: 24, height: 24)
+
+                        Image(systemName: "dollarsign.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(viewModel.isOverTierLimit ? .red : .billixDarkTeal)
+                    }
+
+                    Text("Amount")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+
+                    Text("*")
+                        .foregroundColor(.red)
+                        .font(.subheadline)
+
+                    Spacer()
+
+                    // Tier limit badge
+                    Text("Max \(viewModel.formattedTierLimit)")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(viewModel.isOverTierLimit ? .red : .billixDarkTeal)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(viewModel.isOverTierLimit ? Color.red.opacity(0.1) : Color.billixDarkTeal.opacity(0.1))
+                        .cornerRadius(6)
+                }
+
                 HStack {
                     Text("$")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(viewModel.isOverTierLimit ? .red : .secondary)
                         .font(.title3)
 
                     TextField("0.00", text: $viewModel.amount)
                         .keyboardType(.decimalPad)
                         .font(.title3)
+                        .foregroundColor(viewModel.isOverTierLimit ? .red : .primary)
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(viewModel.isOverTierLimit ? Color.red : Color(.systemGray4), lineWidth: viewModel.isOverTierLimit ? 2 : 1)
+                )
+
+                // Tier limit error message
+                if let error = viewModel.tierLimitError {
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.red)
+
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.horizontal, 4)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
 
@@ -332,6 +421,137 @@ struct UploadBillView: View {
                     .keyboardType(.numberPad)
             }
         }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isOverTierLimit)
+    }
+
+    // MARK: - Tier Info Card
+
+    private var tierInfoCard: some View {
+        VStack(spacing: 0) {
+            // Header with tier badge
+            HStack(spacing: 12) {
+                // Tier badge
+                ZStack {
+                    Circle()
+                        .fill(SwapTheme.Tiers.tierColor(viewModel.currentTier).opacity(0.15))
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: SwapTheme.Tiers.tierIcon(viewModel.currentTier))
+                        .font(.system(size: 20))
+                        .foregroundColor(SwapTheme.Tiers.tierColor(viewModel.currentTier))
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text("Tier \(viewModel.currentTier)")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+
+                        Text("•")
+                            .foregroundColor(.secondary)
+
+                        Text(SwapTheme.Tiers.tierName(viewModel.currentTier))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(SwapTheme.Tiers.tierColor(viewModel.currentTier))
+                    }
+
+                    Text("Bills up to \(viewModel.formattedTierLimit)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                // Swaps until next tier (if not max tier)
+                if viewModel.currentTier < 4 {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        let swapsNeeded = SwapTheme.Tiers.swapsToNextTier(currentTier: viewModel.currentTier, completedSwaps: 0)
+                        Text("\(swapsNeeded)")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.billixDarkTeal)
+
+                        Text("swaps to Tier \(viewModel.currentTier + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding()
+            .background(
+                LinearGradient(
+                    colors: [
+                        SwapTheme.Tiers.tierColor(viewModel.currentTier).opacity(0.08),
+                        Color(.systemBackground)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+
+            // Progress bar to next tier
+            if viewModel.currentTier < 4 {
+                VStack(spacing: 6) {
+                    GeometryReader { geometry in
+                        let currentRequired = SwapTheme.Tiers.requiredSwaps(for: viewModel.currentTier)
+                        let nextRequired = SwapTheme.Tiers.requiredSwaps(for: viewModel.currentTier + 1)
+                        let progress = Double(currentRequired) / Double(nextRequired)
+
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color(.systemGray5))
+                                .frame(height: 6)
+
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [SwapTheme.Tiers.tierColor(viewModel.currentTier), SwapTheme.Tiers.tierColor(viewModel.currentTier + 1)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: geometry.size.width * progress, height: 6)
+                        }
+                    }
+                    .frame(height: 6)
+
+                    HStack {
+                        Text("Tier \(viewModel.currentTier)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("Tier \(viewModel.currentTier + 1)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 12)
+            }
+
+            // How tiers work link
+            Button {
+                showHelpSheet = true
+            } label: {
+                HStack(spacing: 4) {
+                    Text("How tiers work")
+                        .font(.caption)
+                    Image(systemName: "arrow.right.circle")
+                        .font(.caption)
+                }
+                .foregroundColor(.billixDarkTeal)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 12)
+        }
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(SwapTheme.Tiers.tierColor(viewModel.currentTier).opacity(0.3), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.03), radius: 8, x: 0, y: 2)
     }
 
     // MARK: - Step 3: Payment Info
@@ -438,6 +658,13 @@ struct UploadBillView: View {
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
 
+            // Contextual help tip
+            HelpTipCard(
+                icon: "person.2.fill",
+                title: "What happens next?",
+                message: "After submitting, we'll match you with someone who has a similar bill. You'll both agree to terms before any payment exchange begins. The entire process is tracked and protected."
+            )
+
             // Terms
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "checkmark.seal.fill")
@@ -524,7 +751,7 @@ struct UploadBillView: View {
         case .capture:
             return viewModel.hasImage
         case .details:
-            return viewModel.hasBasicDetails
+            return viewModel.hasBasicDetails && !viewModel.isOverTierLimit
         case .payment:
             return true // Payment info is optional
         case .review:

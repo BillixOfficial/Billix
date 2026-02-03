@@ -33,28 +33,165 @@ class SwapService: ObservableObject {
 
     private init() {}
 
+    // MARK: - Trust Tier Management
+
+    /// User trust data for tier-based limits
+    struct SwapTrustInfo: Decodable {
+        let userId: UUID
+        let tier: Int
+        let totalSwaps: Int
+        let successfulSwaps: Int
+        let disputedSwaps: Int
+        let missedDeadlines: Int
+        let trustPoints: Int
+        let eligibilityLockedUntil: Date?
+
+        enum CodingKeys: String, CodingKey {
+            case userId = "user_id"
+            case tier
+            case totalSwaps = "total_swaps"
+            case successfulSwaps = "successful_swaps"
+            case disputedSwaps = "disputed_swaps"
+            case missedDeadlines = "missed_deadlines"
+            case trustPoints = "trust_points"
+            case eligibilityLockedUntil = "eligibility_locked_until"
+        }
+    }
+
+    /// Get current user's trust tier info
+    func getUserTrustInfo() async throws -> SwapTrustInfo {
+        guard let userId = currentUserId else {
+            throw SwapError.notAuthenticated
+        }
+
+        // Try to get existing trust record
+        let records: [SwapTrustInfo] = try await supabase
+            .from("swap_trust")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .limit(1)
+            .execute()
+            .value
+
+        if let info = records.first {
+            return info
+        }
+
+        // Create default tier 1 record if none exists
+        let defaultTrust = SwapTrustInsert(userId: userId)
+        try await supabase
+            .from("swap_trust")
+            .insert(defaultTrust)
+            .execute()
+
+        // Return default tier 1 info
+        return SwapTrustInfo(
+            userId: userId,
+            tier: 1,
+            totalSwaps: 0,
+            successfulSwaps: 0,
+            disputedSwaps: 0,
+            missedDeadlines: 0,
+            trustPoints: 0,
+            eligibilityLockedUntil: nil
+        )
+    }
+
+    /// Check if user can swap (not locked)
+    func canUserSwap() async throws -> Bool {
+        let trustInfo = try await getUserTrustInfo()
+
+        if let lockedUntil = trustInfo.eligibilityLockedUntil {
+            return lockedUntil < Date()
+        }
+
+        return true
+    }
+
+    /// Validate bill amount against user's tier limit
+    func validateBillAmountForTier(amount: Decimal) async throws -> Bool {
+        let trustInfo = try await getUserTrustInfo()
+        let maxAmount = SwapTheme.Tiers.maxAmount(for: trustInfo.tier)
+        return amount <= maxAmount
+    }
+
+    /// Get user's tier limit
+    func getUserTierLimit() async throws -> Decimal {
+        let trustInfo = try await getUserTrustInfo()
+        return SwapTheme.Tiers.maxAmount(for: trustInfo.tier)
+    }
+
     // MARK: - Matching Logic
 
-    /// Find potential matches for a bill (within 10% of amount)
+    /// Progressive tolerance levels for matching
+    private let toleranceLevels: [Double] = [0.05, 0.10, 0.15]  // 5%, 10%, 15%
+
+    /// Timeline compatibility window (days)
+    private let timelineWindowDays = 14
+
+    /// Find potential matches for a bill using progressive tolerance
+    /// Starts tight (±5%), expands to ±10%, then ±15% if no matches found
     func findMatches(for bill: SwapBill) async throws -> [SwapBill] {
         guard let userId = currentUserId else {
             throw SwapError.notAuthenticated
         }
 
-        let lowerBound = NSDecimalNumber(decimal: bill.amount * Decimal(0.9)).doubleValue
-        let upperBound = NSDecimalNumber(decimal: bill.amount * Decimal(1.1)).doubleValue
+        // Try each tolerance level until we find matches
+        for tolerance in toleranceLevels {
+            let matches = try await findMatchesWithTolerance(
+                for: bill,
+                userId: userId,
+                tolerance: tolerance
+            )
 
-        let matches: [SwapBill] = try await supabase
+            if !matches.isEmpty {
+                self.potentialMatches = matches
+                return matches
+            }
+        }
+
+        // No matches at any tolerance level
+        self.potentialMatches = []
+        return []
+    }
+
+    /// Find matches with a specific tolerance level
+    private func findMatchesWithTolerance(
+        for bill: SwapBill,
+        userId: UUID,
+        tolerance: Double
+    ) async throws -> [SwapBill] {
+        let amount = NSDecimalNumber(decimal: bill.amount).doubleValue
+        let lowerBound = amount * (1.0 - tolerance)
+        let upperBound = amount * (1.0 + tolerance)
+
+        // Query bills within amount tolerance
+        var matches: [SwapBill] = try await supabase
             .from("swap_bills")
             .select()
             .neq("user_id", value: userId.uuidString)
             .eq("status", value: "unmatched")
             .gte("amount", value: lowerBound)
             .lte("amount", value: upperBound)
+            .order("created_at", ascending: false)
             .execute()
             .value
 
-        self.potentialMatches = matches
+        // Filter by timeline compatibility if bill has a due date
+        if let billDueDate = bill.dueDate {
+            let calendar = Calendar.current
+            let windowStart = calendar.date(byAdding: .day, value: -timelineWindowDays, to: billDueDate)!
+            let windowEnd = calendar.date(byAdding: .day, value: timelineWindowDays, to: billDueDate)!
+
+            matches = matches.filter { match in
+                guard let matchDueDate = match.dueDate else {
+                    // Bills without due dates are still matchable
+                    return true
+                }
+                return matchDueDate >= windowStart && matchDueDate <= windowEnd
+            }
+        }
+
         return matches
     }
 
@@ -132,9 +269,27 @@ class SwapService: ObservableObject {
     }
 
     /// Create a new swap between two bills
+    /// Validates tier limits before creating
     func createSwap(myBillId: UUID, partnerBillId: UUID, partnerUserId: UUID) async throws -> BillSwapTransaction {
         guard let userId = currentUserId else {
             throw SwapError.notAuthenticated
+        }
+
+        // Check if user is eligible to swap (not locked)
+        guard try await canUserSwap() else {
+            throw SwapError.eligibilityLocked
+        }
+
+        // Get my bill to validate amount
+        let myBill = try await SwapBillService.shared.getBill(id: myBillId)
+
+        // Validate bill amount against tier limit
+        guard try await validateBillAmountForTier(amount: myBill.amount) else {
+            let tierLimit = try await getUserTierLimit()
+            throw SwapError.amountExceedsTierLimit(
+                amount: myBill.amount,
+                limit: tierLimit
+            )
         }
 
         let newSwap = SwapInsert(
@@ -155,8 +310,7 @@ class SwapService: ObservableObject {
         // Update bill statuses
         try await SwapBillService.shared.updateBillStatus(billId: myBillId, status: .matched)
 
-        // Get the bill amount for the notification
-        let myBill = try await SwapBillService.shared.getBill(id: myBillId)
+        // Get the bill amount for the notification (reuse myBill from validation above)
         let billAmount = NSDecimalNumber(decimal: myBill.amount).doubleValue
         await NotificationService.shared.notifyMatchFound(swapId: swap.id, billAmount: billAmount)
 
@@ -220,7 +374,8 @@ class SwapService: ObservableObject {
     }
 
     /// Mark that user has paid their partner's bill
-    func markPartnerPaid(swapId: UUID, proofUrl: String) async throws {
+    /// - Returns: TierAdvancementResult if the swap completed and user advanced to a new tier
+    func markPartnerPaid(swapId: UUID, proofUrl: String) async throws -> TierAdvancementResult? {
         guard let userId = currentUserId else {
             throw SwapError.notAuthenticated
         }
@@ -279,16 +434,25 @@ class SwapService: ObservableObject {
         let amount = NSDecimalNumber(decimal: partnerBill.amount).doubleValue
         await NotificationService.shared.notifyBillPaid(swap: updatedSwap, paidByUserId: userId, amount: amount)
 
+        var tierAdvancementResult: TierAdvancementResult? = nil
         if updatedSwap.canComplete {
-            try await completeSwap(swapId: swapId)
+            tierAdvancementResult = try await completeSwap(swapId: swapId)
         }
 
         // Refresh swaps
         try await fetchMySwaps()
+
+        return tierAdvancementResult
     }
 
-    /// Complete a swap
-    func completeSwap(swapId: UUID) async throws {
+    /// Complete a swap and check for tier advancement
+    /// - Returns: TierAdvancementResult if user advanced to a new tier, nil otherwise
+    func completeSwap(swapId: UUID) async throws -> TierAdvancementResult? {
+        // Get tier BEFORE completing (database trigger will update it)
+        let previousTrustInfo = try await getUserTrustInfo()
+        let previousTier = previousTrustInfo.tier
+
+        // Complete the swap - database trigger handles tier updates
         try await supabase
             .from("swaps")
             .update([
@@ -314,8 +478,50 @@ class SwapService: ObservableObject {
         // Notify both users that swap is complete
         await NotificationService.shared.notifySwapComplete(swap: swap)
 
+        // Check for tier advancement AFTER database trigger ran
+        let newTrustInfo = try await getUserTrustInfo()
+        let newTier = newTrustInfo.tier
+        let billixScore = try await getBillixScore()
+
         // Refresh swaps
         try await fetchMySwaps()
+
+        // Return tier advancement result if tier changed
+        if newTier > previousTier {
+            return TierAdvancementResult(
+                previousTier: previousTier,
+                newTier: newTier,
+                swapsCompleted: newTrustInfo.successfulSwaps,
+                newBillixScore: billixScore
+            )
+        }
+
+        return nil
+    }
+
+    /// Get user's Billix Score from profiles table
+    func getBillixScore() async throws -> Int {
+        guard let userId = currentUserId else {
+            throw SwapError.notAuthenticated
+        }
+
+        struct ProfileScore: Decodable {
+            let trustScore: Int?
+
+            enum CodingKeys: String, CodingKey {
+                case trustScore = "trust_score"
+            }
+        }
+
+        let result: ProfileScore = try await supabase
+            .from("profiles")
+            .select("trust_score")
+            .eq("user_id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        return result.trustScore ?? 0
     }
 
     /// Raise a dispute on a swap
@@ -513,6 +719,37 @@ private struct SwapInsert: Encodable {
     }
 }
 
+/// Insert model for creating default trust records
+private struct SwapTrustInsert: Encodable {
+    let userId: UUID
+    let tier: Int
+    let totalSwaps: Int
+    let successfulSwaps: Int
+    let disputedSwaps: Int
+    let missedDeadlines: Int
+    let trustPoints: Int
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case tier
+        case totalSwaps = "total_swaps"
+        case successfulSwaps = "successful_swaps"
+        case disputedSwaps = "disputed_swaps"
+        case missedDeadlines = "missed_deadlines"
+        case trustPoints = "trust_points"
+    }
+
+    init(userId: UUID) {
+        self.userId = userId
+        self.tier = 1
+        self.totalSwaps = 0
+        self.successfulSwaps = 0
+        self.disputedSwaps = 0
+        self.missedDeadlines = 0
+        self.trustPoints = 0
+    }
+}
+
 /// Errors for SwapService
 enum SwapError: LocalizedError {
     case notAuthenticated
@@ -520,6 +757,8 @@ enum SwapError: LocalizedError {
     case alreadyMatched
     case invalidSwapState
     case noFreeSwapsRemaining
+    case eligibilityLocked
+    case amountExceedsTierLimit(amount: Decimal, limit: Decimal)
 
     var errorDescription: String? {
         switch self {
@@ -533,6 +772,15 @@ enum SwapError: LocalizedError {
             return "Invalid swap state for this action"
         case .noFreeSwapsRemaining:
             return "You've used all your free swaps this month. Upgrade to Prime or pay per swap."
+        case .eligibilityLocked:
+            return "Your swap eligibility is temporarily locked due to a recent dispute. Please wait until the lock expires."
+        case .amountExceedsTierLimit(let amount, let limit):
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            formatter.currencyCode = "USD"
+            let amountStr = formatter.string(from: amount as NSDecimalNumber) ?? "$\(amount)"
+            let limitStr = formatter.string(from: limit as NSDecimalNumber) ?? "$\(limit)"
+            return "Bill amount \(amountStr) exceeds your tier limit of \(limitStr). Complete more successful swaps to increase your limit."
         }
     }
 }

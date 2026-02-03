@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		00EAB482705235E4F90FCA8B /* SwapActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1B6BB77389411DC68FA8C1 /* SwapActionButton.swift */; };
+		0124E50F30A11DE9940D22EB /* HelpTipCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C6783B9551BED90AB4062D /* HelpTipCard.swift */; };
 		026616F06A2AC97D284507A7 /* BountyCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010C6E2DD4FA58D78A2C9242 /* BountyCard.swift */; };
 		04473EEB06DC470B82DCA7F2 /* TypographyStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356536A013AE49BFAC0913C1 /* TypographyStyles.swift */; };
 		04E6DEB7422799173C16DCE0 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBAAB8320C9A7923EFFF7A1B /* QuizView.swift */; };
@@ -41,6 +42,7 @@
 		340E7267CB99535CD9E44748 /* BouncingPigLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAB209E825C16247ABD000C /* BouncingPigLoadingView.swift */; };
 		34914064750FB284A23F2D5C /* BillExplorerDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB8D3E6933AEE80A2FD8C853 /* BillExplorerDetailSheet.swift */; };
 		34B573A291BFBC2DAF48C88F /* TipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A912E61731360E67E88C14 /* TipView.swift */; };
+		35D14354BFAC40AB2A0F1F04 /* BillSwapHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E83940BD53FCF63FF06E9E1 /* BillSwapHelpView.swift */; };
 		386274001DDC5BC67E434A3F /* HouseholdModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A9D4079FDDAD55678A5C /* HouseholdModels.swift */; };
 		39E9FF59B6EEAF996EE99B07 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132A29F1FF0310568DEB7B3F /* NewChatView.swift */; };
 		3AA15BD710785EE87D95D746 /* ExtensionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0616FCB6DBB388D3C9E7AA68 /* ExtensionService.swift */; };
@@ -49,6 +51,7 @@
 		3DBC140FAD80A9F118448006 /* HouseholdDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A20664EF1CE8B4798EE5DE0 /* HouseholdDashboardView.swift */; };
 		3E769BC6E4FAFE6449D63F86 /* SwapEventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94BE51FDA6A9C99CD2B2B332 /* SwapEventService.swift */; };
 		3E7F5552D44F111094EBDDFD /* ReliefStep5Review.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BCD0842D934665F8860B3B /* ReliefStep5Review.swift */; };
+		3EFB8FE1A9F30BC48237C9C0 /* BillSwapSafetySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F366FC47CD0A8B194CC18A8 /* BillSwapSafetySheet.swift */; };
 		404C74A26487BB18EEB742AA /* CollateralService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3376BD91D443FCA7FC9D6A2 /* CollateralService.swift */; };
 		408450C83E8A5B64B125F652 /* NameYourPriceZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6EA051F44EA92555332753 /* NameYourPriceZone.swift */; };
 		4265CAF09A91FB2883CA56F9 /* ReliefFlowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 051D7309EB27071CB7D992BE /* ReliefFlowViewModel.swift */; };
@@ -60,6 +63,7 @@
 		4A4775FCE691563A775A55F5 /* HomeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */; };
 		4A481D87CACB424C8A22B899 /* ClusterCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3144A8AD7B2C94D39FF81EFA /* ClusterCard.swift */; };
 		4C6E6EF29EB32982216D7511 /* BillAnalysisNewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CE4C5AFDCCDD73CCE56C73C /* BillAnalysisNewComponents.swift */; };
+		4D10C0C04402BA468BE54503 /* TierStatusCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE61132F803D9EC5A211F4AE /* TierStatusCard.swift */; };
 		4EDF2DA492CE26CFAE5296F6 /* ScriptCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A754D4C404308C96FC0AC5B8 /* ScriptCard.swift */; };
 		503E0740478BEF02D2B31C15 /* AnalysisSaveMoneyTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = E19DB0EADA90394B7F05D82E /* AnalysisSaveMoneyTab.swift */; };
 		5298AF24C4082169A030D09E /* BillixScoreDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C56DC69D843A7C6DF09FEDA7 /* BillixScoreDetailSheet.swift */; };
@@ -117,6 +121,7 @@
 		9AEF7D63A4A431A5539A21D5 /* ReliefSuccessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 542D4B5387149F5018195EB6 /* ReliefSuccessView.swift */; };
 		9B7B569B04F2805E80311DB6 /* GiftCardAmountSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E87907DACB0ECD801EA1425 /* GiftCardAmountSheet.swift */; };
 		9FBD55C9B930DD08A6264CFC /* Cluster.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5843AA67D5B071D7E3CDFEA /* Cluster.swift */; };
+		A093E5DCD2ECD8F60E553F2C /* TierAdvancementSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67936FDAED3AB10B31E17732 /* TierAdvancementSheet.swift */; };
 		A1DB1CFA66C1CF887ABBD5B6 /* ReliefService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF9336BC9FCE3763206E33B /* ReliefService.swift */; };
 		A602F1F52EF3486300856DEE /* CircularProgressRing.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
 		A602F1F62EF3486300856DEE /* StarDisplay.swift in Frameworks */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
@@ -538,6 +543,8 @@
 		0B71E8B16DA66E5F2CCA01E3 /* HeaderZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/HeaderZone.swift; sourceTree = "<group>"; };
 		0D96A9B24910B32BBBD1F0F9 /* AreaInsightsSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AreaInsightsSheet.swift; path = Billix/Features/Home/Components/AreaInsightsSheet.swift; sourceTree = SOURCE_ROOT; };
 		0E4CBA2CBC31B58C27A8C15D /* ProfileSheets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileSheets.swift; sourceTree = "<group>"; };
+		0E83940BD53FCF63FF06E9E1 /* BillSwapHelpView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillSwapHelpView.swift; sourceTree = "<group>"; };
+		0F366FC47CD0A8B194CC18A8 /* BillSwapSafetySheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillSwapSafetySheet.swift; sourceTree = "<group>"; };
 		10F631CF6558C21FBD6393C7 /* UtilityNewsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UtilityNewsService.swift; sourceTree = "<group>"; };
 		12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme/HomeTheme.swift; sourceTree = "<group>"; };
 		132A29F1FF0310568DEB7B3F /* NewChatView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NewChatView.swift; path = ../../../../../Chat/Views/NewChatView.swift; sourceTree = "<group>"; };
@@ -599,6 +606,7 @@
 		642259DC8C0DF251B973C750 /* DynamicSpecsZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DynamicSpecsZone.swift; sourceTree = "<group>"; };
 		6536E4BEBD7BDD25CF9B6F29 /* GroupsNavigationRouter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GroupsNavigationRouter.swift; sourceTree = "<group>"; };
 		65EEF8494E0D8F1E5CA84EE4 /* NudgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeService.swift; sourceTree = "<group>"; };
+		67936FDAED3AB10B31E17732 /* TierAdvancementSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TierAdvancementSheet.swift; sourceTree = "<group>"; };
 		67B8E9F9453B1D053B4CD112 /* SwapHomeViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwapHomeViewModel.swift; sourceTree = "<group>"; };
 		6A20664EF1CE8B4798EE5DE0 /* HouseholdDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdDashboardView.swift; sourceTree = "<group>"; };
 		6ACBAA7DDD8DE384FF723EC4 /* BillInteractionBar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillInteractionBar.swift; sourceTree = "<group>"; };
@@ -630,6 +638,7 @@
 		8MAKEMEM0VE234567890CDEF /* MakeMeMoveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MakeMeMoveView.swift; sourceTree = "<group>"; };
 		8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecessionSimulatorView.swift; sourceTree = "<group>"; };
 		904AD05D3A84D6A25E0D92DB /* BillListing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillListing.swift; sourceTree = "<group>"; };
+		91C6783B9551BED90AB4062D /* HelpTipCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HelpTipCard.swift; sourceTree = "<group>"; };
 		94BE51FDA6A9C99CD2B2B332 /* SwapEventService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SwapEventService.swift; path = Billix/Features/BillSwap/Services/SwapEventService.swift; sourceTree = "<group>"; };
 		95746F8B600F23DF04149AE3 /* KarmaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KarmaService.swift; sourceTree = "<group>"; };
 		979627954EB6A52DD551E2CE /* SwapTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwapTheme.swift; sourceTree = "<group>"; };
@@ -935,6 +944,7 @@
 		EAB4B81A99D8C0788B2157CD /* ChatHubViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ChatHubViewModel.swift; path = ../../../../../Chat/ViewModels/ChatHubViewModel.swift; sourceTree = "<group>"; };
 		EC798C68AE0312D3ADB087A4 /* ConversationRow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConversationRow.swift; path = ../../../../../Chat/Components/ConversationRow.swift; sourceTree = "<group>"; };
 		EDF1E5E15C4654C0F526462A /* HomeView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		EE61132F803D9EC5A211F4AE /* TierStatusCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TierStatusCard.swift; sourceTree = "<group>"; };
 		F0207FD190EAD7B338D4B875 /* ProfileComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileComponents.swift; sourceTree = "<group>"; };
 		F08B85166487B826F6FAFA03 /* TickerHeaderZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TickerHeaderZone.swift; sourceTree = "<group>"; };
 		F66665DF8017158206E5EF69 /* BillCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillCardView.swift; sourceTree = "<group>"; };
@@ -1247,6 +1257,8 @@
 				B14EFA54C472ACE4DF038890 /* TrustBadge.swift */,
 				3F1B6BB77389411DC68FA8C1 /* SwapActionButton.swift */,
 				44773B2163F9E4558D7EC903 /* SwapNotificationToast.swift */,
+				91C6783B9551BED90AB4062D /* HelpTipCard.swift */,
+				EE61132F803D9EC5A211F4AE /* TierStatusCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -1314,6 +1326,9 @@
 				9BD5FCEA27B1F4DB6F198F02 /* BillSwapView.swift */,
 				7F44B231B4E37E2F57E81A64 /* UploadBillView.swift */,
 				29470616DD448D972157E648 /* MatchDetailView.swift */,
+				0F366FC47CD0A8B194CC18A8 /* BillSwapSafetySheet.swift */,
+				67936FDAED3AB10B31E17732 /* TierAdvancementSheet.swift */,
+				0E83940BD53FCF63FF06E9E1 /* BillSwapHelpView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -3112,6 +3127,11 @@
 				D8A3232124C49449DEBEF7B3 /* ProfileModels.swift in Sources */,
 				7A796BAAD6000A4AF91AAE57 /* ProfileComponents.swift in Sources */,
 				F1F9DBD5CE05BE19191F46EE /* ProfileSheets.swift in Sources */,
+				3EFB8FE1A9F30BC48237C9C0 /* BillSwapSafetySheet.swift in Sources */,
+				A093E5DCD2ECD8F60E553F2C /* TierAdvancementSheet.swift in Sources */,
+				0124E50F30A11DE9940D22EB /* HelpTipCard.swift in Sources */,
+				4D10C0C04402BA468BE54503 /* TierStatusCard.swift in Sources */,
+				35D14354BFAC40AB2A0F1F04 /* BillSwapHelpView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

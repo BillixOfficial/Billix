@@ -7,6 +7,75 @@
 
 import Foundation
 
+// MARK: - Bill Analysis Data (OCR Results)
+
+/// Simplified bill analysis data stored with swap bills
+/// Full analysis is in BillAnalysis model, this is a subset for swap purposes
+struct BillAnalysisData: Codable, Equatable {
+    let provider: String?
+    let amount: Double?
+    let dueDate: String?
+    let category: String?
+    let accountNumber: String?
+    let plainEnglishSummary: String?
+    let hasRedFlags: Bool
+    let healthScore: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case provider
+        case amount
+        case dueDate = "due_date"
+        case category
+        case accountNumber = "account_number"
+        case plainEnglishSummary = "plain_english_summary"
+        case hasRedFlags = "has_red_flags"
+        case healthScore = "health_score"
+    }
+
+    /// Create from full BillAnalysis
+    init(from analysis: BillAnalysis) {
+        self.provider = analysis.provider
+        self.amount = analysis.amount
+        self.dueDate = analysis.dueDate
+        self.category = analysis.category
+        self.accountNumber = analysis.accountNumber
+        self.plainEnglishSummary = analysis.plainEnglishSummary
+        self.hasRedFlags = !(analysis.redFlags?.isEmpty ?? true)
+        // Calculate health score based on red flags - no red flags = 100, high severity flags reduce score
+        self.healthScore = analysis.redFlags.map { flags in
+            let severityPenalty = flags.reduce(0) { total, flag in
+                switch flag.type.lowercased() {
+                case "high": return total + 30
+                case "medium": return total + 15
+                case "low": return total + 5
+                default: return total + 10
+                }
+            }
+            return max(0, 100 - severityPenalty)
+        }
+    }
+
+    init(
+        provider: String? = nil,
+        amount: Double? = nil,
+        dueDate: String? = nil,
+        category: String? = nil,
+        accountNumber: String? = nil,
+        plainEnglishSummary: String? = nil,
+        hasRedFlags: Bool = false,
+        healthScore: Int? = nil
+    ) {
+        self.provider = provider
+        self.amount = amount
+        self.dueDate = dueDate
+        self.category = category
+        self.accountNumber = accountNumber
+        self.plainEnglishSummary = plainEnglishSummary
+        self.hasRedFlags = hasRedFlags
+        self.healthScore = healthScore
+    }
+}
+
 /// Bill status in the swap marketplace
 enum SwapBillStatus: String, Codable, CaseIterable {
     case unmatched
@@ -40,6 +109,11 @@ struct SwapBill: Identifiable, Codable, Equatable {
     var guestPayLink: String?   // URL for guest payment on provider website
     let createdAt: Date
 
+    // OCR Verification fields
+    var billAnalysis: BillAnalysisData?  // Full OCR result from BillUploadService
+    var isVerified: Bool
+    var verifiedAt: Date?
+
     enum CodingKeys: String, CodingKey {
         case id
         case userId = "user_id"
@@ -53,6 +127,43 @@ struct SwapBill: Identifiable, Codable, Equatable {
         case accountNumber = "account_number"
         case guestPayLink = "guest_pay_link"
         case createdAt = "created_at"
+        case billAnalysis = "bill_analysis"
+        case isVerified = "is_verified"
+        case verifiedAt = "verified_at"
+    }
+
+    init(
+        id: UUID = UUID(),
+        userId: UUID,
+        amount: Decimal,
+        dueDate: Date? = nil,
+        providerName: String? = nil,
+        category: SwapBillCategory? = nil,
+        zipCode: String? = nil,
+        status: SwapBillStatus = .unmatched,
+        imageUrl: String? = nil,
+        accountNumber: String? = nil,
+        guestPayLink: String? = nil,
+        createdAt: Date = Date(),
+        billAnalysis: BillAnalysisData? = nil,
+        isVerified: Bool = false,
+        verifiedAt: Date? = nil
+    ) {
+        self.id = id
+        self.userId = userId
+        self.amount = amount
+        self.dueDate = dueDate
+        self.providerName = providerName
+        self.category = category
+        self.zipCode = zipCode
+        self.status = status
+        self.imageUrl = imageUrl
+        self.accountNumber = accountNumber
+        self.guestPayLink = guestPayLink
+        self.createdAt = createdAt
+        self.billAnalysis = billAnalysis
+        self.isVerified = isVerified
+        self.verifiedAt = verifiedAt
     }
 
     /// Check if this bill can be matched with another
@@ -331,7 +442,15 @@ extension SwapBill {
             imageUrl: nil,
             accountNumber: "****4521",
             guestPayLink: "https://newlook.dteenergy.com/wps/wcm/connect/dte-web/quicklinks/pay-your-bill",
-            createdAt: Date()
+            createdAt: Date(),
+            billAnalysis: BillAnalysisData(
+                provider: "DTE Energy",
+                amount: 125.50,
+                category: "electric",
+                healthScore: 72
+            ),
+            isVerified: true,
+            verifiedAt: Date()
         ),
         SwapBill(
             id: UUID(),
@@ -345,7 +464,10 @@ extension SwapBill {
             imageUrl: nil,
             accountNumber: "****7892",
             guestPayLink: "https://www.xfinity.com/pay-bill",
-            createdAt: Date()
+            createdAt: Date(),
+            billAnalysis: nil,
+            isVerified: false,
+            verifiedAt: nil
         ),
         SwapBill(
             id: UUID(),
@@ -359,7 +481,16 @@ extension SwapBill {
             imageUrl: nil,
             accountNumber: "****1234",
             guestPayLink: nil,
-            createdAt: Date()
+            createdAt: Date(),
+            billAnalysis: BillAnalysisData(
+                provider: "Great Lakes Water",
+                amount: 45.00,
+                category: "water",
+                hasRedFlags: false,
+                healthScore: 85
+            ),
+            isVerified: true,
+            verifiedAt: Date()
         )
     ]
 }

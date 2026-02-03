@@ -30,6 +30,10 @@ class SwapDetailViewModel: ObservableObject {
     @Published var proofImage: UIImage?
     @Published var showProofImagePicker = false
 
+    // Tier advancement
+    @Published var tierAdvancementResult: TierAdvancementResult?
+    @Published var showTierAdvancement = false
+
     // MARK: - Services
     private let swapService = SwapService.shared
     private let billService = SwapBillService.shared
@@ -244,8 +248,8 @@ class SwapDetailViewModel: ObservableObject {
             // Upload image to storage
             let proofUrl = try await billService.uploadBillImage(proofImage)
 
-            // Update swap with proof
-            try await swapService.markPartnerPaid(swapId: swapId, proofUrl: proofUrl)
+            // Update swap with proof and check for tier advancement
+            let tierResult = try await swapService.markPartnerPaid(swapId: swapId, proofUrl: proofUrl)
 
             // Reload swap data
             await loadSwap()
@@ -253,7 +257,13 @@ class SwapDetailViewModel: ObservableObject {
             // Clear proof image
             self.proofImage = nil
 
-            showProofSuccess = true
+            // Check if user advanced to a new tier
+            if let result = tierResult {
+                self.tierAdvancementResult = result
+                self.showTierAdvancement = true
+            } else {
+                showProofSuccess = true
+            }
         } catch {
             self.error = error
             self.showError = true

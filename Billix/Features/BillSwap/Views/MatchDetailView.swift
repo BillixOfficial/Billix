@@ -156,6 +156,11 @@ struct MatchDetailView: View {
                     }
                 }
             }
+            .sheet(isPresented: $viewModel.showTierAdvancement) {
+                if let result = viewModel.tierAdvancementResult {
+                    TierAdvancementSheet(result: result)
+                }
+            }
             .navigationDestination(isPresented: $showChat) {
                 chatDestination
             }
