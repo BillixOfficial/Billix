@@ -59,9 +59,9 @@ struct GiftCardsCarousel: View {
             }
             .padding(.horizontal, 20)
 
-            // Horizontal Scroll
+            // Horizontal Scroll - LazyHStack for deferred rendering
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
+                LazyHStack(spacing: 16) {
                     ForEach(displayCards) { card in
                         RewardCard(
                             reward: card,

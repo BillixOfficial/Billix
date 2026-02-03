@@ -185,9 +185,9 @@ class AuthService: ObservableObject {
             .value
 
         async let profileResult: UserProfileDB = supabase
-            .from("user_profiles")
+            .from("profiles")
             .select()
-            .eq("id", value: userId.uuidString)
+            .eq("user_id", value: userId.uuidString)
             .single()
             .execute()
             .value
@@ -493,8 +493,7 @@ class AuthService: ObservableObject {
                 .insert(profileData)
                 .execute()
 
-            // Also create the legacy records for backward compatibility
-            // Create user vault record
+            // Create user vault record for legacy compatibility
             let vaultInsert = UserVaultInsert(
                 id: userId,
                 zipCode: zipCode,
@@ -505,19 +504,6 @@ class AuthService: ObservableObject {
             try await supabase
                 .from("user_vault")
                 .insert(vaultInsert)
-                .execute()
-
-            // Create user profile record
-            let legacyProfileInsert = UserProfileInsert(
-                id: userId,
-                displayName: displayName,
-                avatarUrl: nil,
-                goal: goal
-            )
-
-            try await supabase
-                .from("user_profiles")
-                .insert(legacyProfileInsert)
                 .execute()
 
             // Fetch the created user data
@@ -538,7 +524,12 @@ class AuthService: ObservableObject {
     }
 
     private func uploadAvatar(userId: UUID, imageData: Data) async throws -> String {
-        let path = "\(userId.uuidString)/avatar.jpg"
+        // Use unique filename with timestamp to bypass image caching
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let path = "\(userId.uuidString)/avatar_\(timestamp).jpg"
+
+        print("[Avatar] Uploading to path: \(path)")
+        print("[Avatar] Image data size: \(imageData.count) bytes")
 
         try await supabase.storage
             .from("avatars")
@@ -551,6 +542,8 @@ class AuthService: ObservableObject {
         let publicURL = try supabase.storage
             .from("avatars")
             .getPublicURL(path: path)
+
+        print("[Avatar] Upload complete. Public URL: \(publicURL.absoluteString)")
 
         return publicURL.absoluteString
     }
@@ -620,24 +613,11 @@ class AuthService: ObservableObject {
             throw AuthError.noUserLoggedIn
         }
 
-        // Update legacy user_profiles table
-        var legacyUpdates: [String: String] = [:]
-        if let displayName = displayName { legacyUpdates["display_name"] = displayName }
-        if let bio = bio { legacyUpdates["bio"] = bio }
-        if let goal = goal { legacyUpdates["goal"] = goal }
-
-        if !legacyUpdates.isEmpty {
-            try await supabase
-                .from("user_profiles")
-                .update(legacyUpdates)
-                .eq("id", value: userId.uuidString)
-                .execute()
-        }
-
-        // Update new profiles table
+        // Update profiles table (consolidated from user_profiles)
         var profileUpdates: [String: String] = [:]
         if let displayName = displayName { profileUpdates["display_name"] = displayName }
         if let bio = bio { profileUpdates["bio"] = bio }
+        if let goal = goal { profileUpdates["goal"] = goal }
 
         if !profileUpdates.isEmpty {
             try await supabase
@@ -680,17 +660,25 @@ class AuthService: ObservableObject {
             throw AuthError.noUserLoggedIn
         }
 
+        print("[Avatar] Starting avatar update for user: \(userId)")
+
         let avatarUrl = try await uploadAvatar(userId: userId, imageData: imageData)
 
+        print("[Avatar] Updating database with new URL: \(avatarUrl)")
+
         try await supabase
-            .from("user_profiles")
+            .from("profiles")
             .update(["avatar_url": avatarUrl])
-            .eq("id", value: userId.uuidString)
+            .eq("user_id", value: userId.uuidString)
             .execute()
+
+        print("[Avatar] Database updated. Refreshing user data...")
 
         // Refresh user data
         let user = try await fetchUserData(userId: userId)
         self.currentUser = user
+
+        print("[Avatar] User data refreshed. New avatar URL in profile: \(user.profile.avatarUrl ?? "nil")")
     }
 
     /// Refresh user data from database

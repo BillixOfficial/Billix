@@ -101,21 +101,25 @@ class ScanUploadViewModel: ObservableObject {
     // MARK: - Upload
 
     func uploadBill(fileData: Data, fileName: String, source: UploadSource) async {
+        print("📤 [ScanUploadViewModel] Starting upload - file: \(fileName), size: \(fileData.count) bytes, source: \(source.rawValue)")
         uploadState = .uploading
         progress = 0.0
         statusMessage = "Validating file..."
 
         // Client-side validation
         guard fileData.count >= 100 else {
+            print("❌ [ScanUploadViewModel] File too small: \(fileData.count) bytes")
             uploadState = .error(.validationFailed("File is too small"))
             return
         }
 
         guard fileData.count <= 10_485_760 else {
+            print("❌ [ScanUploadViewModel] File too large: \(fileData.count) bytes")
             uploadState = .error(.validationFailed("File too large (max 10MB)"))
             return
         }
 
+        print("✅ [ScanUploadViewModel] Validation passed")
         progress = 0.2
         statusMessage = "Uploading..."
 
@@ -128,6 +132,7 @@ class ScanUploadViewModel: ObservableObject {
 
             statusMessage = "Analyzing bill..."
             progress = 0.8
+            print("🔄 [ScanUploadViewModel] Calling uploadService.uploadAndAnalyzeBill...")
 
             // Upload and analyze
             let analysis = try await uploadService.uploadAndAnalyzeBill(
@@ -135,6 +140,7 @@ class ScanUploadViewModel: ObservableObject {
                 fileName: fileName,
                 source: source
             )
+            print("✅ [ScanUploadViewModel] Upload successful - provider: \(analysis.provider), amount: \(analysis.amount)")
 
             // Validate before saving
             guard analysis.isValidBill() else {
@@ -168,8 +174,11 @@ class ScanUploadViewModel: ObservableObject {
             }
 
         } catch let error as UploadError {
+            print("❌ [ScanUploadViewModel] UploadError: \(error)")
             uploadState = .error(error)
         } catch {
+            print("❌ [ScanUploadViewModel] Generic error: \(error)")
+            print("❌ [ScanUploadViewModel] Error type: \(type(of: error))")
             uploadState = .error(.uploadFailed(error.localizedDescription))
         }
     }

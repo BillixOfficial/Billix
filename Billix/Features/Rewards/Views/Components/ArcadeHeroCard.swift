@@ -539,7 +539,11 @@ struct GasIllustration: View {
 // MARK: - Decorative Components
 
 struct CoinView: View {
+    // Read tab active state from environment to pause animations when tab is hidden
+    @Environment(\.isRewardsTabActive) private var isTabActive
+
     @State private var isAnimating = false
+    @State private var isVisible = false
 
     var body: some View {
         ZStack {
@@ -571,9 +575,26 @@ struct CoinView: View {
                 .foregroundColor(Color(hex: "#1a1d4a").opacity(0.6))
         }
         .rotationEffect(.degrees(isAnimating ? 360 : 0))
-        .animation(.linear(duration: 8).repeatForever(autoreverses: false), value: isAnimating)
-        .onAppear {
+        .animation(isVisible && isTabActive ? .linear(duration: 8).repeatForever(autoreverses: false) : .default, value: isAnimating)
+        .task(id: isTabActive) {
+            // Only run animation when tab is active
+            guard isTabActive else {
+                PerformanceMonitor.shared.animationStopped("rotation", in: "CoinView (tab inactive)")
+                isVisible = false
+                isAnimating = false
+                return
+            }
+
+            PerformanceMonitor.shared.viewAppeared("CoinView")
+            PerformanceMonitor.shared.animationStarted("rotation", in: "CoinView")
+            isVisible = true
             isAnimating = true
+        }
+        .onDisappear {
+            PerformanceMonitor.shared.animationStopped("rotation", in: "CoinView")
+            PerformanceMonitor.shared.viewDisappeared("CoinView")
+            isVisible = false
+            isAnimating = false
         }
     }
 }

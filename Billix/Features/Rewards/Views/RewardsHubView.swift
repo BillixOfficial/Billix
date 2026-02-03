@@ -9,7 +9,25 @@
 
 import SwiftUI
 
+// MARK: - Environment Key for Tab Active State
+// This allows child views to know when the Rewards tab is active/inactive
+// for pausing animations when the tab is hidden
+
+struct RewardsTabActiveKey: EnvironmentKey {
+    static let defaultValue: Bool = true
+}
+
+extension EnvironmentValues {
+    var isRewardsTabActive: Bool {
+        get { self[RewardsTabActiveKey.self] }
+        set { self[RewardsTabActiveKey.self] = newValue }
+    }
+}
+
 struct RewardsHubView: View {
+
+    // Tab active state - passed from MainTabView to control animations when tab is hidden
+    var isTabActive: Bool = true
 
     @StateObject private var viewModel = RewardsViewModel(authService: AuthService.shared)
     @ObservedObject private var tasksViewModel = TasksViewModel.shared
@@ -32,10 +50,7 @@ struct RewardsHubView: View {
                         currentTier: viewModel.currentTier,
                         tierProgress: viewModel.tierProgress,
                         streakCount: tasksViewModel.currentStreak,
-                        weeklyCheckIns: tasksViewModel.weeklyCheckIns,
-                        onHistoryTapped: {
-                            viewModel.showHistory = true
-                        }
+                        weeklyCheckIns: tasksViewModel.weeklyCheckIns
                     )
                     .opacity(appeared ? 1 : 0)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
@@ -62,6 +77,7 @@ struct RewardsHubView: View {
             }
             .navigationBarHidden(true)
         }
+        .environment(\.isRewardsTabActive, isTabActive)
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active && appeared {
                 Task {
@@ -71,12 +87,33 @@ struct RewardsHubView: View {
             }
         }
         .onAppear {
+            PerformanceMonitor.shared.viewAppeared("RewardsHubView")
+            // Print status after a short delay to capture all child view registrations
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                PerformanceMonitor.shared.printStatus()
+            }
             Task {
                 await viewModel.loadRewardsData()
                 await tasksViewModel.loadTasks()
             }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 appeared = true
+            }
+        }
+        .onChange(of: isTabActive) { _, isActive in
+            if isActive {
+                PerformanceMonitor.shared.viewAppeared("RewardsHubView (tab activated)")
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    PerformanceMonitor.shared.printStatus()
+                }
+            } else {
+                PerformanceMonitor.shared.viewDisappeared("RewardsHubView (tab deactivated)")
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    PerformanceMonitor.shared.printStatus()
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToGame"))) { _ in
@@ -86,12 +123,6 @@ struct RewardsHubView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DismissToRewards"))) { _ in
             // Dismiss season selection when returning from game
             viewModel.showSeasonSelection = false
-        }
-        .sheet(isPresented: $viewModel.showHistory) {
-            PointsHistoryView(transactions: viewModel.points.transactions)
-                .presentationDetents([.medium, .large])
-                .presentationBackground(Color(hex: "#F5F7F6"))
-                .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $viewModel.showAmountSheet) {
             if let brandGroup = viewModel.selectedBrandGroup {
@@ -152,6 +183,15 @@ struct RewardsHubView: View {
                         )
                     }
                 }
+            )
+            .presentationDetents([.large])
+            .presentationBackground(Color(hex: "#F5F7F6"))
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $viewModel.showFullLeaderboard) {
+            FullLeaderboardSheet(
+                entries: viewModel.topSavers,
+                currentUser: viewModel.currentUserRank
             )
             .presentationDetents([.large])
             .presentationBackground(Color(hex: "#F5F7F6"))
@@ -292,7 +332,8 @@ struct EarnPointsTabView: View {
                 // Leaderboard Teaser
                 LeaderboardTeaser(
                     topSavers: viewModel.topSavers,
-                    currentUser: viewModel.currentUserRank
+                    currentUser: viewModel.currentUserRank,
+                    onSeeAll: { viewModel.showFullLeaderboard = true }
                 )
                 .padding(.horizontal, 20)
                 .opacity(appeared ? 1 : 0)
@@ -352,6 +393,9 @@ struct DailyGameHeroCard: View {
     let game: DailyGame?
     let gamesPlayedToday: Int
     let onPlay: () -> Void
+
+    // Read tab active state from environment
+    @Environment(\.isRewardsTabActive) private var isTabActive
 
     @State private var isAnimating = false
     @State private var shimmerOffset: CGFloat = -200
@@ -550,27 +594,60 @@ struct DailyGameHeroCard: View {
         .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Daily Price Guessr game. Guess prices around the world. Test your price knowledge.")
-        .onAppear {
+        .task(id: isTabActive) {
+            // Only run animations when tab is active
+            guard isTabActive else {
+                PerformanceMonitor.shared.viewDisappeared("DailyGameHeroCard (tab inactive)")
+                viewIsVisible = false
+                isAnimating = false
+                badgePulse = false
+                shimmerOffset = -200
+                return
+            }
+
+            // Task-based animations that auto-cancel when view disappears or tab changes
+            PerformanceMonitor.shared.viewAppeared("DailyGameHeroCard")
             viewIsVisible = true
-            // Start animations
-            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-                isAnimating = true
-            }
 
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                badgePulse = true
-            }
+            // Use withTaskGroup for proper structured concurrency - all child tasks are cancelled when parent is cancelled
+            await withTaskGroup(of: Void.self) { group in
+                // Pulse animation task
+                group.addTask { @MainActor in
+                    PerformanceMonitor.shared.animationStarted("pulse", in: "DailyGameHeroCard")
+                    defer { PerformanceMonitor.shared.animationStopped("pulse", in: "DailyGameHeroCard") }
+                    while !Task.isCancelled {
+                        withAnimation(.easeInOut(duration: 2.0)) {
+                            isAnimating.toggle()
+                        }
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    }
+                }
 
-            // Shimmer animation
-            withAnimation(.linear(duration: 2.5).repeatForever(autoreverses: false)) {
-                shimmerOffset = 400
+                // Badge pulse animation task
+                group.addTask { @MainActor in
+                    PerformanceMonitor.shared.animationStarted("badgePulse", in: "DailyGameHeroCard")
+                    defer { PerformanceMonitor.shared.animationStopped("badgePulse", in: "DailyGameHeroCard") }
+                    while !Task.isCancelled {
+                        withAnimation(.easeInOut(duration: 1.2)) {
+                            badgePulse.toggle()
+                        }
+                        try? await Task.sleep(nanoseconds: 1_200_000_000)
+                    }
+                }
+
+                // Shimmer animation task
+                group.addTask { @MainActor in
+                    PerformanceMonitor.shared.animationStarted("shimmer", in: "DailyGameHeroCard")
+                    defer { PerformanceMonitor.shared.animationStopped("shimmer", in: "DailyGameHeroCard") }
+                    while !Task.isCancelled {
+                        shimmerOffset = -200
+                        withAnimation(.linear(duration: 2.5)) {
+                            shimmerOffset = 400
+                        }
+                        try? await Task.sleep(nanoseconds: 2_500_000_000)
+                    }
+                }
             }
-        }
-        .onDisappear {
-            viewIsVisible = false
-            isAnimating = false
-            badgePulse = false
-            shimmerOffset = -200
         }
     }
 
@@ -617,8 +694,8 @@ struct DailyTasksSection: View {
     @State private var showQuickTasks = false
     @State private var currentTime = Date()
 
-    // Timer to update countdown
-    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    // Read tab active state from environment to pause timer when tab is hidden
+    @Environment(\.isRewardsTabActive) private var isTabActive
 
     // Calculate time until midnight
     private var timeUntilReset: String {
@@ -698,11 +775,30 @@ struct DailyTasksSection: View {
                 }
             }
         }
+        .onAppear {
+            PerformanceMonitor.shared.viewAppeared("DailyTasksSection")
+        }
+        .onDisappear {
+            PerformanceMonitor.shared.timerStopped("countdownTimer", in: "DailyTasksSection")
+            PerformanceMonitor.shared.viewDisappeared("DailyTasksSection")
+        }
         .task {
             await tasksViewModel.loadTasks()
         }
-        .onReceive(timer) { _ in
-            currentTime = Date()
+        .task(id: isTabActive) {
+            // Only run timer when tab is active
+            guard isTabActive else {
+                PerformanceMonitor.shared.timerStopped("countdownTimer", in: "DailyTasksSection (tab inactive)")
+                return
+            }
+            // Task-based timer that auto-cancels when view disappears or tab changes
+            PerformanceMonitor.shared.timerStarted("countdownTimer", in: "DailyTasksSection", interval: 60)
+            while !Task.isCancelled && isTabActive {
+                try? await Task.sleep(nanoseconds: 60_000_000_000) // 60 seconds
+                if Task.isCancelled || !isTabActive { break }
+                currentTime = Date()
+            }
+            PerformanceMonitor.shared.timerStopped("countdownTimer", in: "DailyTasksSection")
         }
         .sheet(isPresented: $showQuickTasks) {
             QuickTasksScreen()
@@ -774,8 +870,8 @@ struct WeeklyTasksSection: View {
     @ObservedObject var tasksViewModel: TasksViewModel
     @State private var currentTime = Date()
 
-    // Timer to update countdown
-    let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    // Read tab active state from environment to pause timer when tab is hidden
+    @Environment(\.isRewardsTabActive) private var isTabActive
 
     // Calculate time until Sunday midnight EST
     private var timeUntilReset: String {
@@ -846,11 +942,30 @@ struct WeeklyTasksSection: View {
                 }
             }
         }
+        .onAppear {
+            PerformanceMonitor.shared.viewAppeared("WeeklyTasksSection")
+        }
+        .onDisappear {
+            PerformanceMonitor.shared.timerStopped("countdownTimer", in: "WeeklyTasksSection")
+            PerformanceMonitor.shared.viewDisappeared("WeeklyTasksSection")
+        }
         .task {
             await tasksViewModel.loadTasks()
         }
-        .onReceive(timer) { _ in
-            currentTime = Date()
+        .task(id: isTabActive) {
+            // Only run timer when tab is active
+            guard isTabActive else {
+                PerformanceMonitor.shared.timerStopped("countdownTimer", in: "WeeklyTasksSection (tab inactive)")
+                return
+            }
+            // Task-based timer that auto-cancels when view disappears or tab changes
+            PerformanceMonitor.shared.timerStarted("countdownTimer", in: "WeeklyTasksSection", interval: 60)
+            while !Task.isCancelled && isTabActive {
+                try? await Task.sleep(nanoseconds: 60_000_000_000) // 60 seconds
+                if Task.isCancelled || !isTabActive { break }
+                currentTime = Date()
+            }
+            PerformanceMonitor.shared.timerStopped("countdownTimer", in: "WeeklyTasksSection")
         }
     }
 }
@@ -962,7 +1077,7 @@ struct TaskCard: View {
                                 RoundedRectangle(cornerRadius: 4)
                                     .fill(Color.billixMoneyGreen)
                                     .frame(
-                                        width: geometry.size.width * CGFloat(progress) / CGFloat(total),
+                                        width: geometry.size.width * min(1.0, CGFloat(progress) / CGFloat(total)),
                                         height: 4
                                     )
                             }
@@ -1052,6 +1167,7 @@ struct TaskCard: View {
 struct LeaderboardTeaser: View {
     let topSavers: [LeaderboardEntry]
     let currentUser: LeaderboardEntry?
+    var onSeeAll: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -1062,18 +1178,34 @@ struct LeaderboardTeaser: View {
 
                 Spacer()
 
-                Button {
-                    // Show full leaderboard
-                } label: {
-                    Text("See all")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.billixChartBlue)
+                if topSavers.count > 3 {
+                    Button {
+                        onSeeAll?()
+                    } label: {
+                        Text("See all")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.billixChartBlue)
+                    }
                 }
             }
 
-            VStack(spacing: 8) {
-                ForEach(Array(topSavers.prefix(3))) { entry in
-                    LeaderboardMiniRow(entry: entry)
+            if topSavers.isEmpty {
+                // Empty state
+                VStack(spacing: 8) {
+                    Image(systemName: "trophy")
+                        .font(.system(size: 32))
+                        .foregroundColor(.billixMediumGreen.opacity(0.5))
+                    Text("No leaderboard data yet")
+                        .font(.system(size: 14))
+                        .foregroundColor(.billixMediumGreen)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(Array(topSavers.prefix(3))) { entry in
+                        LeaderboardMiniRow(entry: entry)
+                    }
                 }
             }
         }
@@ -1126,6 +1258,141 @@ struct LeaderboardMiniRow: View {
             }
         }
         .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Full Leaderboard Sheet
+
+struct FullLeaderboardSheet: View {
+    let entries: [LeaderboardEntry]
+    let currentUser: LeaderboardEntry?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Header stats
+                    if let currentUser = currentUser {
+                        VStack(spacing: 8) {
+                            Text("Your Rank")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.billixMediumGreen)
+
+                            Text("#\(currentUser.rank)")
+                                .font(.system(size: 48, weight: .bold))
+                                .foregroundColor(.billixDarkGreen)
+
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.billixArcadeGold)
+                                Text("\(currentUser.pointsThisWeek) pts")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.billixDarkGreen)
+                            }
+                        }
+                        .padding(.vertical, 24)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.billixMoneyGreen.opacity(0.1))
+                        )
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                    }
+
+                    // Leaderboard list
+                    LazyVStack(spacing: 0) {
+                        ForEach(entries) { entry in
+                            FullLeaderboardRow(entry: entry)
+                            if entry.id != entries.last?.id {
+                                Divider()
+                                    .padding(.horizontal, 20)
+                            }
+                        }
+                    }
+                    .padding(.top, 16)
+                }
+                .padding(.bottom, 40)
+            }
+            .background(Color(hex: "#F5F7F6"))
+            .navigationTitle("Leaderboard")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundColor(.billixDarkGreen)
+                }
+            }
+        }
+    }
+}
+
+struct FullLeaderboardRow: View {
+    let entry: LeaderboardEntry
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Rank
+            ZStack {
+                if entry.rank <= 3 {
+                    Circle()
+                        .fill(entry.rankBadgeColor)
+                        .frame(width: 36, height: 36)
+
+                    Text("\(entry.rank)")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                } else {
+                    Text("#\(entry.rank)")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.billixMediumGreen)
+                        .frame(width: 36)
+                }
+            }
+
+            // Avatar
+            Circle()
+                .fill(entry.rankBadgeColor.opacity(0.2))
+                .frame(width: 40, height: 40)
+                .overlay(
+                    Text(entry.avatarInitials)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(entry.rankBadgeColor)
+                )
+
+            // Handle
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.displayName)
+                    .font(.system(size: 15, weight: entry.isCurrentUser ? .bold : .medium))
+                    .foregroundColor(entry.isCurrentUser ? .billixMoneyGreen : .billixDarkGreen)
+
+                if entry.isCurrentUser {
+                    Text("That's you!")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.billixMoneyGreen)
+                }
+            }
+
+            Spacer()
+
+            // Points
+            HStack(spacing: 4) {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(.billixArcadeGold)
+
+                Text("\(entry.pointsThisWeek)")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.billixDarkGreen)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(entry.isCurrentUser ? Color.billixMoneyGreen.opacity(0.08) : Color.clear)
     }
 }
 

@@ -23,10 +23,11 @@ class RealBillUploadService: BillUploadServiceProtocol {
     private let jsonEncoder: JSONEncoder
     private let baseURL: String
 
-    init(baseURL: String = "https://billixapp.com/api/v1") {
+    init(baseURL: String = "https://www.billixapp.com/api/v1") {
         let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = 60
-        configuration.timeoutIntervalForResource = 120
+        // Increased timeouts for AI bill analysis which can take 30-90 seconds
+        configuration.timeoutIntervalForRequest = 120  // 2 minutes for request
+        configuration.timeoutIntervalForResource = 180 // 3 minutes total
         self.session = URLSession(configuration: configuration)
 
         self.jsonDecoder = JSONDecoder()
@@ -181,7 +182,12 @@ class RealBillUploadService: BillUploadServiceProtocol {
     /// Form fields: file (binary)
     /// Response: { "success": true, "analysis": { ... } }
     func uploadAndAnalyzeBill(fileData: Data, fileName: String, source: UploadSource) async throws -> BillAnalysis {
-        guard let url = URL(string: "\(baseURL)/bills/upload") else {
+        let uploadURL = "\(baseURL)/bills/upload"
+        print("🔄 [RealBillUploadService] Starting upload to: \(uploadURL)")
+        print("🔄 [RealBillUploadService] File: \(fileName), Size: \(fileData.count) bytes")
+
+        guard let url = URL(string: uploadURL) else {
+            print("❌ [RealBillUploadService] Invalid URL: \(uploadURL)")
             throw UploadError.invalidURL
         }
 
@@ -204,11 +210,27 @@ class RealBillUploadService: BillUploadServiceProtocol {
 
         request.httpBody = body
 
-        let (data, response) = try await session.data(for: request)
+        print("🔄 [RealBillUploadService] Sending request... Body size: \(body.count) bytes")
+
+        let data: Data
+        let response: URLResponse
+
+        do {
+            (data, response) = try await session.data(for: request)
+            print("✅ [RealBillUploadService] Received response")
+        } catch {
+            print("❌ [RealBillUploadService] Network error: \(error)")
+            print("❌ [RealBillUploadService] Error domain: \((error as NSError).domain)")
+            print("❌ [RealBillUploadService] Error code: \((error as NSError).code)")
+            print("❌ [RealBillUploadService] Error userInfo: \((error as NSError).userInfo)")
+            throw UploadError.uploadFailed("Network error: \(error.localizedDescription)")
+        }
 
         guard let httpResponse = response as? HTTPURLResponse else {
+            print("❌ [RealBillUploadService] Invalid response type")
             throw UploadError.invalidResponse
         }
+        print("🔄 [RealBillUploadService] HTTP Status: \(httpResponse.statusCode)")
 
         switch httpResponse.statusCode {
         case 200, 201:

@@ -2,7 +2,7 @@
 //  BillExplorerDetailSheet.swift
 //  Billix
 //
-//  Detail sheet for bill listings with tabs: Details, Community, Actions
+//  Detail sheet for bill listings
 //
 
 import SwiftUI
@@ -11,47 +11,20 @@ struct BillExplorerDetailSheet: View {
     let listing: ExploreBillListing
     let userVote: VoteType?
     let isBookmarked: Bool
-    let questions: [AnonymousQuestion]
 
     let onUpvote: () -> Void
     let onDownvote: () -> Void
     let onBookmark: () -> Void
-    let onAskQuestion: (String) -> Void
     let onGetSimilarRates: () -> Void
     let onNegotiationScript: () -> Void
     let onFindSwapMatch: () -> Void
 
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedTab: DetailTab = .details
-    @State private var questionText = ""
-    @State private var showAskQuestion = false
-
-    enum DetailTab: String, CaseIterable {
-        case details = "Details"
-        case community = "Community"
-        case actions = "Actions"
-    }
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // Tab picker
-                tabPicker
-                    .padding(.top, 8)
-
-                // Tab content
-                TabView(selection: $selectedTab) {
-                    detailsTab
-                        .tag(DetailTab.details)
-
-                    communityTab
-                        .tag(DetailTab.community)
-
-                    actionsTab
-                        .tag(DetailTab.actions)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-            }
+            // Show details content directly (Actions tab hidden for now)
+            detailsTab
             .background(Color(hex: "#F7F9F8"))
             .navigationTitle("\(listing.billType.displayName) Bill")
             .navigationBarTitleDisplayMode(.inline)
@@ -79,41 +52,19 @@ struct BillExplorerDetailSheet: View {
         }
     }
 
-    // MARK: - Tab Picker
-
-    private var tabPicker: some View {
-        HStack(spacing: 0) {
-            ForEach(DetailTab.allCases, id: \.self) { tab in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedTab = tab
-                    }
-                } label: {
-                    VStack(spacing: 6) {
-                        Text(tab.rawValue)
-                            .font(.system(size: 14, weight: selectedTab == tab ? .semibold : .medium))
-                            .foregroundColor(selectedTab == tab ? Color(hex: "#5B8A6B") : Color(hex: "#8B9A94"))
-
-                        Rectangle()
-                            .fill(selectedTab == tab ? Color(hex: "#5B8A6B") : Color.clear)
-                            .frame(height: 2)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .padding(.horizontal, 20)
-    }
-
     // MARK: - Details Tab
 
     private var detailsTab: some View {
         ScrollView {
             VStack(spacing: 16) {
+                // Context Banner - explains what user is viewing
+                contextBanner
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+
                 // Bill Amount Card
                 billAmountCard
                     .padding(.horizontal, 20)
-                    .padding(.top, 16)
 
                 // Provider & Trend Card
                 providerCard
@@ -123,8 +74,11 @@ struct BillExplorerDetailSheet: View {
                 BillTypeDetailsCard(listing: listing)
                     .padding(.horizontal, 20)
 
-                // Usage Comparison Bar (if usage data exists)
-                if listing.hasUsageData,
+                // Usage Comparison Bar (only for metered utilities: electric, gas, water)
+                // Don't show for internet/phone since they're flat-rate services
+                if listing.isMeteredUtility,
+                   listing.meetsKAnonymity,
+                   listing.hasUsageData,
                    let usage = listing.usageAmount,
                    let avg = listing.areaAverageUsage,
                    let min = listing.areaMinUsage,
@@ -136,15 +90,10 @@ struct BillExplorerDetailSheet: View {
                         areaMin: min,
                         areaMax: max,
                         unit: unit,
-                        valuePrefix: ""
+                        valuePrefix: "",
+                        stateCode: listing.state
                     )
                     .padding(.horizontal, 20)
-                }
-
-                // Household Context Card
-                if hasHouseholdContext {
-                    householdCard
-                        .padding(.horizontal, 20)
                 }
 
                 // User Note Card
@@ -153,21 +102,47 @@ struct BillExplorerDetailSheet: View {
                         .padding(.horizontal, 20)
                 }
 
-                // Interaction Bar
-                BillInteractionBar(
-                    voteScore: listing.voteScore,
-                    tipCount: listing.tipCount,
-                    userVote: userVote,
-                    isBookmarked: isBookmarked,
-                    onUpvote: onUpvote,
-                    onDownvote: onDownvote,
-                    onBookmark: onBookmark,
-                    onMessage: { selectedTab = .community }
-                )
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
+                // Bottom padding
+                Color.clear.frame(height: 20)
             }
         }
+    }
+
+    // MARK: - Context Banner
+
+    private var contextBanner: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(Color(hex: "#5B8A6B"))
+
+                Text("Viewing \(listing.anonymousId)'s Bill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "#2D3B35"))
+            }
+
+            // Data source explanation
+            HStack(spacing: 6) {
+                Image(systemName: listing.meetsKAnonymity ? "checkmark.shield.fill" : "eye.slash.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(hex: "#8B9A94"))
+
+                if listing.meetsKAnonymity {
+                    Text("Based on \(listing.providerBillCount) Billix \(listing.provider) bills")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: "#8B9A94"))
+                } else {
+                    Text("Based on Billix community data (limited)")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: "#8B9A94"))
+                }
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(hex: "#5B8A6B").opacity(0.08))
+        .cornerRadius(12)
     }
 
     private var billAmountCard: some View {
@@ -206,18 +181,6 @@ struct BillExplorerDetailSheet: View {
                 }
             }
 
-            // Historical range
-            if let range = listing.historicalRange {
-                HStack(spacing: 8) {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#8B9A94"))
-
-                    Text("Historical range: \(range.displayText)")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(hex: "#8B9A94"))
-                }
-            }
         }
         .padding(16)
         .background(Color.white)
@@ -289,53 +252,6 @@ struct BillExplorerDetailSheet: View {
         .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
     }
 
-    private var hasHouseholdContext: Bool {
-        listing.housingType != nil || listing.occupants != nil || listing.squareFootage != nil
-    }
-
-    private var householdCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Household Context")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(Color(hex: "#2D3B35"))
-
-            HStack(spacing: 16) {
-                if let housing = listing.housingType {
-                    contextItem(icon: "house.fill", label: "Type", value: housing.rawValue)
-                }
-
-                if let occupants = listing.occupants {
-                    contextItem(icon: "person.2.fill", label: "Occupants", value: occupants.rawValue)
-                }
-
-                if let sqft = listing.squareFootage {
-                    contextItem(icon: "square.dashed", label: "Size", value: sqft.rawValue)
-                }
-            }
-        }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
-    }
-
-    private func contextItem(icon: String, label: String, value: String) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundColor(Color(hex: "#5B8A6B"))
-
-            Text(label)
-                .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#8B9A94"))
-
-            Text(value)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color(hex: "#2D3B35"))
-        }
-        .frame(maxWidth: .infinity)
-    }
-
     private func userNoteCard(_ note: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
@@ -357,175 +273,6 @@ struct BillExplorerDetailSheet: View {
         .background(Color.white)
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
-    }
-
-    // MARK: - Community Tab
-
-    private var communityTab: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Ask a question button
-                Button {
-                    showAskQuestion = true
-                } label: {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 18))
-
-                        Text("Ask a Question")
-                            .font(.system(size: 15, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color(hex: "#5B8A6B"))
-                    .cornerRadius(12)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-
-                // Questions list
-                if questions.isEmpty {
-                    emptyQuestionsView
-                        .padding(.top, 40)
-                } else {
-                    ForEach(questions) { question in
-                        questionCard(question)
-                            .padding(.horizontal, 20)
-                    }
-                }
-
-                Spacer(minLength: 20)
-            }
-        }
-        .sheet(isPresented: $showAskQuestion) {
-            askQuestionSheet
-        }
-    }
-
-    private var emptyQuestionsView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "bubble.left.and.bubble.right")
-                .font(.system(size: 40))
-                .foregroundColor(Color(hex: "#8B9A94"))
-
-            Text("No questions yet")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(Color(hex: "#2D3B35"))
-
-            Text("Be the first to ask \(listing.anonymousId) about this bill")
-                .font(.system(size: 14))
-                .foregroundColor(Color(hex: "#8B9A94"))
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(40)
-    }
-
-    private func questionCard(_ question: AnonymousQuestion) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Question
-            HStack(alignment: .top, spacing: 8) {
-                Image(systemName: "questionmark.circle.fill")
-                    .font(.system(size: 16))
-                    .foregroundColor(Color(hex: "#5BA4D4"))
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(question.askerAnonymousId)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color(hex: "#8B9A94"))
-
-                    Text(question.question)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#2D3B35"))
-                }
-            }
-
-            // Answer (if exists)
-            if let answer = question.answer {
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 16))
-                        .foregroundColor(Color(hex: "#4CAF7A"))
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(listing.anonymousId)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(Color(hex: "#8B9A94"))
-
-                        Text(answer)
-                            .font(.system(size: 14))
-                            .foregroundColor(Color(hex: "#2D3B35"))
-                    }
-                }
-                .padding(.leading, 16)
-            } else {
-                Text("Awaiting response...")
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#8B9A94"))
-                    .italic()
-                    .padding(.leading, 24)
-            }
-        }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
-    }
-
-    private var askQuestionSheet: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                Text("Ask \(listing.anonymousId)")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(hex: "#2D3B35"))
-
-                TextEditor(text: $questionText)
-                    .frame(minHeight: 120)
-                    .padding(12)
-                    .background(Color(hex: "#F7F9F8"))
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color(hex: "#E5E9E7"), lineWidth: 1)
-                    )
-
-                Text("Your question will be anonymous")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(hex: "#8B9A94"))
-
-                Button {
-                    if !questionText.isEmpty {
-                        onAskQuestion(questionText)
-                        questionText = ""
-                        showAskQuestion = false
-                    }
-                } label: {
-                    Text("Submit Question")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(questionText.isEmpty ? Color.gray.opacity(0.4) : Color(hex: "#5B8A6B"))
-                        .cornerRadius(12)
-                }
-                .disabled(questionText.isEmpty)
-
-                Spacer()
-            }
-            .padding(20)
-            .navigationTitle("Ask a Question")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        showAskQuestion = false
-                    }
-                    .foregroundColor(Color(hex: "#5B8A6B"))
-                }
-            }
-        }
-        .presentationDetents([.medium])
     }
 
     // MARK: - Actions Tab
@@ -630,17 +377,9 @@ struct BillExplorerDetailSheet: View {
         listing: ExploreBillListing.mockListings[0],
         userVote: .up,
         isBookmarked: true,
-        questions: [
-            AnonymousQuestion(
-                listingId: UUID(),
-                askerAnonymousId: "User #8821",
-                question: "How did you get such a low rate?"
-            )
-        ],
         onUpvote: {},
         onDownvote: {},
         onBookmark: {},
-        onAskQuestion: { _ in },
         onGetSimilarRates: {},
         onNegotiationScript: {},
         onFindSwapMatch: {}

@@ -15,7 +15,6 @@ struct WalletHeaderView: View {
     let tierProgress: Double  // 0.0 to 1.0 progress to next tier
     let streakCount: Int  // Real check-in streak from TasksViewModel
     let weeklyCheckIns: [Bool]  // Actual check-in days (Mon-Sun)
-    let onHistoryTapped: () -> Void
 
     @State private var animatedPoints: Int = 0
     @State private var showShimmer = false
@@ -90,20 +89,6 @@ struct WalletHeaderView: View {
                 }
 
                 Spacer()
-
-                // History Button
-                Button(action: onHistoryTapped) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.billixDarkGreen.opacity(0.1))
-                            .frame(width: 44, height: 44)
-
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.billixDarkGreen)
-                    }
-                }
-                .buttonStyle(ScaleButtonStyle(scale: 0.9))
             }
             .padding(.horizontal, 20)
             .padding(.top, 12)
@@ -176,8 +161,12 @@ struct TierProgressRing: View {
     let progress: Double
     let showSparkles: Bool
 
+    // Read tab active state from environment to pause animations when tab is hidden
+    @Environment(\.isRewardsTabActive) private var isTabActive
+
     @State private var animatedProgress: Double = 0.0
     @State private var sparkleOffset: CGFloat = 0
+    @State private var isVisible: Bool = false
 
     var body: some View {
         ZStack {
@@ -197,7 +186,7 @@ struct TierProgressRing: View {
                 .rotationEffect(.degrees(-90))
                 .animation(.spring(response: 0.8, dampingFraction: 0.8), value: animatedProgress)
 
-            if showSparkles {
+            if showSparkles && isVisible {
                 Circle()
                     .fill(tierColor)
                     .frame(width: 8, height: 8)
@@ -206,10 +195,26 @@ struct TierProgressRing: View {
                     .shadow(color: tierColor, radius: 4)
                     .opacity(sparkleOffset == 0 ? 1 : 0.7)
                     .scaleEffect(sparkleOffset == 0 ? 1.2 : 1.0)
-                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: sparkleOffset)
+                    .animation(isVisible ? .easeInOut(duration: 0.8).repeatForever(autoreverses: true) : .default, value: sparkleOffset)
             }
         }
-        .onAppear {
+        .task(id: isTabActive) {
+            // Only run animations when tab is active
+            guard isTabActive else {
+                if showSparkles {
+                    PerformanceMonitor.shared.animationStopped("sparkle", in: "TierProgressRing (tab inactive)")
+                }
+                PerformanceMonitor.shared.viewDisappeared("TierProgressRing (tab inactive)")
+                isVisible = false
+                sparkleOffset = 0
+                return
+            }
+
+            PerformanceMonitor.shared.viewAppeared("TierProgressRing")
+            isVisible = true
+            if showSparkles {
+                PerformanceMonitor.shared.animationStarted("sparkle", in: "TierProgressRing")
+            }
             withAnimation(.spring(response: 1.0, dampingFraction: 0.7).delay(0.3)) {
                 animatedProgress = progress
             }
@@ -218,6 +223,14 @@ struct TierProgressRing: View {
                     sparkleOffset = 1
                 }
             }
+        }
+        .onDisappear {
+            if showSparkles {
+                PerformanceMonitor.shared.animationStopped("sparkle", in: "TierProgressRing")
+            }
+            PerformanceMonitor.shared.viewDisappeared("TierProgressRing")
+            isVisible = false
+            sparkleOffset = 0
         }
     }
 
@@ -248,6 +261,9 @@ struct StreakStatsCarousel: View {
     let thisWeek: Int
     let toNextTier: Int
     let currentTier: RewardsTier
+
+    // Read tab active state from environment to pause auto-scroll when tab is hidden
+    @Environment(\.isRewardsTabActive) private var isTabActive
 
     @State private var currentIndex: Int = 0
 
@@ -310,18 +326,31 @@ struct StreakStatsCarousel: View {
             .buttonStyle(ScaleButtonStyle(scale: 0.9))
         }
         .padding(.horizontal, 4)
-        .task {
-            // Use structured concurrency for auto-scroll - automatically cancelled when view disappears
+        .onAppear {
+            PerformanceMonitor.shared.viewAppeared("StreakStatsCarousel")
+        }
+        .task(id: isTabActive) {
+            // Only run auto-scroll when tab is active
+            guard isTabActive else {
+                PerformanceMonitor.shared.taskCancelled("autoScroll", in: "StreakStatsCarousel (tab inactive)")
+                return
+            }
+            // Use structured concurrency for auto-scroll - automatically cancelled when view disappears or tab changes
+            PerformanceMonitor.shared.taskStarted("autoScroll", in: "StreakStatsCarousel")
+            defer {
+                PerformanceMonitor.shared.taskCancelled("autoScroll", in: "StreakStatsCarousel")
+                PerformanceMonitor.shared.viewDisappeared("StreakStatsCarousel")
+            }
             await autoScrollLoop()
         }
     }
 
     @MainActor
     private func autoScrollLoop() async {
-        while !Task.isCancelled {
+        while !Task.isCancelled && isTabActive {
             try? await Task.sleep(nanoseconds: UInt64(autoScrollInterval * 1_000_000_000))
 
-            if Task.isCancelled { break }
+            if Task.isCancelled || !isTabActive { break }
 
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 currentIndex = currentIndex == 0 ? 1 : 0
@@ -367,21 +396,49 @@ struct WeeklyProgressSlide: View {
         return weekday == 1 ? 6 : weekday - 2
     }
 
-    /// Only show checkmarks for consecutive days that are part of the current streak
-    private func shouldShowCheckmark(at index: Int) -> Bool {
-        // Only show checkmarks for the current streak period
-        guard actualStreak > 0 else { return false }
-
-        // Calculate which days are part of current streak (last N consecutive days ending today)
-        let streakStartIndex = todayWeekdayIndex - actualStreak + 1
-
-        // Handle week wrap-around (e.g., streak started last week)
-        if streakStartIndex < 0 {
-            // Streak spans from previous week
-            return (index >= (7 + streakStartIndex) || index <= todayWeekdayIndex) && progress[index]
-        } else {
-            return index >= streakStartIndex && index <= todayWeekdayIndex && progress[index]
+    /// Pre-computed checkmark states for all 7 days - computed once per render
+    private var checkmarkStates: [Bool] {
+        guard actualStreak > 0 else {
+            return Array(repeating: false, count: 7)
         }
+
+        // Find the last check-in day (streak end) - don't assume it's today
+        var streakEndIndex = todayWeekdayIndex
+
+        // If today hasn't been checked in yet, find the last checked day
+        if !progress[todayWeekdayIndex] {
+            // Search backwards from today to find the last check-in
+            for i in stride(from: todayWeekdayIndex - 1, through: 0, by: -1) {
+                if progress[i] {
+                    streakEndIndex = i
+                    break
+                }
+            }
+            // Also check if streak ended last week (wrap around)
+            if streakEndIndex == todayWeekdayIndex && !progress[todayWeekdayIndex] {
+                for i in stride(from: 6, through: todayWeekdayIndex + 1, by: -1) {
+                    if progress[i] {
+                        streakEndIndex = i
+                        break
+                    }
+                }
+            }
+        }
+
+        // Calculate streak start based on the actual streak end
+        let streakStartIndex = streakEndIndex - actualStreak + 1
+
+        // Pre-compute all 7 checkmark states
+        var states = [Bool](repeating: false, count: 7)
+        for index in 0..<7 {
+            if streakStartIndex < 0 {
+                // Streak spans from previous week
+                states[index] = (index >= (7 + streakStartIndex) || index <= streakEndIndex) && progress[index]
+            } else {
+                states[index] = index >= streakStartIndex && index <= streakEndIndex && progress[index]
+            }
+        }
+        return states
     }
 
     var body: some View {
@@ -404,7 +461,7 @@ struct WeeklyProgressSlide: View {
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundColor(.billixMediumGreen)
 
-                // Days row
+                // Days row - uses pre-computed checkmarkStates for performance
                 HStack(spacing: 4) {
                     ForEach(Array(days.enumerated()), id: \.offset) { index, day in
                         VStack(spacing: 2) {
@@ -415,12 +472,12 @@ struct WeeklyProgressSlide: View {
 
                             ZStack {
                                 Circle()
-                                    .fill(shouldShowCheckmark(at: index) ? Color.billixArcadeGold : Color.gray.opacity(0.3))
+                                    .fill(checkmarkStates[index] ? Color.billixArcadeGold : Color.gray.opacity(0.3))
                                     .frame(width: 20, height: 20)
                                     .scaleEffect(animatedChecks[index] ? 1.0 : 0.8)
                                     .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(Double(index) * 0.08), value: animatedChecks[index])
 
-                                if shouldShowCheckmark(at: index) {
+                                if checkmarkStates[index] {
                                     Image(systemName: "checkmark")
                                         .font(.system(size: 9, weight: .bold))
                                         .foregroundColor(.white)
@@ -434,16 +491,17 @@ struct WeeklyProgressSlide: View {
                 }
             }
 
-            // Streak icon (dynamic based on streak)
+            // Streak icon (dynamic based on streak) - static to avoid continuous animation
             Image(systemName: streakIcon)
                 .font(.system(size: 32, weight: .semibold))
                 .foregroundColor(streakColor)
-                .symbolEffect(.pulse, options: streakCount >= 4 ? .repeating : .default)
         }
         .onAppear {
             // Trigger animation on appear for days that are part of the current streak
-            for i in 0..<progress.count {
-                if shouldShowCheckmark(at: i) {
+            // Uses pre-computed checkmarkStates for consistency
+            let states = checkmarkStates
+            for i in 0..<states.count {
+                if states[i] {
                     Task { @MainActor in
                         try? await Task.sleep(nanoseconds: 100_000_000)
                         animatedChecks[i] = true
@@ -584,8 +642,7 @@ struct RollingNumberView: View {
             currentTier: .bronze,
             tierProgress: 0.18,  // 1,450 / 8,000 = ~18%
             streakCount: 3,
-            weeklyCheckIns: [false, false, false, false, true, true, true],  // Thu-Fri-Sat checked
-            onHistoryTapped: {}
+            weeklyCheckIns: [false, false, false, false, true, true, true]  // Thu-Fri-Sat checked
         )
 
         Spacer()
@@ -601,8 +658,7 @@ struct RollingNumberView: View {
             currentTier: .silver,
             tierProgress: 0.18,  // 4,000 / 22,000 = ~18%
             streakCount: 5,
-            weeklyCheckIns: [false, false, true, true, true, true, true],  // Wed-Sun checked
-            onHistoryTapped: {}
+            weeklyCheckIns: [false, false, true, true, true, true, true]  // Wed-Sun checked
         )
 
         Spacer()
@@ -618,8 +674,7 @@ struct RollingNumberView: View {
             currentTier: .gold,
             tierProgress: 0.21,  // 15,000 / 70,000 = ~21%
             streakCount: 7,
-            weeklyCheckIns: [true, true, true, true, true, true, true],  // Full week checked
-            onHistoryTapped: {}
+            weeklyCheckIns: [true, true, true, true, true, true, true]  // Full week checked
         )
 
         Spacer()

@@ -53,9 +53,9 @@ struct GameBoostsCarousel: View {
             }
             .padding(.horizontal, 20)
 
-            // Horizontal scroll of boosts (showing 3)
+            // Horizontal scroll of boosts - LazyHStack for deferred rendering
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                LazyHStack(spacing: 12) {
                     ForEach(boosts.prefix(6)) { boost in
                         GameBoostCard(
                             boost: boost,

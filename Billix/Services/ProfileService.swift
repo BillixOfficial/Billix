@@ -98,9 +98,9 @@ class ProfileService: ProfileServiceProtocol {
             .value
 
         async let profileResult: UserProfileDB = supabase
-            .from("user_profiles")
+            .from("profiles")
             .select()
-            .eq("id", value: userId.uuidString)
+            .eq("user_id", value: userId.uuidString)
             .single()
             .execute()
             .value
@@ -123,9 +123,9 @@ class ProfileService: ProfileServiceProtocol {
         guard !updates.isEmpty else { return }
 
         try await supabase
-            .from("user_profiles")
+            .from("profiles")
             .update(updates)
-            .eq("id", value: session.user.id.uuidString)
+            .eq("user_id", value: session.user.id.uuidString)
             .execute()
     }
 
@@ -199,9 +199,9 @@ class ProfileService: ProfileServiceProtocol {
 
         // Update profile with new avatar URL
         try await supabase
-            .from("user_profiles")
+            .from("profiles")
             .update(["avatar_url": publicURL.absoluteString])
-            .eq("id", value: userId.uuidString)
+            .eq("user_id", value: userId.uuidString)
             .execute()
 
         return publicURL.absoluteString

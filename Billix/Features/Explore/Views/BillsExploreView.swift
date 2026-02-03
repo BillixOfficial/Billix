@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct BillsExploreView: View {
-    @StateObject private var viewModel = BillExplorerViewModel()
+    @ObservedObject private var viewModel = BillExplorerViewModel.shared
 
     private let backgroundColor = Color(hex: "#F5F5F7")
 

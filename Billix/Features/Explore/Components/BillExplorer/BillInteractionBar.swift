@@ -134,19 +134,6 @@ struct CompactInteractionBar: View {
                     .foregroundColor(isBookmarked ? Color(hex: "#5B8A6B") : Color(hex: "#8B9A94"))
             }
             .buttonStyle(BillExplorerScaleButtonStyle())
-
-            // Tips count
-            Button(action: onMessage) {
-                HStack(spacing: 3) {
-                    Image(systemName: "bubble.left")
-                        .font(.system(size: 14))
-
-                    Text("\(tipCount) tips")
-                        .font(.system(size: 12, weight: .medium))
-                }
-                .foregroundColor(Color(hex: "#8B9A94"))
-            }
-            .buttonStyle(BillExplorerScaleButtonStyle())
         }
     }
 
