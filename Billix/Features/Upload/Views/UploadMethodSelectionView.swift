@@ -15,6 +15,9 @@ struct UploadMethodSelectionView: View {
     @State private var appeared = false
     @State private var mascotFloating = false
 
+    // Coin bounce animation
+    @State private var coinAtTop = false
+
     var body: some View {
         ZStack {
             // Background gradient
@@ -32,44 +35,53 @@ struct UploadMethodSelectionView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                // MARK: - Mascot Character Placeholder
+                // MARK: - Mascot Character
                 ZStack {
+                    // Outer glass ring (larger, lower opacity)
+                    Circle()
+                        .fill(Color.white.opacity(0.10))
+                        .frame(width: 300, height: 300)
+                        .blur(radius: 0.5)
+
+                    // Inner glass ring (more opaque)
+                    Circle()
+                        .fill(Color.white.opacity(0.18))
+                        .frame(width: 220, height: 220)
+
                     // Glow effect behind mascot
                     Circle()
                         .fill(
                             RadialGradient(
-                                colors: [Color.white.opacity(0.3), Color.clear],
+                                colors: [Color.white.opacity(0.2), Color.clear],
                                 center: .center,
-                                startRadius: 50,
-                                endRadius: 150
+                                startRadius: 40,
+                                endRadius: 120
                             )
                         )
-                        .frame(width: 300, height: 300)
-                        .blur(radius: 20)
+                        .frame(width: 220, height: 220)
+                        .blur(radius: 15)
 
-                    // Placeholder mascot
-                    VStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.15))
-                                .frame(width: 180, height: 180)
+                    // Piggy mascot with coin
+                    VStack(spacing: -8) {
+                        // Coin dropping in
+                        Image("CoinInsert")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 110, height: 110)
+                            .offset(x: 0, y: 80 + (coinAtTop ? -20 : 65))
+                            .animation(
+                                .easeInOut(duration: 1.5),
+                                value: coinAtTop
+                            )
 
-                            Circle()
-                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                                .frame(width: 180, height: 180)
-
-                            VStack(spacing: 8) {
-                                Image(systemName: "face.smiling.inverse")
-                                    .font(.system(size: 60, weight: .light))
-                                    .foregroundColor(.white.opacity(0.7))
-
-                                Text("Mascot Coming Soon")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.5))
-                            }
-                        }
+                        // Piggy
+                        Image("HoloPiggy")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 420, height: 420)
+                            .offset(x: 0, y: -50)
                     }
-                    .offset(y: mascotFloating ? -8 : 8)
+                    .offset(y: mascotFloating ? -6 : 6)
                     .animation(
                         .easeInOut(duration: 2.0).repeatForever(autoreverses: true),
                         value: mascotFloating
@@ -84,10 +96,10 @@ struct UploadMethodSelectionView: View {
 
                 // MARK: - Section Title
                 Text("Choose Upload Method")
-                    .font(.system(size: 12, weight: .semibold))
-                    .tracking(1.5)
+                    .font(.system(size: 16, weight: .semibold))
+                    .tracking(2.0)
                     .textCase(.uppercase)
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(.billixDarkGreen.opacity(0.7))
                     .padding(.bottom, 16)
                     .opacity(appeared ? 1 : 0)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.25), value: appeared)
@@ -121,6 +133,12 @@ struct UploadMethodSelectionView: View {
                 appeared = true
             }
             mascotFloating = true
+            // Coin insert bounce animation
+            Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+                withAnimation(.easeInOut(duration: 1.5)) {
+                    coinAtTop.toggle()
+                }
+            }
         }
         // Present sheets
         .sheet(isPresented: $viewModel.showCamera) {
@@ -154,6 +172,7 @@ struct UploadMethodSelectionView: View {
             )
         }
     }
+
 }
 
 // MARK: - Glass Circle Button
@@ -186,14 +205,14 @@ private struct GlassCircleButton: View {
                     // Icon - positioned slightly higher
                     Image(systemName: icon)
                         .font(.system(size: 24, weight: .light))
-                        .foregroundColor(.white)
+                        .foregroundColor(.billixDarkGreen)
                         .offset(y: -2)
 
-                    // Label inside the circle - more readable
+                    // Label inside the circle - darker for readability
                     Text(label)
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 10, weight: .semibold))
                         .tracking(0.5)
-                        .foregroundColor(.white)
+                        .foregroundColor(.billixDarkGreen)
                 }
                 .offset(y: 2)
             }
