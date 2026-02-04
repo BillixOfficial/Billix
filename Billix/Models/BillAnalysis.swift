@@ -156,12 +156,35 @@ struct BillAnalysis: Codable {
         let recommendation: String
         let potentialSavings: Double?
 
-        // Computed ID for SwiftUI Identifiable (not decoded from JSON)
-        var id: UUID { UUID() }
+        // Stable ID for SwiftUI Identifiable (not decoded from JSON)
+        let id = UUID()
 
         // Exclude id from Codable
         private enum CodingKeys: String, CodingKey {
             case type, description, recommendation, potentialSavings
+        }
+
+        init(type: String, description: String, recommendation: String, potentialSavings: Double? = nil) {
+            self.type = type
+            self.description = description
+            self.recommendation = recommendation
+            self.potentialSavings = potentialSavings
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            type = try container.decode(String.self, forKey: .type)
+            description = try container.decode(String.self, forKey: .description)
+            recommendation = try container.decode(String.self, forKey: .recommendation)
+            // Handle potentialSavings as either Double or String
+            if let doubleVal = try? container.decode(Double.self, forKey: .potentialSavings) {
+                potentialSavings = doubleVal
+            } else if let stringVal = try? container.decode(String.self, forKey: .potentialSavings),
+                      let parsed = Double(stringVal) {
+                potentialSavings = parsed
+            } else {
+                potentialSavings = nil
+            }
         }
     }
 
@@ -184,12 +207,38 @@ struct BillAnalysis: Codable {
         let difficulty: String  // "easy" | "medium" | "hard"
         let category: String
 
-        // Computed ID for SwiftUI Identifiable (not decoded from JSON)
-        var id: UUID { UUID() }
+        // Stable ID for SwiftUI Identifiable (not decoded from JSON)
+        let id = UUID()
 
         // Exclude id from Codable
         private enum CodingKeys: String, CodingKey {
             case action, explanation, potentialSavings, difficulty, category
+        }
+
+        init(action: String, explanation: String, potentialSavings: Double? = nil,
+             difficulty: String, category: String) {
+            self.action = action
+            self.explanation = explanation
+            self.potentialSavings = potentialSavings
+            self.difficulty = difficulty
+            self.category = category
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            action = try container.decode(String.self, forKey: .action)
+            explanation = try container.decode(String.self, forKey: .explanation)
+            difficulty = try container.decode(String.self, forKey: .difficulty)
+            category = try container.decode(String.self, forKey: .category)
+            // Handle potentialSavings as either Double or String
+            if let doubleVal = try? container.decode(Double.self, forKey: .potentialSavings) {
+                potentialSavings = doubleVal
+            } else if let stringVal = try? container.decode(String.self, forKey: .potentialSavings),
+                      let parsed = Double(stringVal) {
+                potentialSavings = parsed
+            } else {
+                potentialSavings = nil
+            }
         }
     }
 
@@ -198,8 +247,8 @@ struct BillAnalysis: Codable {
         let definition: String
         let context: String
 
-        // Computed ID for SwiftUI Identifiable (not decoded from JSON)
-        var id: UUID { UUID() }
+        // Stable ID for SwiftUI Identifiable (not decoded from JSON)
+        let id = UUID()
 
         // Exclude id from Codable
         private enum CodingKeys: String, CodingKey {
@@ -217,8 +266,8 @@ struct BillAnalysis: Codable {
         let estimatedBenefit: String  // "Up to $200/year" or "$100-500/year"
         let provider: String
 
-        // Computed ID for SwiftUI Identifiable (not decoded from JSON)
-        var id: UUID { UUID() }
+        // Stable ID for SwiftUI Identifiable (not decoded from JSON)
+        let id = UUID()
 
         enum ProgramType: String, Codable {
             case government, utility, local, nonprofit

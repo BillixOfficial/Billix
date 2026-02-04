@@ -15,8 +15,8 @@ struct UploadMethodSelectionView: View {
     @State private var appeared = false
     @State private var mascotFloating = false
 
-    // Coin bounce animation
-    @State private var coinAtTop = false
+    // Coin bounce animation (starts at top so first move is dropping into piggy)
+    @State private var coinAtTop = true
 
     var body: some View {
         ZStack {
@@ -124,21 +124,36 @@ struct UploadMethodSelectionView: View {
                 .offset(y: appeared ? 0 : 30)
                 .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: appeared)
             }
+
         }
-        .navigationTitle("Full Analysis")
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: 3) {
+                    Text("Full Analysis")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundColor(.white)
+                    Text("Start Saving Now")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.65))
+                }
+                .offset(x: 2, y: 30)
+            }
+        }
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear {
             withAnimation {
                 appeared = true
             }
             mascotFloating = true
-            // Coin insert bounce animation
-            Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
+            // Coin insert bounce animation (common mode so it runs during scrolling)
+            let timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
                 withAnimation(.easeInOut(duration: 1.5)) {
                     coinAtTop.toggle()
                 }
             }
+            RunLoop.current.add(timer, forMode: .common)
         }
         // Present sheets
         .sheet(isPresented: $viewModel.showCamera) {

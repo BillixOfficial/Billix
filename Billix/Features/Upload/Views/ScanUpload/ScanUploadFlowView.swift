@@ -61,14 +61,7 @@ struct ScanUploadFlowView: View {
             }
             .navigationTitle("Full Analysis")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.billixChartBlue)
-                }
-            }
+            .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .onAppear {
             // Inject ModelContext into ViewModel for saving bills

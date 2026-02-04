@@ -506,6 +506,8 @@
 		F9F189512F05F79C007CF227 /* HomeSetupQuestionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F1894F2F05F79C007CF227 /* HomeSetupQuestionsView.swift */; };
 		FB021E8FC90B96BB845CCD82 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */; };
 		FB4BCEEA822F6653DD8AFEB9 /* NudgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EEF8494E0D8F1E5CA84EE4 /* NudgeService.swift */; };
+		C1A2B3D4E5F6A7B8C9D0E1F3 /* AskBillixViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F2 /* AskBillixViewModel.swift */; };
+		C1A2B3D4E5F6A7B8C9D0E1F5 /* AskBillixChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F4 /* AskBillixChatView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1002,6 +1004,8 @@
 		FB8D3E6933AEE80A2FD8C853 /* BillExplorerDetailSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillExplorerDetailSheet.swift; sourceTree = "<group>"; };
 		FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AllUploadsView.swift; sourceTree = "<group>"; };
 		FD03CB72B19A74E508D2FDA5 /* ReliefStep4Urgency.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefStep4Urgency.swift; sourceTree = "<group>"; };
+		C1A2B3D4E5F6A7B8C9D0E1F2 /* AskBillixViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskBillixViewModel.swift; sourceTree = "<group>"; };
+		C1A2B3D4E5F6A7B8C9D0E1F4 /* AskBillixChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskBillixChatView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1952,6 +1956,7 @@
 				A6FF815A2ED4BB24008330C9 /* RecentUploadsViewModel.swift */,
 				A6FF815B2ED4BB24008330C9 /* ScanUploadViewModel.swift */,
 				A6FF815C2ED4BB24008330C9 /* UploadViewModel.swift */,
+				C1A2B3D4E5F6A7B8C9D0E1F2 /* AskBillixViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -1975,6 +1980,7 @@
 				B41ECA1FDF3D80A03CE00E92 /* AnalysisComponents.swift */,
 				E19DB0EADA90394B7F05D82E /* AnalysisSaveMoneyTab.swift */,
 				9C811776FB90B05B8190935B /* AnalysisBreakdownTab.swift */,
+				C1A2B3D4E5F6A7B8C9D0E1F4 /* AskBillixChatView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -2722,6 +2728,8 @@
 				A6FF81762ED4BB24008330C9 /* QuickAddStep1BillType.swift in Sources */,
 				A6FF81772ED4BB24008330C9 /* RecentUploadsViewModel.swift in Sources */,
 				A6FF81782ED4BB24008330C9 /* QuickAddViewModel.swift in Sources */,
+				C1A2B3D4E5F6A7B8C9D0E1F3 /* AskBillixViewModel.swift in Sources */,
+				C1A2B3D4E5F6A7B8C9D0E1F5 /* AskBillixChatView.swift in Sources */,
 				A6FF81862ED504CB008330C9 /* MediaPickers.swift in Sources */,
 				A6FF81792ED4BB24008330C9 /* RecentUploadRow.swift in Sources */,
 				A6FF817A2ED4BB24008330C9 /* ScanUploadOptionsView.swift in Sources */,
