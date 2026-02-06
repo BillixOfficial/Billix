@@ -6,21 +6,24 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AskBillixChatView: View {
     let analysis: BillAnalysis
+    let billId: UUID?
+
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel: AskBillixViewModel
     @FocusState private var isInputFocused: Bool
     @State private var mascotFloating = false
     @State private var coinAtTop = true
     @State private var appeared = false
 
-    private let piggyAvatarSize: CGFloat = 50
-
-    init(analysis: BillAnalysis) {
+    init(analysis: BillAnalysis, billId: UUID? = nil) {
         self.analysis = analysis
-        self._viewModel = StateObject(wrappedValue: AskBillixViewModel(analysis: analysis))
+        self.billId = billId
+        self._viewModel = StateObject(wrappedValue: AskBillixViewModel(analysis: analysis, billId: billId))
     }
 
     var body: some View {
@@ -31,6 +34,11 @@ struct AskBillixChatView: View {
             VStack(spacing: 0) {
                 headerBar
 
+                // Error banner
+                if let error = viewModel.errorMessage {
+                    errorBanner(error)
+                }
+
                 if viewModel.hasStartedChat {
                     chatContent
                 } else {
@@ -39,8 +47,13 @@ struct AskBillixChatView: View {
 
                 inputBar
             }
+
         }
         .onAppear {
+            // Inject modelContext and load existing session
+            viewModel.modelContext = modelContext
+            viewModel.loadExistingSession()
+
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 appeared = true
             }
@@ -52,6 +65,29 @@ struct AskBillixChatView: View {
             }
             RunLoop.current.add(timer, forMode: .common)
         }
+    }
+
+    // MARK: - Error Banner
+
+    private func errorBanner(_ message: String) -> some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 14))
+            Text(message)
+                .font(.system(size: 13, weight: .medium))
+            Spacer()
+            Button {
+                viewModel.dismissError()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .bold))
+            }
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color.red.opacity(0.85))
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     // MARK: - Background
@@ -182,7 +218,7 @@ struct AskBillixChatView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 40, height: 40)
-                    .offset(y: 28 + (coinAtTop ? -8 : 24))
+                    .offset(y: 15 + (coinAtTop ? -10 : 8))
                     .animation(.easeInOut(duration: 1.5), value: coinAtTop)
 
                 Image("HoloPiggy")
@@ -242,7 +278,8 @@ struct AskBillixChatView: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
             }
             .onChange(of: viewModel.messages.count) { _, _ in
                 withAnimation(.easeOut(duration: 0.3)) {
@@ -262,37 +299,64 @@ struct AskBillixChatView: View {
                     }
                 }
             }
+            .onAppear {
+                // Scroll to bottom INSTANTLY when chat loads (no animation)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    if let lastMessage = viewModel.messages.last {
+                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                    }
+                }
+            }
+            .onChange(of: viewModel.hasStartedChat) { _, hasStarted in
+                // Scroll to bottom INSTANTLY when messages load from persistence
+                if hasStarted && !viewModel.messages.isEmpty {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        if let lastMessage = viewModel.messages.last {
+                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                        }
+                    }
+                }
+            }
         }
     }
 
     // MARK: - Message Bubble
 
     private func messageBubble(_ message: AskBillixMessage) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: 0) {
             if message.role == .user {
                 Spacer(minLength: 60)
             }
 
-            if message.role == .assistant {
-                // Piggy avatar
-                Image("HoloPiggy")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: piggyAvatarSize, height: piggyAvatarSize)
-            }
-
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
                 if message.role == .assistant {
-                    Text("Billix")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.5))
+                    HStack(spacing: -8) {
+                        Image("HoloPiggy")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 50, height: 50)
+                        Text("Billix")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
                 }
 
-                Text(message.content)
-                    .font(.system(size: 15))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
+                Group {
+                    if let attributed = try? AttributedString(
+                        markdown: message.content,
+                        options: AttributedString.MarkdownParsingOptions(
+                            interpretedSyntax: .inlineOnlyPreservingWhitespace
+                        )
+                    ) {
+                        Text(attributed)
+                    } else {
+                        Text(message.content)
+                    }
+                }
+                .font(.system(size: 15))
+                .foregroundColor(.white)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
                     .background(
                         RoundedRectangle(cornerRadius: 18)
                             .fill(
@@ -316,17 +380,17 @@ struct AskBillixChatView: View {
     // MARK: - Typing Indicator
 
     private var typingIndicator: some View {
-        HStack(alignment: .top, spacing: 10) {
-            // Piggy avatar
-            Image("HoloPiggy")
-                .resizable()
-                .scaledToFit()
-                .frame(width: piggyAvatarSize, height: piggyAvatarSize)
-
+        HStack(alignment: .top, spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Billix")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.5))
+                HStack(spacing: -8) {
+                    Image("HoloPiggy")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 50, height: 50)
+                    Text("Billix")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.5))
+                }
 
                 HStack(spacing: 5) {
                     ForEach(0..<3, id: \.self) { index in

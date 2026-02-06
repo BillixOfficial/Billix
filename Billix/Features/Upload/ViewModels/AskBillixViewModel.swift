@@ -6,18 +6,26 @@
 //
 
 import SwiftUI
+import SwiftData
 
 // MARK: - Message Model
 
-struct AskBillixMessage: Identifiable {
-    let id = UUID()
+struct AskBillixMessage: Identifiable, Codable {
+    let id: UUID
     let role: Role
     let content: String
-    let timestamp = Date()
+    let timestamp: Date
 
-    enum Role {
+    enum Role: String, Codable {
         case user
         case assistant
+    }
+
+    init(role: Role, content: String) {
+        self.id = UUID()
+        self.role = role
+        self.content = content
+        self.timestamp = Date()
     }
 }
 
@@ -29,11 +37,50 @@ class AskBillixViewModel: ObservableObject {
     @Published var inputText = ""
     @Published var isTyping = false
     @Published var hasStartedChat = false
+    @Published var errorMessage: String?
 
     private let analysis: BillAnalysis
+    private let billId: UUID?
+    private var chatSession: StoredChatSession?
+    var modelContext: ModelContext?
 
-    init(analysis: BillAnalysis) {
+    init(analysis: BillAnalysis, billId: UUID? = nil) {
         self.analysis = analysis
+        self.billId = billId
+    }
+
+    // MARK: - Load Existing Session
+
+    func loadExistingSession() {
+        guard let billId = billId, let context = modelContext else { return }
+
+        let now = Date()
+        let targetBillId = billId
+
+        // Fetch non-expired session for this bill
+        let descriptor = FetchDescriptor<StoredChatSession>(
+            predicate: #Predicate<StoredChatSession> { session in
+                session.billId == targetBillId && session.expiresAt > now
+            }
+        )
+
+        do {
+            if let session = try context.fetch(descriptor).first {
+                self.chatSession = session
+                // Decrypt and load messages
+                Task {
+                    if let decrypted = try? await EncryptionService.shared.decrypt(session.messagesData),
+                       let loaded = try? JSONDecoder().decode([AskBillixMessage].self, from: decrypted) {
+                        await MainActor.run {
+                            self.messages = loaded
+                            self.hasStartedChat = !loaded.isEmpty
+                        }
+                    }
+                }
+            }
+        } catch {
+            print("Failed to load chat session: \(error)")
+        }
     }
 
     // MARK: - User Name
@@ -56,7 +103,7 @@ class AskBillixViewModel: ObservableObject {
             questions.append("What are the red flags?")
         }
         if analysis.marketplaceComparison != nil {
-            questions.append("Am I being overcharged?")
+            questions.append("How do I compare to others?")
         }
         return questions
     }
@@ -70,6 +117,7 @@ class AskBillixViewModel: ObservableObject {
         let userMessage = AskBillixMessage(role: .user, content: content)
         messages.append(userMessage)
         inputText = ""
+        errorMessage = nil
 
         if !hasStartedChat {
             withAnimation(.easeInOut(duration: 0.3)) {
@@ -80,119 +128,120 @@ class AskBillixViewModel: ObservableObject {
         isTyping = true
 
         Task {
-            let response = await generateAIResponse(for: content)
+            do {
+                // Only send last 20 messages as history (API limit)
+                let previousMessages = Array(messages.dropLast())
+                let trimmedHistory = previousMessages.suffix(20)
+
+                let response = try await AskBillixService.shared.ask(
+                    question: content,
+                    billContext: buildBillContext(),
+                    history: Array(trimmedHistory)
+                )
+
+                let assistantMessage = AskBillixMessage(role: .assistant, content: response)
+                messages.append(assistantMessage)
+                saveSession()
+            } catch let error as AskBillixService.AskBillixError {
+                handleError(error)
+            } catch {
+                errorMessage = "Something went wrong. Please try again."
+                // Remove the user message that failed
+                if messages.last?.role == .user {
+                    messages.removeLast()
+                }
+            }
             isTyping = false
-            let assistantMessage = AskBillixMessage(role: .assistant, content: response)
-            messages.append(assistantMessage)
         }
     }
 
-    // MARK: - Mock AI Response
-    // TODO: Replace with Supabase Edge Function
+    // MARK: - Error Handling
 
-    private func generateAIResponse(for query: String) async -> String {
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 1_500_000_000)
-
-        let lowered = query.lowercased()
-        let context = buildBillContext()
-
-        if lowered.contains("high") || lowered.contains("expensive") || lowered.contains("much") {
-            var response = "Looking at your \(analysis.provider) bill of $\(String(format: "%.2f", analysis.amount)):\n\n"
-            if let comparison = analysis.marketplaceComparison {
-                let diff = abs(comparison.percentDiff)
-                if comparison.position == .above {
-                    response += "Your bill is \(String(format: "%.0f", diff))% above the area average of $\(String(format: "%.2f", comparison.areaAverage)). "
-                } else {
-                    response += "Your bill is actually at or below the area average of $\(String(format: "%.2f", comparison.areaAverage)), so it's not unusually high. "
-                }
-            }
-            if let topItem = analysis.lineItems.max(by: { $0.amount < $1.amount }) {
-                response += "The largest charge is \"\(topItem.description)\" at $\(String(format: "%.2f", topItem.amount))."
-            }
-            return response
+    private func handleError(_ error: AskBillixService.AskBillixError) {
+        errorMessage = error.localizedDescription
+        // Remove the user message that failed
+        if messages.last?.role == .user {
+            messages.removeLast()
         }
-
-        if lowered.contains("charges") || lowered.contains("breakdown") || lowered.contains("explain") {
-            var response = "Here's a breakdown of your \(analysis.provider) bill:\n\n"
-            for item in analysis.lineItems.prefix(5) {
-                response += "• \(item.description): $\(String(format: "%.2f", item.amount))"
-                if let explanation = item.explanation {
-                    response += " — \(explanation)"
-                }
-                response += "\n"
-            }
-            if analysis.lineItems.count > 5 {
-                response += "\n...and \(analysis.lineItems.count - 5) more charges."
-            }
-            return response
-        }
-
-        if lowered.contains("save") || lowered.contains("lower") || lowered.contains("reduce") {
-            var response = "Here are some ways to save on your \(analysis.provider) bill:\n\n"
-            if let savings = analysis.savingsOpportunities, !savings.isEmpty {
-                for item in savings.prefix(3) {
-                    response += "• \(item.action)"
-                    if let amount = item.potentialSavings {
-                        response += " (save up to $\(String(format: "%.2f", amount)))"
-                    }
-                    response += "\n"
-                }
-            } else {
-                response += "• Call your provider and ask about current promotions\n"
-                response += "• Review your plan to make sure you're not paying for unused services\n"
-                response += "• Compare rates with other providers in your area"
-            }
-            return response
-        }
-
-        if lowered.contains("red flag") || lowered.contains("flag") || lowered.contains("warning") {
-            if let redFlags = analysis.redFlags, !redFlags.isEmpty {
-                var response = "I found \(redFlags.count) red flag\(redFlags.count == 1 ? "" : "s") on your bill:\n\n"
-                for flag in redFlags {
-                    response += "⚠️ \(flag.description)\n→ \(flag.recommendation)\n\n"
-                }
-                return response
-            } else {
-                return "Good news! I didn't find any red flags on your \(analysis.provider) bill. Everything looks standard."
-            }
-        }
-
-        if lowered.contains("overcharg") || lowered.contains("comparison") || lowered.contains("average") {
-            if let comparison = analysis.marketplaceComparison {
-                let diff = abs(comparison.percentDiff)
-                if comparison.position == .above {
-                    return "Based on \(comparison.sampleSize ?? 0) bills in your area (zip prefix \(comparison.zipPrefix)), you're paying \(String(format: "%.0f", diff))% more than the average of $\(String(format: "%.2f", comparison.areaAverage)). You could potentially save $\(String(format: "%.2f", analysis.amount - comparison.areaAverage)) per billing cycle by switching or negotiating."
-                } else {
-                    return "You're actually paying at or below the area average of $\(String(format: "%.2f", comparison.areaAverage)). You're getting a fair deal compared to others in your area!"
-                }
-            }
-            return "I don't have comparison data for this bill type yet. Try scanning more bills to build up your comparison history."
-        }
-
-        // Default response
-        return "Great question about your \(analysis.provider) bill! Here's what I can tell you:\n\n\(context)\n\nWould you like me to go deeper on any specific charge or topic?"
     }
 
-    // MARK: - Bill Context Summary
+    func dismissError() {
+        errorMessage = nil
+    }
+
+    // MARK: - Bill Context
 
     private func buildBillContext() -> String {
-        var parts: [String] = []
-        parts.append("Provider: \(analysis.provider)")
-        parts.append("Total: $\(String(format: "%.2f", analysis.amount))")
-        parts.append("Category: \(analysis.category)")
-        parts.append("\(analysis.lineItems.count) line items")
+        var context = ""
 
+        // Use raw extracted text if available (richer bill details)
+        if let raw = analysis.rawExtractedText, !raw.isEmpty {
+            context = raw
+        } else {
+            // Fallback to structured summary
+            var parts: [String] = []
+            parts.append("Provider: \(analysis.provider)")
+            parts.append("Amount: $\(String(format: "%.2f", analysis.amount))")
+            parts.append("Category: \(analysis.category)")
+            parts.append("Bill Date: \(analysis.billDate)")
+            if let dueDate = analysis.dueDate {
+                parts.append("Due Date: \(dueDate)")
+            }
+
+            if let summary = analysis.plainEnglishSummary {
+                parts.append("Summary: \(summary)")
+            }
+
+            if !analysis.lineItems.isEmpty {
+                let items = analysis.lineItems.map { "\($0.description): $\(String(format: "%.2f", $0.amount))" }
+                parts.append("Line Items: \(items.joined(separator: ", "))")
+            }
+
+            if let redFlags = analysis.redFlags, !redFlags.isEmpty {
+                let flags = redFlags.map { $0.description }
+                parts.append("Red Flags: \(flags.joined(separator: "; "))")
+            }
+
+            context = parts.joined(separator: " | ")
+        }
+
+        // ALWAYS append marketplace comparison OR explain why it's missing
         if let comparison = analysis.marketplaceComparison {
-            parts.append("Area average: $\(String(format: "%.2f", comparison.areaAverage)) (\(comparison.position.rawValue))")
-        }
-        if let redFlags = analysis.redFlags, !redFlags.isEmpty {
-            parts.append("\(redFlags.count) red flag(s)")
-        }
-        if let savings = analysis.savingsOpportunities, !savings.isEmpty {
-            parts.append("\(savings.count) savings opportunity(ies)")
+            context += "\n\n--- BILLIX COMPARISON DATA ---\n"
+            context += "Your bill: $\(String(format: "%.2f", analysis.amount))\n"
+            context += "Billix Average: $\(String(format: "%.2f", comparison.areaAverage))\n"
+            context += "Difference: \(String(format: "%.0f", abs(comparison.percentDiff)))% \(comparison.position.rawValue) average\n"
+            if let sampleSize = comparison.sampleSize {
+                let region = comparison.state ?? comparison.zipPrefix
+                context += "Based on \(sampleSize) Billix users in \(region)"
+            }
+        } else {
+            context += "\n\n--- BILLIX COMPARISON DATA ---\n"
+            context += "No marketplace comparison available yet. Not enough Billix users have uploaded similar bills in this category/region to generate a meaningful comparison."
         }
 
-        return parts.joined(separator: " | ")
+        return context
+    }
+
+    // MARK: - Session Persistence
+
+    private func saveSession() {
+        guard let billId = billId, let context = modelContext else { return }
+
+        Task {
+            if chatSession == nil {
+                let newSession = StoredChatSession(billId: billId)
+                context.insert(newSession)
+                chatSession = newSession
+            }
+
+            // Encrypt messages before saving
+            if let encoded = try? JSONEncoder().encode(messages),
+               let encrypted = try? await EncryptionService.shared.encrypt(encoded) {
+                chatSession?.messagesData = encrypted
+            }
+
+            try? context.save()
+        }
     }
 }
