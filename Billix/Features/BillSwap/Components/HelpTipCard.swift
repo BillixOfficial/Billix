@@ -15,42 +15,42 @@ struct HelpTipCard: View {
     @State private var isExpanded = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: SwapTheme.Spacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             Button {
-                withAnimation(SwapTheme.Animations.spring) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     isExpanded.toggle()
                 }
             } label: {
-                HStack(spacing: SwapTheme.Spacing.sm) {
+                HStack(spacing: 8) {
                     Image(systemName: icon)
                         .font(.system(size: 14))
-                        .foregroundColor(SwapTheme.Colors.success)
+                        .foregroundColor(Color.billixMoneyGreen)
 
                     Text(title)
-                        .font(SwapTheme.Typography.subheadline)
+                        .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundColor(SwapTheme.Colors.primaryText)
+                        .foregroundColor(Color.billixDarkTeal)
 
                     Spacer()
 
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(SwapTheme.Colors.secondaryText)
+                        .foregroundColor(.secondary)
                 }
             }
             .buttonStyle(PlainButtonStyle())
 
             if isExpanded {
                 Text(message)
-                    .font(SwapTheme.Typography.caption)
-                    .foregroundColor(SwapTheme.Colors.secondaryText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(SwapTheme.Spacing.md)
-        .background(SwapTheme.Colors.success.opacity(0.08))
-        .cornerRadius(SwapTheme.CornerRadius.medium)
+        .padding(12)
+        .background(Color.billixMoneyGreen.opacity(0.08))
+        .cornerRadius(12)
     }
 }
 
@@ -61,13 +61,13 @@ struct HelpTipCard: View {
         HelpTipCard(
             icon: "checkmark.shield",
             title: "Why do we scan your bill?",
-            message: "OCR verification confirms your bill is authentic, protecting both you and your swap partner from fraud."
+            message: "OCR verification confirms your bill is authentic, protecting both you and your connection partner from fraud."
         )
 
         HelpTipCard(
             icon: "star.fill",
             title: "About tier limits",
-            message: "Tier limits protect new users. As you complete successful swaps, your limit increases automatically."
+            message: "Tier limits protect new users. As you complete successful connections, your limit increases automatically."
         )
 
         HelpTipCard(

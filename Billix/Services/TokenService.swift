@@ -71,7 +71,7 @@ class TokenService: ObservableObject {
         await loadBalance()
     }
 
-    /// Load token balance from Supabase
+    /// Load token balance from Supabase profiles table
     func loadBalance() async {
         guard let userId = currentUserId else { return }
 
@@ -82,7 +82,18 @@ class TokenService: ObservableObject {
             // First, ensure monthly free tokens are reset if needed
             try await resetMonthlyFreeTokensIfNeeded()
 
-            // Try to get existing record
+            // Load tokens from profiles table
+            let profile: ProfileTokenRecord = try await supabase
+                .from("profiles")
+                .select("tokens")
+                .eq("user_id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+
+            tokenBalance = profile.tokens
+
+            // Load free tokens tracking from connect_tokens table
             let records: [ConnectTokenRecord] = try await supabase
                 .from("connect_tokens")
                 .select()
@@ -92,7 +103,6 @@ class TokenService: ObservableObject {
                 .value
 
             if let record = records.first {
-                tokenBalance = record.balance
                 freeTokensRemaining = TokenConstants.freeTokensPerMonth - record.freeTokensUsed
 
                 // Calculate next reset date (first of next month)
@@ -104,9 +114,8 @@ class TokenService: ObservableObject {
                     }
                 }
             } else {
-                // Create new record for user
+                // Create new connect_tokens record for tracking free tokens
                 try await createTokenRecord(for: userId)
-                tokenBalance = 0
                 freeTokensRemaining = TokenConstants.freeTokensPerMonth
             }
         } catch {
@@ -127,7 +136,119 @@ class TokenService: ObservableObject {
 
     // MARK: - Use Token
 
-    /// Use a token to unlock a chat connection
+    /// Use a token to enter the swap marketplace (charged at bill upload)
+    /// Returns true if successful, false if no tokens available
+    func useTokenForSwapEntry(billId: UUID) async throws -> Bool {
+        guard let userId = currentUserId else {
+            throw TokenError.notAuthenticated
+        }
+
+        // Prime users don't need to use tokens
+        if hasUnlimitedTokens {
+            try await logTransaction(
+                userId: userId,
+                amount: 0,
+                type: .use,
+                referenceId: billId,
+                note: "Prime user - swap entry"
+            )
+            return true
+        }
+
+        // Try to use a free token first
+        if freeTokensRemaining > 0 {
+            try await useFreeTokenForBill(billId: billId)
+            return true
+        }
+
+        // Use purchased token
+        if tokenBalance > 0 {
+            try await usePurchasedTokenForBill(billId: billId)
+            return true
+        }
+
+        // No tokens available
+        return false
+    }
+
+    /// Use one of the free monthly tokens for bill upload
+    private func useFreeTokenForBill(billId: UUID) async throws {
+        guard let userId = currentUserId else {
+            throw TokenError.notAuthenticated
+        }
+
+        let records: [ConnectTokenRecord] = try await supabase
+            .from("connect_tokens")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .limit(1)
+            .execute()
+            .value
+
+        guard let record = records.first else {
+            throw TokenError.recordNotFound
+        }
+
+        let newFreeUsed = record.freeTokensUsed + 1
+
+        try await supabase
+            .from("connect_tokens")
+            .update(FreeTokensUpdate(
+                freeTokensUsed: newFreeUsed,
+                updatedAt: ISO8601DateFormatter().string(from: Date())
+            ))
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+
+        try await logTransaction(
+            userId: userId,
+            amount: -1,
+            type: .use,
+            referenceId: billId,
+            note: "Swap entry - free token"
+        )
+
+        freeTokensRemaining = TokenConstants.freeTokensPerMonth - newFreeUsed
+    }
+
+    /// Use a purchased token for bill upload
+    private func usePurchasedTokenForBill(billId: UUID) async throws {
+        guard let userId = currentUserId else {
+            throw TokenError.notAuthenticated
+        }
+
+        let profile: ProfileTokenRecord = try await supabase
+            .from("profiles")
+            .select("tokens")
+            .eq("user_id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        guard profile.tokens > 0 else {
+            throw TokenError.insufficientBalance
+        }
+
+        let newBalance = profile.tokens - 1
+
+        try await supabase
+            .from("profiles")
+            .update(ProfileTokenUpdate(tokens: newBalance))
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+
+        try await logTransaction(
+            userId: userId,
+            amount: -1,
+            type: .use,
+            referenceId: billId,
+            note: "Swap entry"
+        )
+
+        tokenBalance = newBalance
+    }
+
+    /// Use a token to unlock a chat connection (legacy - for existing swaps)
     /// Returns true if successful, false if no tokens available
     func useToken(for swapId: UUID) async throws -> Bool {
         guard let userId = currentUserId else {
@@ -212,28 +333,25 @@ class TokenService: ObservableObject {
             throw TokenError.notAuthenticated
         }
 
-        // Get current balance
-        let records: [ConnectTokenRecord] = try await supabase
-            .from("connect_tokens")
-            .select()
+        // Get current balance from profiles table
+        let profile: ProfileTokenRecord = try await supabase
+            .from("profiles")
+            .select("tokens")
             .eq("user_id", value: userId.uuidString)
-            .limit(1)
+            .single()
             .execute()
             .value
 
-        guard let record = records.first, record.balance > 0 else {
+        guard profile.tokens > 0 else {
             throw TokenError.insufficientBalance
         }
 
-        let newBalance = record.balance - 1
+        let newBalance = profile.tokens - 1
 
-        // Update balance
+        // Update balance in profiles table
         try await supabase
-            .from("connect_tokens")
-            .update(BalanceUpdate(
-                balance: newBalance,
-                updatedAt: ISO8601DateFormatter().string(from: Date())
-            ))
+            .from("profiles")
+            .update(ProfileTokenUpdate(tokens: newBalance))
             .eq("user_id", value: userId.uuidString)
             .execute()
 
@@ -261,28 +379,21 @@ class TokenService: ObservableObject {
             return
         }
 
-        // Get current balance
-        let records: [ConnectTokenRecord] = try await supabase
-            .from("connect_tokens")
-            .select()
+        // Get current balance from profiles table
+        let profile: ProfileTokenRecord = try await supabase
+            .from("profiles")
+            .select("tokens")
             .eq("user_id", value: userId.uuidString)
-            .limit(1)
+            .single()
             .execute()
             .value
 
-        guard let record = records.first else {
-            throw TokenError.recordNotFound
-        }
-
-        // Add token back to balance (always add to purchased balance for simplicity)
-        let newBalance = record.balance + 1
+        // Add token back to balance in profiles table
+        let newBalance = profile.tokens + 1
 
         try await supabase
-            .from("connect_tokens")
-            .update(BalanceUpdate(
-                balance: newBalance,
-                updatedAt: ISO8601DateFormatter().string(from: Date())
-            ))
+            .from("profiles")
+            .update(ProfileTokenUpdate(tokens: newBalance))
             .eq("user_id", value: userId.uuidString)
             .execute()
 
@@ -362,39 +473,25 @@ class TokenService: ObservableObject {
         }
     }
 
-    /// Add purchased tokens to balance
+    /// Add purchased tokens to balance in profiles table
     private func addTokens(amount: Int, for userId: UUID) async throws {
-        // Get current balance
-        let records: [ConnectTokenRecord] = try await supabase
-            .from("connect_tokens")
-            .select()
+        // Get current balance from profiles table
+        let profile: ProfileTokenRecord = try await supabase
+            .from("profiles")
+            .select("tokens")
             .eq("user_id", value: userId.uuidString)
-            .limit(1)
+            .single()
             .execute()
             .value
 
-        let currentBalance = records.first?.balance ?? 0
-        let newBalance = currentBalance + amount
+        let newBalance = profile.tokens + amount
 
-        if records.isEmpty {
-            // Create new record
-            try await createTokenRecord(for: userId)
-            try await supabase
-                .from("connect_tokens")
-                .update(BalanceOnlyUpdate(balance: amount))
-                .eq("user_id", value: userId.uuidString)
-                .execute()
-        } else {
-            // Update existing
-            try await supabase
-                .from("connect_tokens")
-                .update(BalanceUpdate(
-                    balance: newBalance,
-                    updatedAt: ISO8601DateFormatter().string(from: Date())
-                ))
-                .eq("user_id", value: userId.uuidString)
-                .execute()
-        }
+        // Update profiles table
+        try await supabase
+            .from("profiles")
+            .update(ProfileTokenUpdate(tokens: newBalance))
+            .eq("user_id", value: userId.uuidString)
+            .execute()
 
         // Log transaction
         try await logTransaction(
@@ -486,6 +583,16 @@ class TokenService: ObservableObject {
 }
 
 // MARK: - Supporting Types
+
+/// Record for reading tokens from profiles table
+private struct ProfileTokenRecord: Decodable {
+    let tokens: Int
+}
+
+/// Update struct for writing tokens to profiles table
+private struct ProfileTokenUpdate: Encodable {
+    let tokens: Int
+}
 
 private struct ConnectTokenRecord: Decodable {
     let id: UUID

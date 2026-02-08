@@ -13,19 +13,43 @@ struct TierStatusCard: View {
     var onLearnMore: (() -> Void)?
 
     private var tierColor: Color {
-        SwapTheme.Tiers.tierColor(currentTier)
+        switch currentTier {
+        case 1: return Color.billixBronzeTier
+        case 2: return Color.billixSilverTier
+        case 3: return Color.billixGoldTier
+        case 4: return Color.billixGoldenAmber
+        default: return Color.billixDarkTeal
+        }
     }
 
     private var tierIcon: String {
-        SwapTheme.Tiers.tierIcon(currentTier)
+        switch currentTier {
+        case 1: return "leaf.fill"
+        case 2: return "star.fill"
+        case 3: return "star.circle.fill"
+        case 4: return "crown.fill"
+        default: return "circle.fill"
+        }
     }
 
     private var tierName: String {
-        SwapTheme.Tiers.tierName(currentTier)
+        switch currentTier {
+        case 1: return "Neighbor"
+        case 2: return "Contributor"
+        case 3: return "Pillar"
+        case 4: return "Guardian"
+        default: return "Unknown"
+        }
     }
 
     private var tierLimit: Decimal {
-        SwapTheme.Tiers.maxAmount(for: currentTier)
+        switch currentTier {
+        case 1: return 50
+        case 2: return 150
+        case 3: return 500
+        case 4: return 1000
+        default: return 50
+        }
     }
 
     private var formattedLimit: String {
@@ -36,18 +60,26 @@ struct TierStatusCard: View {
         return formatter.string(from: tierLimit as NSDecimalNumber) ?? "$\(tierLimit)"
     }
 
-    private var swapsToNext: Int {
-        SwapTheme.Tiers.swapsToNextTier(currentTier: currentTier, completedSwaps: completedSwaps)
+    private func requiredSwaps(for tier: Int) -> Int {
+        switch tier {
+        case 1: return 0
+        case 2: return 3
+        case 3: return 10
+        case 4: return 25
+        default: return 0
+        }
     }
 
-    private var nextTierRequirement: Int {
-        SwapTheme.Tiers.requiredSwaps(for: currentTier + 1)
+    private var swapsToNext: Int {
+        guard currentTier < 4 else { return 0 }
+        let nextRequirement = requiredSwaps(for: currentTier + 1)
+        return max(0, nextRequirement - completedSwaps)
     }
 
     private var progress: Double {
         guard currentTier < 4 else { return 1.0 }
-        let currentRequirement = SwapTheme.Tiers.requiredSwaps(for: currentTier)
-        let nextRequirement = SwapTheme.Tiers.requiredSwaps(for: currentTier + 1)
+        let currentRequirement = requiredSwaps(for: currentTier)
+        let nextRequirement = requiredSwaps(for: currentTier + 1)
         let progressRange = nextRequirement - currentRequirement
         let progressMade = completedSwaps - currentRequirement
         return Double(progressMade) / Double(progressRange)
@@ -56,7 +88,7 @@ struct TierStatusCard: View {
     var body: some View {
         VStack(spacing: 0) {
             // Top row: Tier badge + limit
-            HStack(spacing: SwapTheme.Spacing.md) {
+            HStack(spacing: 12) {
                 // Tier icon
                 ZStack {
                     Circle()
@@ -72,20 +104,20 @@ struct TierStatusCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text("Tier \(currentTier)")
-                            .font(SwapTheme.Typography.headline)
-                            .foregroundColor(SwapTheme.Colors.primaryText)
+                            .font(.headline)
+                            .foregroundColor(Color.billixDarkTeal)
 
                         Text("•")
-                            .foregroundColor(SwapTheme.Colors.tertiaryText)
+                            .foregroundColor(.secondary.opacity(0.5))
 
                         Text(tierName)
-                            .font(SwapTheme.Typography.subheadline)
+                            .font(.subheadline)
                             .foregroundColor(tierColor)
                     }
 
                     Text("Bills up to \(formattedLimit)")
-                        .font(SwapTheme.Typography.caption)
-                        .foregroundColor(SwapTheme.Colors.secondaryText)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
                 Spacer()
@@ -95,14 +127,14 @@ struct TierStatusCard: View {
                     Button(action: onLearnMore) {
                         Image(systemName: "questionmark.circle")
                             .font(.system(size: 20))
-                            .foregroundColor(SwapTheme.Colors.primary)
+                            .foregroundColor(Color.billixDarkTeal)
                     }
                 }
             }
 
             // Progress section (if not max tier)
             if currentTier < 4 {
-                VStack(spacing: SwapTheme.Spacing.sm) {
+                VStack(spacing: 8) {
                     // Progress bar
                     GeometryReader { geometry in
                         ZStack(alignment: .leading) {
@@ -127,25 +159,25 @@ struct TierStatusCard: View {
 
                     // Progress text
                     HStack {
-                        Text("\(completedSwaps) swaps completed")
-                            .font(SwapTheme.Typography.caption)
-                            .foregroundColor(SwapTheme.Colors.tertiaryText)
+                        Text("\(completedSwaps) connections completed")
+                            .font(.caption)
+                            .foregroundColor(.secondary.opacity(0.7))
 
                         Spacer()
 
                         HStack(spacing: 4) {
                             Text("\(swapsToNext)")
-                                .font(SwapTheme.Typography.caption)
+                                .font(.caption)
                                 .fontWeight(.semibold)
                                 .foregroundColor(tierColor)
 
                             Text("more to Tier \(currentTier + 1)")
-                                .font(SwapTheme.Typography.caption)
-                                .foregroundColor(SwapTheme.Colors.secondaryText)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
                     }
                 }
-                .padding(.top, SwapTheme.Spacing.md)
+                .padding(.top, 12)
             } else {
                 // Max tier badge
                 HStack {
@@ -154,22 +186,22 @@ struct TierStatusCard: View {
                         Image(systemName: "crown.fill")
                             .font(.system(size: 12))
                         Text("Maximum Tier")
-                            .font(SwapTheme.Typography.caption)
+                            .font(.caption)
                             .fontWeight(.medium)
                     }
-                    .foregroundColor(SwapTheme.Colors.gold)
+                    .foregroundColor(Color.billixGoldenAmber)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(SwapTheme.Colors.gold.opacity(0.12))
+                    .background(Color.billixGoldenAmber.opacity(0.12))
                     .cornerRadius(12)
                 }
-                .padding(.top, SwapTheme.Spacing.sm)
+                .padding(.top, 8)
             }
         }
-        .padding(SwapTheme.Spacing.lg)
+        .padding(16)
         .background(
             ZStack {
-                SwapTheme.Colors.background
+                Color.billixCreamBeige
                 // Subtle tier-colored gradient overlay
                 LinearGradient(
                     colors: [tierColor.opacity(0.04), Color.clear],
@@ -178,9 +210,9 @@ struct TierStatusCard: View {
                 )
             }
         )
-        .cornerRadius(SwapTheme.CornerRadius.large)
+        .cornerRadius(16)
         .overlay(
-            RoundedRectangle(cornerRadius: SwapTheme.CornerRadius.large)
+            RoundedRectangle(cornerRadius: 16)
                 .stroke(
                     LinearGradient(
                         colors: [tierColor.opacity(0.25), tierColor.opacity(0.08)],
@@ -190,18 +222,13 @@ struct TierStatusCard: View {
                     lineWidth: 1.5
                 )
         )
-        .shadow(
-            color: SwapTheme.Shadows.medium.color,
-            radius: SwapTheme.Shadows.medium.radius,
-            x: SwapTheme.Shadows.medium.x,
-            y: SwapTheme.Shadows.medium.y
-        )
+        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 
 // MARK: - Preview
 
-#Preview("Tier 1 - New") {
+#Preview("Tier 1 - Neighbor") {
     TierStatusCard(
         currentTier: 1,
         completedSwaps: 2,
@@ -210,7 +237,7 @@ struct TierStatusCard: View {
     .padding()
 }
 
-#Preview("Tier 2 - Established") {
+#Preview("Tier 2 - Contributor") {
     TierStatusCard(
         currentTier: 2,
         completedSwaps: 8,
@@ -219,16 +246,16 @@ struct TierStatusCard: View {
     .padding()
 }
 
-#Preview("Tier 3 - Trusted") {
+#Preview("Tier 3 - Pillar") {
     TierStatusCard(
         currentTier: 3,
-        completedSwaps: 25,
+        completedSwaps: 20,
         onLearnMore: {}
     )
     .padding()
 }
 
-#Preview("Tier 4 - Veteran (Max)") {
+#Preview("Tier 4 - Guardian (Max)") {
     TierStatusCard(
         currentTier: 4,
         completedSwaps: 50,

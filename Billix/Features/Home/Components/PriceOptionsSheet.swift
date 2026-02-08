@@ -14,7 +14,7 @@ struct PriceOptionsSheet: View {
     let options: [PriceOption]
 
     @Environment(\.dismiss) private var dismiss
-    @State private var showBillSwap = false
+    @State private var showBillConnection = false
     @State private var showRelief = false
     @State private var showNegotiationScript = false
 
@@ -125,8 +125,8 @@ struct PriceOptionsSheet: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $showBillSwap) {
-            BillSwapView()
+        .fullScreenCover(isPresented: $showBillConnection) {
+            BillConnectionView()
         }
         .fullScreenCover(isPresented: $showRelief) {
             ReliefFlowView()
@@ -149,8 +149,8 @@ struct PriceOptionsSheet: View {
                     object: nil
                 )
             }
-        case .openBillSwap:
-            showBillSwap = true
+        case .openBillConnection:
+            showBillConnection = true
         case .showNegotiationScript:
             showNegotiationScript = true
         case .openRelief:
@@ -374,7 +374,7 @@ private struct NegotiationTipRow: View {
         regionalAverage: 153,
         options: [
             PriceOption(type: .betterRate, title: "2 better rates found in your area", subtitle: "Compare plans from local providers", potentialSavings: 20, action: .viewRates),
-            PriceOption(type: .billSwap, title: "3 BillSwap matches available", subtitle: "Split costs with others in your area", potentialSavings: 15, action: .openBillSwap),
+            PriceOption(type: .billConnection, title: "3 Bill Connection matches available", subtitle: "Get help from your community", potentialSavings: 15, action: .openBillConnection),
             PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "Call your provider with proven tactics", potentialSavings: 12, action: .showNegotiationScript)
         ]
     )

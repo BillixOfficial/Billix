@@ -149,7 +149,7 @@ struct PriceTargetCard: View {
         regionalAverage: 153,
         options: [
             PriceOption(type: .betterRate, title: "2 better rates found in your area", subtitle: "", potentialSavings: 20, action: .viewRates),
-            PriceOption(type: .billSwap, title: "3 BillSwap matches available", subtitle: "", potentialSavings: 15, action: .openBillSwap),
+            PriceOption(type: .billConnection, title: "3 Bill Connection matches available", subtitle: "", potentialSavings: 15, action: .openBillConnection),
             PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "", potentialSavings: 12, action: .showNegotiationScript)
         ],
         onEdit: {},

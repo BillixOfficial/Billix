@@ -9,18 +9,20 @@
 import Foundation
 import SwiftUI
 
-// MARK: - Trust Tier
+// MARK: - Reputation Tier (New 3-Tier System for Bill Connection)
 
-enum TrustTier: Int, Codable, CaseIterable {
-    case streamer = 1
-    case utility = 2
-    case guardian = 3
+/// Reputation tiers for the Bill Connection feature
+/// Based on verification level and successful connections
+enum ReputationTier: Int, Codable, CaseIterable {
+    case neighbor = 1       // Entry level: SMS + Social OAuth
+    case contributor = 2    // Verified Prime + Gov ID
+    case pillar = 3         // 15 clean connections
 
     var name: String {
         switch self {
-        case .streamer: return "Streamer Zone"
-        case .utility: return "Utility Zone"
-        case .guardian: return "Guardian Zone"
+        case .neighbor: return "Neighbor"
+        case .contributor: return "Contributor"
+        case .pillar: return "Pillar"
         }
     }
 
@@ -29,88 +31,123 @@ enum TrustTier: Int, Codable, CaseIterable {
     }
 
     var shortName: String {
-        switch self {
-        case .streamer: return "Streamer"
-        case .utility: return "Utility"
-        case .guardian: return "Guardian"
-        }
+        name
     }
 
     var maxAmount: Double {
         switch self {
-        case .streamer: return 25.0
-        case .utility: return 150.0
-        case .guardian: return 500.0
+        case .neighbor: return 25.0
+        case .contributor: return 150.0
+        case .pillar: return 500.0
         }
     }
 
-    var requiredSwapsToGraduate: Int? {
+    /// Maximum connections per month (nil = unlimited)
+    var velocityLimit: Int? {
         switch self {
-        case .streamer: return 5
-        case .utility: return 5
-        case .guardian: return nil // Top tier
+        case .neighbor: return 1      // 1 connection per month
+        case .contributor: return nil // Unlimited
+        case .pillar: return nil      // Unlimited
         }
     }
 
-    var requiredRating: Double? {
+    var requiredConnectionsToGraduate: Int? {
         switch self {
-        case .streamer: return 4.5
-        case .utility: return nil
-        case .guardian: return nil
+        case .neighbor: return nil    // Upgrade via verification, not connections
+        case .contributor: return 15  // 15 clean connections to reach Pillar
+        case .pillar: return nil      // Top tier
         }
     }
 
     var color: Color {
         switch self {
-        case .streamer: return .purple
-        case .utility: return .blue
-        case .guardian: return .orange
+        case .neighbor: return Color(hex: "#5B8A6B")    // billixMoneyGreen
+        case .contributor: return Color(hex: "#9B7B9F") // billixPurple
+        case .pillar: return Color(hex: "#E8B54D")      // billixGoldenAmber
         }
     }
 
     var gradientColors: [Color] {
         switch self {
-        case .streamer: return [.purple, .pink]
-        case .utility: return [.blue, .cyan]
-        case .guardian: return [.orange, .yellow]
+        case .neighbor: return [Color(hex: "#5B8A6B"), Color(hex: "#7DAD8D")]
+        case .contributor: return [Color(hex: "#9B7B9F"), Color(hex: "#B99BBD")]
+        case .pillar: return [Color(hex: "#E8B54D"), Color(hex: "#F0C86B")]
         }
     }
 
     var icon: String {
         switch self {
-        case .streamer: return "play.tv.fill"
-        case .utility: return "bolt.fill"
-        case .guardian: return "shield.fill"
+        case .neighbor: return "person.fill"
+        case .contributor: return "person.2.fill"
+        case .pillar: return "building.columns.fill"
         }
     }
 
     var description: String {
         switch self {
-        case .streamer:
-            return "Swap streaming & subscription bills up to $25"
-        case .utility:
-            return "Swap utility bills up to $150"
-        case .guardian:
-            return "Swap major bills up to $500"
+        case .neighbor:
+            return "Support bills up to $25, 1 connection per month"
+        case .contributor:
+            return "Support bills up to $150, unlimited connections"
+        case .pillar:
+            return "Support bills up to $500, community leader status"
         }
     }
 
-    var nextTier: TrustTier? {
+    var nextTier: ReputationTier? {
         switch self {
-        case .streamer: return .utility
-        case .utility: return .guardian
-        case .guardian: return nil
+        case .neighbor: return .contributor
+        case .contributor: return .pillar
+        case .pillar: return nil
+        }
+    }
+
+    var requirements: String {
+        switch self {
+        case .neighbor:
+            return "SMS + Social OAuth verified"
+        case .contributor:
+            return "Verified Prime + Government ID"
+        case .pillar:
+            return "15 successful connections"
         }
     }
 
     var unlockRequirements: [String] {
         switch self {
-        case .streamer:
-            return ["Email verified", "Phone verified"]
-        case .utility:
-            return ["Complete Tier 1", "5 successful swaps", "4.5+ rating"]
-        case .guardian:
-            return ["Complete Tier 2", "5 more swaps", "Government ID verified"]
+        case .neighbor:
+            return ["SMS verified", "Social OAuth connected"]
+        case .contributor:
+            return ["Verified Prime member", "Government ID verified"]
+        case .pillar:
+            return ["15 clean connections", "No disputes in last 30 days"]
+        }
+    }
+}
+
+// MARK: - Legacy Trust Tier (Backwards Compatibility)
+
+/// Legacy trust tier enum - use ReputationTier for new code
+/// Kept for backwards compatibility with existing code
+typealias TrustTier = ReputationTier
+
+extension ReputationTier {
+    /// Legacy compatibility: map old tier names to new
+    static var streamer: ReputationTier { .neighbor }
+    static var utility: ReputationTier { .contributor }
+    static var guardian: ReputationTier { .pillar }
+
+    /// Legacy compatibility: requiredSwapsToGraduate maps to requiredConnectionsToGraduate
+    var requiredSwapsToGraduate: Int? {
+        requiredConnectionsToGraduate
+    }
+
+    /// Legacy compatibility: minimum rating required to advance (only for Neighbor tier)
+    var requiredRating: Double? {
+        switch self {
+        case .neighbor: return 4.0  // Need 4.0+ rating to graduate to Contributor
+        case .contributor: return nil
+        case .pillar: return nil
         }
     }
 }
@@ -224,31 +261,31 @@ enum SwapBillCategory: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var tier: TrustTier {
+    var tier: ReputationTier {
         switch self {
-        // Tier 1 - Streaming & Subscriptions
+        // Tier 1 - Neighbor: Streaming & Subscriptions (up to $25)
         case .netflix, .spotify, .disneyPlus, .hulu, .hboMax, .primeVideo, .peacock,
              .paramountPlus, .appleTvPlus, .youtubeMusic, .appleMusic, .tidal,
              .xboxGamePass, .playstationPlus, .nintendoOnline,
              .gym, .fitnessApp, .cloudStorage, .softwareSubscription,
              .mealKit, .groceryDelivery:
-            return .streamer
+            return .neighbor
 
-        // Tier 2 - Utilities
+        // Tier 2 - Contributor: Utilities (up to $150)
         case .electric, .naturalGas, .water, .sewer, .trash, .heatingOil, .propane,
              .internet, .cable, .landline, .phonePlan,
              .rentersInsurance, .petInsurance, .petGrooming, .petBoarding,
              .securitySystem, .pestControl, .lawnCare, .houseCleaning,
              .selfStorage, .clubDues, .professionalMembership:
-            return .utility
+            return .contributor
 
-        // Tier 3 - Guardian
+        // Tier 3 - Pillar: Major bills (up to $500)
         case .carInsurance, .carPayment, .transitPass,
              .rent, .mortgage, .hoaFees, .homeInsurance,
              .healthInsurance, .dentalInsurance, .visionInsurance, .lifeInsurance, .medical,
              .studentLoan, .tuition, .daycare,
              .creditCard, .personalLoan, .childSupport, .coworkingSpace:
-            return .guardian
+            return .pillar
         }
     }
 
@@ -617,7 +654,8 @@ enum SwapBillCategory: String, Codable, CaseIterable, Identifiable {
 
     // MARK: - Category Lists by Tier
 
-    static var streamerCategories: [SwapBillCategory] {
+    /// Neighbor tier categories (up to $25)
+    static var neighborCategories: [SwapBillCategory] {
         [.netflix, .spotify, .disneyPlus, .hulu, .hboMax, .primeVideo, .peacock,
          .paramountPlus, .appleTvPlus, .youtubeMusic, .appleMusic, .tidal,
          .xboxGamePass, .playstationPlus, .nintendoOnline,
@@ -625,7 +663,8 @@ enum SwapBillCategory: String, Codable, CaseIterable, Identifiable {
          .mealKit, .groceryDelivery]
     }
 
-    static var utilityCategories: [SwapBillCategory] {
+    /// Contributor tier categories (up to $150)
+    static var contributorCategories: [SwapBillCategory] {
         [.electric, .naturalGas, .water, .sewer, .trash, .heatingOil, .propane,
          .internet, .cable, .landline, .phonePlan,
          .rentersInsurance, .petInsurance, .petGrooming, .petBoarding,
@@ -633,7 +672,8 @@ enum SwapBillCategory: String, Codable, CaseIterable, Identifiable {
          .selfStorage, .clubDues, .professionalMembership]
     }
 
-    static var guardianCategories: [SwapBillCategory] {
+    /// Pillar tier categories (up to $500)
+    static var pillarCategories: [SwapBillCategory] {
         [.carInsurance, .carPayment, .transitPass,
          .rent, .mortgage, .hoaFees, .homeInsurance,
          .healthInsurance, .dentalInsurance, .visionInsurance, .lifeInsurance, .medical,
@@ -641,17 +681,22 @@ enum SwapBillCategory: String, Codable, CaseIterable, Identifiable {
          .creditCard, .personalLoan, .childSupport, .coworkingSpace]
     }
 
-    static func categories(for tier: TrustTier) -> [SwapBillCategory] {
+    // Legacy compatibility aliases
+    static var streamerCategories: [SwapBillCategory] { neighborCategories }
+    static var utilityCategories: [SwapBillCategory] { contributorCategories }
+    static var guardianCategories: [SwapBillCategory] { pillarCategories }
+
+    static func categories(for tier: ReputationTier) -> [SwapBillCategory] {
         switch tier {
-        case .streamer: return streamerCategories
-        case .utility: return utilityCategories
-        case .guardian: return guardianCategories
+        case .neighbor: return neighborCategories
+        case .contributor: return contributorCategories
+        case .pillar: return pillarCategories
         }
     }
 
-    static func availableCategories(upToTier tier: TrustTier) -> [SwapBillCategory] {
+    static func availableCategories(upToTier tier: ReputationTier) -> [SwapBillCategory] {
         var categories: [SwapBillCategory] = []
-        for t in TrustTier.allCases where t.rawValue <= tier.rawValue {
+        for t in ReputationTier.allCases where t.rawValue <= tier.rawValue {
             categories.append(contentsOf: Self.categories(for: t))
         }
         return categories

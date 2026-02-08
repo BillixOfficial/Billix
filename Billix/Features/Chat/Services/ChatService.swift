@@ -247,21 +247,43 @@ class ChatService: ObservableObject {
             return conversation
         }
 
-        // Create new conversation
+        // Create new conversation - handle race condition where partner might create it simultaneously
         let newConvo = NewConversationRequest(
             participant1Id: userId,
             participant2Id: otherUserId
         )
 
-        let created: Conversation = try await supabase
-            .from("conversations")
-            .insert(newConvo)
-            .select()
-            .single()
-            .execute()
-            .value
+        do {
+            let created: Conversation = try await supabase
+                .from("conversations")
+                .insert(newConvo)
+                .select()
+                .single()
+                .execute()
+                .value
 
-        return created
+            return created
+        } catch {
+            // If we get a duplicate key error, the conversation was created by the other user
+            // between our check and insert. Fetch it instead.
+            let errorString = String(describing: error)
+            if errorString.contains("unique") || errorString.contains("duplicate") || errorString.contains("23505") {
+                // Retry fetching the existing conversation
+                let retryExisting: [Conversation] = try await supabase
+                    .from("conversations")
+                    .select()
+                    .or("and(participant_1_id.eq.\(userId.uuidString),participant_2_id.eq.\(otherUserId.uuidString)),and(participant_1_id.eq.\(otherUserId.uuidString),participant_2_id.eq.\(userId.uuidString))")
+                    .limit(1)
+                    .execute()
+                    .value
+
+                if let conversation = retryExisting.first {
+                    return conversation
+                }
+            }
+            // Re-throw if it's a different error or we still can't find the conversation
+            throw error
+        }
     }
 
     /// Fetch participant profile

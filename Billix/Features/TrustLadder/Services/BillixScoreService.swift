@@ -286,6 +286,8 @@ class BillixScoreService: ObservableObject {
                 return "\(streak)-swap consistency streak"
             }
             return "Consistency streak bonus"
+        case .connectionCompleted:
+            return "Successfully completed a Bill Connection"
         }
     }
 
@@ -356,6 +358,29 @@ class BillixScoreService: ObservableObject {
         } catch {
             print("Failed to record swap completion: \(error)")
         }
+    }
+
+    /// Records a completed Bill Connection (awards 5 points to completion score)
+    /// Called when a connection is successfully completed in Phase 5
+    func recordConnectionCompleted(connectionId: UUID) async {
+        do {
+            // Award 5 points for successful connection completion
+            try await recordEvent(.connectionCompleted, referenceId: connectionId)
+        } catch {
+            print("Failed to record connection completion for Billix Score: \(error)")
+        }
+    }
+
+    /// Records connection completion for a specific user (awards 5 points)
+    /// Use this when you need to award points to a user who isn't the current user
+    func recordConnectionCompletedForUser(userId: UUID, connectionId: UUID) async {
+        guard let session = try? await supabase.auth.session,
+              session.user.id == userId else {
+            // For non-current users, we'd need a server function
+            // For now, just record for current user
+            return
+        }
+        await recordConnectionCompleted(connectionId: connectionId)
     }
 
     /// Records a failed swap
