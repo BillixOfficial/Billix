@@ -450,27 +450,46 @@ struct CommunityPostCard: View {
 
     // MARK: - Engagement Stats Bar
 
+    /// Get the distinct reaction types to display as overlapping bubbles
+    private var displayReactionTypes: [PostReaction] {
+        var reactions: [PostReaction] = []
+
+        // Build from actual reactionCounts (sorted by count descending)
+        let sorted = post.reactionCounts
+            .sorted { $0.value > $1.value }
+
+        for (key, _) in sorted {
+            if let reaction = PostReaction.fromString(key) {
+                reactions.append(reaction)
+            }
+        }
+
+        // Include user's selected reaction if not already present
+        if let selected = selectedReaction, !reactions.contains(selected) {
+            reactions.insert(selected, at: 0)
+        }
+
+        // Fallback: if reactionCounts is empty but there are likes, show heart
+        if reactions.isEmpty && post.likeCount > 0 {
+            reactions.append(.heart)
+        }
+
+        // Show up to 3 distinct reaction types
+        return Array(reactions.prefix(3))
+    }
+
     private var engagementStatsBar: some View {
         HStack(spacing: 0) {
-            // Reaction indicators - show user's reaction if they have one, otherwise default
-            if post.likeCount > 0 || selectedReaction != nil {
+            let totalCount = max(post.likeCount, selectedReaction != nil ? 1 : 0)
+
+            if totalCount > 0 {
                 HStack(spacing: -4) {
-                    // Show user's selected reaction first (if any), otherwise show heart
-                    if let reaction = selectedReaction {
+                    ForEach(displayReactionTypes, id: \.self) { reaction in
                         reactionBubble(icon: reaction.rawValue, color: reaction.color)
-                    } else if post.likeCount > 0 {
-                        reactionBubble(icon: "heart.fill", color: Color(hex: "#EF4444"))
-                    }
-                    // Show additional reaction types for popular posts
-                    if post.likeCount > 5 && selectedReaction != .thumbsUp {
-                        reactionBubble(icon: "hand.thumbsup.fill", color: Color.billixDarkTeal)
-                    }
-                    if post.likeCount > 20 && selectedReaction != .lightbulb {
-                        reactionBubble(icon: "lightbulb.fill", color: Color.billixGoldenAmber)
                     }
                 }
 
-                Text("\(max(post.likeCount, selectedReaction != nil ? 1 : 0))")
+                Text("\(totalCount)")
                     .font(.system(size: 13))
                     .foregroundColor(metadataGrey)
                     .padding(.leading, 6)

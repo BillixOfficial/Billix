@@ -15,6 +15,7 @@ struct AnalysisResultsTabbedView: View {
     let analysis: BillAnalysis
     let onComplete: () -> Void
     var showDoneButton: Bool = true
+    var billId: UUID? = nil  // For chat session persistence
 
     // Keep enum for embedded version compatibility
     enum AnalysisTabType: String, CaseIterable {
@@ -120,11 +121,11 @@ struct AnalysisResultsTabbedView: View {
                     if showScrollIndicator && !detailsExpanded {
                         VStack(spacing: 2) {
                             Image(systemName: "chevron.compact.down")
-                                .font(.system(size: 20, weight: .medium))
+                                .font(.system(size: 22, weight: .semibold))
                             Text("Scroll for more")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.system(size: 11, weight: .semibold))
                         }
-                        .foregroundColor(.white.opacity(0.45))
+                        .foregroundColor(.white.opacity(0.85))
                         .padding(.bottom, 8)
                         .allowsHitTesting(false)
                         .transition(.opacity)
@@ -142,7 +143,7 @@ struct AnalysisResultsTabbedView: View {
         }
         .toolbarColorScheme(.dark, for: .navigationBar)
         .sheet(isPresented: $showAskBillix) {
-            AskBillixChatView(analysis: analysis)
+            AskBillixChatView(analysis: analysis, billId: billId)
         }
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -170,7 +171,7 @@ struct AnalysisResultsTabbedView: View {
 
             // Inner glass ring
             Circle()
-                .fill(Color.white.opacity(0.18))
+                .fill(Color.black.opacity(0.2))
                 .frame(width: 100, height: 100)
 
             // Glow
@@ -247,19 +248,26 @@ struct AnalysisResultsTabbedView: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: appeared)
     }
 
-    // MARK: - Stat Pills
+    // MARK: - Stat Pills (2-row layout)
 
     private var statPillsRow: some View {
-        HStack(spacing: 6) {
-            statPill(icon: "dollarsign.circle.fill", label: "$\(String(format: "%.2f", analysis.amount))", subtitle: "Your Bill")
-            statPill(icon: categoryIcon, label: analysis.provider, subtitle: analysis.category)
-            statPill(icon: "heart.fill", label: "\(calculateHealthScore())", subtitle: healthStatus, statusColor: healthScoreColor)
-            if let dueDate = analysis.dueDate {
-                let dueSub = daysUntilDue(dueDate)
-                let dueColor: Color? = dueSub == "Overdue" ? .red : (dueSub == "Today" || dueSub == "Tomorrow" ? .orange : nil)
-                statPill(icon: "calendar", label: formatDateShort(dueDate), subtitle: dueSub, statusColor: dueColor)
-            } else {
-                statPill(icon: "calendar", label: formatDateShort(analysis.billDate), subtitle: "Bill Date")
+        VStack(spacing: 6) {
+            // Top row: Your Bill + Provider (larger, primary info)
+            HStack(spacing: 6) {
+                statPillLarge(icon: "dollarsign.circle.fill", label: "$\(String(format: "%.2f", analysis.amount))", subtitle: "Your Bill")
+                statPillLarge(icon: categoryIcon, label: analysis.provider, subtitle: analysis.category)
+            }
+
+            // Bottom row: Health + Due Date (smaller, secondary info)
+            HStack(spacing: 6) {
+                statPillSmall(icon: "heart.fill", label: "Bill Health", subtitle: "\(calculateHealthScore()) • \(healthStatus) vs avg", statusColor: healthScoreColor)
+                if let dueDate = analysis.dueDate {
+                    let dueSub = daysUntilDue(dueDate)
+                    let dueColor: Color? = dueSub == "Overdue" ? .red : (dueSub == "Today" || dueSub == "Tomorrow" ? .orange : nil)
+                    statPillSmall(icon: "calendar", label: formatDateShort(dueDate), subtitle: dueSub, statusColor: dueColor)
+                } else {
+                    statPillSmall(icon: "calendar", label: formatDateShort(analysis.billDate), subtitle: "Bill Date")
+                }
             }
         }
         .padding(.top, 6)
@@ -267,37 +275,70 @@ struct AnalysisResultsTabbedView: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
     }
 
-    private func statPill(icon: String, label: String, subtitle: String, statusColor: Color? = nil) -> some View {
-        VStack(spacing: 3) {
+    // Large pill for primary info (Your Bill, Provider)
+    private func statPillLarge(icon: String, label: String, subtitle: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.white.opacity(0.8))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+
+                Text(subtitle)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white.opacity(0.6))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(minWidth: 0, maxWidth: .infinity)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.black.opacity(0.2))
+        )
+    }
+
+    // Small pill for secondary info (Health, Due Date)
+    private func statPillSmall(icon: String, label: String, subtitle: String, statusColor: Color? = nil) -> some View {
+        HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.white.opacity(0.7))
 
-            Text(label)
-                .font(.system(size: 13, weight: .bold))
-                .foregroundColor(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(label)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
 
-            HStack(spacing: 3) {
-                if let dotColor = statusColor {
-                    Circle()
-                        .fill(dotColor)
-                        .frame(width: 5, height: 5)
+                HStack(spacing: 3) {
+                    if let dotColor = statusColor {
+                        Circle()
+                            .fill(dotColor)
+                            .frame(width: 5, height: 5)
+                    }
+                    Text(subtitle)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(statusColor ?? .white.opacity(0.55))
                 }
-                Text(subtitle)
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(statusColor ?? .white.opacity(0.55))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
             }
+
+            Spacer(minLength: 0)
         }
         .frame(minWidth: 0, maxWidth: .infinity)
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.white.opacity(0.18))
+                .fill(Color.black.opacity(0.15))
         )
     }
 
@@ -397,7 +438,7 @@ struct AnalysisResultsTabbedView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.18))
+                .fill(Color.black.opacity(0.2))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16)
@@ -440,10 +481,11 @@ struct AnalysisResultsTabbedView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.18))
+                .fill(Color.black.opacity(0.2))
         )
     }
 
@@ -523,7 +565,7 @@ struct AnalysisResultsTabbedView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.18))
+                .fill(Color.black.opacity(0.2))
         )
     }
 
@@ -564,7 +606,7 @@ struct AnalysisResultsTabbedView: View {
                         .foregroundColor(.white.opacity(0.6))
                         .padding(.leading, 8)
 
-                    if let savings = flag.potentialSavings {
+                    if let savings = flag.potentialSavings, savings > 0 {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.down.circle.fill")
                                 .font(.system(size: 11))
@@ -596,7 +638,7 @@ struct AnalysisResultsTabbedView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.18))
+                .fill(Color.black.opacity(0.2))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16)
@@ -619,7 +661,8 @@ struct AnalysisResultsTabbedView: View {
 
             // Control Analysis
             if let control = analysis.controllableCosts {
-                HStack(spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    // YOU CONTROL card
                     VStack(alignment: .leading, spacing: 4) {
                         Text("YOU CONTROL")
                             .font(.system(size: 11, weight: .bold))
@@ -631,14 +674,34 @@ struct AnalysisResultsTabbedView: View {
                         Text("\(Int(control.controllablePercentage))%")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.white.opacity(0.65))
+
+                        // Items list
+                        if !control.variableCosts.items.isEmpty {
+                            Divider()
+                                .background(Color.white.opacity(0.3))
+                                .padding(.vertical, 4)
+                            ForEach(control.variableCosts.items.prefix(3), id: \.self) { item in
+                                HStack(alignment: .top, spacing: 5) {
+                                    Text("•")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.9))
+                                    Text(item)
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .lineLimit(2)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(14)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
                             .fill(Color.billixMoneyGreen.opacity(0.25))
                     )
 
+                    // FIXED card
                     VStack(alignment: .leading, spacing: 4) {
                         Text("FIXED")
                             .font(.system(size: 11, weight: .bold))
@@ -650,8 +713,27 @@ struct AnalysisResultsTabbedView: View {
                         Text("\(100 - Int(control.controllablePercentage))%")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.white.opacity(0.65))
+
+                        // Items list
+                        if !control.fixedCosts.items.isEmpty {
+                            Divider()
+                                .background(Color.white.opacity(0.3))
+                                .padding(.vertical, 4)
+                            ForEach(control.fixedCosts.items.prefix(3), id: \.self) { item in
+                                HStack(alignment: .top, spacing: 5) {
+                                    Text("•")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.9))
+                                    Text(item)
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .lineLimit(2)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(14)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
@@ -691,7 +773,7 @@ struct AnalysisResultsTabbedView: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.18))
+                .fill(Color.black.opacity(0.2))
         )
     }
 
@@ -921,7 +1003,7 @@ struct AnalysisResultsTabbedView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.18))
+                .fill(Color.black.opacity(0.2))
         )
     }
 
@@ -2263,7 +2345,8 @@ struct AnalysisResultsTabbedEmbeddedView: View {
             controllableCosts: nil,
             savingsOpportunities: nil,
             jargonGlossary: nil,
-            assistancePrograms: nil
+            assistancePrograms: nil,
+            rawExtractedText: nil
         ),
         onComplete: {}
     )

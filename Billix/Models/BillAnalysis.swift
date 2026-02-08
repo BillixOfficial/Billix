@@ -26,6 +26,9 @@ struct BillAnalysis: Codable {
     let jargonGlossary: [GlossaryTerm]?
     let assistancePrograms: [AssistanceProgram]?
 
+    // Raw extracted text for AI chat context (from upload response)
+    let rawExtractedText: String?
+
     // MARK: - Coding Keys (Map Swift names to backend field names)
     private enum CodingKeys: String, CodingKey {
         case provider, amount, billDate, dueDate, accountNumber
@@ -37,6 +40,7 @@ struct BillAnalysis: Codable {
         case savingsOpportunities = "actionItems"
         case jargonGlossary = "glossary"
         case assistancePrograms
+        case rawExtractedText
     }
 
     // Legacy compatibility - computed properties
@@ -62,6 +66,34 @@ struct BillAnalysis: Codable {
         return amount > 0
             && !provider.trimmingCharacters(in: .whitespaces).isEmpty
             && !lineItems.isEmpty
+    }
+
+    // MARK: - Copying with Raw Text
+
+    /// Creates a copy of this analysis with rawExtractedText set
+    /// Used when merging the upload response (analysis + rawExtractedText at top level)
+    func withRawExtractedText(_ text: String?) -> BillAnalysis {
+        BillAnalysis(
+            provider: provider,
+            amount: amount,
+            billDate: billDate,
+            dueDate: dueDate,
+            accountNumber: accountNumber,
+            category: category,
+            zipCode: zipCode,
+            keyFacts: keyFacts,
+            lineItems: lineItems,
+            costBreakdown: costBreakdown,
+            insights: insights,
+            marketplaceComparison: marketplaceComparison,
+            plainEnglishSummary: plainEnglishSummary,
+            redFlags: redFlags,
+            controllableCosts: controllableCosts,
+            savingsOpportunities: savingsOpportunities,
+            jargonGlossary: jargonGlossary,
+            assistancePrograms: assistancePrograms,
+            rawExtractedText: text
+        )
     }
 
     // MARK: - Nested Types

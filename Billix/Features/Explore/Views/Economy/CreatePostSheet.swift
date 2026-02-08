@@ -44,38 +44,31 @@ struct CreatePostSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Content Area
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Text Input
-                        textInputSection
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Text Input
+                    textInputSection
 
-                        // Topic Selection
-                        topicSelectionSection
+                    // Topic Selection
+                    topicSelectionSection
 
-                        // Group Selection (if multiple groups available)
-                        if availableGroups.count > 1 {
-                            groupSelectionSection
-                        }
-
-                        // Anonymous Toggle
-                        anonymousToggleSection
+                    // Group Selection (if multiple groups available)
+                    if availableGroups.count > 1 {
+                        groupSelectionSection
                     }
-                    .padding(20)
-                }
 
-                Spacer()
+                    // Anonymous Toggle
+                    anonymousToggleSection
 
-                // Character Count
-                HStack {
-                    Spacer()
-                    Text("\(characterCount)/\(maxCharacters)")
-                        .font(.system(size: 13))
-                        .foregroundColor(characterCount > maxCharacters ? .red : Color(hex: "#9CA3AF"))
+                    // Character Count
+                    HStack {
+                        Spacer()
+                        Text("\(characterCount)/\(maxCharacters)")
+                            .font(.system(size: 13))
+                            .foregroundColor(characterCount > maxCharacters ? .red : Color(hex: "#9CA3AF"))
+                    }
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 8)
+                .padding(20)
             }
             .background(Color(hex: "#F5F5F7"))
             .navigationTitle("Create Post")
@@ -117,7 +110,7 @@ struct CreatePostSheet: View {
 
             TextEditor(text: $postContent)
                 .font(.system(size: 16))
-                .frame(minHeight: 120)
+                .frame(minHeight: 80)
                 .padding(12)
                 .background(Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12))

@@ -432,8 +432,9 @@ struct LegalDisclaimerView: View {
             )
         ],
         jargonGlossary: nil,
-        assistancePrograms: mockPrograms
+        assistancePrograms: mockPrograms,
+        rawExtractedText: nil
     )
 
-    return AnalysisSaveMoneyTab(analysis: mockAnalysis)
+    AnalysisSaveMoneyTab(analysis: mockAnalysis)
 }

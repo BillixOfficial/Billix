@@ -41,8 +41,8 @@ struct ScanUploadFlowView: View {
                 case .uploading, .analyzing:
                     ScanUploadProgressView(viewModel: viewModel)
 
-                case .success(let analysis):
-                    ScanUploadResultView(analysis: analysis, onComplete: {
+                case .success(let analysis, let billId):
+                    ScanUploadResultView(analysis: analysis, billId: billId, onComplete: {
                         onComplete()
                         dismiss()
                     })

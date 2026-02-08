@@ -59,11 +59,13 @@ struct AuthorProfile: Codable {
     let userId: UUID
     let displayName: String?
     let handle: String?
+    let avatarUrl: String?
 
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
         case displayName = "display_name"
         case handle
+        case avatarUrl = "avatar_url"
     }
 }
 
@@ -195,7 +197,7 @@ enum CommunityTopicType: String, Codable, CaseIterable {
 // MARK: - Conversion Extensions
 
 extension CommunityPostDB {
-    func toUIModel(isLiked: Bool = false, isSaved: Bool = false, userReaction: String? = nil, currentUserId: UUID? = nil) -> CommunityPost {
+    func toUIModel(isLiked: Bool = false, isSaved: Bool = false, userReaction: String? = nil, reactionCounts: [String: Int] = [:], currentUserId: UUID? = nil) -> CommunityPost {
         let isOwnPost = currentUserId != nil && authorId == currentUserId
 
         // For anonymous posts: hide author info from others, but show "(You)" to the author
@@ -215,7 +217,7 @@ extension CommunityPostDB {
             authorName: displayAuthorName,
             authorUsername: displayAuthorUsername,
             authorRole: isAnonymous ? "Member" : "Member", // Could be computed from user tier
-            authorAvatar: nil, // Profile avatars not yet implemented
+            authorAvatar: isAnonymous ? nil : author?.avatarUrl,
             content: content,
             topic: CommunityTopicType(rawValue: topic)?.displayName ?? topic.capitalized,
             groupId: groupId,
@@ -228,6 +230,7 @@ extension CommunityPostDB {
             topComment: nil, // Loaded separately if needed
             isSaved: isSaved,
             userReaction: userReaction,
+            reactionCounts: reactionCounts,
             isOwnPost: isOwnPost,
             isAnonymous: isAnonymous
         )
@@ -279,6 +282,18 @@ extension CommunityGroupDB {
             color: color,
             isJoined: isJoined
         )
+    }
+}
+
+struct ReactionCountRow: Codable {
+    let postId: UUID
+    let reaction: String
+    let count: Int
+
+    enum CodingKeys: String, CodingKey {
+        case postId = "post_id"
+        case reaction
+        case count
     }
 }
 
@@ -357,7 +372,7 @@ class CommunityService: CommunityServiceProtocol {
         var posts: [CommunityPostDB] = []
 
         // Select with author profile and group info
-        let selectQuery = "*, profiles!community_posts_author_id_fkey(user_id, display_name, handle), community_groups(id, name)"
+        let selectQuery = "*, profiles!community_posts_author_id_fkey(user_id, display_name, handle, avatar_url), community_groups(id, name)"
 
         switch filter {
         case .recent:
@@ -405,11 +420,15 @@ class CommunityService: CommunityServiceProtocol {
             }
         }
 
+        // Fetch reaction counts for all posts
+        let reactionCountsMap = try await fetchReactionCounts(for: posts.map { $0.id })
+
         return posts.map { post in
             post.toUIModel(
                 isLiked: userReactions[post.id] != nil,
                 isSaved: savedPostIds.contains(post.id),
                 userReaction: userReactions[post.id],
+                reactionCounts: reactionCountsMap[post.id] ?? [:],
                 currentUserId: userId
             )
         }
@@ -434,7 +453,7 @@ class CommunityService: CommunityServiceProtocol {
         }
 
         do {
-            let selectQuery = "*, profiles!community_posts_author_id_fkey(user_id, display_name, handle), community_groups(id, name)"
+            let selectQuery = "*, profiles!community_posts_author_id_fkey(user_id, display_name, handle, avatar_url), community_groups(id, name)"
 
             let post: CommunityPostDB = try await supabase
                 .from("community_posts")
@@ -474,7 +493,7 @@ class CommunityService: CommunityServiceProtocol {
         let userReactions = try await fetchUserReactions()
         let savedPostIds = try await getUserSavedPostIds()
 
-        let selectQuery = "*, profiles!community_posts_author_id_fkey(user_id, display_name, handle), community_groups(id, name)"
+        let selectQuery = "*, profiles!community_posts_author_id_fkey(user_id, display_name, handle, avatar_url), community_groups(id, name)"
 
         let posts: [CommunityPostDB] = try await supabase
             .from("community_posts")
@@ -486,11 +505,16 @@ class CommunityService: CommunityServiceProtocol {
             .value
 
         let userId = session.user.id
+
+        // Fetch reaction counts for group posts
+        let reactionCountsMap = try await fetchReactionCounts(for: posts.map { $0.id })
+
         return posts.map { post in
             post.toUIModel(
                 isLiked: userReactions[post.id] != nil,
                 isSaved: savedPostIds.contains(post.id),
                 userReaction: userReactions[post.id],
+                reactionCounts: reactionCountsMap[post.id] ?? [:],
                 currentUserId: userId
             )
         }
@@ -573,6 +597,29 @@ class CommunityService: CommunityServiceProtocol {
     private func fetchUserReactionPostIds() async throws -> Set<UUID> {
         let reactions = try await fetchUserReactions()
         return Set(reactions.keys)
+    }
+
+    /// Fetch aggregated reaction counts for a set of posts
+    private func fetchReactionCounts(for postIds: [UUID]) async throws -> [UUID: [String: Int]] {
+        guard !postIds.isEmpty else { return [:] }
+
+        let postIdStrings = postIds.map { $0.uuidString }
+
+        do {
+            let rows: [ReactionCountRow] = try await supabase
+                .rpc("get_reaction_counts", params: ["post_ids": postIdStrings])
+                .execute()
+                .value
+
+            var result: [UUID: [String: Int]] = [:]
+            for row in rows {
+                result[row.postId, default: [:]][row.reaction] = row.count
+            }
+            return result
+        } catch {
+            print("[CommunityService] fetchReactionCounts - Error: \(error)")
+            return [:]
+        }
     }
 
     /// Fetch user reactions as a dictionary mapping postId -> reaction type
@@ -777,7 +824,7 @@ class CommunityService: CommunityServiceProtocol {
     func fetchComments(for postId: UUID) async throws -> [CommunityCommentDB] {
         print("[CommunityService] fetchComments - postId: \(postId)")
 
-        let selectQuery = "*, profiles!community_comments_author_id_fkey(user_id, display_name, handle)"
+        let selectQuery = "*, profiles!community_comments_author_id_fkey(user_id, display_name, handle, avatar_url)"
 
         let comments: [CommunityCommentDB] = try await supabase
             .from("community_comments")
@@ -811,7 +858,7 @@ class CommunityService: CommunityServiceProtocol {
             insertData["parent_comment_id"] = parentId.uuidString
         }
 
-        let selectQuery = "*, profiles!community_comments_author_id_fkey(user_id, display_name, handle)"
+        let selectQuery = "*, profiles!community_comments_author_id_fkey(user_id, display_name, handle, avatar_url)"
 
         let comment: CommunityCommentDB = try await supabase
             .from("community_comments")

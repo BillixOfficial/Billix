@@ -208,11 +208,25 @@ class CommunityFeedViewModel: ObservableObject {
         let wasLiked = post.isLiked
         let previousLikeCount = post.likeCount
         let previousReaction = post.userReaction
+        let previousReactionCounts = post.reactionCounts
+
+        // Compute updated reactionCounts
+        var newReactionCounts = post.reactionCounts
+        // Decrement old reaction type if changing
+        if let oldReaction = previousReaction, oldReaction != reaction {
+            newReactionCounts[oldReaction] = max(0, (newReactionCounts[oldReaction] ?? 0) - 1)
+            if newReactionCounts[oldReaction] == 0 { newReactionCounts.removeValue(forKey: oldReaction) }
+        }
+        // Increment new reaction type (only if not already reacted with this type)
+        if previousReaction != reaction {
+            newReactionCounts[reaction] = (newReactionCounts[reaction] ?? 0) + 1
+        }
 
         // Optimistic update in main posts array
         if let index = posts.firstIndex(where: { $0.id == post.id }) {
             posts[index].isLiked = true
             posts[index].userReaction = reaction
+            posts[index].reactionCounts = newReactionCounts
             if !wasLiked {
                 posts[index].likeCount = previousLikeCount + 1
             }
@@ -223,6 +237,7 @@ class CommunityFeedViewModel: ObservableObject {
             if let index = groupPostList.firstIndex(where: { $0.id == post.id }) {
                 groupPostList[index].isLiked = true
                 groupPostList[index].userReaction = reaction
+                groupPostList[index].reactionCounts = newReactionCounts
                 if !wasLiked {
                     groupPostList[index].likeCount = previousLikeCount + 1
                 }
@@ -244,6 +259,7 @@ class CommunityFeedViewModel: ObservableObject {
                     posts[idx].isLiked = wasLiked
                     posts[idx].userReaction = previousReaction
                     posts[idx].likeCount = previousLikeCount
+                    posts[idx].reactionCounts = previousReactionCounts
                 }
                 // Revert in groupPosts
                 for (groupId, var groupPostList) in groupPosts {
@@ -251,6 +267,7 @@ class CommunityFeedViewModel: ObservableObject {
                         groupPostList[idx].isLiked = wasLiked
                         groupPostList[idx].userReaction = previousReaction
                         groupPostList[idx].likeCount = previousLikeCount
+                        groupPostList[idx].reactionCounts = previousReactionCounts
                         groupPosts[groupId] = groupPostList
                     }
                 }
@@ -264,14 +281,28 @@ class CommunityFeedViewModel: ObservableObject {
         let wasLiked = post.isLiked
         let previousLikeCount = post.likeCount
         let previousReaction = post.userReaction
+        let previousReactionCounts = post.reactionCounts
         let newIsLiked = !wasLiked
         let newLikeCount = wasLiked ? previousLikeCount - 1 : previousLikeCount + 1
+
+        // Compute updated reactionCounts
+        var newReactionCounts = post.reactionCounts
+        if wasLiked {
+            // Removing reaction - decrement the old reaction type
+            let oldType = previousReaction ?? "heart"
+            newReactionCounts[oldType] = max(0, (newReactionCounts[oldType] ?? 0) - 1)
+            if newReactionCounts[oldType] == 0 { newReactionCounts.removeValue(forKey: oldType) }
+        } else {
+            // Adding heart reaction
+            newReactionCounts["heart"] = (newReactionCounts["heart"] ?? 0) + 1
+        }
 
         // Optimistic update in main posts array
         if let index = posts.firstIndex(where: { $0.id == post.id }) {
             posts[index].isLiked = newIsLiked
             posts[index].likeCount = newLikeCount
             posts[index].userReaction = newIsLiked ? "heart" : nil
+            posts[index].reactionCounts = newReactionCounts
         }
 
         // Also update in groupPosts to keep views in sync
@@ -280,6 +311,7 @@ class CommunityFeedViewModel: ObservableObject {
                 groupPostList[index].isLiked = newIsLiked
                 groupPostList[index].likeCount = newLikeCount
                 groupPostList[index].userReaction = newIsLiked ? "heart" : nil
+                groupPostList[index].reactionCounts = newReactionCounts
                 groupPosts[groupId] = groupPostList
             }
         }
@@ -298,6 +330,7 @@ class CommunityFeedViewModel: ObservableObject {
                     posts[idx].isLiked = wasLiked
                     posts[idx].likeCount = previousLikeCount
                     posts[idx].userReaction = previousReaction
+                    posts[idx].reactionCounts = previousReactionCounts
                 }
                 // Revert in groupPosts
                 for (groupId, var groupPostList) in groupPosts {
@@ -305,6 +338,7 @@ class CommunityFeedViewModel: ObservableObject {
                         groupPostList[idx].isLiked = wasLiked
                         groupPostList[idx].likeCount = previousLikeCount
                         groupPostList[idx].userReaction = previousReaction
+                        groupPostList[idx].reactionCounts = previousReactionCounts
                         groupPosts[groupId] = groupPostList
                     }
                 }

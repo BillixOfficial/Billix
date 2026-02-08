@@ -231,7 +231,8 @@ struct MockUploadDataService {
             controllableCosts: nil,
             savingsOpportunities: nil,
             jargonGlossary: nil,
-            assistancePrograms: nil
+            assistancePrograms: nil,
+            rawExtractedText: nil
         )
     }
 
