@@ -13,8 +13,8 @@ import Supabase
 
 enum TokenConstants {
     static let freeTokensPerMonth = 2
-    static let tokenPackAmount = 3
-    static let tokenPackProductID = "com.billix.token_pack_3"
+    static let tokenPackAmount = 2
+    static let tokenPackProductID = "com.billix.token_fee"
 }
 
 // MARK: - Token Service
@@ -424,13 +424,8 @@ class TokenService: ObservableObject {
         }
 
         // Find the token pack product
-        guard let product = storeKitService.products.first(where: { $0.id == TokenConstants.tokenPackProductID }) else {
-            // Fallback to handshake fee product during transition
-            guard let fallbackProduct = storeKitService.handshakeFeeProduct else {
-                throw TokenError.productNotFound
-            }
-
-            return try await purchaseWithProduct(fallbackProduct, userId: userId)
+        guard let product = storeKitService.tokenPackProduct else {
+            throw TokenError.productNotFound
         }
 
         return try await purchaseWithProduct(product, userId: userId)
@@ -501,6 +496,17 @@ class TokenService: ObservableObject {
         )
 
         tokenBalance = newBalance
+    }
+
+    /// Public method to add purchased tokens (called from StoreKitService)
+    func addTokens(_ amount: Int) async {
+        guard let userId = currentUserId else { return }
+
+        do {
+            try await addTokens(amount: amount, for: userId)
+        } catch {
+            print("Failed to add purchased tokens: \(error)")
+        }
     }
 
     // MARK: - Monthly Reset

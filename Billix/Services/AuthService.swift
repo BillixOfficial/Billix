@@ -26,6 +26,7 @@ class AuthService: ObservableObject {
     @Published var awaitingEmailVerification = false
     @Published var pendingVerificationEmail: String?
     @Published var isGuestMode = false
+    @Published var isResettingPassword = false
 
     // Temporary password storage for email verification polling (cleared after verification)
     private var pendingVerificationPassword: String?
