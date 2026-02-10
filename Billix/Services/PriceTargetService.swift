@@ -244,14 +244,14 @@ struct PriceOption: Identifiable {
 
 enum PriceOptionType {
     case betterRate
-    case billSwap
+    case billConnection
     case negotiation
     case relief
 
     var icon: String {
         switch self {
         case .betterRate: return "tag.fill"
-        case .billSwap: return "arrow.left.arrow.right.circle.fill"
+        case .billConnection: return "person.2.fill"
         case .negotiation: return "text.bubble.fill"
         case .relief: return "heart.circle.fill"
         }
@@ -260,7 +260,7 @@ enum PriceOptionType {
     var color: Color {
         switch self {
         case .betterRate: return Color(hex: "#5B8A6B")
-        case .billSwap: return Color(hex: "#9B7EB8")
+        case .billConnection: return Color.billixDarkTeal
         case .negotiation: return Color(hex: "#5BA4D4")
         case .relief: return Color(hex: "#E07A6B")
         }
@@ -269,7 +269,7 @@ enum PriceOptionType {
 
 enum PriceOptionAction {
     case viewRates
-    case openBillSwap
+    case openBillConnection
     case showNegotiationScript
     case openRelief
 }
@@ -395,14 +395,14 @@ class PriceTargetService: ObservableObject {
             action: .viewRates
         ))
 
-        // BillSwap option
-        let swapCount = Int.random(in: 2...6)
+        // Bill Connection option
+        let connectionCount = Int.random(in: 2...6)
         options.append(PriceOption(
-            type: .billSwap,
-            title: "\(swapCount) BillSwap matches available",
-            subtitle: "Split costs with others in your area",
+            type: .billConnection,
+            title: "\(connectionCount) Bill Connection matches available",
+            subtitle: "Get help from your community",
             potentialSavings: gap > 0 ? min(gap * 0.3, 25) : nil,
-            action: .openBillSwap
+            action: .openBillConnection
         ))
 
         // Negotiation option

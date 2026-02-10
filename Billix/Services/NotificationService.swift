@@ -3,7 +3,7 @@
 //  Billix
 //
 //  Service for managing push notifications and in-app notifications
-//  for BillSwap events
+//  for Bill Connection events
 //
 
 import Foundation
@@ -25,6 +25,15 @@ enum AppNotificationType: String, CaseIterable {
     case reminder = "reminder"
     case expiringSoon = "expiring_soon"
 
+    // Bill Connection notifications
+    case supporterFound = "supporter_found"
+    case termsProposed = "terms_proposed"
+    case termsAccepted = "terms_accepted"
+    case termsRejected = "terms_rejected"
+    case proofSubmitted = "proof_submitted"
+    case connectionComplete = "connection_complete"
+    case tierAdvancement = "tier_advancement"
+
     // Other notification types (future extensibility)
     case billDueSoon = "bill_due_soon"
     case savingsFound = "savings_found"
@@ -40,6 +49,13 @@ enum AppNotificationType: String, CaseIterable {
         case .swapComplete: return "Swap Complete!"
         case .reminder: return "Swap Waiting"
         case .expiringSoon: return "Match Expiring Soon"
+        case .supporterFound: return "Supporter Found!"
+        case .termsProposed: return "Terms Proposed"
+        case .termsAccepted: return "Terms Accepted!"
+        case .termsRejected: return "Terms Declined"
+        case .proofSubmitted: return "Proof Submitted"
+        case .connectionComplete: return "Connection Complete!"
+        case .tierAdvancement: return "Tier Upgrade!"
         case .billDueSoon: return "Bill Due Soon"
         case .savingsFound: return "Savings Found"
         case .achievementUnlocked: return "Achievement Unlocked!"
@@ -56,6 +72,13 @@ enum AppNotificationType: String, CaseIterable {
         case .swapComplete: return "checkmark.seal.fill"
         case .reminder: return "clock.fill"
         case .expiringSoon: return "exclamationmark.clock.fill"
+        case .supporterFound: return "heart.fill"
+        case .termsProposed: return "doc.text.fill"
+        case .termsAccepted: return "checkmark.circle.fill"
+        case .termsRejected: return "xmark.circle.fill"
+        case .proofSubmitted: return "camera.fill"
+        case .connectionComplete: return "star.fill"
+        case .tierAdvancement: return "trophy.fill"
         case .billDueSoon: return "bolt.fill"
         case .savingsFound: return "arrow.down.circle.fill"
         case .achievementUnlocked: return "star.fill"
@@ -72,6 +95,13 @@ enum AppNotificationType: String, CaseIterable {
         case .swapComplete: return Color(hex: "#4CAF7A")
         case .reminder: return Color(hex: "#E8A54B")
         case .expiringSoon: return Color(hex: "#E07A6B")
+        case .supporterFound: return Color(hex: "#5B8A6B")
+        case .termsProposed: return Color(hex: "#E8B54D")
+        case .termsAccepted: return Color(hex: "#5B8A6B")
+        case .termsRejected: return Color(hex: "#C45C5C")
+        case .proofSubmitted: return Color(hex: "#5BA4D4")
+        case .connectionComplete: return Color(hex: "#E8B54D")
+        case .tierAdvancement: return Color(hex: "#E8B54D")
         case .billDueSoon: return Color(hex: "#E8A54B")
         case .savingsFound: return Color(hex: "#4CAF7A")
         case .achievementUnlocked: return Color(hex: "#5BA4D4")
@@ -467,73 +497,151 @@ class NotificationService: NSObject, ObservableObject {
         )
     }
 
-    /// Notify when partner has committed to the swap
-    func notifyPartnerCommitted(swap: BillSwapTransaction, currentUserId: UUID) async {
-        let partnerId = swap.isUserA(userId: currentUserId) ? swap.userBId : swap.userAId
-        let message = "Your partner committed! Chat is now unlocked."
+    /// Notify the initiator when they start a swap (phone notification)
+    func notifySwapStarted(swapId: UUID) async {
+        let message = "Your swap has been started! Tap to view details."
 
-        // Send push to the partner
-        await triggerPushNotificationToUser(
-            userId: partnerId,
-            type: .partnerCommitted,
+        await sendLocalNotification(
+            type: .matchFound,
             message: message,
-            swapId: swap.id
+            swapId: swapId
         )
     }
 
-    /// Notify both users when both have committed
-    func notifyBothCommitted(swap: BillSwapTransaction) async {
-        let message = "Both partners committed! Chat is now unlocked."
+    // MARK: - Bill Connection Notification Triggers
 
-        // Notify User A
-        await triggerPushNotificationToUser(
-            userId: swap.userAId,
-            type: .chatUnlocked,
-            message: message,
-            swapId: swap.id
-        )
+    /// Notify initiator when a supporter is found
+    func notifySupporterFound(connectionId: UUID) async {
+        let message = "Someone wants to help with your bill! Review their offer."
 
-        // Notify User B
-        await triggerPushNotificationToUser(
-            userId: swap.userBId,
-            type: .chatUnlocked,
+        // Add to notification history
+        addNotification(type: .supporterFound, subtitle: message, swapId: connectionId)
+
+        await sendConnectionLocalNotification(
+            type: .supporterFound,
             message: message,
-            swapId: swap.id
+            connectionId: connectionId
         )
     }
 
-    /// Notify when partner has paid your bill
-    func notifyBillPaid(swap: BillSwapTransaction, paidByUserId: UUID, amount: Double) async {
-        let recipientId = paidByUserId == swap.userAId ? swap.userBId : swap.userAId
-        let message = "Your partner paid your $\(Int(amount)) bill!"
+    /// Notify initiator when terms are proposed
+    func notifyTermsProposed(connectionId: UUID) async {
+        let message = "Your supporter proposed terms. Review and accept to continue."
 
-        await triggerPushNotificationToUser(
-            userId: recipientId,
-            type: .billPaid,
+        addNotification(type: .termsProposed, subtitle: message, swapId: connectionId)
+
+        await sendConnectionLocalNotification(
+            type: .termsProposed,
             message: message,
-            swapId: swap.id
+            connectionId: connectionId
         )
     }
 
-    /// Notify both users when swap is complete
-    func notifySwapComplete(swap: BillSwapTransaction) async {
-        let message = "Swap complete! You both saved money."
+    /// Notify supporter when terms are accepted
+    func notifyTermsAccepted(connectionId: UUID) async {
+        let message = "Terms accepted! You can now make the payment."
 
-        // Notify User A
-        await triggerPushNotificationToUser(
-            userId: swap.userAId,
-            type: .swapComplete,
+        addNotification(type: .termsAccepted, subtitle: message, swapId: connectionId)
+
+        await sendConnectionLocalNotification(
+            type: .termsAccepted,
             message: message,
-            swapId: swap.id
+            connectionId: connectionId
+        )
+    }
+
+    /// Notify supporter when terms are rejected
+    func notifyTermsRejected(connectionId: UUID) async {
+        let message = "Your terms were declined. The connection has ended."
+
+        addNotification(type: .termsRejected, subtitle: message, swapId: connectionId)
+
+        await sendConnectionLocalNotification(
+            type: .termsRejected,
+            message: message,
+            connectionId: connectionId
+        )
+    }
+
+    /// Notify initiator when proof is submitted
+    func notifyProofSubmitted(connectionId: UUID) async {
+        let message = "Payment proof submitted! Please verify to complete the connection."
+
+        addNotification(type: .proofSubmitted, subtitle: message, swapId: connectionId)
+
+        await sendConnectionLocalNotification(
+            type: .proofSubmitted,
+            message: message,
+            connectionId: connectionId
+        )
+    }
+
+    /// Notify both users when connection is complete
+    func notifyConnectionComplete(connection: Connection) async {
+        let message = "Connection complete! Reputation points awarded."
+
+        // Notify initiator
+        addNotification(type: .connectionComplete, subtitle: message, swapId: connection.id)
+
+        await sendConnectionLocalNotification(
+            type: .connectionComplete,
+            message: message,
+            connectionId: connection.id
         )
 
-        // Notify User B
-        await triggerPushNotificationToUser(
-            userId: swap.userBId,
-            type: .swapComplete,
-            message: message,
-            swapId: swap.id
+        // TODO: Also notify supporter via push notification
+    }
+
+    /// Notify user of tier advancement
+    func notifyTierAdvancement(userId: UUID, newTier: ReputationTier) async {
+        let message = "Congratulations! You've advanced to \(newTier.displayName) tier."
+
+        addNotification(type: .tierAdvancement, subtitle: message, swapId: nil)
+
+        let content = UNMutableNotificationContent()
+        content.title = "Tier Upgrade!"
+        content.body = message
+        content.sound = .default
+        content.userInfo = [
+            "type": "tier_advancement",
+            "new_tier": newTier.rawValue
+        ]
+
+        let request = UNNotificationRequest(
+            identifier: "tier_advancement_\(userId.uuidString)",
+            content: content,
+            trigger: nil
         )
+
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            print("Failed to send tier advancement notification: \(error)")
+        }
+    }
+
+    /// Send a local notification for Bill Connection events
+    private func sendConnectionLocalNotification(type: AppNotificationType, message: String, connectionId: UUID) async {
+        let content = UNMutableNotificationContent()
+        content.title = type.title
+        content.body = message
+        content.sound = .default
+        content.userInfo = [
+            "type": type.rawValue,
+            "connection_id": connectionId.uuidString
+        ]
+
+        let request = UNNotificationRequest(
+            identifier: "\(type.rawValue)_\(connectionId.uuidString)",
+            content: content,
+            trigger: nil
+        )
+
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+        } catch {
+            print("Failed to send connection notification: \(error)")
+        }
     }
 
     // MARK: - Local Notifications

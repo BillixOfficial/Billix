@@ -98,13 +98,35 @@ struct UtilityCheckupZone: View {
 
 struct UtilityInsightZone: View {
     let zipCode: String
+    @ObservedObject private var weatherService = WeatherService.shared
+
+    private var weatherIcon: String {
+        guard let weather = weatherService.currentWeather else {
+            return "cloud.sun.fill"
+        }
+        // Map weather condition to SF Symbol
+        if weather.isHot {
+            return "sun.max.fill"
+        } else if weather.isCold {
+            return "snowflake"
+        } else {
+            return "cloud.sun.fill"
+        }
+    }
+
+    private var weatherTip: String {
+        if let tip = weatherService.getWeatherBasedTip() {
+            return tip
+        }
+        return "Check back soon for weather-based savings tips."
+    }
 
     var body: some View {
         VStack(spacing: 12) {
             // Weather-Based Rate Alert Card
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Image(systemName: "cloud.sun.fill")
+                    Image(systemName: weatherIcon)
                         .font(.system(size: 14))
                         .foregroundColor(Color(hex: "#3B82F6"))
 
@@ -119,23 +141,40 @@ struct UtilityInsightZone: View {
                         .foregroundColor(Color(hex: "#8B9A94"))
                 }
 
-                Text("Cooler temperatures expected this week. Consider reducing heating to save on your gas bill.")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(hex: "#5D6D66"))
-                    .lineLimit(2)
+                if weatherService.isLoading {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Loading weather...")
+                            .font(.system(size: 13))
+                            .foregroundColor(Color(hex: "#8B9A94"))
+                    }
+                } else {
+                    Text(weatherTip)
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(hex: "#5D6D66"))
+                        .lineLimit(2)
+                }
 
                 HStack(spacing: 16) {
                     HStack(spacing: 4) {
                         Image(systemName: "thermometer.medium")
                             .font(.system(size: 11))
-                        Text("45°F")
-                            .font(.system(size: 12, weight: .medium))
+                        if let weather = weatherService.currentWeather {
+                            Text("\(weather.temperatureInt)°F")
+                                .font(.system(size: 12, weight: .medium))
+                        } else {
+                            Text("--°F")
+                                .font(.system(size: 12, weight: .medium))
+                        }
                     }
                     .foregroundColor(Color(hex: "#3B82F6"))
 
-                    Text("Potential savings: $8-12")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color(hex: "#5B8A6B"))
+                    if weatherService.currentWeather != nil {
+                        Text("Potential savings: $5-15")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(Color(hex: "#5B8A6B"))
+                    }
                 }
             }
             .padding(14)
@@ -156,6 +195,10 @@ struct UtilityInsightZone: View {
             )
         }
         .padding(.horizontal, 20)
+        .task {
+            guard !zipCode.isEmpty else { return }
+            try? await weatherService.fetchWeather(zipCode: zipCode)
+        }
     }
 }
 

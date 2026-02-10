@@ -30,11 +30,11 @@ struct VerificationStatusFlags: Codable, Equatable {
 
     func meetsRequirements(for tier: TrustTier) -> Bool {
         switch tier {
-        case .streamer:
+        case .neighbor:
             return email && phone
-        case .utility:
+        case .contributor:
             return email && phone
-        case .guardian:
+        case .pillar:
             return email && phone && govIdVerified
         }
     }
@@ -628,8 +628,6 @@ struct CoordinationFeeTransaction: Identifiable, Codable {
         String(format: "$%.2f", amount)
     }
 }
-
-// Note: SwapDispute is defined in BillSwap/Models/SwapDispute.swift
 
 // MARK: - Trust Tier Info (from DB)
 

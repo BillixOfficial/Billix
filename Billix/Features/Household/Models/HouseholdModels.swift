@@ -233,7 +233,7 @@ enum BillVisibility: String, Codable, CaseIterable {
         switch self {
         case .personal: return "Only you can see this bill"
         case .household: return "Visible to household members"
-        case .public: return "Available for BillSwap marketplace"
+        case .public: return "Available for Bill Connection"
         }
     }
 

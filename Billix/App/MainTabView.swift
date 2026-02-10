@@ -3,7 +3,6 @@ import SwiftUI
 struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var exploreResetId = UUID()
-    @State private var navigateToSwapId: UUID?
     @EnvironmentObject var notificationService: NotificationService
 
     var body: some View {
@@ -36,22 +35,6 @@ struct MainTabView: View {
             CustomBottomNavBar(selectedTab: $selectedTab)
                 .edgesIgnoringSafeArea(.bottom)
         }
-        .swapNotificationToast(
-            notification: $notificationService.pendingNotification,
-            onTap: {
-                // Navigate to swap when notification is tapped
-                if let swapId = notificationService.pendingNotification?.swapId {
-                    navigateToSwapId = swapId
-                    // Post notification for navigation to swap detail
-                    NotificationCenter.default.post(
-                        name: .navigateToSwapDetail,
-                        object: nil,
-                        userInfo: ["swapId": swapId]
-                    )
-                }
-                notificationService.clearPendingNotification()
-            }
-        )
         .ignoresSafeArea(.keyboard)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NavigateToUpload"))) { _ in
             withAnimation {
@@ -63,24 +46,7 @@ struct MainTabView: View {
                 selectedTab = 3  // Switch to Rewards tab (where game is)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .swapNotificationTapped)) { notification in
-            // Handle push notification tap when app was in background
-            if let swapId = (notification.userInfo?["notification"] as? SwapNotificationData)?.swapId {
-                navigateToSwapId = swapId
-                NotificationCenter.default.post(
-                    name: .navigateToSwapDetail,
-                    object: nil,
-                    userInfo: ["swapId": swapId]
-                )
-            }
-        }
     }
-}
-
-// MARK: - Navigation Notification Names
-
-extension Notification.Name {
-    static let navigateToSwapDetail = Notification.Name("navigateToSwapDetail")
 }
 
 // MARK: - Custom Bottom Navigation Bar

@@ -158,7 +158,8 @@ class ActivityScoreService: ObservableObject {
     private func fetchSwapsCount() async throws -> Int {
         let userId = try await SupabaseService.shared.client.auth.session.user.id.uuidString
 
-        let response: [SwapCountResponse] = try await SupabaseService.shared.client
+        // Count from old swap_transactions table
+        let oldSwaps: [SwapCountResponse] = try await SupabaseService.shared.client
             .from("swap_transactions")
             .select("id", head: false, count: .exact)
             .eq("user_id", value: userId)
@@ -166,7 +167,25 @@ class ActivityScoreService: ObservableObject {
             .execute()
             .value
 
-        return response.count
+        // Count from new connections table (Bill Connection feature)
+        // User could be initiator or supporter
+        let connectionsAsInitiator: [SwapCountResponse] = try await SupabaseService.shared.client
+            .from("connections")
+            .select("id", head: false, count: .exact)
+            .eq("initiator_id", value: userId)
+            .eq("status", value: "completed")
+            .execute()
+            .value
+
+        let connectionsAsSupporter: [SwapCountResponse] = try await SupabaseService.shared.client
+            .from("connections")
+            .select("id", head: false, count: .exact)
+            .eq("supporter_id", value: userId)
+            .eq("status", value: "completed")
+            .execute()
+            .value
+
+        return oldSwaps.count + connectionsAsInitiator.count + connectionsAsSupporter.count
     }
 
     private func checkProfileComplete() -> Bool {

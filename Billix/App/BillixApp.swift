@@ -67,8 +67,12 @@ struct BillixApp: App {
                 .environmentObject(authService)
                 .environmentObject(notificationService)
                 .onOpenURL { url in
-                    // Handle OAuth callback from Google/Facebook sign-in
+                    // Handle deep links (OAuth callbacks and password reset)
                     Task {
+                        // Check if this is a password reset link
+                        if url.absoluteString.contains("type=recovery") {
+                            authService.isResettingPassword = true
+                        }
                         await handleOAuthCallback(url)
                     }
                 }
@@ -123,6 +127,9 @@ struct RootView: View {
     private var viewState: ViewState {
         if authService.isLoading {
             return .loading
+        } else if authService.isResettingPassword {
+            // Password reset flow - user clicked reset link in email
+            return .resetPassword
         } else if authService.awaitingEmailVerification {
             return .emailVerification
         } else if !authService.isAuthenticated {
@@ -141,6 +148,7 @@ struct RootView: View {
         case loading
         case login
         case emailVerification
+        case resetPassword
         case onboarding
         case main
     }
@@ -156,6 +164,8 @@ struct RootView: View {
                 // TODO: Re-enable after adding EmailVerificationView.swift to Xcode target
                 LoginView()  // Temporary fallback
                 // EmailVerificationView()
+            case .resetPassword:
+                SetNewPasswordView()
             case .onboarding:
                 NavigationStack {
                     OnboardingView()

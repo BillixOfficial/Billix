@@ -2000,7 +2000,7 @@ struct ProfileView: View {
                                 Text("Buy 3 Tokens")
                                     .font(.system(size: 15))
                                     .foregroundColor(darkTextColor)
-                                Text("$1.99 - Use for BillSwap")
+                                Text("$1.99 - Use for Bill Connection")
                                     .font(.system(size: 12))
                                     .foregroundColor(grayTextColor)
                             }

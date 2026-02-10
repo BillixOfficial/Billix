@@ -242,6 +242,7 @@ enum ScoreEventType: String, Codable {
     case lateCompletion = "late_completion"
     case accountAgeMilestone = "account_age_milestone"
     case consistencyStreak = "consistency_streak"
+    case connectionCompleted = "connection_completed"  // Bill Connection feature
 
     var displayName: String {
         switch self {
@@ -255,12 +256,13 @@ enum ScoreEventType: String, Codable {
         case .lateCompletion: return "Late Completion"
         case .accountAgeMilestone: return "Account Milestone"
         case .consistencyStreak: return "Consistency Streak"
+        case .connectionCompleted: return "Connection Completed"
         }
     }
 
     var affectedComponent: ScoreComponent {
         switch self {
-        case .swapCompleted, .swapFailed, .ghostIncident:
+        case .swapCompleted, .swapFailed, .ghostIncident, .connectionCompleted:
             return .completion
         case .screenshotVerified, .screenshotRejected:
             return .verification
@@ -284,6 +286,7 @@ enum ScoreEventType: String, Codable {
         case .lateCompletion: return -5
         case .accountAgeMilestone: return 10
         case .consistencyStreak: return 15
+        case .connectionCompleted: return 5  // 5 points per successful connection
         }
     }
 

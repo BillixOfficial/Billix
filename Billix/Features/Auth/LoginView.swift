@@ -11,6 +11,7 @@ struct LoginView: View {
     @State private var showError = false
     @State private var isGoogleLoading = false
     @State private var showEnrollmentSheet = false
+    @State private var showForgotPassword = false
     @FocusState private var focusedField: Field?
 
     enum Field {
@@ -174,7 +175,7 @@ struct LoginView: View {
 
                     // Forgot Password - below sign in
                     Button("Forgot password?") {
-                        handleForgotPassword()
+                        showForgotPassword = true
                     }
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white.opacity(0.9))
@@ -198,6 +199,10 @@ struct LoginView: View {
         }
         .sheet(isPresented: $showEnrollmentSheet) {
             EnrollmentMethodView()
+                .environmentObject(authService)
+        }
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordView()
                 .environmentObject(authService)
         }
     }
