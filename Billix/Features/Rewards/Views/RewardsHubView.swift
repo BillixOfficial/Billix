@@ -218,6 +218,7 @@ struct RewardsHubView: View {
             SeasonSelectionView()
         }
     }
+
 }
 
 // MARK: - Rewards Tab Enum
