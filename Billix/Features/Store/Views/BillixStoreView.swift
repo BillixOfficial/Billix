@@ -8,6 +8,26 @@
 import SwiftUI
 import StoreKit
 
+// MARK: - Theme (matching HomeView)
+
+private enum Theme {
+    static let background = Color(hex: "#F7F9F8")
+    static let cardBackground = Color.white
+    static let primaryText = Color(hex: "#2D3B35")
+    static let secondaryText = Color(hex: "#8B9A94")
+    static let accent = Color(hex: "#5B8A6B")
+    static let accentLight = Color(hex: "#5B8A6B").opacity(0.08)
+    static let success = Color(hex: "#4CAF7A")
+    static let warning = Color(hex: "#E8A54B")
+    static let purple = Color(hex: "#9B7EB8")
+
+    static let horizontalPadding: CGFloat = 20
+    static let cardPadding: CGFloat = 16
+    static let cornerRadius: CGFloat = 16
+    static let shadowColor = Color.black.opacity(0.03)
+    static let shadowRadius: CGFloat = 8
+}
+
 struct BillixStoreView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var storeKit = StoreKitService.shared
@@ -16,49 +36,31 @@ struct BillixStoreView: View {
     @State private var isPurchasing = false
     @State private var showError = false
     @State private var errorMessage = ""
-    @State private var animateGlow = false
     @State private var showPurchaseSuccess = false
 
     var body: some View {
         NavigationView {
-            ZStack {
-                // Gradient background
-                LinearGradient(
-                    colors: [
-                        Color(hex: "#F8FAF9"),
-                        Color(hex: "#EEF4F1"),
-                        Color(hex: "#E8F0EC")
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 20) {
+                    // Token Balance Section
+                    tokenBalanceSection
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        // Logo Header
-                        logoHeader
+                    // Membership Card
+                    membershipSection
 
-                        // Token Balance Card
-                        tokenBalanceCard
+                    // Buy Tokens Card
+                    buyTokensSection
 
-                        // Membership Section
-                        membershipCard
+                    // Restore & Legal
+                    footerSection
 
-                        // Buy Tokens Section
-                        buyTokensCard
-
-                        // Restore purchases
-                        restoreSection
-
-                        // Legal
-                        legalSection
-
-                        Spacer().frame(height: 40)
-                    }
-                    .padding(20)
+                    Spacer().frame(height: 40)
                 }
+                .padding(.horizontal, Theme.horizontalPadding)
+                .padding(.top, 12)
             }
+            .background(Theme.background.ignoresSafeArea())
+            .navigationTitle("Store")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -66,11 +68,8 @@ struct BillixStoreView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 28))
-                            .foregroundStyle(
-                                Color(hex: "#8B9A94"),
-                                Color(hex: "#E8EDEB")
-                            )
+                            .font(.system(size: 24))
+                            .foregroundStyle(Theme.secondaryText, Color(hex: "#E8EDEB"))
                     }
                 }
             }
@@ -88,154 +87,87 @@ struct BillixStoreView: View {
                 Task {
                     await tokenService.loadTokenBalance()
                 }
-                withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
-                    animateGlow = true
-                }
             }
         }
     }
 
-    // MARK: - Logo Header
+    // MARK: - Token Balance Section
 
-    private var logoHeader: some View {
-        VStack(spacing: 8) {
-            Image("billix_logo_new")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 50)
-
-            Text("Store")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(Color(hex: "#2D3B35"))
-        }
-        .padding(.top, 8)
-    }
-
-    // MARK: - Token Balance Card
-
-    private var tokenBalanceCard: some View {
-        VStack(spacing: 20) {
-            // Glowing token icon
+    private var tokenBalanceSection: some View {
+        VStack(spacing: 16) {
+            // Icon
             ZStack {
-                // Outer glow
                 Circle()
-                    .fill(Color.billixGoldenAmber.opacity(animateGlow ? 0.3 : 0.15))
-                    .frame(width: 100, height: 100)
-                    .blur(radius: 10)
-
-                // Middle ring
-                Circle()
-                    .stroke(
-                        LinearGradient(
-                            colors: [Color.billixGoldenAmber, Color(hex: "#F5C842")],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 3
-                    )
-                    .frame(width: 85, height: 85)
-
-                // Inner circle
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(hex: "#F5C842"), Color.billixGoldenAmber],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 72, height: 72)
-                    .shadow(color: Color.billixGoldenAmber.opacity(0.5), radius: 10, y: 4)
+                    .fill(Theme.warning.opacity(0.12))
+                    .frame(width: 64, height: 64)
 
                 Image(systemName: "bolt.fill")
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.white)
-                    .shadow(color: Color.black.opacity(0.2), radius: 2, y: 1)
+                    .font(.system(size: 28))
+                    .foregroundColor(Theme.warning)
             }
 
-            // Balance display
-            VStack(spacing: 6) {
+            // Balance
+            VStack(spacing: 4) {
                 Text("YOUR BALANCE")
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color(hex: "#8B9A94"))
-                    .tracking(1.5)
+                    .foregroundColor(Theme.secondaryText)
+                    .tracking(1)
 
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text("\(tokenService.tokenBalance)")
-                        .font(.system(size: 56, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(hex: "#2D3B35"))
+                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.primaryText)
 
                     Text("tokens")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Color(hex: "#8B9A94"))
-                        .padding(.bottom, 8)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Theme.secondaryText)
                 }
             }
 
-            // Member status
+            // Member badge
             if storeKit.isMember {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Image(systemName: "crown.fill")
-                        .font(.system(size: 14))
+                        .font(.system(size: 12))
                     Text("MEMBER")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(1)
+                        .font(.system(size: 11, weight: .bold))
+                        .tracking(0.5)
                 }
                 .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(
-                    LinearGradient(
-                        colors: [Color.billixMoneyGreen, Color.billixDarkTeal],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .cornerRadius(25)
-                .shadow(color: Color.billixMoneyGreen.opacity(0.4), radius: 8, y: 4)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(Theme.accent)
+                .cornerRadius(20)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
-        .padding(.horizontal, 24)
-        .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.08), radius: 20, y: 8)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 28)
-                .stroke(
-                    LinearGradient(
-                        colors: [Color.billixGoldenAmber.opacity(0.3), Color.clear],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
+        .padding(.vertical, 28)
+        .padding(.horizontal, Theme.cardPadding)
+        .background(Theme.cardBackground)
+        .cornerRadius(Theme.cornerRadius)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 
-    // MARK: - Membership Card
+    // MARK: - Membership Section
 
-    private var membershipCard: some View {
-        VStack(alignment: .leading, spacing: 20) {
+    private var membershipSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
             // Header
             HStack {
                 HStack(spacing: 10) {
                     ZStack {
                         Circle()
-                            .fill(Color.billixMoneyGreen.opacity(0.15))
-                            .frame(width: 40, height: 40)
+                            .fill(Theme.accent.opacity(0.12))
+                            .frame(width: 36, height: 36)
 
                         Image(systemName: "crown.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(Color.billixMoneyGreen)
+                            .font(.system(size: 16))
+                            .foregroundColor(Theme.accent)
                     }
 
                     Text("Membership")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(Color(hex: "#2D3B35"))
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(Theme.primaryText)
                 }
 
                 Spacer()
@@ -245,268 +177,196 @@ struct BillixStoreView: View {
                         .font(.system(size: 10, weight: .bold))
                         .tracking(0.5)
                         .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.billixMoneyGreen)
-                        .cornerRadius(12)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Theme.success)
+                        .cornerRadius(10)
                 }
             }
 
             if !storeKit.isMember {
-                // Price display
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(alignment: .firstTextBaseline, spacing: 2) {
-                            Text("$6.99")
-                                .font(.system(size: 36, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(hex: "#2D3B35"))
-                            Text("/month")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(Color(hex: "#8B9A94"))
-                        }
-                        Text("Cancel anytime")
-                            .font(.system(size: 13))
-                            .foregroundColor(Color(hex: "#A0ABA6"))
-                    }
+                // Price
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text("$6.99")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.primaryText)
+                    Text("/month")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Theme.secondaryText)
 
                     Spacer()
 
-                    // Best value badge
-                    Text("BEST VALUE")
-                        .font(.system(size: 10, weight: .bold))
-                        .tracking(0.5)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(
-                            LinearGradient(
-                                colors: [Color.billixGoldenAmber, Color(hex: "#E8A830")],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(8)
+                    Text("Cancel anytime")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.secondaryText)
                 }
 
-                // Divider with gradient
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.clear, Color(hex: "#E0E8E4"), Color.clear],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(height: 1)
-                    .padding(.vertical, 4)
-
-                // Features grid
-                VStack(spacing: 14) {
-                    HStack(spacing: 20) {
-                        memberFeature(icon: "infinity", text: "Unlimited\nConnections")
-                        memberFeature(icon: "chart.bar.fill", text: "Bill\nAnalysis")
-                    }
-                    HStack(spacing: 20) {
-                        memberFeature(icon: "arrow.left.arrow.right", text: "Market\nCompare")
-                        memberFeature(icon: "bolt.slash.fill", text: "No Tokens\nNeeded")
-                    }
+                // Features
+                VStack(spacing: 10) {
+                    featureRow(icon: "infinity", text: "Unlimited connections")
+                    featureRow(icon: "chart.bar.fill", text: "Full bill analysis")
+                    featureRow(icon: "arrow.left.arrow.right", text: "Market comparisons")
+                    featureRow(icon: "bolt.slash.fill", text: "No tokens needed")
                 }
+                .padding(.vertical, 4)
 
                 // Subscribe button
                 Button {
                     Task { await purchaseMembership() }
                 } label: {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         if isPurchasing {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
                             Image(systemName: "crown.fill")
-                                .font(.system(size: 16))
+                                .font(.system(size: 14))
                             Text("Get Membership")
-                                .font(.system(size: 17, weight: .bold))
+                                .font(.system(size: 15, weight: .bold))
                         }
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(
-                        LinearGradient(
-                            colors: [Color.billixMoneyGreen, Color.billixDarkTeal],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(16)
-                    .shadow(color: Color.billixMoneyGreen.opacity(0.4), radius: 12, y: 6)
+                    .frame(height: 48)
+                    .background(Theme.accent)
+                    .cornerRadius(12)
                 }
                 .disabled(isPurchasing)
-                .padding(.top, 8)
             } else {
-                // Member message
-                HStack(spacing: 14) {
+                // Active member message
+                HStack(spacing: 12) {
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 28))
-                        .foregroundColor(Color.billixMoneyGreen)
+                        .font(.system(size: 24))
+                        .foregroundColor(Theme.success)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("You're a member!")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(Color(hex: "#2D3B35"))
-                        Text("Enjoy unlimited access to everything")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color(hex: "#8B9A94"))
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(Theme.primaryText)
+                        Text("Enjoy unlimited access")
+                            .font(.system(size: 13))
+                            .foregroundColor(Theme.secondaryText)
                     }
                 }
-                .padding(16)
+                .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.billixMoneyGreen.opacity(0.1))
-                .cornerRadius(14)
+                .background(Theme.success.opacity(0.08))
+                .cornerRadius(12)
             }
         }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.08), radius: 20, y: 8)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 28)
-                .stroke(Color.billixMoneyGreen.opacity(0.15), lineWidth: 1)
-        )
+        .padding(Theme.cardPadding)
+        .background(Theme.cardBackground)
+        .cornerRadius(Theme.cornerRadius)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 
-    private func memberFeature(icon: String, text: String) -> some View {
+    private func featureRow(icon: String, text: String) -> some View {
         HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.billixMoneyGreen.opacity(0.12))
-                    .frame(width: 36, height: 36)
-
-                Image(systemName: icon)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Color.billixMoneyGreen)
-            }
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(Theme.accent)
+                .frame(width: 28, height: 28)
+                .background(Theme.accentLight)
+                .cornerRadius(8)
 
             Text(text)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Color(hex: "#5D6D66"))
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Theme.primaryText)
 
             Spacer()
+
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Theme.accent)
         }
-        .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Buy Tokens Card
+    // MARK: - Buy Tokens Section
 
-    private var buyTokensCard: some View {
-        VStack(alignment: .leading, spacing: 20) {
+    private var buyTokensSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
             // Header
             HStack {
                 HStack(spacing: 10) {
                     ZStack {
                         Circle()
-                            .fill(Color.billixGoldenAmber.opacity(0.15))
-                            .frame(width: 40, height: 40)
+                            .fill(Theme.warning.opacity(0.12))
+                            .frame(width: 36, height: 36)
 
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(Color.billixGoldenAmber)
+                            .font(.system(size: 16))
+                            .foregroundColor(Theme.warning)
                     }
 
                     Text("Buy Tokens")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(Color(hex: "#2D3B35"))
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(Theme.primaryText)
                 }
 
                 Spacer()
 
-                // Balance pill
-                HStack(spacing: 5) {
+                // Current balance pill
+                HStack(spacing: 4) {
                     Image(systemName: "bolt.fill")
-                        .font(.system(size: 11))
+                        .font(.system(size: 10))
                     Text("\(tokenService.tokenBalance)")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 13, weight: .bold))
                 }
-                .foregroundColor(Color.billixGoldenAmber)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.billixGoldenAmber.opacity(0.15))
-                .cornerRadius(14)
+                .foregroundColor(Theme.warning)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Theme.warning.opacity(0.12))
+                .cornerRadius(12)
             }
 
-            // Token uses
+            // Info text
             if !storeKit.isMember {
-                HStack(spacing: 0) {
-                    Spacer()
-                    tokenUse(icon: "link", label: "Connect")
-                    Spacer()
-                    tokenUse(icon: "chart.bar", label: "Analyze")
-                    Spacer()
-                    tokenUse(icon: "arrow.left.arrow.right", label: "Compare")
-                    Spacer()
-                }
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(hex: "#FFFBF2"))
-                        .stroke(Color.billixGoldenAmber.opacity(0.2), lineWidth: 1)
-                )
+                Text("Use tokens to connect with others, analyze bills, and compare rates.")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.secondaryText)
+                    .lineSpacing(2)
             } else {
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 16))
-                        .foregroundColor(Color.billixMoneyGreen)
+                        .font(.system(size: 14))
+                        .foregroundColor(Theme.success)
                     Text("Members have unlimited access!")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(hex: "#5D6D66"))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Theme.primaryText)
                 }
-                .padding(16)
+                .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.billixMoneyGreen.opacity(0.1))
-                .cornerRadius(14)
+                .background(Theme.success.opacity(0.08))
+                .cornerRadius(10)
             }
 
-            // Token pack
-            HStack(spacing: 18) {
-                // Token visual
+            // Token pack row
+            HStack(spacing: 14) {
+                // Token icon
                 ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color(hex: "#FFF8E8"), Color(hex: "#FFF2D6")],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 72, height: 72)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.billixGoldenAmber.opacity(0.3), lineWidth: 1)
-                        )
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Theme.warning.opacity(0.12))
+                        .frame(width: 56, height: 56)
 
                     VStack(spacing: 2) {
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 24, weight: .semibold))
-                            .foregroundColor(Color.billixGoldenAmber)
-
+                            .font(.system(size: 20))
+                            .foregroundColor(Theme.warning)
                         Text("+2")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundColor(Color.billixGoldenAmber)
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .foregroundColor(Theme.warning)
                     }
                 }
 
                 // Description
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("Token Pack")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Color(hex: "#2D3B35"))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Theme.primaryText)
 
-                    Text("2 tokens • One-time")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#8B9A94"))
+                    Text("2 tokens • One-time purchase")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.secondaryText)
                 }
 
                 Spacer()
@@ -516,109 +376,74 @@ struct BillixStoreView: View {
                     Task { await purchaseTokens() }
                 } label: {
                     Text("$1.99")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 14)
-                        .background(
-                            LinearGradient(
-                                colors: [Color.billixGoldenAmber, Color(hex: "#E8A830")],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .cornerRadius(14)
-                        .shadow(color: Color.billixGoldenAmber.opacity(0.4), radius: 8, y: 4)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 10)
+                        .background(Theme.warning)
+                        .cornerRadius(10)
                 }
                 .disabled(isPurchasing)
             }
-            .padding(18)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.white)
-                    .shadow(color: Color.billixGoldenAmber.opacity(0.15), radius: 8, y: 4)
-            )
+            .padding(14)
+            .background(Theme.warning.opacity(0.06))
+            .cornerRadius(12)
             .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(Color.billixGoldenAmber.opacity(0.25), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Theme.warning.opacity(0.15), lineWidth: 1)
             )
         }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.08), radius: 20, y: 8)
-        )
+        .padding(Theme.cardPadding)
+        .background(Theme.cardBackground)
+        .cornerRadius(Theme.cornerRadius)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 
-    private func tokenUse(icon: String, label: String) -> some View {
-        VStack(spacing: 8) {
-            ZStack {
-                Circle()
-                    .fill(Color.billixGoldenAmber.opacity(0.2))
-                    .frame(width: 44, height: 44)
+    // MARK: - Footer Section
 
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color.billixGoldenAmber)
-            }
-
-            Text(label)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(Color(hex: "#5D6D66"))
-        }
-    }
-
-    // MARK: - Restore Section
-
-    private var restoreSection: some View {
-        Button {
-            Task { await restorePurchases() }
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 14, weight: .medium))
-                Text("Restore Purchases")
-                    .font(.system(size: 15, weight: .semibold))
-            }
-            .foregroundColor(Color(hex: "#6B7B75"))
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color(hex: "#D0DBD6"), lineWidth: 1.5)
-            )
-        }
-        .disabled(isPurchasing)
-    }
-
-    // MARK: - Legal Section
-
-    private var legalSection: some View {
-        VStack(spacing: 10) {
-            Text("Membership auto-renews at $6.99/month unless cancelled at least 24 hours before the end of the current period.")
-                .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#A0ABA6"))
-                .multilineTextAlignment(.center)
-
-            HStack(spacing: 20) {
-                Button("Terms") {
-                    // Open terms
+    private var footerSection: some View {
+        VStack(spacing: 16) {
+            // Restore purchases button
+            Button {
+                Task { await restorePurchases() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 13, weight: .medium))
+                    Text("Restore Purchases")
+                        .font(.system(size: 14, weight: .semibold))
                 }
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "#5B8A6B"))
+                .foregroundColor(Theme.secondaryText)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(hex: "#D0DBD6"), lineWidth: 1)
+                )
+            }
+            .disabled(isPurchasing)
 
-                Text("•")
-                    .foregroundColor(Color(hex: "#C0CBC6"))
+            // Legal text
+            VStack(spacing: 8) {
+                Text("Membership auto-renews at $6.99/month unless cancelled at least 24 hours before the end of the current period.")
+                    .font(.system(size: 11))
+                    .foregroundColor(Theme.secondaryText)
+                    .multilineTextAlignment(.center)
 
-                Button("Privacy") {
-                    // Open privacy
+                HStack(spacing: 16) {
+                    Button("Terms") { }
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Theme.accent)
+
+                    Text("•")
+                        .foregroundColor(Theme.secondaryText)
+
+                    Button("Privacy") { }
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Theme.accent)
                 }
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "#5B8A6B"))
             }
         }
-        .padding(.horizontal, 20)
     }
 
     // MARK: - Purchase Success Overlay
@@ -628,40 +453,40 @@ struct BillixStoreView: View {
             Color.black.opacity(0.4)
                 .ignoresSafeArea()
 
-            VStack(spacing: 24) {
+            VStack(spacing: 20) {
                 ZStack {
                     Circle()
-                        .fill(Color.billixMoneyGreen.opacity(0.2))
-                        .frame(width: 100, height: 100)
+                        .fill(Theme.success.opacity(0.15))
+                        .frame(width: 80, height: 80)
 
                     Circle()
-                        .fill(Color.billixMoneyGreen)
-                        .frame(width: 70, height: 70)
+                        .fill(Theme.success)
+                        .frame(width: 56, height: 56)
 
                     Image(systemName: "checkmark")
-                        .font(.system(size: 32, weight: .bold))
+                        .font(.system(size: 26, weight: .bold))
                         .foregroundColor(.white)
                 }
 
                 Text("Purchase Complete!")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(Color(hex: "#2D3B35"))
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(Theme.primaryText)
 
                 Button {
                     showPurchaseSuccess = false
                 } label: {
                     Text("Continue")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundColor(.white)
-                        .padding(.horizontal, 40)
-                        .padding(.vertical, 14)
-                        .background(Color.billixMoneyGreen)
-                        .cornerRadius(14)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 12)
+                        .background(Theme.accent)
+                        .cornerRadius(12)
                 }
             }
-            .padding(40)
+            .padding(32)
             .background(
-                RoundedRectangle(cornerRadius: 28)
+                RoundedRectangle(cornerRadius: 20)
                     .fill(Color.white)
             )
             .padding(40)
@@ -673,9 +498,8 @@ struct BillixStoreView: View {
     private func purchaseMembership() async {
         isPurchasing = true
 
-        // Simulate purchase for testing since products aren't in App Store Connect yet
         if storeKit.monthlyProduct == nil {
-            try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             await MainActor.run {
                 isPurchasing = false
                 errorMessage = "In-app purchases will be available soon! Products are being set up in App Store Connect."
@@ -697,9 +521,8 @@ struct BillixStoreView: View {
     private func purchaseTokens() async {
         isPurchasing = true
 
-        // Simulate purchase for testing since products aren't in App Store Connect yet
         if storeKit.tokenPackProduct == nil {
-            try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             await MainActor.run {
                 isPurchasing = false
                 errorMessage = "In-app purchases will be available soon! Products are being set up in App Store Connect."
