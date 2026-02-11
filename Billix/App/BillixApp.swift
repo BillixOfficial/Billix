@@ -85,6 +85,9 @@ struct BillixApp: App {
                         if isAuthenticated {
                             // Subscribe to realtime swap updates when user logs in
                             await notificationService.subscribeToSwapUpdates()
+
+                            // Sync subscription status from StoreKit to Supabase
+                            await SubscriptionSyncService.shared.syncSubscriptionStatus()
                         } else {
                             // Unsubscribe and remove device token when user logs out
                             await notificationService.unsubscribeFromSwapUpdates()

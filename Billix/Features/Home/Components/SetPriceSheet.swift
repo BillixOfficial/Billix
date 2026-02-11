@@ -18,7 +18,7 @@ struct SetPriceSheet: View {
     @State private var targetPriceText: String = ""
     @State private var currentProvider: String = ""
     @State private var currentAmountText: String = ""
-    @State private var contactPreference: ContactPreference = .push
+    @State private var contactPreference: ContactPreference = .email
     @FocusState private var focusedField: FocusField?
 
     enum FocusField {
@@ -75,9 +75,9 @@ struct SetPriceSheet: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Progress indicator
+                // Progress indicator (2 steps)
                 HStack(spacing: 8) {
-                    ForEach(0..<3) { step in
+                    ForEach(0..<2) { step in
                         Capsule()
                             .fill(step <= currentStep ? Color(hex: "#5B8A6B") : Color.gray.opacity(0.2))
                             .frame(height: 4)
@@ -108,14 +108,12 @@ struct SetPriceSheet: View {
                         }
                         .padding(.top, 16)
 
-                        // Step content
+                        // Step content (2 steps only - email is default)
                         switch currentStep {
                         case 0:
                             targetPriceStep
                         case 1:
                             providerInfoStep
-                        case 2:
-                            contactPreferenceStep
                         default:
                             EmptyView()
                         }
@@ -127,24 +125,24 @@ struct SetPriceSheet: View {
                 VStack(spacing: 12) {
                     Button {
                         haptic()
-                        if currentStep < 2 {
+                        if currentStep < 1 {
                             withAnimation {
                                 currentStep += 1
                             }
                         } else {
-                            // Save and dismiss
+                            // Save and dismiss (default to email notification)
                             if let target = targetAmount {
                                 onSave(
                                     target,
                                     currentProvider.isEmpty ? nil : currentProvider,
                                     currentAmount,
-                                    contactPreference
+                                    .email // Always use email
                                 )
                                 dismiss()
                             }
                         }
                     } label: {
-                        Text(currentStep < 2 ? "Continue" : "Set My Price")
+                        Text(currentStep < 1 ? "Continue" : "Set My Price")
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -190,8 +188,6 @@ struct SetPriceSheet: View {
             return "What do you want to pay for \(billType.displayName.lowercased())?"
         case 1:
             return "Who's your current provider?"
-        case 2:
-            return "How should we notify you about deals?"
         default:
             return ""
         }
@@ -327,70 +323,6 @@ struct SetPriceSheet: View {
         }
     }
 
-    // MARK: - Step 3: Contact Preference
-
-    private var contactPreferenceStep: some View {
-        VStack(spacing: 16) {
-            ForEach(ContactPreference.allCases, id: \.self) { preference in
-                Button {
-                    haptic()
-                    contactPreference = preference
-                } label: {
-                    HStack(spacing: 14) {
-                        ZStack {
-                            Circle()
-                                .fill(contactPreference == preference ? Color(hex: "#5B8A6B").opacity(0.15) : Color.gray.opacity(0.1))
-                                .frame(width: 44, height: 44)
-
-                            Image(systemName: preference.icon)
-                                .font(.system(size: 18))
-                                .foregroundColor(contactPreference == preference ? Color(hex: "#5B8A6B") : Color(hex: "#8B9A94"))
-                        }
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(preference.displayName)
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(Color(hex: "#2D3B35"))
-
-                            Text(preferenceDescription(preference))
-                                .font(.system(size: 13))
-                                .foregroundColor(Color(hex: "#8B9A94"))
-                        }
-
-                        Spacer()
-
-                        if contactPreference == preference {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundColor(Color(hex: "#5B8A6B"))
-                        }
-                    }
-                    .padding(14)
-                    .background(Color.white)
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(contactPreference == preference ? Color(hex: "#5B8A6B") : Color(hex: "#E5E9E7"), lineWidth: contactPreference == preference ? 2 : 1)
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
-        }
-        .padding(.horizontal, 20)
-    }
-
-    private func preferenceDescription(_ preference: ContactPreference) -> String {
-        switch preference {
-        case .email:
-            return "Get deal alerts via email"
-        case .push:
-            return "Instant notifications when deals are found"
-        case .sms:
-            return "Text message alerts for hot deals"
-        case .none:
-            return "I'll check the app manually"
-        }
-    }
 }
 
 #Preview {

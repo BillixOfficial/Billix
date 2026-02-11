@@ -423,6 +423,7 @@
 		E4A10A601D56A5A26434B03D /* PollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA6B1A203346AC5930189482 /* PollView.swift */; };
 		E5DB9D954805D09C401F37F9 /* ConnectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6958208A3EF284183F59F07 /* ConnectionService.swift */; };
 		E63649257C3FDA524F18C383 /* CommunityPollService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9B9D2600B64F1CCDF73666 /* CommunityPollService.swift */; };
+		E905398201E36217837C006E /* SubscriptionSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC30325EE1A810C41F1B194D /* SubscriptionSyncService.swift */; };
 		EAFC180C73DE42DC7B878C66 /* UtilityNewsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10F631CF6558C21FBD6393C7 /* UtilityNewsService.swift */; };
 		EB78F5F34C399C3E3F628B30 /* BillInteractionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ACBAA7DDD8DE384FF723EC4 /* BillInteractionBar.swift */; };
 		EBC33E84E1E375DAEA261508 /* AnalysisDetailsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEEB282CAB55E54C5BDDE1C0 /* AnalysisDetailsTab.swift */; };
@@ -877,6 +878,7 @@
 		A6FF828C2EECA1C5008330C9 /* PartSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartSelectionView.swift; sourceTree = "<group>"; };
 		A6FF828D2EECA1C5008330C9 /* SeasonSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonSelectionView.swift; sourceTree = "<group>"; };
 		A754D4C404308C96FC0AC5B8 /* ScriptCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptCard.swift; sourceTree = "<group>"; };
+		AC30325EE1A810C41F1B194D /* SubscriptionSyncService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionSyncService.swift; sourceTree = "<group>"; };
 		ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		AD1B78C91A154500A69DB025 /* SeasonThemeBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift; sourceTree = SOURCE_ROOT; };
 		AD3740C0DA841148DCCE43EA /* ReliefStep3Situation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefStep3Situation.swift; sourceTree = "<group>"; };
@@ -1611,6 +1613,7 @@
 				A64F7F4E2ECBB46B005576C5 /* Config.swift */,
 				10F631CF6558C21FBD6393C7 /* UtilityNewsService.swift */,
 				4A28859A625454AB5C79F940 /* GeocodingService.swift */,
+				AC30325EE1A810C41F1B194D /* SubscriptionSyncService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -3084,6 +3087,7 @@
 				1241ADF6413B2EF8978DA403 /* ProofUploadView.swift in Sources */,
 				7AC6F36E16B6E5B8385B60E5 /* TermsProposalView.swift in Sources */,
 				85AD8C7A2F7337695DC017F0 /* RequestSuccessView.swift in Sources */,
+				E905398201E36217837C006E /* SubscriptionSyncService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

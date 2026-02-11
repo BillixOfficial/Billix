@@ -108,6 +108,14 @@ struct HomeView: View {
         authService.currentUser?.billixProfile?.state ?? ""
     }
 
+    private var requesterPoints: Int {
+        authService.currentUser?.requesterPoints ?? 0
+    }
+
+    private var supporterPoints: Int {
+        authService.currentUser?.supporterPoints ?? 0
+    }
+
     // Real streak from StreakService
     private var streakDays: Int {
         streakService.currentStreak
@@ -138,6 +146,8 @@ struct HomeView: View {
                         zipCode: userZip,
                         score: billixScore,
                         streak: streakDays,
+                        requesterPoints: requesterPoints,
+                        supporterPoints: supporterPoints,
                         notificationService: notificationService
                     )
                 }
@@ -469,10 +479,10 @@ private enum QuickActionType: String, Identifiable {
     var subtitle: String? {
         switch self {
         case .store: return "Shop"
+        case .chat: return "Messages"
         case .connect: return "Community"
         case .relief: return "Get Help"
         case .household: return "Roommates"
-        default: return nil
         }
     }
 }

@@ -15,6 +15,15 @@ struct AreaInsightsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isLoading = true
 
+    // Local Deals state
+    @State private var localDeals: [LocalDeal] = []
+    @State private var isLoadingDeals = true
+    @State private var dealsError: String?
+
+    // Interest capture state
+    @State private var submittedDealTitles: Set<String> = []
+    @State private var submittingDealTitle: String? = nil
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -24,9 +33,6 @@ struct AreaInsightsSheet: View {
 
                     // Local Providers
                     providersSection
-
-                    // Area Averages
-                    averagesSection
 
                     // Local Deals
                     dealsSection
@@ -44,9 +50,12 @@ struct AreaInsightsSheet: View {
                 }
             }
             .task {
-                // Simulate loading
+                // Simulate loading for providers/averages
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 isLoading = false
+            }
+            .task {
+                await loadLocalDeals()
             }
         }
     }
@@ -115,93 +124,190 @@ struct AreaInsightsSheet: View {
         ]
     }
 
-    // MARK: - Averages Section
-
-    private var averagesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            InsightsSectionHeader(title: "Area Bill Averages", icon: "chart.bar.fill")
-
-            VStack(spacing: 12) {
-                AverageRow(
-                    category: "Electric",
-                    areaAverage: 142,
-                    yourBill: 128,
-                    icon: "bolt.fill",
-                    color: .yellow
-                )
-
-                AverageRow(
-                    category: "Gas",
-                    areaAverage: 89,
-                    yourBill: 95,
-                    icon: "flame.fill",
-                    color: .orange
-                )
-
-                AverageRow(
-                    category: "Water",
-                    areaAverage: 65,
-                    yourBill: 58,
-                    icon: "drop.fill",
-                    color: .blue
-                )
-
-                AverageRow(
-                    category: "Internet",
-                    areaAverage: 78,
-                    yourBill: 85,
-                    icon: "wifi",
-                    color: .green
-                )
-            }
-            .padding()
-            .background(Color(UIColor.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-        }
-    }
-
     // MARK: - Deals Section
 
     private var dealsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             InsightsSectionHeader(title: "Local Deals & Savings", icon: "tag.fill")
 
-            VStack(spacing: 0) {
-                ForEach(localDeals, id: \.title) { deal in
-                    DealRow(deal: deal)
+            if isLoadingDeals {
+                // Loading state
+                VStack(spacing: 16) {
+                    ProgressView()
+                    Text("Finding deals in your area...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 32)
+                .background(Color(UIColor.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            } else if let error = dealsError {
+                // Error state
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button("Try Again") {
+                        Task {
+                            await loadLocalDeals()
+                        }
+                    }
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.billixDarkTeal)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+                .background(Color(UIColor.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            } else if localDeals.isEmpty {
+                // Empty state
+                VStack(spacing: 8) {
+                    Image(systemName: "tag.slash")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                    Text("No deals available for your area")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+                .background(Color(UIColor.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            } else {
+                // Deals list
+                VStack(spacing: 0) {
+                    ForEach(localDeals) { deal in
+                        DealRow(
+                            deal: deal,
+                            isSubmitted: submittedDealTitles.contains(deal.title),
+                            isSubmitting: submittingDealTitle == deal.title
+                        ) {
+                            Task {
+                                await submitInterest(deal: deal)
+                            }
+                        }
 
-                    if deal.title != localDeals.last?.title {
-                        Divider()
-                            .padding(.leading, 56)
+                        if deal.id != localDeals.last?.id {
+                            Divider()
+                                .padding(.leading, 56)
+                        }
                     }
                 }
+                .background(Color(UIColor.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             }
-            .background(Color(UIColor.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
         }
     }
 
-    private var localDeals: [LocalDeal] {
-        [
-            LocalDeal(
-                title: "PSE&G Rebate Program",
-                description: "Up to $500 off energy-efficient appliances",
-                savings: "Save up to $500",
-                expiresIn: "Ends Dec 31"
-            ),
-            LocalDeal(
-                title: "Community Solar",
-                description: "Join a local solar program - no installation",
-                savings: "Save 10-15%",
-                expiresIn: "Limited spots"
-            ),
-            LocalDeal(
-                title: "Budget Billing",
-                description: "Spread costs evenly throughout the year",
-                savings: "Predictable bills",
-                expiresIn: "Always available"
+    // MARK: - Load Local Deals
+
+    private func loadLocalDeals() async {
+        isLoadingDeals = true
+        dealsError = nil
+
+        do {
+            localDeals = try await OpenAIService.shared.getLocalDeals(
+                zipCode: zipCode,
+                city: city,
+                state: state
             )
-        ]
+            isLoadingDeals = false
+        } catch {
+            dealsError = "Unable to load deals"
+            isLoadingDeals = false
+            print("❌ Failed to load local deals: \(error)")
+        }
+    }
+
+    // MARK: - Submit Interest
+
+    private func submitInterest(deal: LocalDeal) async {
+        guard !submittedDealTitles.contains(deal.title) else { return }
+
+        submittingDealTitle = deal.title
+
+        do {
+            // Get current user info from session
+            let session = try await SupabaseService.shared.client.auth.session
+            let userId = session.user.id.uuidString
+            let userEmail = session.user.email
+
+            // Insert into deal_interests table
+            struct DealInterestInsert: Encodable {
+                let user_id: String?
+                let deal_title: String
+                let deal_description: String
+                let deal_category: String
+                let zip_code: String
+                let city: String
+                let state: String
+                let user_email: String?
+                let user_name: String?
+            }
+
+            let insert = DealInterestInsert(
+                user_id: userId,
+                deal_title: deal.title,
+                deal_description: deal.description,
+                deal_category: deal.category,
+                zip_code: zipCode,
+                city: city,
+                state: state,
+                user_email: userEmail,
+                user_name: nil // Could fetch from profile if needed
+            )
+
+            try await SupabaseService.shared.client
+                .from("deal_interests")
+                .insert(insert)
+                .execute()
+
+            // Send email notification via Edge Function
+            struct NotifyRequest: Encodable {
+                let dealTitle: String
+                let dealDescription: String
+                let dealCategory: String
+                let zipCode: String
+                let city: String
+                let state: String
+                let userEmail: String?
+                let userName: String?
+            }
+
+            let notifyRequest = NotifyRequest(
+                dealTitle: deal.title,
+                dealDescription: deal.description,
+                dealCategory: deal.category,
+                zipCode: zipCode,
+                city: city,
+                state: state,
+                userEmail: userEmail,
+                userName: nil
+            )
+
+            try? await SupabaseService.shared.client.functions
+                .invoke("notify-deal-interest", options: .init(body: notifyRequest))
+
+            // Mark as submitted
+            submittedDealTitles.insert(deal.title)
+
+            // Haptic feedback
+            await MainActor.run {
+                let generator = UIImpactFeedbackGenerator(style: .medium)
+                generator.impactOccurred()
+            }
+
+        } catch {
+            print("❌ Failed to submit deal interest: \(error)")
+        }
+
+        submittingDealTitle = nil
     }
 }
 
@@ -267,122 +373,95 @@ private struct ProviderRow: View {
     }
 }
 
-// MARK: - Average Row
-
-private struct AverageRow: View {
-    let category: String
-    let areaAverage: Int
-    let yourBill: Int
-    let icon: String
-    let color: Color
-
-    private var difference: Int {
-        areaAverage - yourBill
-    }
-
-    private var isBelow: Bool {
-        yourBill < areaAverage
-    }
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundStyle(color)
-                .frame(width: 24)
-
-            Text(category)
-                .font(.subheadline)
-                .frame(width: 70, alignment: .leading)
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("Area: $\(areaAverage)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Text("You: $\(yourBill)")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-            }
-
-            // Comparison badge
-            HStack(spacing: 4) {
-                Image(systemName: isBelow ? "arrow.down" : "arrow.up")
-                    .font(.caption2)
-
-                Text("$\(abs(difference))")
-                    .font(.caption)
-                    .fontWeight(.medium)
-            }
-            .foregroundStyle(isBelow ? Color.billixMoneyGreen : Color.red)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                (isBelow ? Color.billixMoneyGreen : Color.red).opacity(0.1)
-            )
-            .clipShape(Capsule())
-        }
-    }
-}
-
 // MARK: - Deal Row
-
-private struct LocalDeal {
-    let title: String
-    let description: String
-    let savings: String
-    let expiresIn: String
-}
 
 private struct DealRow: View {
     let deal: LocalDeal
+    let isSubmitted: Bool
+    let isSubmitting: Bool
+    let onTap: () -> Void
+
+    private var iconColor: Color {
+        switch deal.category {
+        case "rebate": return .yellow
+        case "solar": return .orange
+        case "assistance": return .blue
+        case "billing": return .purple
+        default: return Color.billixMoneyGreen
+        }
+    }
 
     var body: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.billixMoneyGreen.opacity(0.15))
-                    .frame(width: 40, height: 40)
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(iconColor.opacity(0.15))
+                        .frame(width: 40, height: 40)
 
-                Image(systemName: "tag.fill")
-                    .font(.system(size: 16))
-                    .foregroundStyle(Color.billixMoneyGreen)
-            }
+                    Image(systemName: deal.icon)
+                        .font(.system(size: 16))
+                        .foregroundStyle(iconColor)
+                }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(deal.title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-
-                Text(deal.description)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-
-                HStack(spacing: 8) {
-                    Text(deal.savings)
-                        .font(.caption)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(deal.title)
+                        .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundStyle(Color.billixMoneyGreen)
+                        .foregroundStyle(.primary)
 
-                    Text("•")
-                        .foregroundStyle(.tertiary)
-
-                    Text(deal.expiresIn)
+                    Text(deal.description)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    HStack(spacing: 8) {
+                        if let savings = deal.savingsAmount {
+                            Text(savings)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(Color.billixMoneyGreen)
+
+                            if deal.deadline != nil {
+                                Text("•")
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+
+                        if let deadline = deal.deadline {
+                            Text(deadline)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                Spacer()
+
+                // Show status indicator
+                if isSubmitting {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                } else if isSubmitted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(Color.billixMoneyGreen)
+                } else {
+                    Text("I'm Interested")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color.billixDarkTeal)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.billixDarkTeal.opacity(0.1))
+                        .clipShape(Capsule())
                 }
             }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            .padding()
         }
-        .padding()
+        .buttonStyle(.plain)
+        .disabled(isSubmitted || isSubmitting)
     }
 }
 

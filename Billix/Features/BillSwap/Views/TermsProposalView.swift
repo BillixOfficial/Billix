@@ -122,10 +122,14 @@ struct ProposalFormCard: View {
 
     var maxDate: Date {
         let sevenDaysOut = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
+        var result = sevenDaysOut
+
         if let dueDate = billDueDate {
-            return min(sevenDaysOut, dueDate)
+            result = min(sevenDaysOut, dueDate)
         }
-        return sevenDaysOut
+
+        // Ensure maxDate is never less than minDate to prevent range crash
+        return max(result, minDate)
     }
 
     var body: some View {

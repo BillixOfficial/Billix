@@ -35,6 +35,7 @@ enum QuickActionType: String, Identifiable {
 
     var subtitle: String? {
         switch self {
+        case .chat: return "Messages"
         case .connect: return "Community"
         default: return nil
         }

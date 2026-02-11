@@ -13,12 +13,31 @@ struct HeaderZone: View {
     let zipCode: String
     let score: Int
     let streak: Int
+    let requesterPoints: Int
+    let supporterPoints: Int
     @ObservedObject var notificationService: NotificationService
 
-    @ObservedObject private var scoreService = ActivityScoreService.shared
     @State private var showNotifications = false
     @State private var showAreaInsights = false
-    @State private var showScoreDetail = false
+    @State private var showConnectionStatsSheet = false
+
+    // Helper to get tier name from points
+    private func tierName(for points: Int) -> String {
+        switch points {
+        case 0..<100: return "Neighbor"
+        case 100..<500: return "Contributor"
+        default: return "Pillar"
+        }
+    }
+
+    // Helper to get tier color from points
+    private func tierColor(for points: Int) -> Color {
+        switch points {
+        case 0..<100: return Color(hex: "#5B8A6B")      // Green - Neighbor
+        case 100..<500: return Color(hex: "#9B7B9F")    // Purple - Contributor
+        default: return Color(hex: "#E8B54D")           // Gold - Pillar
+        }
+    }
 
     // Parse location into city and state
     private var cityName: String {
@@ -94,47 +113,70 @@ struct HeaderZone: View {
                 }
             }
 
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
+                // Requester Points
                 Button {
                     haptic()
-                    showScoreDetail = true
+                    showConnectionStatsSheet = true
                 } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(scoreService.scoreColor)
-                            Text("\(scoreService.score)")
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
-                                .foregroundColor(HomeTheme.primaryText)
-                            Text("· \(scoreService.scoreLabel)")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(HomeTheme.secondaryText)
-                        }
-
-                        Text(scoreService.encouragementText)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(scoreService.scoreColor)
-                            .lineLimit(1)
+                    HStack(spacing: 5) {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(tierColor(for: requesterPoints))
+                        Text("\(requesterPoints)")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundColor(HomeTheme.primaryText)
+                        Text("·")
+                            .foregroundColor(HomeTheme.secondaryText)
+                        Text("Requester")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(tierColor(for: requesterPoints))
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
                     .background(HomeTheme.cardBackground)
-                    .cornerRadius(14)
-                    .shadow(color: HomeTheme.shadowColor, radius: 4)
+                    .cornerRadius(12)
+                    .shadow(color: HomeTheme.shadowColor, radius: 3)
                 }
+                .buttonStyle(.plain)
+
+                // Supporter Points
+                Button {
+                    haptic()
+                    showConnectionStatsSheet = true
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(tierColor(for: supporterPoints))
+                        Text("\(supporterPoints)")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundColor(HomeTheme.primaryText)
+                        Text("·")
+                            .foregroundColor(HomeTheme.secondaryText)
+                        Text("Supporter")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(tierColor(for: supporterPoints))
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .background(HomeTheme.cardBackground)
+                    .cornerRadius(12)
+                    .shadow(color: HomeTheme.shadowColor, radius: 3)
+                }
+                .buttonStyle(.plain)
 
                 HStack(spacing: 4) {
                     Image(systemName: "flame.fill")
                         .font(.system(size: HomeTheme.iconSmall))
-                    Text("\(streak) Day Streak")
-                        .font(.system(size: 13, weight: .semibold))
+                    Text("\(streak)")
+                        .font(.system(size: 12, weight: .semibold))
                 }
                 .foregroundColor(HomeTheme.warning)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 7)
                 .background(HomeTheme.warning.opacity(0.15))
-                .cornerRadius(20)
+                .cornerRadius(16)
 
                 Spacer()
             }
@@ -146,11 +188,11 @@ struct HeaderZone: View {
         .sheet(isPresented: $showAreaInsights) {
             AreaInsightsSheet(city: cityName, state: stateName, zipCode: zipCode)
         }
-        .sheet(isPresented: $showScoreDetail) {
-            BillixScoreDetailSheet()
-        }
-        .task {
-            await scoreService.fetchAndCalculateScore()
+        .sheet(isPresented: $showConnectionStatsSheet) {
+            ConnectionStatsSheet(
+                requesterPoints: requesterPoints,
+                supporterPoints: supporterPoints
+            )
         }
     }
 }

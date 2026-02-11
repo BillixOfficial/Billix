@@ -100,6 +100,11 @@ class StoreKitService: ObservableObject {
                 // Update purchased products
                 await updatePurchasedProducts()
 
+                // Sync membership to Supabase if this is a subscription
+                if transaction.productID == BillixProduct.billixPrimeMonthly.rawValue {
+                    try? await SubscriptionSyncService.shared.recordMembershipPurchase(transaction: transaction)
+                }
+
                 // Finish the transaction
                 await transaction.finish()
 
