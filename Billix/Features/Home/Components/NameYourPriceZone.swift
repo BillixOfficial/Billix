@@ -68,6 +68,9 @@ struct NameYourPriceZone: View {
                             },
                             onViewOptions: {
                                 viewingOptionsFor = target
+                            },
+                            onDelete: {
+                                priceTargetService.removeTarget(billType: target.billType)
                             }
                         )
                     }

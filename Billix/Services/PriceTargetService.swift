@@ -474,8 +474,99 @@ class PriceTargetService: ObservableObject {
                 .upsert(supabaseTarget, onConflict: "user_id,bill_type")
                 .execute()
 
+            // Track in deal_interests for analytics
+            await trackPriceTargetInterest(target: target, userId: userId)
+
+            // Send confirmation email to user
+            await sendConfirmationEmail(target: target)
+
         } catch {
             print("Failed to sync price target: \(error)")
+        }
+    }
+
+    // MARK: - Track Price Target Interest
+
+    private func trackPriceTargetInterest(target: PriceTarget, userId: String) async {
+        // Get user info from session
+        let userEmail = try? await supabase.auth.session.user.email
+        let zipCode = UserDefaults.standard.string(forKey: "user_zip_code") ?? ""
+        let city = UserDefaults.standard.string(forKey: "user_city") ?? ""
+        let state = UserDefaults.standard.string(forKey: "user_state") ?? ""
+
+        struct PriceTargetInterestInsert: Encodable {
+            let user_id: String?
+            let deal_title: String
+            let deal_description: String
+            let deal_category: String
+            let zip_code: String
+            let city: String
+            let state: String
+            let user_email: String?
+            let user_name: String?
+            let request_type: String
+        }
+
+        let description = target.currentProvider != nil
+            ? "Target: $\(Int(target.targetAmount))/mo, Provider: \(target.currentProvider!)"
+            : "Target: $\(Int(target.targetAmount))/mo"
+
+        let insert = PriceTargetInterestInsert(
+            user_id: userId,
+            deal_title: "\(target.billType.displayName) Price Target: $\(Int(target.targetAmount))/mo",
+            deal_description: description,
+            deal_category: "price_target",
+            zip_code: zipCode,
+            city: city,
+            state: state,
+            user_email: userEmail,
+            user_name: nil,
+            request_type: "price_target"
+        )
+
+        do {
+            try await supabase
+                .from("deal_interests")
+                .insert(insert)
+                .execute()
+            print("✅ Price target tracked in deal_interests")
+        } catch {
+            print("⚠️ Failed to track price target interest: \(error)")
+        }
+    }
+
+    // MARK: - Send Confirmation Email
+
+    private func sendConfirmationEmail(target: PriceTarget) async {
+        guard let userEmail = try? await supabase.auth.session.user.email else {
+            print("⚠️ No user email for confirmation")
+            return
+        }
+
+        struct EmailRequest: Encodable {
+            let billType: String
+            let targetAmount: Double
+            let currentProvider: String?
+            let currentAmount: Double?
+            let userEmail: String
+            let userName: String?
+        }
+
+        let request = EmailRequest(
+            billType: target.billType.displayName,
+            targetAmount: target.targetAmount,
+            currentProvider: target.currentProvider,
+            currentAmount: target.currentAmount,
+            userEmail: userEmail,
+            userName: nil
+        )
+
+        do {
+            try await supabase.functions
+                .invoke("notify-price-target", options: .init(body: request))
+            print("✅ Price target confirmation email sent")
+        } catch {
+            print("⚠️ Failed to send confirmation email: \(error)")
         }
     }
 
