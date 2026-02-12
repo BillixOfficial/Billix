@@ -710,6 +710,8 @@ struct ComparisonBarCard: View {
     let percentDiff: Double
     let areaAverage: Double
     let yourAmount: Double
+    let state: String?
+    let sampleSize: Int?
 
     @State private var animatedPosition: CGFloat = 0.5
 
@@ -754,7 +756,7 @@ struct ComparisonBarCard: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("Area Average")
+                    Text("Billix Average")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.billixMediumGreen)
                         .textCase(.uppercase)
@@ -810,6 +812,13 @@ struct ComparisonBarCard: View {
                 Text(statusMessage)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(markerColor)
+
+                // Sample size display
+                if let state = state, let sampleSize = sampleSize, sampleSize >= 5 {
+                    Text("Based on \(sampleSize) bills in \(state)")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.billixLightGreenText)
+                }
             }
         }
         .padding(18)
@@ -832,11 +841,11 @@ struct ComparisonBarCard: View {
         let diff = abs(percentDiff)
         switch position {
         case .below:
-            return "Great news! You're paying \(String(format: "%.0f", diff))% below average"
+            return "Great news! You're paying \(String(format: "%.0f", diff))% below Billix average"
         case .average:
-            return "You're paying the area average"
+            return "You're paying the Billix average"
         case .above:
-            return "You're paying \(String(format: "%.0f", diff))% above average"
+            return "You're paying \(String(format: "%.0f", diff))% above Billix average"
         }
     }
 }

@@ -415,7 +415,9 @@ struct LegalDisclaimerView: View {
             areaAverage: 120.0,
             percentDiff: 18.75,
             zipPrefix: "481",
-            position: .above
+            position: .above,
+            state: "MI",
+            sampleSize: 42
         ),
         plainEnglishSummary: nil,
         redFlags: nil,
@@ -430,8 +432,9 @@ struct LegalDisclaimerView: View {
             )
         ],
         jargonGlossary: nil,
-        assistancePrograms: mockPrograms
+        assistancePrograms: mockPrograms,
+        rawExtractedText: nil
     )
 
-    return AnalysisSaveMoneyTab(analysis: mockAnalysis)
+    AnalysisSaveMoneyTab(analysis: mockAnalysis)
 }

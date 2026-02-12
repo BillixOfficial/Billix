@@ -51,6 +51,7 @@ struct BillixApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             StoredBill.self,
+            StoredChatSession.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -79,6 +80,9 @@ struct BillixApp: App {
                 .task {
                     // Check notification permission status on launch
                     await notificationService.checkPermissionStatus()
+
+                    // Cleanup expired chat sessions
+                    cleanupExpiredChatSessions(context: sharedModelContainer.mainContext)
                 }
                 .onChange(of: authService.isAuthenticated) { wasAuthenticated, isAuthenticated in
                     Task {
@@ -117,6 +121,29 @@ struct BillixApp: App {
             try await SupabaseService.shared.client.auth.session(from: url)
         } catch {
             print("OAuth callback error: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - Chat Session Cleanup
+
+    /// Deletes expired chat sessions (older than 7 days)
+    private func cleanupExpiredChatSessions(context: ModelContext) {
+        let now = Date()
+        let descriptor = FetchDescriptor<StoredChatSession>(
+            predicate: #Predicate<StoredChatSession> { session in
+                session.expiresAt < now
+            }
+        )
+
+        do {
+            let expired = try context.fetch(descriptor)
+            if !expired.isEmpty {
+                print("Cleaning up \(expired.count) expired chat session(s)")
+                expired.forEach { context.delete($0) }
+                try context.save()
+            }
+        } catch {
+            print("Failed to cleanup expired chat sessions: \(error)")
         }
     }
 }

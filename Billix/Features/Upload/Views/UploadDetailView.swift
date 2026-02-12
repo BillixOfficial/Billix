@@ -14,36 +14,42 @@ struct UploadDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showDeleteConfirmation = false
 
+    private var isScanUpload: Bool {
+        upload.source != .quickAdd
+    }
+
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.billixLightGreen
-                    .ignoresSafeArea()
+            Group {
+                if isScanUpload {
+                    // Scan upload - dark glassmorphic design (full view handles its own layout)
+                    scanUploadDetailContent
+                } else {
+                    // Quick Add - light theme with scroll
+                    ZStack {
+                        Color.billixLightGreen
+                            .ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Content varies by source type
-                        if upload.source == .quickAdd {
-                            // Show header for Quick Add (no embedded header)
-                            headerSection
-                            quickAddDetailContent
-                        } else {
-                            // Scan upload uses embedded view with its own header
-                            scanUploadDetailContent
+                        ScrollView {
+                            VStack(spacing: 20) {
+                                headerSection
+                                quickAddDetailContent
+                            }
+                            .padding(20)
                         }
                     }
-                    .padding(20)
                 }
             }
-            .navigationTitle(upload.provider)
+            .navigationTitle(isScanUpload ? "Bill Report" : upload.provider)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(isScanUpload ? .dark : .light, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(role: .destructive) {
                         showDeleteConfirmation = true
                     } label: {
                         Image(systemName: "trash")
-                            .foregroundColor(.red)
+                            .foregroundColor(isScanUpload ? .white.opacity(0.7) : .red)
                     }
                 }
 
@@ -51,7 +57,7 @@ struct UploadDetailView: View {
                     Button("Done") {
                         dismiss()
                     }
-                    .foregroundColor(.billixChartBlue)
+                    .foregroundColor(isScanUpload ? .white : .billixChartBlue)
                 }
             }
             .confirmationDialog("Delete this bill?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
@@ -232,8 +238,13 @@ struct UploadDetailView: View {
     @ViewBuilder
     private var scanUploadDetailContent: some View {
         if let analysis = storedBill.analysis {
-            // Use tabbed layout with hero section and swipeable tabs
-            AnalysisResultsTabbedEmbeddedView(analysis: analysis)
+            // Dark glassmorphic view (same as new upload flow, without bottom Done button)
+            AnalysisResultsTabbedView(
+                analysis: analysis,
+                onComplete: { dismiss() },
+                showDoneButton: false,
+                billId: storedBill.id
+            )
         }
     }
 
@@ -300,9 +311,9 @@ struct UploadDetailView: View {
 
     private func statusSubtitle(for status: QuickAddResult.Status) -> String {
         switch status {
-        case .overpaying: return "above average"
-        case .underpaying: return "below average"
-        case .average: return "close to average"
+        case .overpaying: return "above Billix average"
+        case .underpaying: return "below Billix average"
+        case .average: return "close to Billix average"
         }
     }
 }

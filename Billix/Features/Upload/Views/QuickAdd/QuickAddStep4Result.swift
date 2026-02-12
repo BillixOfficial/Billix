@@ -315,9 +315,9 @@ struct QuickAddStep4Result: View {
 
     private func statusSubtitle(for status: QuickAddResult.Status) -> String {
         switch status {
-        case .overpaying: return "above average"
-        case .underpaying: return "below average"
-        case .average: return "close to average"
+        case .overpaying: return "above Billix average"
+        case .underpaying: return "below Billix average"
+        case .average: return "close to Billix average"
         }
     }
 

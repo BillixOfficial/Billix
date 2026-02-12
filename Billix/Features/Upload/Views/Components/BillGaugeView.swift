@@ -123,9 +123,9 @@ struct BillGaugeView: View {
                 }
                 .foregroundColor(positionColor)
 
-                // Area average
+                // Billix average
                 HStack(spacing: 4) {
-                    Text("Area Average:")
+                    Text("Billix Average:")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.billixMediumGreen)
 

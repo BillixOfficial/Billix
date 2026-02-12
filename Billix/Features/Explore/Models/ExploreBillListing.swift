@@ -543,7 +543,8 @@ struct BillExplorerRow: Codable {
 
 extension ExploreBillType {
     /// Map database subcategory to ExploreBillType
-    static func from(subcategory: String) -> ExploreBillType {
+    /// Returns nil for unknown categories (e.g., medical, other) to exclude them from Bill Explorer
+    static func from(subcategory: String) -> ExploreBillType? {
         switch subcategory.lowercased() {
         case "electricity", "electric":
             return .electric
@@ -560,7 +561,7 @@ extension ExploreBillType {
         case "insurance", "auto_insurance", "home_insurance":
             return .insurance
         default:
-            return .electric  // Default fallback
+            return nil  // Unknown category - exclude from Bill Explorer
         }
     }
 
@@ -579,9 +580,15 @@ extension ExploreBillType {
 
 extension ExploreBillListing {
     /// Create ExploreBillListing from database row
-    init(from row: BillExplorerRow) {
+    /// Returns nil if the bill's subcategory is not a valid Bill Explorer type (e.g., medical, other)
+    init?(from row: BillExplorerRow) {
+        // Only include bills with valid Bill Explorer types
+        guard let billType = ExploreBillType.from(subcategory: row.subcategory) else {
+            return nil
+        }
+
         self.id = row.id
-        self.billType = ExploreBillType.from(subcategory: row.subcategory)
+        self.billType = billType
         self.provider = row.provider
         self.amount = row.amount
         self.billingPeriod = Self.formatBillingPeriod(from: row.postedDate)

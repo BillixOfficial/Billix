@@ -44,11 +44,11 @@ struct BillMarketplaceCard: View {
         let avgVsMedian = (data.avgAmount - data.medianAmount) / data.medianAmount * 100
 
         if avgVsMedian < -10 {
-            return "\(Int(abs(avgVsMedian)))% lower than area average"
+            return "\(Int(abs(avgVsMedian)))% lower than Billix average"
         } else if avgVsMedian > 10 {
-            return "\(Int(avgVsMedian))% higher than area average"
+            return "\(Int(avgVsMedian))% higher than Billix average"
         } else {
-            return "Right at area average"
+            return "Right at Billix average"
         }
     }
 
