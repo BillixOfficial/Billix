@@ -2,54 +2,65 @@
 //  BillixStoreView.swift
 //  Billix
 //
-//  Unified store view for subscriptions, credits, and purchases
+//  Store view for membership and token purchases
 //
 
 import SwiftUI
 import StoreKit
 
+// MARK: - Theme (matching HomeView)
+
+private enum Theme {
+    static let background = Color(hex: "#F7F9F8")
+    static let cardBackground = Color.white
+    static let primaryText = Color(hex: "#2D3B35")
+    static let secondaryText = Color(hex: "#8B9A94")
+    static let accent = Color(hex: "#5B8A6B")
+    static let accentLight = Color(hex: "#5B8A6B").opacity(0.08)
+    static let success = Color(hex: "#4CAF7A")
+    static let warning = Color(hex: "#E8A54B")
+    static let purple = Color(hex: "#9B7EB8")
+
+    static let horizontalPadding: CGFloat = 20
+    static let cardPadding: CGFloat = 16
+    static let cornerRadius: CGFloat = 16
+    static let shadowColor = Color.black.opacity(0.03)
+    static let shadowRadius: CGFloat = 8
+}
+
 struct BillixStoreView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var storeKit = StoreKitService.shared
-    @StateObject private var credits = UnlockCreditsService.shared
+    @StateObject private var tokenService = TokenService.shared
 
     @State private var isPurchasing = false
     @State private var showError = false
     @State private var errorMessage = ""
-    @State private var selectedPlan: PlanType = .yearly
-
-    enum PlanType {
-        case monthly, yearly
-    }
+    @State private var showPurchaseSuccess = false
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Header with status
-                    headerSection
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 20) {
+                    // Token Balance Section
+                    tokenBalanceSection
 
-                    // Billix Prime Subscription
-                    subscriptionSection
+                    // Membership Card
+                    membershipSection
 
-                    // Credits & Tokens
-                    creditsSection
+                    // Buy Tokens Card
+                    buyTokensSection
 
-                    // One-time purchases
-                    purchasesSection
-
-                    // Restore purchases
-                    restoreSection
-
-                    // Legal
-                    legalSection
+                    // Restore & Legal
+                    footerSection
 
                     Spacer().frame(height: 40)
                 }
-                .padding(20)
+                .padding(.horizontal, Theme.horizontalPadding)
+                .padding(.top, 12)
             }
-            .background(Color(hex: "#F7F9F8").ignoresSafeArea())
-            .navigationTitle("Billix Store")
+            .background(Theme.background.ignoresSafeArea())
+            .navigationTitle("Store")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -58,474 +69,448 @@ struct BillixStoreView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 24))
-                            .foregroundColor(Color(hex: "#8B9A94"))
+                            .foregroundStyle(Theme.secondaryText, Color(hex: "#E8EDEB"))
                     }
                 }
             }
-            .alert("Error", isPresented: $showError) {
+            .alert("Purchase", isPresented: $showError) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(errorMessage)
             }
+            .overlay {
+                if showPurchaseSuccess {
+                    purchaseSuccessOverlay
+                }
+            }
+            .onAppear {
+                Task {
+                    await tokenService.loadTokenBalance()
+                }
+            }
         }
     }
 
-    // MARK: - Header Section
+    // MARK: - Token Balance Section
 
-    private var headerSection: some View {
+    private var tokenBalanceSection: some View {
         VStack(spacing: 16) {
-            // Store icon
+            // Icon
             ZStack {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.billixGoldenAmber, Color.billixGold],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 80, height: 80)
+                    .fill(Theme.warning.opacity(0.12))
+                    .frame(width: 64, height: 64)
 
-                Image(systemName: "cart.fill")
-                    .font(.system(size: 36))
-                    .foregroundColor(.white)
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(Theme.warning)
             }
 
-            // Status badge
-            if storeKit.isPrime {
+            // Balance
+            VStack(spacing: 4) {
+                Text("YOUR BALANCE")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(Theme.secondaryText)
+                    .tracking(1)
+
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text("\(tokenService.tokenBalance)")
+                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.primaryText)
+
+                    Text("tokens")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Theme.secondaryText)
+                }
+            }
+
+            // Member badge
+            if storeKit.isMember {
                 HStack(spacing: 6) {
                     Image(systemName: "crown.fill")
                         .font(.system(size: 12))
-                    Text("Billix Prime Active")
-                        .font(.system(size: 13, weight: .semibold))
+                    Text("MEMBER")
+                        .font(.system(size: 11, weight: .bold))
+                        .tracking(0.5)
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(
-                    LinearGradient(
-                        colors: [Color.billixGoldenAmber, Color.billixGold],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+                .background(Theme.accent)
                 .cornerRadius(20)
-            }
-
-            // Credits balance
-            HStack(spacing: 8) {
-                Image(systemName: "star.circle.fill")
-                    .font(.system(size: 16))
-                    .foregroundColor(Color.billixGoldenAmber)
-
-                Text("\(credits.balance) Credits")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Color(hex: "#2D3B35"))
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(24)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
+        .padding(.vertical, 28)
+        .padding(.horizontal, Theme.cardPadding)
+        .background(Theme.cardBackground)
+        .cornerRadius(Theme.cornerRadius)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 
-    // MARK: - Subscription Section
+    // MARK: - Membership Section
 
-    private var subscriptionSection: some View {
+    private var membershipSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Section header
+            // Header
             HStack {
-                Image(systemName: "crown.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(Color.billixGoldenAmber)
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Theme.accent.opacity(0.12))
+                            .frame(width: 36, height: 36)
 
-                Text("Billix Prime")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(Color(hex: "#2D3B35"))
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(Theme.accent)
+                    }
+
+                    Text("Membership")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(Theme.primaryText)
+                }
 
                 Spacer()
 
-                if storeKit.isPrime {
-                    Text("Active")
-                        .font(.system(size: 12, weight: .semibold))
+                if storeKit.isMember {
+                    Text("ACTIVE")
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(0.5)
                         .foregroundColor(.white)
                         .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Color(hex: "#5B8A6B"))
+                        .padding(.vertical, 5)
+                        .background(Theme.success)
                         .cornerRadius(10)
                 }
             }
 
-            // Plan options
-            if !storeKit.isPrime {
-                VStack(spacing: 12) {
-                    // Yearly plan
-                    planCard(
-                        title: "Yearly",
-                        price: storeKit.yearlyProduct?.displayPrice ?? "$39.99",
-                        period: "/year",
-                        savings: "Save 33%",
-                        isSelected: selectedPlan == .yearly
-                    ) {
-                        selectedPlan = .yearly
-                    }
+            if !storeKit.isMember {
+                // Price
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text("$6.99")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.primaryText)
+                    Text("/month")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Theme.secondaryText)
 
-                    // Monthly plan
-                    planCard(
-                        title: "Monthly",
-                        price: storeKit.monthlyProduct?.displayPrice ?? "$4.99",
-                        period: "/month",
-                        savings: nil,
-                        isSelected: selectedPlan == .monthly
-                    ) {
-                        selectedPlan = .monthly
-                    }
+                    Spacer()
+
+                    Text("Cancel anytime")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.secondaryText)
                 }
 
-                // Features list
-                VStack(alignment: .leading, spacing: 10) {
-                    featureRow(icon: "checkmark.circle.fill", text: "Unlimited bill comparisons")
-                    featureRow(icon: "checkmark.circle.fill", text: "Priority swap matching")
-                    featureRow(icon: "checkmark.circle.fill", text: "Advanced analytics")
-                    featureRow(icon: "checkmark.circle.fill", text: "No ads")
-                    featureRow(icon: "checkmark.circle.fill", text: "Premium support")
+                // Features
+                VStack(spacing: 10) {
+                    featureRow(icon: "infinity", text: "Unlimited connections")
+                    featureRow(icon: "chart.bar.fill", text: "Full bill analysis")
+                    featureRow(icon: "arrow.left.arrow.right", text: "Market comparisons")
+                    featureRow(icon: "bolt.slash.fill", text: "No tokens needed")
                 }
-                .padding(.top, 8)
+                .padding(.vertical, 4)
 
                 // Subscribe button
                 Button {
-                    Task { await purchaseSubscription() }
+                    Task { await purchaseMembership() }
                 } label: {
-                    HStack {
+                    HStack(spacing: 8) {
                         if isPurchasing {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
-                            Text("Subscribe Now")
-                                .font(.system(size: 16, weight: .bold))
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 14))
+                            Text("Get Membership")
+                                .font(.system(size: 15, weight: .bold))
                         }
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(
-                        LinearGradient(
-                            colors: [Color.billixGoldenAmber, Color.billixGold],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(14)
+                    .frame(height: 48)
+                    .background(Theme.accent)
+                    .cornerRadius(12)
                 }
                 .disabled(isPurchasing)
             } else {
-                // Already subscribed message
+                // Active member message
                 HStack(spacing: 12) {
                     Image(systemName: "checkmark.seal.fill")
                         .font(.system(size: 24))
-                        .foregroundColor(Color(hex: "#5B8A6B"))
+                        .foregroundColor(Theme.success)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("You're a Prime member!")
+                        Text("You're a member!")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Color(hex: "#2D3B35"))
-                        Text("Enjoy all premium features")
+                            .foregroundColor(Theme.primaryText)
+                        Text("Enjoy unlimited access")
                             .font(.system(size: 13))
-                            .foregroundColor(Color(hex: "#8B9A94"))
+                            .foregroundColor(Theme.secondaryText)
                     }
                 }
-                .padding(16)
+                .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(hex: "#5B8A6B").opacity(0.1))
+                .background(Theme.success.opacity(0.08))
                 .cornerRadius(12)
             }
         }
-        .padding(20)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
-    }
-
-    private func planCard(title: String, price: String, period: String, savings: String?, isSelected: Bool, onTap: @escaping () -> Void) -> some View {
-        Button(action: onTap) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text(title)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(Color(hex: "#2D3B35"))
-
-                        if let savings = savings {
-                            Text(savings)
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(Color(hex: "#5B8A6B"))
-                                .cornerRadius(6)
-                        }
-                    }
-
-                    HStack(spacing: 2) {
-                        Text(price)
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(Color(hex: "#2D3B35"))
-                        Text(period)
-                            .font(.system(size: 13))
-                            .foregroundColor(Color(hex: "#8B9A94"))
-                    }
-                }
-
-                Spacer()
-
-                ZStack {
-                    Circle()
-                        .stroke(isSelected ? Color.billixGoldenAmber : Color.gray.opacity(0.3), lineWidth: 2)
-                        .frame(width: 24, height: 24)
-
-                    if isSelected {
-                        Circle()
-                            .fill(Color.billixGoldenAmber)
-                            .frame(width: 14, height: 14)
-                    }
-                }
-            }
-            .padding(16)
-            .background(isSelected ? Color.billixGoldenAmber.opacity(0.08) : Color(hex: "#F7F9F8"))
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.billixGoldenAmber : Color.clear, lineWidth: 2)
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
+        .padding(Theme.cardPadding)
+        .background(Theme.cardBackground)
+        .cornerRadius(Theme.cornerRadius)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 
     private func featureRow(icon: String, text: String) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundColor(Color(hex: "#5B8A6B"))
+                .foregroundColor(Theme.accent)
+                .frame(width: 28, height: 28)
+                .background(Theme.accentLight)
+                .cornerRadius(8)
 
             Text(text)
-                .font(.system(size: 14))
-                .foregroundColor(Color(hex: "#5D6D66"))
-        }
-    }
-
-    // MARK: - Credits Section
-
-    private var creditsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Section header
-            HStack {
-                Image(systemName: "star.circle.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(Color.billixGoldenAmber)
-
-                Text("Credits & Tokens")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(Color(hex: "#2D3B35"))
-            }
-
-            // Token pack
-            HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.billixGoldenAmber.opacity(0.15))
-                        .frame(width: 56, height: 56)
-
-                    Image(systemName: "bolt.circle.fill")
-                        .font(.system(size: 26))
-                        .foregroundColor(Color.billixGoldenAmber)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("3 Connect Tokens")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Color(hex: "#2D3B35"))
-
-                    Text("Use for swap connections")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(hex: "#8B9A94"))
-                }
-
-                Spacer()
-
-                Button {
-                    Task { await purchaseTokenPack() }
-                } label: {
-                    Text(storeKit.tokenPackPrice)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Color.billixGoldenAmber)
-                        .cornerRadius(10)
-                }
-                .disabled(isPurchasing)
-            }
-            .padding(14)
-            .background(Color(hex: "#F7F9F8"))
-            .cornerRadius(14)
-
-            // Earn credits info
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Earn Free Credits")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "#2D3B35"))
-
-                earnRow(icon: "doc.text.viewfinder", text: "Upload receipts", credits: "+10")
-                earnRow(icon: "arrow.left.arrow.right", text: "Complete swaps", credits: "+25")
-                earnRow(icon: "person.badge.plus", text: "Refer friends", credits: "+100")
-            }
-            .padding(14)
-            .background(Color(hex: "#5B8A6B").opacity(0.08))
-            .cornerRadius(14)
-        }
-        .padding(20)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
-    }
-
-    private func earnRow(icon: String, text: String, credits: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(Color(hex: "#5B8A6B"))
-                .frame(width: 20)
-
-            Text(text)
-                .font(.system(size: 13))
-                .foregroundColor(Color(hex: "#5D6D66"))
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Theme.primaryText)
 
             Spacer()
 
-            Text(credits)
-                .font(.system(size: 13, weight: .bold))
-                .foregroundColor(Color(hex: "#5B8A6B"))
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Theme.accent)
         }
     }
 
-    // MARK: - Purchases Section
+    // MARK: - Buy Tokens Section
 
-    private var purchasesSection: some View {
+    private var buyTokensSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Section header
+            // Header
             HStack {
-                Image(systemName: "bag.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(Color(hex: "#8B9A94"))
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Theme.warning.opacity(0.12))
+                            .frame(width: 36, height: 36)
 
-                Text("One-Time Purchases")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(Color(hex: "#2D3B35"))
-            }
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(Theme.warning)
+                    }
 
-            // Handshake fee
-            HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#5B8A6B").opacity(0.15))
-                        .frame(width: 56, height: 56)
-
-                    Image(systemName: "hand.raised.fill")
-                        .font(.system(size: 26))
-                        .foregroundColor(Color(hex: "#5B8A6B"))
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Swap Handshake Fee")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Color(hex: "#2D3B35"))
-
-                    Text("Finalize swap agreements")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(hex: "#8B9A94"))
+                    Text("Buy Tokens")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(Theme.primaryText)
                 }
 
                 Spacer()
 
+                // Current balance pill
+                HStack(spacing: 4) {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 10))
+                    Text("\(tokenService.tokenBalance)")
+                        .font(.system(size: 13, weight: .bold))
+                }
+                .foregroundColor(Theme.warning)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Theme.warning.opacity(0.12))
+                .cornerRadius(12)
+            }
+
+            // Info text
+            if !storeKit.isMember {
+                Text("Use tokens to connect with others, analyze bills, and compare rates.")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.secondaryText)
+                    .lineSpacing(2)
+            } else {
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 14))
+                        .foregroundColor(Theme.success)
+                    Text("Members have unlimited access!")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Theme.primaryText)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.success.opacity(0.08))
+                .cornerRadius(10)
+            }
+
+            // Token pack row
+            HStack(spacing: 14) {
+                // Token icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Theme.warning.opacity(0.12))
+                        .frame(width: 56, height: 56)
+
+                    VStack(spacing: 2) {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(Theme.warning)
+                        Text("+2")
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .foregroundColor(Theme.warning)
+                    }
+                }
+
+                // Description
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Token Pack")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Theme.primaryText)
+
+                    Text("2 tokens • One-time purchase")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.secondaryText)
+                }
+
+                Spacer()
+
+                // Buy button
                 Button {
-                    Task { await purchaseHandshakeFee() }
+                    Task { await purchaseTokens() }
                 } label: {
-                    Text(storeKit.handshakeFeePrice)
+                    Text("$1.99")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.white)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 18)
                         .padding(.vertical, 10)
-                        .background(Color(hex: "#5B8A6B"))
+                        .background(Theme.warning)
                         .cornerRadius(10)
                 }
                 .disabled(isPurchasing)
             }
             .padding(14)
-            .background(Color(hex: "#F7F9F8"))
-            .cornerRadius(14)
+            .background(Theme.warning.opacity(0.06))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Theme.warning.opacity(0.15), lineWidth: 1)
+            )
         }
-        .padding(20)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
+        .padding(Theme.cardPadding)
+        .background(Theme.cardBackground)
+        .cornerRadius(Theme.cornerRadius)
+        .shadow(color: Theme.shadowColor, radius: Theme.shadowRadius, x: 0, y: 2)
     }
 
-    // MARK: - Restore Section
+    // MARK: - Footer Section
 
-    private var restoreSection: some View {
-        Button {
-            Task { await restorePurchases() }
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 14))
-                Text("Restore Purchases")
-                    .font(.system(size: 15, weight: .medium))
+    private var footerSection: some View {
+        VStack(spacing: 16) {
+            // Restore purchases button
+            Button {
+                Task { await restorePurchases() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 13, weight: .medium))
+                    Text("Restore Purchases")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(Theme.secondaryText)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(hex: "#D0DBD6"), lineWidth: 1)
+                )
             }
-            .foregroundColor(Color(hex: "#5D6D66"))
+            .disabled(isPurchasing)
+
+            // Legal text
+            VStack(spacing: 8) {
+                Text("Membership auto-renews at $6.99/month unless cancelled at least 24 hours before the end of the current period.")
+                    .font(.system(size: 11))
+                    .foregroundColor(Theme.secondaryText)
+                    .multilineTextAlignment(.center)
+
+                HStack(spacing: 16) {
+                    Button("Terms") { }
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Theme.accent)
+
+                    Text("•")
+                        .foregroundColor(Theme.secondaryText)
+
+                    Button("Privacy") { }
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Theme.accent)
+                }
+            }
         }
-        .disabled(isPurchasing)
     }
 
-    // MARK: - Legal Section
+    // MARK: - Purchase Success Overlay
 
-    private var legalSection: some View {
-        VStack(spacing: 8) {
-            Text("Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. Manage your subscription in Settings.")
-                .font(.system(size: 11))
-                .foregroundColor(Color(hex: "#8B9A94"))
-                .multilineTextAlignment(.center)
+    private var purchaseSuccessOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
 
-            HStack(spacing: 16) {
-                Button("Terms of Service") {
-                    // Open terms
+            VStack(spacing: 20) {
+                ZStack {
+                    Circle()
+                        .fill(Theme.success.opacity(0.15))
+                        .frame(width: 80, height: 80)
+
+                    Circle()
+                        .fill(Theme.success)
+                        .frame(width: 56, height: 56)
+
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(.white)
                 }
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(Color(hex: "#5B8A6B"))
 
-                Button("Privacy Policy") {
-                    // Open privacy
+                Text("Purchase Complete!")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(Theme.primaryText)
+
+                Button {
+                    showPurchaseSuccess = false
+                } label: {
+                    Text("Continue")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 12)
+                        .background(Theme.accent)
+                        .cornerRadius(12)
                 }
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(Color(hex: "#5B8A6B"))
             }
+            .padding(32)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+            )
+            .padding(40)
         }
     }
 
     // MARK: - Actions
 
-    private func purchaseSubscription() async {
-        let product = selectedPlan == .yearly ? storeKit.yearlyProduct : storeKit.monthlyProduct
-        guard let product = product else {
-            errorMessage = "Product not available"
-            showError = true
+    private func purchaseMembership() async {
+        isPurchasing = true
+
+        if storeKit.monthlyProduct == nil {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            await MainActor.run {
+                isPurchasing = false
+                errorMessage = "In-app purchases will be available soon! Products are being set up in App Store Connect."
+                showError = true
+            }
             return
         }
 
-        isPurchasing = true
         do {
-            _ = try await storeKit.purchase(product)
+            _ = try await storeKit.purchase(storeKit.monthlyProduct!)
+            showPurchaseSuccess = true
         } catch {
             errorMessage = error.localizedDescription
             showError = true
@@ -533,21 +518,23 @@ struct BillixStoreView: View {
         isPurchasing = false
     }
 
-    private func purchaseTokenPack() async {
+    private func purchaseTokens() async {
         isPurchasing = true
+
+        if storeKit.tokenPackProduct == nil {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            await MainActor.run {
+                isPurchasing = false
+                errorMessage = "In-app purchases will be available soon! Products are being set up in App Store Connect."
+                showError = true
+            }
+            return
+        }
+
         do {
             _ = try await storeKit.purchaseTokenPack()
-        } catch {
-            errorMessage = error.localizedDescription
-            showError = true
-        }
-        isPurchasing = false
-    }
-
-    private func purchaseHandshakeFee() async {
-        isPurchasing = true
-        do {
-            _ = try await storeKit.purchaseHandshakeFee()
+            await tokenService.loadTokenBalance()
+            showPurchaseSuccess = true
         } catch {
             errorMessage = error.localizedDescription
             showError = true

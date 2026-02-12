@@ -298,12 +298,12 @@ struct BillExplorerDetailSheet: View {
                     action: onNegotiationScript
                 )
 
-                // Find BillSwap match
+                // Find Bill Connection match
                 actionButton(
-                    icon: "arrow.left.arrow.right.circle.fill",
-                    title: "Find BillSwap Match",
-                    subtitle: "Split costs with others in your area",
-                    color: "#9B7EB8",
+                    icon: "person.2.fill",
+                    title: "Find Bill Connection",
+                    subtitle: "Get help from your community",
+                    color: "#2d5a5e",
                     action: onFindSwapMatch
                 )
 

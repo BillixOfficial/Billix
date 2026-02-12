@@ -27,15 +27,6 @@ struct ChatHubView: View {
     @State private var selectedConversation: ConversationWithDetails?
     @State private var selectedUser: ChatParticipant?
     @State private var showNewChat = false
-    @State private var selectedSwapConversation: SwapConversation?
-    @State private var swapConversations: [SwapConversation] = []
-    @State private var selectedTab: ChatTab = .all
-
-    enum ChatTab: String, CaseIterable {
-        case all = "All"
-        case swaps = "Swaps"
-        case direct = "Direct"
-    }
 
     var body: some View {
         NavigationStack {
@@ -54,27 +45,22 @@ struct ChatHubView: View {
                         .fill(ChatTheme.divider)
                         .frame(height: 1)
 
-                    // Tab picker
-                    tabPicker
-
                     // Content
-                    if viewModel.isLoading && viewModel.conversations.isEmpty && swapConversations.isEmpty {
+                    if viewModel.isLoading && viewModel.conversations.isEmpty {
                         loadingView
                     } else if !viewModel.searchQuery.isEmpty {
                         searchResultsView
                     } else {
-                        contentForSelectedTab
+                        conversationsList
                     }
                 }
             }
             .navigationBarHidden(true)
             .task {
                 await viewModel.loadConversations()
-                await loadSwapConversations()
             }
             .refreshable {
                 await viewModel.loadConversations()
-                await loadSwapConversations()
             }
             .navigationDestination(item: $selectedConversation) { convo in
                 ChatConversationView(
@@ -84,9 +70,6 @@ struct ChatHubView: View {
             }
             .navigationDestination(item: $selectedUser) { user in
                 NewChatConversationView(otherUser: user)
-            }
-            .navigationDestination(item: $selectedSwapConversation) { swapConvo in
-                MatchDetailView(swapId: swapConvo.swap.id)
             }
             .sheet(isPresented: $showNewChat) {
                 NewChatView { user in
@@ -171,136 +154,13 @@ struct ChatHubView: View {
         .background(ChatTheme.cardBackground)
     }
 
-    // MARK: - Tab Picker
-
-    private var tabPicker: some View {
-        HStack(spacing: 0) {
-            ForEach(ChatTab.allCases, id: \.self) { tab in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedTab = tab
-                    }
-                } label: {
-                    VStack(spacing: 6) {
-                        HStack(spacing: 4) {
-                            Text(tab.rawValue)
-                                .font(.system(size: 14, weight: selectedTab == tab ? .semibold : .medium))
-
-                            // Badge for swaps with action needed
-                            if tab == .swaps {
-                                let actionCount = swapConversations.filter { $0.requiresAction }.count
-                                if actionCount > 0 {
-                                    Text("\(actionCount)")
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 2)
-                                        .background(Color.red)
-                                        .cornerRadius(8)
-                                }
-                            }
-                        }
-
-                        Rectangle()
-                            .fill(selectedTab == tab ? ChatTheme.accent : Color.clear)
-                            .frame(height: 2)
-                    }
-                    .foregroundColor(selectedTab == tab ? ChatTheme.accent : ChatTheme.secondaryText)
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .background(ChatTheme.cardBackground)
-    }
-
-    // MARK: - Content for Selected Tab
-
-    @ViewBuilder
-    private var contentForSelectedTab: some View {
-        switch selectedTab {
-        case .all:
-            allConversationsList
-        case .swaps:
-            swapConversationsList
-        case .direct:
-            directConversationsList
-        }
-    }
-
-    // MARK: - All Conversations List
-
-    private var allConversationsList: some View {
-        ScrollView {
-            LazyVStack(spacing: 8) {
-                // Swap conversations with actions first
-                let activeSwaps = swapConversations.filter { $0.requiresAction }
-                if !activeSwaps.isEmpty {
-                    swapSection(title: "ACTION NEEDED", conversations: activeSwaps)
-                }
-
-                // Regular conversations
-                if !viewModel.filteredConversations.isEmpty {
-                    ForEach(viewModel.filteredConversations) { convo in
-                        Button {
-                            selectedConversation = convo
-                        } label: {
-                            ConversationRow(conversation: convo)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                }
-
-                // Other swap conversations
-                let otherSwaps = swapConversations.filter { !$0.requiresAction }
-                if !otherSwaps.isEmpty {
-                    swapSection(title: "ACTIVE SWAPS", conversations: otherSwaps)
-                }
-
-                if viewModel.filteredConversations.isEmpty && swapConversations.isEmpty {
-                    emptyStateView
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-        }
-    }
-
     // MARK: - Conversations List
 
     private var conversationsList: some View {
         ScrollView {
             LazyVStack(spacing: 8) {
-                ForEach(viewModel.filteredConversations) { convo in
-                    Button {
-                        selectedConversation = convo
-                    } label: {
-                        ConversationRow(conversation: convo)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-        }
-    }
-
-    // MARK: - Direct Conversations List
-
-    private var directConversationsList: some View {
-        ScrollView {
-            LazyVStack(spacing: 8) {
                 if viewModel.filteredConversations.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "message")
-                            .font(.system(size: 40))
-                            .foregroundColor(ChatTheme.secondaryText.opacity(0.5))
-                        Text("No direct messages yet")
-                            .font(.system(size: 16))
-                            .foregroundColor(ChatTheme.secondaryText)
-                    }
-                    .padding(.vertical, 60)
+                    emptyStateView
                 } else {
                     ForEach(viewModel.filteredConversations) { convo in
                         Button {
@@ -315,143 +175,6 @@ struct ChatHubView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
         }
-    }
-
-    // MARK: - Swap Conversations List
-
-    private var swapConversationsList: some View {
-        ScrollView {
-            LazyVStack(spacing: 8) {
-                if swapConversations.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "arrow.left.arrow.right.circle")
-                            .font(.system(size: 40))
-                            .foregroundColor(ChatTheme.secondaryText.opacity(0.5))
-                        Text("No active swaps")
-                            .font(.system(size: 16))
-                            .foregroundColor(ChatTheme.secondaryText)
-                        Text("Your swap conversations will appear here")
-                            .font(.system(size: 14))
-                            .foregroundColor(ChatTheme.secondaryText.opacity(0.7))
-                    }
-                    .padding(.vertical, 60)
-                } else {
-                    // Group by status
-                    let grouped = swapConversations.groupedByStatus()
-                    ForEach(grouped, id: \.status) { group in
-                        swapSection(title: group.status.displayName.uppercased(), conversations: group.conversations)
-                    }
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-        }
-    }
-
-    // MARK: - Swap Section
-
-    private func swapSection(title: String, conversations: [SwapConversation]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(ChatTheme.secondaryText)
-                .tracking(0.5)
-                .padding(.horizontal, 4)
-                .padding(.top, 8)
-
-            ForEach(conversations) { swapConvo in
-                Button {
-                    selectedSwapConversation = swapConvo
-                } label: {
-                    SwapConversationRow(conversation: swapConvo)
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
-        }
-    }
-
-    // MARK: - Load Swap Conversations
-
-    private func loadSwapConversations() async {
-        guard let userId = SupabaseService.shared.currentUserId else { return }
-
-        do {
-            // Fetch active swaps for the user
-            let swaps: [BillSwapTransaction] = try await SupabaseService.shared.client
-                .from("swaps")
-                .select()
-                .or("user_a_id.eq.\(userId.uuidString),user_b_id.eq.\(userId.uuidString)")
-                .in("status", values: [BillSwapStatus.pending.rawValue, BillSwapStatus.active.rawValue])
-                .order("created_at", ascending: false)
-                .execute()
-                .value
-
-            var conversations: [SwapConversation] = []
-
-            for swap in swaps {
-                let partnerId = swap.partnerId(for: userId)
-
-                // Get partner info
-                let partnerInfo = try? await fetchPartnerInfo(partnerId: partnerId)
-
-                // Get current deal
-                let deal = try? await DealService.shared.getCurrentDeal(for: swap.id)
-
-                // Get latest event
-                let latestEvent = try? await SwapEventService.shared.getLatestEvent(for: swap.id)
-
-                // Get pending extension
-                let pendingExtension = try? await ExtensionService.shared.getPendingRequest(for: swap.id)
-
-                let swapConvo = SwapConversation(
-                    swap: swap,
-                    partnerParticipant: partnerInfo ?? ChatParticipant(
-                        userId: partnerId,
-                        handle: nil,
-                        displayName: "Swap Partner"
-                    ),
-                    currentDeal: deal,
-                    lastEvent: latestEvent,
-                    pendingExtension: pendingExtension,
-                    hasUnreadEvents: false, // TODO: Implement unread tracking
-                    conversationId: nil
-                )
-                conversations.append(swapConvo)
-            }
-
-            swapConversations = conversations.sortedByPriority
-        } catch {
-            print("Error loading swap conversations: \(error)")
-        }
-    }
-
-    private func fetchPartnerInfo(partnerId: UUID) async throws -> ChatParticipant? {
-        struct ProfileInfo: Decodable {
-            let handle: String?
-            let displayName: String?
-
-            enum CodingKeys: String, CodingKey {
-                case handle
-                case displayName = "display_name"
-            }
-        }
-
-        let profiles: [ProfileInfo] = try await SupabaseService.shared.client
-            .from("profiles")
-            .select("handle, display_name")
-            .eq("user_id", value: partnerId.uuidString)
-            .limit(1)
-            .execute()
-            .value
-
-        if let profile = profiles.first {
-            return ChatParticipant(
-                userId: partnerId,
-                handle: profile.handle,
-                displayName: profile.displayName ?? profile.handle ?? "Swap Partner"
-            )
-        }
-        return nil
     }
 
     // MARK: - Search Results
@@ -641,85 +364,6 @@ struct NewChatConversationView: View {
             }
             isLoading = false
         }
-    }
-}
-
-// MARK: - Swap Conversation Row
-
-struct SwapConversationRow: View {
-    let conversation: SwapConversation
-
-    var body: some View {
-        HStack(spacing: 12) {
-            // Status indicator
-            ZStack {
-                Circle()
-                    .fill(Color(hex: conversation.status.badgeColor).opacity(0.12))
-                    .frame(width: 48, height: 48)
-
-                Image(systemName: conversation.status.icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(Color(hex: conversation.status.badgeColor))
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(conversation.partnerParticipant.displayName ?? "Swap Partner")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(ChatTheme.primaryText)
-
-                    Spacer()
-
-                    if conversation.requiresAction {
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 8, height: 8)
-                    }
-                }
-
-                HStack(spacing: 6) {
-                    // Status badge
-                    Text(conversation.status.displayName)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(Color(hex: conversation.status.badgeColor))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color(hex: conversation.status.badgeColor).opacity(0.1))
-                        .cornerRadius(4)
-
-                    // Amount if available
-                    if let amount = conversation.swapAmountText {
-                        Text(amount)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(ChatTheme.accent)
-                    }
-                }
-
-                Text(conversation.previewText)
-                    .font(.system(size: 13))
-                    .foregroundColor(ChatTheme.secondaryText)
-                    .lineLimit(1)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(conversation.lastActivityAt, style: .relative)
-                    .font(.system(size: 12))
-                    .foregroundColor(ChatTheme.secondaryText)
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12))
-                    .foregroundColor(ChatTheme.secondaryText.opacity(0.5))
-            }
-        }
-        .padding(12)
-        .background(ChatTheme.cardBackground)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(conversation.requiresAction ? Color.red.opacity(0.3) : Color.clear, lineWidth: 2)
-        )
     }
 }
 

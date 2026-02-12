@@ -108,6 +108,14 @@ struct HomeView: View {
         authService.currentUser?.billixProfile?.state ?? ""
     }
 
+    private var requesterPoints: Int {
+        authService.currentUser?.requesterPoints ?? 0
+    }
+
+    private var supporterPoints: Int {
+        authService.currentUser?.supporterPoints ?? 0
+    }
+
     // Real streak from StreakService
     private var streakDays: Int {
         streakService.currentStreak
@@ -138,6 +146,8 @@ struct HomeView: View {
                         zipCode: userZip,
                         score: billixScore,
                         streak: streakDays,
+                        requesterPoints: requesterPoints,
+                        supporterPoints: supporterPoints,
                         notificationService: notificationService
                     )
                 }
@@ -440,7 +450,7 @@ private struct UtilityNewsBanner: View {
 private enum QuickActionType: String, Identifiable {
     case store = "Store"
     case chat = "Chat"
-    case compare = "Swap"
+    case connect = "Connect"
     case relief = "Relief"
     case household = "Household"
 
@@ -450,7 +460,7 @@ private enum QuickActionType: String, Identifiable {
         switch self {
         case .store: return "cart.fill"
         case .chat: return "message.fill"
-        case .compare: return "arrow.left.arrow.right.circle.fill"
+        case .connect: return "person.2.fill"
         case .relief: return "heart.circle.fill"
         case .household: return "house.fill"
         }
@@ -460,7 +470,7 @@ private enum QuickActionType: String, Identifiable {
         switch self {
         case .store: return Color.billixGoldenAmber
         case .chat: return Theme.info
-        case .compare: return Theme.purple
+        case .connect: return Color.billixDarkTeal
         case .relief: return Theme.danger
         case .household: return Theme.accent
         }
@@ -469,22 +479,22 @@ private enum QuickActionType: String, Identifiable {
     var subtitle: String? {
         switch self {
         case .store: return "Shop"
-        case .compare: return "Bill Swap"
+        case .chat: return "Messages"
+        case .connect: return "Community"
         case .relief: return "Get Help"
         case .household: return "Roommates"
-        default: return nil
         }
     }
 }
 
 private struct QuickActionsZone: View {
-    @State private var showSwapHub = false
+    @State private var showConnectionHub = false
     @State private var showStore = false
     @State private var showChat = false
     @State private var showRelief = false
     @State private var showHousehold = false
 
-    private let actions: [QuickActionType] = [.store, .chat, .compare, .relief, .household]
+    private let actions: [QuickActionType] = [.store, .chat, .connect, .relief, .household]
 
     var body: some View {
         GeometryReader { geometry in
@@ -541,8 +551,8 @@ private struct QuickActionsZone: View {
         }
         .frame(height: 110)
         .padding(.horizontal, Theme.horizontalPadding)
-        .fullScreenCover(isPresented: $showSwapHub) {
-            BillSwapView()
+        .fullScreenCover(isPresented: $showConnectionHub) {
+            BillConnectionView()
         }
         .sheet(isPresented: $showStore) {
             BillixStoreView()
@@ -560,8 +570,8 @@ private struct QuickActionsZone: View {
 
     private func handleAction(_ action: QuickActionType) {
         switch action {
-        case .compare:
-            showSwapHub = true
+        case .connect:
+            showConnectionHub = true
         case .store:
             showStore = true
         case .chat:

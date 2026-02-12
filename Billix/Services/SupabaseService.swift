@@ -60,4 +60,19 @@ class SupabaseService {
     var currentUserId: UUID? {
         client.auth.currentSession?.user.id
     }
+
+    // MARK: - Profile Methods
+
+    /// Fetch a user's profile by their user ID
+    func fetchProfile(for userId: UUID) async throws -> BillixProfile {
+        let profile: BillixProfile = try await client
+            .from("profiles")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        return profile
+    }
 }

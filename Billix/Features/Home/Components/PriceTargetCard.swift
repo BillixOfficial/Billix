@@ -13,6 +13,7 @@ struct PriceTargetCard: View {
     let options: [PriceOption]
     let onEdit: () -> Void
     let onViewOptions: () -> Void
+    let onDelete: () -> Void
 
     private var savings: Double {
         max(0, regionalAverage - target.targetAmount)
@@ -41,13 +42,24 @@ struct PriceTargetCard: View {
 
                 Spacer()
 
-                Button {
-                    haptic()
-                    onEdit()
-                } label: {
-                    Text("Edit")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color(hex: "#5B8A6B"))
+                HStack(spacing: 12) {
+                    Button {
+                        haptic()
+                        onEdit()
+                    } label: {
+                        Text("Edit")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Color(hex: "#5B8A6B"))
+                    }
+
+                    Button {
+                        haptic()
+                        onDelete()
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 14))
+                            .foregroundColor(.red.opacity(0.7))
+                    }
                 }
             }
 
@@ -149,11 +161,12 @@ struct PriceTargetCard: View {
         regionalAverage: 153,
         options: [
             PriceOption(type: .betterRate, title: "2 better rates found in your area", subtitle: "", potentialSavings: 20, action: .viewRates),
-            PriceOption(type: .billSwap, title: "3 BillSwap matches available", subtitle: "", potentialSavings: 15, action: .openBillSwap),
+            PriceOption(type: .billConnection, title: "3 Bill Connection matches available", subtitle: "", potentialSavings: 15, action: .openBillConnection),
             PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "", potentialSavings: 12, action: .showNegotiationScript)
         ],
         onEdit: {},
-        onViewOptions: {}
+        onViewOptions: {},
+        onDelete: {}
     )
     .padding()
     .background(Color(hex: "#F7F9F8"))

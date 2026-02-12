@@ -10,7 +10,7 @@ import SwiftUI
 enum QuickActionType: String, Identifiable {
     case addBill = "Add Bill"
     case chat = "Chat"
-    case compare = "Swap"
+    case connect = "Connect"
     case budget = "Budget"
 
     var id: String { rawValue }
@@ -19,7 +19,7 @@ enum QuickActionType: String, Identifiable {
         switch self {
         case .addBill: return "plus.circle.fill"
         case .chat: return "message.fill"
-        case .compare: return "arrow.left.arrow.right.circle.fill"
+        case .connect: return "person.2.fill"
         case .budget: return "chart.pie.fill"
         }
     }
@@ -28,14 +28,15 @@ enum QuickActionType: String, Identifiable {
         switch self {
         case .addBill: return HomeTheme.accent
         case .chat: return HomeTheme.info
-        case .compare: return HomeTheme.purple
+        case .connect: return Color.billixDarkTeal
         case .budget: return HomeTheme.warning
         }
     }
 
     var subtitle: String? {
         switch self {
-        case .compare: return "Bill Swap"
+        case .chat: return "Messages"
+        case .connect: return "Community"
         default: return nil
         }
     }
@@ -44,7 +45,7 @@ enum QuickActionType: String, Identifiable {
 // MARK: - Quick Actions Zone
 
 struct QuickActionsZone: View {
-    @State private var showSwapHub = false
+    @State private var showConnectionHub = false
     @State private var showAddBill = false
     @State private var showChat = false
     @State private var showBudget = false
@@ -52,7 +53,7 @@ struct QuickActionsZone: View {
     // Observe chat service for unread count
     @ObservedObject private var chatService = ChatService.shared
 
-    private let actions: [QuickActionType] = [.addBill, .chat, .compare, .budget]
+    private let actions: [QuickActionType] = [.addBill, .chat, .connect, .budget]
 
     var body: some View {
         HStack(spacing: 10) {
@@ -105,8 +106,8 @@ struct QuickActionsZone: View {
         .cornerRadius(HomeTheme.cornerRadius)
         .shadow(color: HomeTheme.shadowColor, radius: HomeTheme.shadowRadius, x: 0, y: 2)
         .padding(.horizontal, HomeTheme.horizontalPadding)
-        .fullScreenCover(isPresented: $showSwapHub) {
-            SwapHubView()
+        .fullScreenCover(isPresented: $showConnectionHub) {
+            BillConnectionView()
         }
         .sheet(isPresented: $showAddBill) {
             AddBillActionSheet()
@@ -133,7 +134,7 @@ struct QuickActionsZone: View {
 
     private func handleAction(_ action: QuickActionType) {
         switch action {
-        case .compare: showSwapHub = true
+        case .connect: showConnectionHub = true
         case .addBill: showAddBill = true
         case .chat: showChat = true
         case .budget: showBudget = true

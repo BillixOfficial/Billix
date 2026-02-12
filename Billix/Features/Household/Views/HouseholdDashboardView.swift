@@ -356,7 +356,7 @@ struct HouseholdFeedView: View {
                 .font(.system(size: 15, weight: .medium))
                 .foregroundColor(Color(hex: "#8B9A94"))
 
-            Text("Add bills from your BillSwap to share with the household")
+            Text("Add bills to share with the household")
                 .font(.system(size: 13))
                 .foregroundColor(Color(hex: "#8B9A94").opacity(0.8))
                 .multilineTextAlignment(.center)
