@@ -232,7 +232,7 @@ final class RewardsService: Sendable {
                     rank: index + 1,
                     displayName: displayHandle,
                     avatarInitials: initials,
-                    pointsThisWeek: profile.lifetime_points ?? 0, // All-time points
+                    totalPoints: profile.lifetime_points ?? 0,
                     isCurrentUser: isCurrentUser
                 )
 
@@ -261,7 +261,7 @@ final class RewardsService: Sendable {
                         rank: entries.count + 1, // Position after all visible entries
                         displayName: "@\(handle)",
                         avatarInitials: String(handle.prefix(2)).uppercased(),
-                        pointsThisWeek: userProfile.lifetime_points ?? 0,
+                        totalPoints: userProfile.lifetime_points ?? 0,
                         isCurrentUser: true
                     )
                 }
