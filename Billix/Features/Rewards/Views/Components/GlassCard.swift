@@ -52,9 +52,9 @@ struct GlassCard<Content: View>: View {
 
 #Preview("Glass Card") {
     ZStack {
-        // Purple gradient background (like Price Guessr card)
+        // Dark teal gradient background (like Price Guessr card)
         LinearGradient(
-            colors: [Color(hex: "#6B2DD6"), Color(hex: "#8B5CF6")],
+            colors: [Color(hex: "#1e3d40"), Color(hex: "#2d5a5e")],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )

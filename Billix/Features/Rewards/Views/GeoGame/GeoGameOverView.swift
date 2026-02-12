@@ -66,7 +66,7 @@ struct GeoGameOverView: View {
     }
 
     var tierColor: Color {
-        if accuracy >= 0.9 { return Color(hex: "#FFD700") } // Gold
+        if accuracy >= 0.9 { return .billixGoldenAmber } // Gold
         if accuracy >= 0.7 { return Color(hex: "#C0C0C0") } // Silver
         if accuracy >= 0.5 { return Color(hex: "#CD7F32") } // Bronze
         return .gray
@@ -92,7 +92,7 @@ struct GeoGameOverView: View {
     private var trophyGradient: LinearGradient {
         if didWin {
             return LinearGradient(
-                colors: [Color(hex: "#FFD700"), Color(hex: "#FFA500")],
+                colors: [.billixGoldenAmber, .billixGold],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -295,10 +295,10 @@ struct GeoGameOverView: View {
                             ForEach(0..<3) { index in
                                 Image(systemName: index < stars ? "star.fill" : "star")
                                     .font(.system(size: 32))
-                                    .foregroundColor(index < stars ? Color(hex: "#FFD700") : .white.opacity(0.3))
+                                    .foregroundColor(index < stars ? .billixGoldenAmber : .white.opacity(0.3))
                                     .scaleEffect(showStars && index < stars ? 1.2 : 1.0)
                                     .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(Double(index) * 0.1), value: showStars)
-                                    .shadow(color: Color(hex: "#FFD700").opacity(0.5), radius: index < stars ? 8 : 0)
+                                    .shadow(color: Color.billixGoldenAmber.opacity(0.5), radius: index < stars ? 8 : 0)
                             }
                         }
                         .padding(.vertical, 8)
@@ -399,7 +399,7 @@ struct GeoGameOverView: View {
                         .frame(height: 60)
                         .background(
                             LinearGradient(
-                                colors: [Color.billixArcadeGold, Color(hex: "#FFA500"), Color(hex: "#FF6B35")],
+                                colors: [.billixGoldenAmber, .billixGold, Color(hex: "#E8A54B")],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

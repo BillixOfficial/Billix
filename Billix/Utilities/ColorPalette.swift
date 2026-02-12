@@ -44,20 +44,20 @@ extension Color {
     static let billixGraphGray = Color(hex: "#2a2c3e")       // Graph text
 
     // Rewards/Arcade Colors
-    static let billixArcadeGold = Color(hex: "#FFD700")     // Bright gold for wins/points
-    static let billixPrizeOrange = Color(hex: "#FF8C00")    // Prize/reward accent
+    static let billixArcadeGold = Color(hex: "#e8b54d")     // Warm amber for wins/points
+    static let billixPrizeOrange = Color(hex: "#d4a04e")    // Muted gold accent
     static let billixLeaderGold = Color(hex: "#FFD700")     // 1st place
     static let billixLeaderSilver = Color(hex: "#C0C0C0")   // 2nd place
     static let billixLeaderBronze = Color(hex: "#CD7F32")   // 3rd place
-    static let billixGamePurple = Color(hex: "#8B5CF6")     // Game/arcade accent
+    static let billixGamePurple = Color(hex: "#9b7b9f")     // Muted purple accent
 
     // Tier System Colors
     static let billixBronzeTier = Color(hex: "#CD7F32")     // Bronze tier
     static let billixSilverTier = Color(hex: "#C0C0C0")     // Silver tier
     static let billixGoldTier = Color(hex: "#FFD700")       // Gold tier
     static let billixPlatinumTier = Color(hex: "#E5E4E2")   // Platinum tier
-    static let billixStreakOrange = Color(hex: "#FF6B35")   // Streak fire color
-    static let billixFlashRed = Color(hex: "#FF4757")       // Flash deal accent
+    static let billixStreakOrange = Color(hex: "#E8A54B")   // Warm amber streak
+    static let billixFlashRed = Color(hex: "#E07A6B")       // Muted coral accent
 
     // Login Screen Colors
     static let billixLoginGreen = Color(hex: "#b8e6b8")      // Login background - richer green

@@ -7,6 +7,18 @@
 
 import SwiftUI
 
+// MARK: - Local Deal Model
+
+struct LocalDeal: Identifiable {
+    let id = UUID()
+    let title: String
+    let description: String
+    let category: String
+    let icon: String
+    let savingsAmount: String?
+    let deadline: String?
+}
+
 struct AreaInsightsSheet: View {
     let city: String
     let state: String

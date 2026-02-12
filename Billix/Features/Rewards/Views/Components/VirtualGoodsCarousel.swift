@@ -228,7 +228,7 @@ struct VirtualGoodCard: View {
                             brand: nil,
                         brandGroup: nil,                            dollarValue: nil,
                             iconName: "paintpalette.fill",
-                            accentColor: "#FF6B35"
+                            accentColor: "#E8A54B"
                         ),
                         Reward(
                             id: UUID(),
@@ -240,7 +240,7 @@ struct VirtualGoodCard: View {
                             brand: nil,
                         brandGroup: nil,                            dollarValue: nil,
                             iconName: "star.fill",
-                            accentColor: "#FFD700"
+                            accentColor: "#e8b54d"
                         )
                     ],
                     userPoints: 350,

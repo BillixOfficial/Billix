@@ -13,18 +13,12 @@ struct PriceGuessrIcon: View {
     @State private var isAnimating = false
     @State private var tagOffset: CGFloat = 0
 
-    // DEBUG: position & scale tuning
-    @State private var dollarX: Float = 0.0
-    @State private var dollarY: Float = 0.0
-    @State private var dollarScale: Float = 1.0
-    @State private var showDebug = false
-
     var body: some View {
         ZStack {
             // Glow rings
             ForEach(0..<2) { index in
                 Circle()
-                    .stroke(Color.billixArcadeGold.opacity(0.3), lineWidth: 2)
+                    .stroke(Color.billixMoneyGreen.opacity(0.25), lineWidth: 2)
                     .frame(width: 168 + CGFloat(index * 17), height: 168 + CGFloat(index * 17))
                     .opacity(isAnimating ? 0.0 : 0.5)
                     .scaleEffect(isAnimating ? 1.4 : 1.0)
@@ -37,17 +31,11 @@ struct PriceGuessrIcon: View {
             }
 
             // 3D Spinning Dollar Sign
-            Animated3DDollarSign(offsetX: dollarX, offsetY: dollarY, scale: dollarScale)
+            Animated3DDollarSign(offsetX: 0.25, offsetY: -0.10, scale: 1.40)
                 .frame(width: 168, height: 168)
                 .offset(y: isAnimating ? -4 : 4)
         }
         .frame(width: 178, height: 178)
-        .onTapGesture(count: 2) { showDebug = true }
-        .sheet(isPresented: $showDebug) {
-            DollarDebugSheet(dollarX: $dollarX, dollarY: $dollarY, dollarScale: $dollarScale)
-                .presentationDetents([.height(180)])
-                .presentationDragIndicator(.visible)
-        }
         .onAppear {
             isAnimating = true
             withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
@@ -60,53 +48,6 @@ struct PriceGuessrIcon: View {
         .onDisappear {
             isAnimating = false
             tagOffset = 0
-        }
-    }
-}
-
-// MARK: - Debug Sheet
-
-private struct DollarDebugSheet: View {
-    @Binding var dollarX: Float
-    @Binding var dollarY: Float
-    @Binding var dollarScale: Float
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text("X:\(String(format: "%.2f", dollarX))  Y:\(String(format: "%.2f", dollarY))  S:\(String(format: "%.2f", dollarScale))")
-                .font(.system(size: 14, weight: .semibold, design: .monospaced))
-
-            HStack(spacing: 12) {
-                debugBtn("X-") { dollarX -= 0.05 }
-                debugBtn("X+") { dollarX += 0.05 }
-                Divider().frame(height: 28)
-                debugBtn("Y-") { dollarY -= 0.05 }
-                debugBtn("Y+") { dollarY += 0.05 }
-                Divider().frame(height: 28)
-                debugBtn("S-") { dollarScale = max(0.1, dollarScale - 0.1) }
-                debugBtn("S+") { dollarScale += 0.1 }
-            }
-
-            Button("Reset") {
-                dollarX = 0; dollarY = 0; dollarScale = 1.0
-            }
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundColor(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 6)
-            .background(Color.red)
-            .cornerRadius(8)
-        }
-        .padding()
-    }
-
-    private func debugBtn(_ label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(size: 15, weight: .bold, design: .monospaced))
-                .frame(width: 38, height: 34)
-                .background(Color.gray.opacity(0.15))
-                .cornerRadius(8)
         }
     }
 }
@@ -144,22 +85,22 @@ struct Animated3DDollarSign: UIViewRepresentable {
         text.chamferRadius = 0.05
         text.flatness = 0.1
 
-        // Gold/amber metallic material (billixGoldenAmber #e8b54d)
+        // Sage green metallic material (~#6B8F71)
         let material = SCNMaterial()
-        material.diffuse.contents = UIColor(red: 0.91, green: 0.71, blue: 0.30, alpha: 1.0)
+        material.diffuse.contents = UIColor(red: 0.42, green: 0.56, blue: 0.44, alpha: 1.0)
         material.specular.contents = UIColor.white
         material.shininess = 0.8
         material.lightingModel = .physicallyBased
-        material.metalness.contents = 0.85
-        material.roughness.contents = 0.2
+        material.metalness.contents = 0.80
+        material.roughness.contents = 0.22
 
-        // Edge material (slightly darker gold for depth)
+        // Edge material (darker sage for depth)
         let edgeMaterial = SCNMaterial()
-        edgeMaterial.diffuse.contents = UIColor(red: 0.80, green: 0.60, blue: 0.22, alpha: 1.0)
+        edgeMaterial.diffuse.contents = UIColor(red: 0.30, green: 0.44, blue: 0.32, alpha: 1.0)
         edgeMaterial.specular.contents = UIColor.white
         edgeMaterial.shininess = 0.7
         edgeMaterial.lightingModel = .physicallyBased
-        edgeMaterial.metalness.contents = 0.9
+        edgeMaterial.metalness.contents = 0.85
         edgeMaterial.roughness.contents = 0.25
 
         text.materials = [material, edgeMaterial, edgeMaterial]
@@ -198,12 +139,12 @@ struct Animated3DDollarSign: UIViewRepresentable {
         ambientLight.light!.color = UIColor(white: 0.35, alpha: 1.0)
         scene.rootNode.addChildNode(ambientLight)
 
-        // Key light (front-right, warm tone for gold highlight)
+        // Key light (front-right, neutral-cool for green highlight)
         let keyLight = SCNNode()
         keyLight.light = SCNLight()
         keyLight.light!.type = .directional
-        keyLight.light!.color = UIColor(red: 1.0, green: 0.95, blue: 0.85, alpha: 1.0)
-        keyLight.light!.intensity = 1200
+        keyLight.light!.color = UIColor(red: 0.95, green: 1.0, blue: 0.95, alpha: 1.0)
+        keyLight.light!.intensity = 1300
         keyLight.position = SCNVector3(2, 2, 3)
         keyLight.look(at: SCNVector3(0, 0, 0))
         scene.rootNode.addChildNode(keyLight)
@@ -227,17 +168,17 @@ struct Animated3DDollarSign: UIViewRepresentable {
 struct PriceTag: View {
     var body: some View {
         ZStack {
-            // Tag background
+            // Tag background - unified accent color
             RoundedRectangle(cornerRadius: 6)
                 .fill(
                     LinearGradient(
-                        colors: [Color.billixArcadeGold, Color(hex: "#FFA500")],
+                        colors: [Color(hex: "#F0A830"), Color(hex: "#E89520")],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
                 .frame(width: 45, height: 28)
-                .shadow(color: .billixArcadeGold.opacity(0.5), radius: 6, x: 0, y: 3)
+                .shadow(color: Color(hex: "#F0A830").opacity(0.5), radius: 6, x: 0, y: 3)
 
             // Tag border
             RoundedRectangle(cornerRadius: 6)
@@ -268,7 +209,7 @@ struct PriceTag: View {
 
 #Preview("Price Guessr Icon") {
     ZStack {
-        Color(hex: "#7C3AED")
+        Color(hex: "#2d5a5e")
             .ignoresSafeArea()
 
         VStack(spacing: 40) {

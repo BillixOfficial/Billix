@@ -247,7 +247,7 @@ struct TierProgressRing: View {
         switch currentTier {
         case .bronze: return [Color.billixBronzeTier, Color.billixBronzeTier.opacity(0.7)]
         case .silver: return [Color.billixSilverTier, Color.billixSilverTier.opacity(0.7)]
-        case .gold: return [Color.billixGoldTier, Color.billixPrizeOrange]
+        case .gold: return [Color.billixGoldTier, .billixGold]
         case .platinum: return [Color.billixPlatinumTier, Color.billixSilverTier]
         }
     }
@@ -374,7 +374,7 @@ struct WeeklyProgressSlide: View {
 
     private var streakColor: Color {
         switch streakCount {
-        case 4...Int.max: return Color(hex: "#FF6B35") // Hot streak - Orange/Red
+        case 4...Int.max: return Color(hex: "#E8A54B") // Hot streak - Warm amber
         case 2...3: return Color(hex: "#4A90E2") // Cooling - Blue
         default: return Color.gray // No streak - Gray
         }
