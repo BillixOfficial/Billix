@@ -84,33 +84,37 @@ struct CompareMyBillFAB: View {
 
 // MARK: - Previews
 
-#Preview("Compare FAB") {
-    ZStack {
+struct CompareMyBillFAB_Compare_FAB_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         // Simulated background content
         ScrollView {
-            VStack(spacing: 20) {
-                ForEach(0..<10) { _ in
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white)
-                        .frame(height: 200)
-                }
-            }
-            .padding()
+        VStack(spacing: 20) {
+        ForEach(0..<10) { _ in
+        RoundedRectangle(cornerRadius: 16)
+        .fill(Color.white)
+        .frame(height: 200)
+        }
+        }
+        .padding()
         }
         .background(Color.billixCreamBeige)
-
+        
         // FAB overlay
         CompareMyBillFAB()
+        }
     }
 }
 
-#Preview("FAB in Context") {
-    NavigationView {
+struct CompareMyBillFAB_FAB_in_Context_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
         ZStack {
-            Color.billixCreamBeige.ignoresSafeArea()
-
-            CompareMyBillFAB()
+        Color.billixCreamBeige.ignoresSafeArea()
+        
+        CompareMyBillFAB()
         }
         .navigationBarHidden(true)
+        }
     }
 }

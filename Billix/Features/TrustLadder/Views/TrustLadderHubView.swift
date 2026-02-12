@@ -587,7 +587,9 @@ struct SettingsView: View {
 // Note: CompactMarketplaceFeed is defined in MarketplaceFeedView.swift
 // Note: DisclaimerBanner is defined in LegalDisclaimerComponents.swift
 
-#Preview {
-    TrustLadderHubView()
+struct TrustLadderHubView_Previews: PreviewProvider {
+    static var previews: some View {
+        TrustLadderHubView()
         .preferredColorScheme(.dark)
+    }
 }

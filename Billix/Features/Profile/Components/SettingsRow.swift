@@ -204,70 +204,72 @@ struct SettingsBadgeRow: View {
 
 // MARK: - Preview
 
-#Preview("Settings Rows") {
-    VStack(spacing: 16) {
+struct SettingsRow_Settings_Rows_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         // Standard row
         ProfileSectionCard {
-            SettingsRow(
-                title: "Edit Profile",
-                subtitle: "Update your name and photo",
-                icon: "pencil",
-                action: {}
-            )
+        SettingsRow(
+        title: "Edit Profile",
+        subtitle: "Update your name and photo",
+        icon: "pencil",
+        action: {}
+        )
         }
-
+        
         // Value row
         ProfileSectionCard {
-            SettingsValueRow(
-                title: "Language",
-                value: "English",
-                icon: "globe",
-                action: {}
-            )
+        SettingsValueRow(
+        title: "Language",
+        value: "English",
+        icon: "globe",
+        action: {}
+        )
         }
-
+        
         // Badge row
         ProfileSectionCard {
-            SettingsBadgeRow(
-                title: "Billix Credits",
-                badge: "85",
-                badgeColor: .billixGoldenAmber,
-                icon: "star.fill",
-                action: {}
-            )
+        SettingsBadgeRow(
+        title: "Billix Credits",
+        badge: "85",
+        badgeColor: .billixGoldenAmber,
+        icon: "star.fill",
+        action: {}
+        )
         }
-
+        
         // Multiple rows
         ProfileSectionCard {
-            VStack(spacing: 0) {
-                SettingsRow(
-                    title: "Account",
-                    subtitle: "Manage your account",
-                    icon: "person.circle.fill",
-                    action: {}
-                )
-
-                ProfileDivider()
-
-                SettingsRow(
-                    title: "Privacy",
-                    subtitle: "Control your data",
-                    icon: "lock.fill",
-                    action: {}
-                )
-
-                ProfileDivider()
-
-                SettingsRow(
-                    title: "Help & Support",
-                    subtitle: "Get help",
-                    icon: "questionmark.circle.fill",
-                    action: {}
-                )
-            }
-            .padding(.vertical, 4)
+        VStack(spacing: 0) {
+        SettingsRow(
+        title: "Account",
+        subtitle: "Manage your account",
+        icon: "person.circle.fill",
+        action: {}
+        )
+        
+        ProfileDivider()
+        
+        SettingsRow(
+        title: "Privacy",
+        subtitle: "Control your data",
+        icon: "lock.fill",
+        action: {}
+        )
+        
+        ProfileDivider()
+        
+        SettingsRow(
+        title: "Help & Support",
+        subtitle: "Get help",
+        icon: "questionmark.circle.fill",
+        action: {}
+        )
         }
+        .padding(.vertical, 4)
+        }
+        }
+        .padding()
+        .background(Color.billixLightGreen)
     }
-    .padding()
-    .background(Color.billixLightGreen)
 }

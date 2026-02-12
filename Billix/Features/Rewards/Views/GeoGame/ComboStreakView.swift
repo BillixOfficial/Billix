@@ -56,15 +56,17 @@ struct ComboStreakView: View {
     }
 }
 
-#Preview {
-    ZStack {
+struct ComboStreakView_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.black.ignoresSafeArea()
-
+        
         VStack(spacing: 20) {
-            ComboStreakView(comboStreak: 0)  // Not visible
-            ComboStreakView(comboStreak: 2)  // 1.25x (125%)
-            ComboStreakView(comboStreak: 4)  // 1.5x (150%)
-            ComboStreakView(comboStreak: 6)  // 2.0x (200%)
+        ComboStreakView(comboStreak: 0)  // Not visible
+        ComboStreakView(comboStreak: 2)  // 1.25x (125%)
+        ComboStreakView(comboStreak: 4)  // 1.5x (150%)
+        ComboStreakView(comboStreak: 6)  // 2.0x (200%)
+        }
         }
     }
 }

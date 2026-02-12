@@ -864,7 +864,9 @@ struct EmailSignUpView: View {
     }
 }
 
-#Preview {
-    LoginView()
+struct LoginView_Previews: PreviewProvider {
+    static var previews: some View {
+        LoginView()
         .environmentObject(AuthService.shared)
+    }
 }

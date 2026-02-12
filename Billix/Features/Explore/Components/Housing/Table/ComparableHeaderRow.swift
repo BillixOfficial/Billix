@@ -144,23 +144,25 @@ struct HeaderButton: View {
 
 // MARK: - Preview
 
-#Preview("Header Row") {
-    ScrollView(.horizontal) {
+struct ComparableHeaderRow_Header_Row_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView(.horizontal) {
         VStack(spacing: 0) {
-            ComparableHeaderRow(
-                sortColumn: .similarity,
-                sortAscending: false,
-                onSort: { _ in }
-            )
-
-            Divider()
-
-            ComparableHeaderRow(
-                sortColumn: .rent,
-                sortAscending: true,
-                onSort: { _ in }
-            )
+        ComparableHeaderRow(
+        sortColumn: .similarity,
+        sortAscending: false,
+        onSort: { _ in }
+        )
+        
+        Divider()
+        
+        ComparableHeaderRow(
+        sortColumn: .rent,
+        sortAscending: true,
+        onSort: { _ in }
+        )
         }
+        }
+        .background(Color.white)
     }
-    .background(Color.white)
 }

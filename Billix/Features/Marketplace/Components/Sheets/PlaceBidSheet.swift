@@ -298,6 +298,8 @@ struct PlaceBidSheet: View {
     }
 }
 
-#Preview {
-    PlaceBidSheet(cluster: MockMarketplaceData.clusters[0])
+struct PlaceBidSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        PlaceBidSheet(cluster: MockMarketplaceData.clusters[0])
+    }
 }

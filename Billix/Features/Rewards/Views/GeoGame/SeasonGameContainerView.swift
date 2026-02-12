@@ -154,50 +154,52 @@ struct SeasonGameContainerView: View {
 
 // MARK: - Preview
 
-#Preview("Season Game") {
-    SeasonGameContainerView(
+struct SeasonGameContainerView_Season_Game_Previews: PreviewProvider {
+    static var previews: some View {
+        SeasonGameContainerView(
         location: SeasonLocation(
-            id: UUID(),
-            seasonPartId: UUID(),
-            locationNumber: 1,
-            subject: "Manhattan Prices",
-            locationName: "Manhattan, NY",
-            category: "urban",
-            difficulty: "hard",
-            locationData: LocationDataJSON(
-                landmarkName: "Empire State Building",
-                coordinates: CoordinateData(lat: 40.7484, lng: -73.9857),
-                landmark: CoordinateData(lat: 40.7484, lng: -73.9857),
-                mapRegion: MapRegionDataJSON(pitch: 60, heading: 0, altitude: 1500),
-                decoyLocations: [
-                    DecoyLocationJSON(id: "A", displayLabel: "A", name: "Chicago, IL", isCorrect: false),
-                    DecoyLocationJSON(id: "B", displayLabel: "B", name: "Manhattan, NY", isCorrect: true),
-                    DecoyLocationJSON(id: "C", displayLabel: "C", name: "Toronto, Canada", isCorrect: false),
-                    DecoyLocationJSON(id: "D", displayLabel: "D", name: "Philadelphia, PA", isCorrect: false)
-                ]
-            ),
-            priceData: PriceDataJSON(
-                questions: [
-                    PriceQuestion(
-                        type: "slider",
-                        question: "Cost of a Standard Cappuccino?",
-                        actualPrice: 5.75,
-                        minGuess: 2.00,
-                        maxGuess: 8.00,
-                        unit: "each"
-                    ),
-                    PriceQuestion(
-                        type: "slider",
-                        question: "Avg Monthly Rent (1-Bed Apartment)?",
-                        actualPrice: 4400.00,
-                        minGuess: 1000.00,
-                        maxGuess: 5000.00,
-                        unit: "month"
-                    )
-                ]
-            ),
-            createdAt: Date()
+        id: UUID(),
+        seasonPartId: UUID(),
+        locationNumber: 1,
+        subject: "Manhattan Prices",
+        locationName: "Manhattan, NY",
+        category: "urban",
+        difficulty: "hard",
+        locationData: LocationDataJSON(
+        landmarkName: "Empire State Building",
+        coordinates: CoordinateData(lat: 40.7484, lng: -73.9857),
+        landmark: CoordinateData(lat: 40.7484, lng: -73.9857),
+        mapRegion: MapRegionDataJSON(pitch: 60, heading: 0, altitude: 1500),
+        decoyLocations: [
+        DecoyLocationJSON(id: "A", displayLabel: "A", name: "Chicago, IL", isCorrect: false),
+        DecoyLocationJSON(id: "B", displayLabel: "B", name: "Manhattan, NY", isCorrect: true),
+        DecoyLocationJSON(id: "C", displayLabel: "C", name: "Toronto, Canada", isCorrect: false),
+        DecoyLocationJSON(id: "D", displayLabel: "D", name: "Philadelphia, PA", isCorrect: false)
+        ]
+        ),
+        priceData: PriceDataJSON(
+        questions: [
+        PriceQuestion(
+        type: "slider",
+        question: "Cost of a Standard Cappuccino?",
+        actualPrice: 5.75,
+        minGuess: 2.00,
+        maxGuess: 8.00,
+        unit: "each"
+        ),
+        PriceQuestion(
+        type: "slider",
+        question: "Avg Monthly Rent (1-Bed Apartment)?",
+        actualPrice: 4400.00,
+        minGuess: 1000.00,
+        maxGuess: 5000.00,
+        unit: "month"
+        )
+        ]
+        ),
+        createdAt: Date()
         ),
         onComplete: { _ in }
-    )
+        )
+    }
 }

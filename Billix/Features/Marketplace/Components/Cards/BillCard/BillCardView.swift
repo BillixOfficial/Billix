@@ -172,28 +172,32 @@ struct BillCardCompact: View {
     }
 }
 
-#Preview("Full Card") {
-    ScrollView {
+struct BillCardView_Full_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         BillCardView(
-            listing: MockMarketplaceData.billListings[0],
-            userCurrentPrice: 95.00,
-            onUnlock: {},
-            onAskQuestion: {},
-            onWatchlist: {},
-            onAskOwner: {},
-            onReport: {}
+        listing: MockMarketplaceData.billListings[0],
+        userCurrentPrice: 95.00,
+        onUnlock: {},
+        onAskQuestion: {},
+        onWatchlist: {},
+        onAskOwner: {},
+        onReport: {}
         )
         .padding()
+        }
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }
 
-#Preview("Compact Cards") {
-    VStack(spacing: 12) {
+struct BillCardView_Compact_Cards_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 12) {
         ForEach(MockMarketplaceData.billListings) { listing in
-            BillCardCompact(listing: listing, onTap: {})
+        BillCardCompact(listing: listing, onTap: {})
         }
+        }
+        .padding()
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .padding()
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

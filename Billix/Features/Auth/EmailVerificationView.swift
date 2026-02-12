@@ -425,7 +425,9 @@ struct ConfettiPieceView: View {
 
 // MARK: - Preview
 
-#Preview {
-    EmailVerificationView()
+struct EmailVerificationView_Previews: PreviewProvider {
+    static var previews: some View {
+        EmailVerificationView()
         .environmentObject(AuthService.shared)
+    }
 }

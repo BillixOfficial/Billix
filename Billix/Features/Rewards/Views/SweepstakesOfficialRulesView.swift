@@ -185,6 +185,8 @@ struct SweepstakesOfficialRulesView: View {
 
 // MARK: - Preview
 
-#Preview {
-    SweepstakesOfficialRulesView()
+struct SweepstakesOfficialRulesView_Previews: PreviewProvider {
+    static var previews: some View {
+        SweepstakesOfficialRulesView()
+    }
 }

@@ -79,11 +79,13 @@ struct DynamicSpecsZone: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 20) {
+struct DynamicSpecsZone_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         DynamicSpecsZone(listing: MockMarketplaceData.billListings[0])
         DynamicSpecsZone(listing: MockMarketplaceData.billListings[1])
+        }
+        .padding()
+        .background(Color.white)
     }
-    .padding()
-    .background(Color.white)
 }

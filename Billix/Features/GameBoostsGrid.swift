@@ -154,90 +154,92 @@ struct GameBoostCard: View {
 
 // MARK: - Preview
 
-#Preview("Game Boosts Grid") {
-    ZStack {
+struct GameBoostsGrid_Game_Boosts_Grid_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         ScrollView {
-            GameBoostsGrid(
-                boosts: [
-                    Reward(
-                        id: UUID(),
-                        type: .digitalGood,
-                        category: .virtualGoods,
-                        title: "Extra Life",
-                        description: "One more chance if you lose",
-                        pointsCost: 500,
-                        brand: nil,
-                        dollarValue: nil,
-                        iconName: "heart.fill",
-                        accentColor: "#FF6B6B"
-                    ),
-                    Reward(
-                        id: UUID(),
-                        type: .digitalGood,
-                        category: .virtualGoods,
-                        title: "2x Multiplier",
-                        description: "Double points earned",
-                        pointsCost: 800,
-                        brand: nil,
-                        dollarValue: nil,
-                        iconName: "arrow.up.circle.fill",
-                        accentColor: "#4ECDC4"
-                    ),
-                    Reward(
-                        id: UUID(),
-                        type: .digitalGood,
-                        category: .virtualGoods,
-                        title: "Skip Question",
-                        description: "Pass a difficult question",
-                        pointsCost: 300,
-                        brand: nil,
-                        dollarValue: nil,
-                        iconName: "forward.fill",
-                        accentColor: "#95E1D3"
-                    ),
-                    Reward(
-                        id: UUID(),
-                        type: .digitalGood,
-                        category: .virtualGoods,
-                        title: "Time Freeze",
-                        description: "+30 seconds on timer",
-                        pointsCost: 400,
-                        brand: nil,
-                        dollarValue: nil,
-                        iconName: "clock.fill",
-                        accentColor: "#F38181"
-                    ),
-                    Reward(
-                        id: UUID(),
-                        type: .digitalGood,
-                        category: .virtualGoods,
-                        title: "Hint Token",
-                        description: "Reveal one wrong answer",
-                        pointsCost: 250,
-                        brand: nil,
-                        dollarValue: nil,
-                        iconName: "lightbulb.fill",
-                        accentColor: "#FFD93D"
-                    ),
-                    Reward(
-                        id: UUID(),
-                        type: .digitalGood,
-                        category: .virtualGoods,
-                        title: "Lucky Spin",
-                        description: "Bonus points wheel",
-                        pointsCost: 600,
-                        brand: nil,
-                        dollarValue: nil,
-                        iconName: "star.circle.fill",
-                        accentColor: "#6BCB77"
-                    )
-                ],
-                userPoints: 550,
-                onBoostTapped: { _ in }
-            )
-            .padding(.top, 20)
+        GameBoostsGrid(
+        boosts: [
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Extra Life",
+        description: "One more chance if you lose",
+        pointsCost: 500,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "heart.fill",
+        accentColor: "#FF6B6B"
+        ),
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "2x Multiplier",
+        description: "Double points earned",
+        pointsCost: 800,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "arrow.up.circle.fill",
+        accentColor: "#4ECDC4"
+        ),
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Skip Question",
+        description: "Pass a difficult question",
+        pointsCost: 300,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "forward.fill",
+        accentColor: "#95E1D3"
+        ),
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Time Freeze",
+        description: "+30 seconds on timer",
+        pointsCost: 400,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "clock.fill",
+        accentColor: "#F38181"
+        ),
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Hint Token",
+        description: "Reveal one wrong answer",
+        pointsCost: 250,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "lightbulb.fill",
+        accentColor: "#FFD93D"
+        ),
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Lucky Spin",
+        description: "Bonus points wheel",
+        pointsCost: 600,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "star.circle.fill",
+        accentColor: "#6BCB77"
+        )
+        ],
+        userPoints: 550,
+        onBoostTapped: { _ in }
+        )
+        .padding(.top, 20)
+        }
         }
     }
 }

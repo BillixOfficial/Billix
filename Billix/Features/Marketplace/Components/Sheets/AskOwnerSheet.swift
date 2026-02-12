@@ -227,6 +227,8 @@ struct AskOwnerSheet: View {
     }
 }
 
-#Preview {
-    AskOwnerSheet(listing: MockMarketplaceData.billListings[0])
+struct AskOwnerSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        AskOwnerSheet(listing: MockMarketplaceData.billListings[0])
+    }
 }

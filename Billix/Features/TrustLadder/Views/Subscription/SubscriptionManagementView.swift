@@ -589,9 +589,11 @@ struct SimpleCreditHistorySheet: View {
 
 // MARK: - Preview
 
-#Preview {
-    NavigationView {
+struct SubscriptionManagementView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
         SubscriptionManagementView()
+        }
+        .preferredColorScheme(.dark)
     }
-    .preferredColorScheme(.dark)
 }

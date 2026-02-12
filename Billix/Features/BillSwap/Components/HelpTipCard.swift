@@ -56,25 +56,27 @@ struct HelpTipCard: View {
 
 // MARK: - Preview
 
-#Preview("Help Tip Card") {
-    VStack(spacing: 16) {
+struct HelpTipCard_Help_Tip_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         HelpTipCard(
-            icon: "checkmark.shield",
-            title: "Why do we scan your bill?",
-            message: "OCR verification confirms your bill is authentic, protecting both you and your connection partner from fraud."
+        icon: "checkmark.shield",
+        title: "Why do we scan your bill?",
+        message: "OCR verification confirms your bill is authentic, protecting both you and your connection partner from fraud."
         )
-
+        
         HelpTipCard(
-            icon: "star.fill",
-            title: "About tier limits",
-            message: "Tier limits protect new users. As you complete successful connections, your limit increases automatically."
+        icon: "star.fill",
+        title: "About tier limits",
+        message: "Tier limits protect new users. As you complete successful connections, your limit increases automatically."
         )
-
+        
         HelpTipCard(
-            icon: "lock.shield",
-            title: "Guest pay links",
-            message: "Guest pay links let your partner pay your bill without accessing your account credentials. This keeps both parties secure."
+        icon: "lock.shield",
+        title: "Guest pay links",
+        message: "Guest pay links let your partner pay your bill without accessing your account credentials. This keeps both parties secure."
         )
+        }
+        .padding()
     }
-    .padding()
 }

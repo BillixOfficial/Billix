@@ -921,7 +921,9 @@ struct ColoredPillTag: View {
 
 // MARK: - Preview
 
-#Preview {
-    UploadHubView()
+struct UploadHubView_Previews: PreviewProvider {
+    static var previews: some View {
+        UploadHubView()
         .modelContainer(for: StoredBill.self, inMemory: true)
+    }
 }

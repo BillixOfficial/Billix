@@ -10,7 +10,7 @@ import Foundation
 import Supabase
 import Realtime
 import Combine
-import UIKit
+import class UIKit.UIImage
 
 // MARK: - Chat Error
 

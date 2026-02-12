@@ -52,12 +52,14 @@ struct PropertySearchBar: View {
     }
 }
 
-#Preview("Property Search Bar - Empty") {
-    VStack(spacing: 20) {
+struct PropertySearchBar_Property_Search_Bar___Empty_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         PropertySearchBar(address: .constant(""), placeholder: "ZIP code or address")
         PropertySearchBar(address: .constant("48067"), placeholder: "ZIP code or address")
         PropertySearchBar(address: .constant("418 N Center St, Royal Oak, MI 48067"), placeholder: "ZIP code or address")
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

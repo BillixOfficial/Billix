@@ -266,80 +266,86 @@ struct SeasonCardButtonStyle: ButtonStyle {
 
 // MARK: - Preview
 
-#Preview("Unlocked Season with Progress") {
-    SeasonCardLarge(
+struct SeasonCardLarge_Unlocked_Season_with_Progress_Previews: PreviewProvider {
+    static var previews: some View {
+        SeasonCardLarge(
         season: Season(
-            id: UUID(),
-            seasonNumber: 1,
-            title: "USA Roadtrip",
-            description: "Explore prices across America",
-            isReleased: true,
-            releaseDate: Date(),
-            totalParts: 3,
-            iconName: "flag.fill",
-            createdAt: Date()
+        id: UUID(),
+        seasonNumber: 1,
+        title: "USA Roadtrip",
+        description: "Explore prices across America",
+        isReleased: true,
+        releaseDate: Date(),
+        totalParts: 3,
+        iconName: "flag.fill",
+        createdAt: Date()
         ),
         progress: SeasonCompletionStats(
-            completed: 4,
-            total: 2,
-            attempts: 4,
-            passedParts: 0,
-            isSessionBased: true
+        completed: 4,
+        total: 2,
+        attempts: 4,
+        passedParts: 0,
+        isSessionBased: true
         ),
         isLocked: false,
         onTap: {}
-    )
-    .padding(.horizontal, 32)
+        )
+        .padding(.horizontal, 32)
+    }
 }
 
-#Preview("Locked Season") {
-    SeasonCardLarge(
+struct SeasonCardLarge_Locked_Season_Previews: PreviewProvider {
+    static var previews: some View {
+        SeasonCardLarge(
         season: Season(
-            id: UUID(),
-            seasonNumber: 2,
-            title: "Global",
-            description: "Price adventure around the world",
-            isReleased: false,
-            releaseDate: Calendar.current.date(byAdding: .day, value: 30, to: Date()),
-            totalParts: 5,
-            iconName: "globe.americas.fill",
-            createdAt: Date()
+        id: UUID(),
+        seasonNumber: 2,
+        title: "Global",
+        description: "Price adventure around the world",
+        isReleased: false,
+        releaseDate: Calendar.current.date(byAdding: .day, value: 30, to: Date()),
+        totalParts: 5,
+        iconName: "globe.americas.fill",
+        createdAt: Date()
         ),
         progress: SeasonCompletionStats(
-            completed: 0,
-            total: 30,
-            attempts: 0,
-            passedParts: 0,
-            isSessionBased: false
+        completed: 0,
+        total: 30,
+        attempts: 0,
+        passedParts: 0,
+        isSessionBased: false
         ),
         isLocked: true,
         onTap: {}
-    )
-    .padding(.horizontal, 32)
+        )
+        .padding(.horizontal, 32)
+    }
 }
 
-#Preview("Complete Season") {
-    SeasonCardLarge(
+struct SeasonCardLarge_Complete_Season_Previews: PreviewProvider {
+    static var previews: some View {
+        SeasonCardLarge(
         season: Season(
-            id: UUID(),
-            seasonNumber: 1,
-            title: "USA Roadtrip",
-            description: "Explore prices across America",
-            isReleased: true,
-            releaseDate: Date(),
-            totalParts: 3,
-            iconName: "flag.fill",
-            createdAt: Date()
+        id: UUID(),
+        seasonNumber: 1,
+        title: "USA Roadtrip",
+        description: "Explore prices across America",
+        isReleased: true,
+        releaseDate: Date(),
+        totalParts: 3,
+        iconName: "flag.fill",
+        createdAt: Date()
         ),
         progress: SeasonCompletionStats(
-            completed: 10,
-            total: 2,
-            attempts: 10,
-            passedParts: 2,
-            isSessionBased: true
+        completed: 10,
+        total: 2,
+        attempts: 10,
+        passedParts: 2,
+        isSessionBased: true
         ),
         isLocked: false,
         onTap: {}
-    )
-    .padding(.horizontal, 32)
+        )
+        .padding(.horizontal, 32)
+    }
 }

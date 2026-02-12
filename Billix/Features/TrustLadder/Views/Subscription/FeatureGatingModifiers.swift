@@ -362,45 +362,47 @@ extension View {
 
 // MARK: - Preview
 
-#Preview("Feature Gate Components") {
-    ZStack {
+struct FeatureGatingModifiers_Feature_Gate_Components_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color(red: 0.06, green: 0.06, blue: 0.08).ignoresSafeArea()
-
+        
         ScrollView {
-            VStack(spacing: 20) {
-                // Gated Row examples
-                GatedFeatureRow(
-                    feature: .fractionalSwaps,
-                    title: "Fractional Swaps",
-                    subtitle: "Cover only a portion of a bill",
-                    icon: "chart.pie"
-                ) {
-                }
-
-                GatedFeatureRow(
-                    feature: .exactMatchSwaps,
-                    title: "Exact Match Swaps",
-                    subtitle: "1:1 bill coordination",
-                    icon: "arrow.left.arrow.right"
-                ) {
-                }
-
-                // Feature cards
-                PremiumFeatureCard(feature: .multiPartySwaps) {
-                }
-
-                PremiumFeatureCard(feature: .groupSwaps) {
-                }
-
-                // Badge examples
-                HStack {
-                    PremiumBadge(tier: .basic)
-                    PremiumBadge(tier: .pro)
-                    PremiumBadge(tier: .premium)
-                }
-            }
-            .padding()
+        VStack(spacing: 20) {
+        // Gated Row examples
+        GatedFeatureRow(
+        feature: .fractionalSwaps,
+        title: "Fractional Swaps",
+        subtitle: "Cover only a portion of a bill",
+        icon: "chart.pie"
+        ) {
         }
+        
+        GatedFeatureRow(
+        feature: .exactMatchSwaps,
+        title: "Exact Match Swaps",
+        subtitle: "1:1 bill coordination",
+        icon: "arrow.left.arrow.right"
+        ) {
+        }
+        
+        // Feature cards
+        PremiumFeatureCard(feature: .multiPartySwaps) {
+        }
+        
+        PremiumFeatureCard(feature: .groupSwaps) {
+        }
+        
+        // Badge examples
+        HStack {
+        PremiumBadge(tier: .basic)
+        PremiumBadge(tier: .pro)
+        PremiumBadge(tier: .premium)
+        }
+        }
+        .padding()
+        }
+        }
+        .preferredColorScheme(.dark)
     }
-    .preferredColorScheme(.dark)
 }

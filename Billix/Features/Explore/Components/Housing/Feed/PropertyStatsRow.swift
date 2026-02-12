@@ -61,12 +61,14 @@ struct PropertyStatsRow: View {
     }
 }
 
-#Preview("Property Stats Row") {
-    VStack(spacing: 16) {
+struct PropertyStatsRow_Property_Stats_Row_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         PropertyStatsRow(bedrooms: 2, bathrooms: 1.5, sqft: 950)
         PropertyStatsRow(bedrooms: 3, bathrooms: 2.0, sqft: nil)
         PropertyStatsRow(bedrooms: 1, bathrooms: 1.0, sqft: 650)
+        }
+        .padding()
+        .background(Color.white)
     }
-    .padding()
-    .background(Color.white)
 }

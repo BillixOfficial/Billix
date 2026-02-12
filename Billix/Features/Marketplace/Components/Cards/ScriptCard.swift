@@ -108,12 +108,14 @@ struct ScriptCard: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 12) {
+struct ScriptCard_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 12) {
         ForEach(MockMarketplaceData.scripts) { script in
-            ScriptCard(script: script, onUnlock: {})
+        ScriptCard(script: script, onUnlock: {})
         }
+        }
+        .padding()
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .padding()
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

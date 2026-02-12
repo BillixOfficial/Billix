@@ -62,7 +62,9 @@ struct EconomyAISection: View {
     }
 }
 
-#Preview("Economy AI Section") {
-    EconomyAISection(iconSize: 50)
+struct EconomyAISection_Economy_AI_Section_Previews: PreviewProvider {
+    static var previews: some View {
+        EconomyAISection(iconSize: 50)
         .background(Color.billixCreamBeige.opacity(0.3))
+    }
 }

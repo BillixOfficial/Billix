@@ -54,20 +54,22 @@ struct VSMeToggle: View {
     }
 }
 
-#Preview {
-    struct PreviewWrapper: View {
+struct VSMeToggle_Previews: PreviewProvider {
+    static var previews: some View {
+        struct PreviewWrapper: View {
         @State private var isVsMe = false
-
+        
         var body: some View {
-            VStack(spacing: 20) {
-                VSMeToggle(isVsMe: $isVsMe)
-
-                Text(isVsMe ? "Showing personal comparison" : "Showing market comparison")
-                    .font(.caption)
-            }
-            .padding()
+        VStack(spacing: 20) {
+        VSMeToggle(isVsMe: $isVsMe)
+        
+        Text(isVsMe ? "Showing personal comparison" : "Showing market comparison")
+        .font(.caption)
         }
+        .padding()
+        }
+        }
+        
+        return PreviewWrapper()
     }
-
-    return PreviewWrapper()
 }

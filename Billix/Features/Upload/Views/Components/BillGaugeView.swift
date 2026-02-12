@@ -282,30 +282,32 @@ struct SimpleBillGaugeView: View {
 
 // MARK: - Preview
 
-#Preview {
-    ScrollView {
+struct BillGaugeView_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         VStack(spacing: 24) {
-            BillGaugeView(
-                billAmount: 142.50,
-                areaAverage: 128.00,
-                percentDiff: 11.3,
-                position: .above
-            )
-
-            BillGaugeView(
-                billAmount: 95.00,
-                areaAverage: 128.00,
-                percentDiff: -25.8,
-                position: .below
-            )
-
-            SimpleBillGaugeView(
-                billAmount: 142.50,
-                provider: "DTE Energy",
-                category: "Electric"
-            )
+        BillGaugeView(
+        billAmount: 142.50,
+        areaAverage: 128.00,
+        percentDiff: 11.3,
+        position: .above
+        )
+        
+        BillGaugeView(
+        billAmount: 95.00,
+        areaAverage: 128.00,
+        percentDiff: -25.8,
+        position: .below
+        )
+        
+        SimpleBillGaugeView(
+        billAmount: 142.50,
+        provider: "DTE Energy",
+        category: "Electric"
+        )
         }
         .padding()
+        }
+        .background(Color.billixLightGreen)
     }
-    .background(Color.billixLightGreen)
 }

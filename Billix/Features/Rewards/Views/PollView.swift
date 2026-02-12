@@ -450,6 +450,8 @@ class PollViewModel: ObservableObject {
 
 // MARK: - Preview
 
-#Preview("Poll - Not Voted") {
-    PollView()
+struct PollView_Poll___Not_Voted_Previews: PreviewProvider {
+    static var previews: some View {
+        PollView()
+    }
 }

@@ -48,26 +48,28 @@ struct EconomyFeatureCard: View {
     }
 }
 
-#Preview("Economy Card") {
-    HStack(spacing: 12) {
+struct ExploreFeatureCard_Economy_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        HStack(spacing: 12) {
         EconomyFeatureCard(
-            imageName: nil, // Will use SF Symbol fallback
-            icon: "chart.line.uptrend.xyaxis",
-            title: "Market Trends",
-            accentColor: .billixDarkTeal,
-            iconSize: 50,
-            action: {}
+        imageName: nil, // Will use SF Symbol fallback
+        icon: "chart.line.uptrend.xyaxis",
+        title: "Market Trends",
+        accentColor: .billixDarkTeal,
+        iconSize: 50,
+        action: {}
         )
-
+        
         EconomyFeatureCard(
-            imageName: nil,
-            icon: "globe.americas.fill",
-            title: "Global Finance",
-            accentColor: .billixPurple,
-            iconSize: 50,
-            action: {}
+        imageName: nil,
+        icon: "globe.americas.fill",
+        title: "Global Finance",
+        accentColor: .billixPurple,
+        iconSize: 50,
+        action: {}
         )
+        }
+        .padding(.horizontal, 20)
+        .background(Color.billixCreamBeige.opacity(0.3))
     }
-    .padding(.horizontal, 20)
-    .background(Color.billixCreamBeige.opacity(0.3))
 }

@@ -58,30 +58,38 @@ struct CircularProgressRing: View {
 
 // MARK: - Preview
 
-#Preview("Empty Ring") {
-    CircularProgressRing(progress: 0.0)
+struct CircularProgressRing_Empty_Ring_Previews: PreviewProvider {
+    static var previews: some View {
+        CircularProgressRing(progress: 0.0)
         .frame(width: 120, height: 120)
         .padding()
+    }
 }
 
-#Preview("Half Progress") {
-    CircularProgressRing(progress: 0.5)
+struct CircularProgressRing_Half_Progress_Previews: PreviewProvider {
+    static var previews: some View {
+        CircularProgressRing(progress: 0.5)
         .frame(width: 120, height: 120)
         .padding()
+    }
 }
 
-#Preview("Full Progress") {
-    CircularProgressRing(progress: 1.0)
+struct CircularProgressRing_Full_Progress_Previews: PreviewProvider {
+    static var previews: some View {
+        CircularProgressRing(progress: 1.0)
         .frame(width: 120, height: 120)
         .padding()
+    }
 }
 
-#Preview("Custom Colors") {
-    CircularProgressRing(
+struct CircularProgressRing_Custom_Colors_Previews: PreviewProvider {
+    static var previews: some View {
+        CircularProgressRing(
         progress: 0.75,
         colors: [.red, .orange, .yellow],
         lineWidth: 12
-    )
-    .frame(width: 140, height: 140)
-    .padding()
+        )
+        .frame(width: 140, height: 140)
+        .padding()
+    }
 }

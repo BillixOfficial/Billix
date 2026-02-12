@@ -261,60 +261,64 @@ extension Color {
 
 // MARK: - Preview
 
-#Preview("Can Afford") {
-    ZStack {
+struct GiftCardHeroSection_Can_Afford_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack {
-            GiftCardHeroSection(
-                featuredCard: Reward(
-                    id: UUID(),
-                    type: .giftCard,
-                    category: .giftCard,
-                    title: "$5 Amazon Gift Card",
-                    description: "Redeemable on Amazon.com",
-                    pointsCost: 10000,
-                    brand: "Amazon",
-                    dollarValue: 5,
-                    iconName: "gift.fill",
-                    accentColor: "#FF9900"
-                ),
-                userPoints: 12000,
-                onViewAll: {},
-                onCardTapped: {}
-            )
-
-            Spacer()
+        GiftCardHeroSection(
+        featuredCard: Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$5 Amazon Gift Card",
+        description: "Redeemable on Amazon.com",
+        pointsCost: 10000,
+        brand: "Amazon",
+        dollarValue: 5,
+        iconName: "gift.fill",
+        accentColor: "#FF9900"
+        ),
+        userPoints: 12000,
+        onViewAll: {},
+        onCardTapped: {}
+        )
+        
+        Spacer()
         }
         .padding(.top, 20)
+        }
     }
 }
 
-#Preview("Cannot Afford Yet") {
-    ZStack {
+struct GiftCardHeroSection_Cannot_Afford_Yet_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack {
-            GiftCardHeroSection(
-                featuredCard: Reward(
-                    id: UUID(),
-                    type: .giftCard,
-                    category: .giftCard,
-                    title: "$10 Target Gift Card",
-                    description: "Shop at Target",
-                    pointsCost: 20000,
-                    brand: "Target",
-                    dollarValue: 10,
-                    iconName: "giftcard.fill",
-                    accentColor: "#CC0000"
-                ),
-                userPoints: 12000,
-                onViewAll: {},
-                onCardTapped: {}
-            )
-
-            Spacer()
+        GiftCardHeroSection(
+        featuredCard: Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$10 Target Gift Card",
+        description: "Shop at Target",
+        pointsCost: 20000,
+        brand: "Target",
+        dollarValue: 10,
+        iconName: "giftcard.fill",
+        accentColor: "#CC0000"
+        ),
+        userPoints: 12000,
+        onViewAll: {},
+        onCardTapped: {}
+        )
+        
+        Spacer()
         }
         .padding(.top, 20)
+        }
     }
 }

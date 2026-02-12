@@ -94,6 +94,7 @@
 		7RECESS10NS1M12345678901 /* RecessionSimulatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8RECESS10NS1M23456789012 /* RecessionSimulatorView.swift */; };
 		80463EA3D6F47BC4F7ED21E8 /* DynamicSpecsZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642259DC8C0DF251B973C750 /* DynamicSpecsZone.swift */; };
 		8160262B8986E8E8430FB93A /* MarketplaceItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ABFBBB24D03DF6AC2EB9314 /* MarketplaceItems.swift */; };
+		81D1C488008FF42DFD5EAE00 /* MutualPairStatusCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 694112B9828FBA28A588E50F /* MutualPairStatusCard.swift */; };
 		8207F2E3C5B517C41CF04053 /* TermsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79361E6281D58BF10A2D2773 /* TermsService.swift */; };
 		828EE21A79F8288ECA5327F2 /* ReliefStep3Situation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD3740C0DA841148DCCE43EA /* ReliefStep3Situation.swift */; };
 		8434B20BEAFA6952FD9DFEBF /* GeocodingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A28859A625454AB5C79F940 /* GeocodingService.swift */; };
@@ -401,6 +402,7 @@
 		B723C4BDE2651B33E8E71778 /* CommunityFeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D6E75296997D151592F3918 /* CommunityFeedViewModel.swift */; };
 		BA52A1E2BEF23227B81A75FA /* QuizService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3B1CFB47DF052D3A92FDEE /* QuizService.swift */; };
 		BFCB80529BEDDF31A719C498 /* HouseholdService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F31A485219F8C6FC916CE5B /* HouseholdService.swift */; };
+		C0C7FDD6CAB35E50F1D9A088 /* MutualMatchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC363B88B8D55AC89FC3FE3 /* MutualMatchService.swift */; };
 		C12C710EDAE0C74EA7365DF7 /* FairnessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 441EF5142067732FB83D32B3 /* FairnessService.swift */; };
 		C1541C610287E94E784CBF8F /* CommunityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3FF2A3E3C427FD330FAFEB /* CommunityService.swift */; };
 		C1A2B3D4E5F6A7B8C9D0E1F3 /* AskBillixViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F2 /* AskBillixViewModel.swift */; };
@@ -428,6 +430,7 @@
 		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
 		DE7A061EF4C44553BCDA621A /* BillCardSideA.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */; };
 		DEF796C9152E4061A9B46EEB /* CircularProgressRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */; };
+		DEF9DC903916457EE733B4AD /* MutualMatchesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8132DA89B9A395ACFC58CC67 /* MutualMatchesView.swift */; };
 		E48EC8A07D5697F88D447036 /* BillTypeDetailsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3380B8C2DC712CB1727F3012 /* BillTypeDetailsCard.swift */; };
 		E4A10A601D56A5A26434B03D /* PollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA6B1A203346AC5930189482 /* PollView.swift */; };
 		E5DB9D954805D09C401F37F9 /* ConnectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6958208A3EF284183F59F07 /* ConnectionService.swift */; };
@@ -508,6 +511,8 @@
 		F9F189512F05F79C007CF227 /* HomeSetupQuestionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F1894F2F05F79C007CF227 /* HomeSetupQuestionsView.swift */; };
 		FB021E8FC90B96BB845CCD82 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 707D3A3B8459EA8826A0E29B /* FilterSheetView.swift */; };
 		FB4BCEEA822F6653DD8AFEB9 /* NudgeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65EEF8494E0D8F1E5CA84EE4 /* NudgeService.swift */; };
+		817A61B8896A49FA9351A571 /* ConnectionStatsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DA717C0FBD45918F363865 /* ConnectionStatsSheet.swift */; };
+		1EE670222F2246A08C0B511F /* UpgradeMembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070EF5A1FB04400EA91E070A /* UpgradeMembershipView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -559,6 +564,7 @@
 		26718EDD5F14EC366ABD07C8 /* BlueprintTeaseZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BlueprintTeaseZone.swift; sourceTree = "<group>"; };
 		29BA42822EF142C4F0785CC1 /* HomePageZones.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HomePageZones.swift; path = Billix/Features/Home/HomePageZones.swift; sourceTree = SOURCE_ROOT; };
 		2B3B1CFB47DF052D3A92FDEE /* QuizService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuizService.swift; path = Billix/Features/Rewards/Services/QuizService.swift; sourceTree = SOURCE_ROOT; };
+		2BC363B88B8D55AC89FC3FE3 /* MutualMatchService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MutualMatchService.swift; path = Billix/Features/BillSwap/Services/MutualMatchService.swift; sourceTree = SOURCE_ROOT; };
 		2C526CCE3334A2A54A0AAAD5 /* ReliefStep1PersonalInfo.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefStep1PersonalInfo.swift; sourceTree = "<group>"; };
 		3105A9D4079FDDAD55678A5C /* HouseholdModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdModels.swift; sourceTree = "<group>"; };
 		3144A8AD7B2C94D39FF81EFA /* ClusterCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClusterCard.swift; sourceTree = "<group>"; };
@@ -597,6 +603,7 @@
 		642259DC8C0DF251B973C750 /* DynamicSpecsZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DynamicSpecsZone.swift; sourceTree = "<group>"; };
 		6536E4BEBD7BDD25CF9B6F29 /* GroupsNavigationRouter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GroupsNavigationRouter.swift; sourceTree = "<group>"; };
 		65EEF8494E0D8F1E5CA84EE4 /* NudgeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeService.swift; sourceTree = "<group>"; };
+		694112B9828FBA28A588E50F /* MutualPairStatusCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MutualPairStatusCard.swift; path = Billix/Features/BillSwap/Components/MutualPairStatusCard.swift; sourceTree = SOURCE_ROOT; };
 		6A20664EF1CE8B4798EE5DE0 /* HouseholdDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdDashboardView.swift; sourceTree = "<group>"; };
 		6ACBAA7DDD8DE384FF723EC4 /* BillInteractionBar.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillInteractionBar.swift; sourceTree = "<group>"; };
 		6B9F33A8CBF65EB77DFCACC5 /* AnalysisResultsTabbedView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisResultsTabbedView.swift; sourceTree = "<group>"; };
@@ -615,6 +622,7 @@
 		80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AskOwnerSheet.swift; sourceTree = "<group>"; };
 		80E81EC8DC4A28774ACF3BF2 /* ToastNotification.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ToastNotification.swift; path = Billix/Features/Home/Components/ToastNotification.swift; sourceTree = SOURCE_ROOT; };
 		80UTAGEBOT234567890BCDEF /* OutageBotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutageBotView.swift; sourceTree = "<group>"; };
+		8132DA89B9A395ACFC58CC67 /* MutualMatchesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MutualMatchesView.swift; path = Billix/Features/BillSwap/Views/MutualMatchesView.swift; sourceTree = SOURCE_ROOT; };
 		81513DE947C6002A28D674AD /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		82FC0BB67CCFCCE154206D1F /* AutoPilotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoPilotService.swift; sourceTree = "<group>"; };
 		83AD1B51EDEC441CA0625404 /* CircularProgressRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressRing.swift; sourceTree = "<group>"; };
@@ -1003,6 +1011,8 @@
 		FB8D3E6933AEE80A2FD8C853 /* BillExplorerDetailSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillExplorerDetailSheet.swift; sourceTree = "<group>"; };
 		FBC06160BD0BFE4C06BB14C3 /* AllUploadsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AllUploadsView.swift; sourceTree = "<group>"; };
 		FD03CB72B19A74E508D2FDA5 /* ReliefStep4Urgency.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefStep4Urgency.swift; sourceTree = "<group>"; };
+		49DA717C0FBD45918F363865 /* ConnectionStatsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Billix/Features/Home/Components/ConnectionStatsSheet.swift"; sourceTree = SOURCE_ROOT; };
+		070EF5A1FB04400EA91E070A /* UpgradeMembershipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Billix/Features/BillSwap/Views/UpgradeMembershipView.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1138,6 +1148,7 @@
 				34F7862E627E13DC98E78131 /* ProofUploadView.swift */,
 				D8A3B7F2E91C4D5A6B7E8F01 /* RequestBillView.swift */,
 				E615A8AE9DAB7835A248158E /* TermsProposalView.swift */,
+				8132DA89B9A395ACFC58CC67 /* MutualMatchesView.swift */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -1147,6 +1158,15 @@
 			children = (
 			);
 			name = Views;
+			sourceTree = "<group>";
+		};
+		4523E50E4614FE4DB15C0B63 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				49DA717C0FBD45918F363865 /* ConnectionStatsSheet.swift */,
+				694112B9828FBA28A588E50F /* MutualPairStatusCard.swift */,
+			);
+			name = Components;
 			sourceTree = "<group>";
 		};
 		4AEF99D1A3AD3C5730256A3F /* Common */ = {
@@ -1301,6 +1321,7 @@
 				4C3B6C583838B06C084D548C /* Models */,
 				7CFB7B5943EE759875E05DD7 /* Services */,
 				309D6CD7AF9BF06161192FCA /* Views */,
+				4523E50E4614FE4DB15C0B63 /* Components */,
 			);
 			name = BillSwap;
 			sourceTree = "<group>";
@@ -1320,6 +1341,7 @@
 				79361E6281D58BF10A2D2773 /* TermsService.swift */,
 				B303E91D8140C541A2E64E57 /* ReputationService.swift */,
 				1B1C6158C932DB9CC81A9C76 /* ConnectionEventService.swift */,
+				2BC363B88B8D55AC89FC3FE3 /* MutualMatchService.swift */,
 			);
 			name = Services;
 			sourceTree = "<group>";
@@ -2650,6 +2672,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1EE670222F2246A08C0B511F /* UpgradeMembershipView.swift in Sources */,
+				817A61B8896A49FA9351A571 /* ConnectionStatsSheet.swift in Sources */,
 				53B31F2AA624979A5BA44697 /* USRegion.swift in Sources */,
 				E48EC8A07D5697F88D447036 /* BillTypeDetailsCard.swift in Sources */,
 				F2FA6CD17340402CCBF99B90 /* UsageComparisonBar.swift in Sources */,
@@ -3113,6 +3137,9 @@
 				7AC6F36E16B6E5B8385B60E5 /* TermsProposalView.swift in Sources */,
 				85AD8C7A2F7337695DC017F0 /* RequestSuccessView.swift in Sources */,
 				E905398201E36217837C006E /* SubscriptionSyncService.swift in Sources */,
+				C0C7FDD6CAB35E50F1D9A088 /* MutualMatchService.swift in Sources */,
+				DEF9DC903916457EE733B4AD /* MutualMatchesView.swift in Sources */,
+				81D1C488008FF42DFD5EAE00 /* MutualPairStatusCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

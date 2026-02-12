@@ -140,11 +140,13 @@ struct GeoGameFlowView: View {
     }
 }
 
-#Preview {
-    GeoGameFlowView(
+struct GeoGameFlowView_Previews: PreviewProvider {
+    static var previews: some View {
+        GeoGameFlowView(
         game: GeoGameDataService.mockGames[0],
         onComplete: { _ in },
         onPlayAgain: {},
         onDismiss: {}
-    )
+        )
+    }
 }

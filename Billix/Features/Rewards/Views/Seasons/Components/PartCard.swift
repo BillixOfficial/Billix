@@ -137,181 +137,185 @@ struct PartCard: View {
 
 // MARK: - Preview
 
-#Preview("Part Card - Session Mode") {
-    ZStack {
+struct PartCard_Part_Card___Session_Mode_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color(hex: "#FAFAFA")
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         VStack(spacing: 20) {
-            // Session mode - Not started
-            PartCard(
-                part: SeasonPart(
-                    id: UUID(),
-                    seasonId: UUID(),
-                    partNumber: 1,
-                    title: "Coast to Coast",
-                    totalLocations: 10,
-                    unlockRequirement: 0,
-                    createdAt: Date()
-                ),
-                progress: PartCompletionStats(
-                    completed: 0,
-                    total: 1,
-                    isSessionBased: true,
-                    attempts: 0,
-                    hasPassed: false
-                ),
-                isUnlocked: true,
-                onTap: {  }
-            )
-            .padding(.horizontal, 20)
-
-            // Session mode - Attempted but not passed
-            PartCard(
-                part: SeasonPart(
-                    id: UUID(),
-                    seasonId: UUID(),
-                    partNumber: 1,
-                    title: "Coast to Coast",
-                    totalLocations: 10,
-                    unlockRequirement: 0,
-                    createdAt: Date()
-                ),
-                progress: PartCompletionStats(
-                    completed: 0,
-                    total: 1,
-                    isSessionBased: true,
-                    attempts: 4,
-                    hasPassed: false
-                ),
-                isUnlocked: true,
-                onTap: {  }
-            )
-            .padding(.horizontal, 20)
-
-            // Session mode - Passed
-            PartCard(
-                part: SeasonPart(
-                    id: UUID(),
-                    seasonId: UUID(),
-                    partNumber: 1,
-                    title: "Coast to Coast",
-                    totalLocations: 10,
-                    unlockRequirement: 0,
-                    createdAt: Date()
-                ),
-                progress: PartCompletionStats(
-                    completed: 1,
-                    total: 1,
-                    isSessionBased: true,
-                    attempts: 7,
-                    hasPassed: true
-                ),
-                isUnlocked: true,
-                onTap: {  }
-            )
-            .padding(.horizontal, 20)
-
-            // Locked part
-            PartCard(
-                part: SeasonPart(
-                    id: UUID(),
-                    seasonId: UUID(),
-                    partNumber: 2,
-                    title: "Deep Cuts",
-                    totalLocations: 10,
-                    unlockRequirement: 10,
-                    createdAt: Date()
-                ),
-                progress: PartCompletionStats(
-                    completed: 0,
-                    total: 1,
-                    isSessionBased: true,
-                    attempts: 0,
-                    hasPassed: false
-                ),
-                isUnlocked: false,
-                onTap: {  }
-            )
-            .padding(.horizontal, 20)
+        // Session mode - Not started
+        PartCard(
+        part: SeasonPart(
+        id: UUID(),
+        seasonId: UUID(),
+        partNumber: 1,
+        title: "Coast to Coast",
+        totalLocations: 10,
+        unlockRequirement: 0,
+        createdAt: Date()
+        ),
+        progress: PartCompletionStats(
+        completed: 0,
+        total: 1,
+        isSessionBased: true,
+        attempts: 0,
+        hasPassed: false
+        ),
+        isUnlocked: true,
+        onTap: {  }
+        )
+        .padding(.horizontal, 20)
+        
+        // Session mode - Attempted but not passed
+        PartCard(
+        part: SeasonPart(
+        id: UUID(),
+        seasonId: UUID(),
+        partNumber: 1,
+        title: "Coast to Coast",
+        totalLocations: 10,
+        unlockRequirement: 0,
+        createdAt: Date()
+        ),
+        progress: PartCompletionStats(
+        completed: 0,
+        total: 1,
+        isSessionBased: true,
+        attempts: 4,
+        hasPassed: false
+        ),
+        isUnlocked: true,
+        onTap: {  }
+        )
+        .padding(.horizontal, 20)
+        
+        // Session mode - Passed
+        PartCard(
+        part: SeasonPart(
+        id: UUID(),
+        seasonId: UUID(),
+        partNumber: 1,
+        title: "Coast to Coast",
+        totalLocations: 10,
+        unlockRequirement: 0,
+        createdAt: Date()
+        ),
+        progress: PartCompletionStats(
+        completed: 1,
+        total: 1,
+        isSessionBased: true,
+        attempts: 7,
+        hasPassed: true
+        ),
+        isUnlocked: true,
+        onTap: {  }
+        )
+        .padding(.horizontal, 20)
+        
+        // Locked part
+        PartCard(
+        part: SeasonPart(
+        id: UUID(),
+        seasonId: UUID(),
+        partNumber: 2,
+        title: "Deep Cuts",
+        totalLocations: 10,
+        unlockRequirement: 10,
+        createdAt: Date()
+        ),
+        progress: PartCompletionStats(
+        completed: 0,
+        total: 1,
+        isSessionBased: true,
+        attempts: 0,
+        hasPassed: false
+        ),
+        isUnlocked: false,
+        onTap: {  }
+        )
+        .padding(.horizontal, 20)
+        }
         }
     }
 }
 
-#Preview("Part Card - Location Mode") {
-    ZStack {
+struct PartCard_Part_Card___Location_Mode_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color(hex: "#FAFAFA")
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         VStack(spacing: 20) {
-            // Location mode - In progress
-            PartCard(
-                part: SeasonPart(
-                    id: UUID(),
-                    seasonId: UUID(),
-                    partNumber: 1,
-                    title: "Western States",
-                    totalLocations: 10,
-                    unlockRequirement: 0,
-                    createdAt: Date()
-                ),
-                progress: PartCompletionStats(
-                    completed: 7,
-                    total: 10,
-                    isSessionBased: false,
-                    attempts: nil,
-                    hasPassed: nil
-                ),
-                isUnlocked: true,
-                onTap: {  }
-            )
-            .padding(.horizontal, 20)
-
-            // Location mode - Completed
-            PartCard(
-                part: SeasonPart(
-                    id: UUID(),
-                    seasonId: UUID(),
-                    partNumber: 2,
-                    title: "Eastern States",
-                    totalLocations: 10,
-                    unlockRequirement: 10,
-                    createdAt: Date()
-                ),
-                progress: PartCompletionStats(
-                    completed: 10,
-                    total: 10,
-                    isSessionBased: false,
-                    attempts: nil,
-                    hasPassed: nil
-                ),
-                isUnlocked: true,
-                onTap: {  }
-            )
-            .padding(.horizontal, 20)
-
-            // Locked location part
-            PartCard(
-                part: SeasonPart(
-                    id: UUID(),
-                    seasonId: UUID(),
-                    partNumber: 3,
-                    title: "Southern States",
-                    totalLocations: 10,
-                    unlockRequirement: 20,
-                    createdAt: Date()
-                ),
-                progress: PartCompletionStats(
-                    completed: 0,
-                    total: 10,
-                    isSessionBased: false,
-                    attempts: nil,
-                    hasPassed: nil
-                ),
-                isUnlocked: false,
-                onTap: {  }
-            )
-            .padding(.horizontal, 20)
+        // Location mode - In progress
+        PartCard(
+        part: SeasonPart(
+        id: UUID(),
+        seasonId: UUID(),
+        partNumber: 1,
+        title: "Western States",
+        totalLocations: 10,
+        unlockRequirement: 0,
+        createdAt: Date()
+        ),
+        progress: PartCompletionStats(
+        completed: 7,
+        total: 10,
+        isSessionBased: false,
+        attempts: nil,
+        hasPassed: nil
+        ),
+        isUnlocked: true,
+        onTap: {  }
+        )
+        .padding(.horizontal, 20)
+        
+        // Location mode - Completed
+        PartCard(
+        part: SeasonPart(
+        id: UUID(),
+        seasonId: UUID(),
+        partNumber: 2,
+        title: "Eastern States",
+        totalLocations: 10,
+        unlockRequirement: 10,
+        createdAt: Date()
+        ),
+        progress: PartCompletionStats(
+        completed: 10,
+        total: 10,
+        isSessionBased: false,
+        attempts: nil,
+        hasPassed: nil
+        ),
+        isUnlocked: true,
+        onTap: {  }
+        )
+        .padding(.horizontal, 20)
+        
+        // Locked location part
+        PartCard(
+        part: SeasonPart(
+        id: UUID(),
+        seasonId: UUID(),
+        partNumber: 3,
+        title: "Southern States",
+        totalLocations: 10,
+        unlockRequirement: 20,
+        createdAt: Date()
+        ),
+        progress: PartCompletionStats(
+        completed: 0,
+        total: 10,
+        isSessionBased: false,
+        attempts: nil,
+        hasPassed: nil
+        ),
+        isUnlocked: false,
+        onTap: {  }
+        )
+        .padding(.horizontal, 20)
+        }
         }
     }
 }

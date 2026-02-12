@@ -198,12 +198,16 @@ struct PointCostRow: View {
 
 // MARK: - Preview
 
-#Preview("Normal State") {
-    RateLimitIndicator(rateLimitService: RateLimitService.shared)
+struct RateLimitIndicator_Normal_State_Previews: PreviewProvider {
+    static var previews: some View {
+        RateLimitIndicator(rateLimitService: RateLimitService.shared)
         .padding()
+    }
 }
 
-#Preview("Tooltip") {
-    PointsTooltipView()
+struct RateLimitIndicator_Tooltip_Previews: PreviewProvider {
+    static var previews: some View {
+        PointsTooltipView()
         .padding()
+    }
 }

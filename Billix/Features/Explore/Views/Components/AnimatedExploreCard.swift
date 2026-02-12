@@ -124,6 +124,8 @@ private struct AnimatedExploreCard_Preview: View {
     }
 }
 
-#Preview("Animated Explore Card") {
-    AnimatedExploreCard_Preview()
+struct AnimatedExploreCard_Animated_Explore_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        AnimatedExploreCard_Preview()
+    }
 }

@@ -47,6 +47,12 @@ class ConnectionService: ObservableObject {
             throw ConnectionError.notAuthenticated
         }
 
+        // REQUIRED: Verify ID before any swap
+        let isVerified = try await checkIDVerification(userId: userId)
+        guard isVerified else {
+            throw ConnectionError.idVerificationRequired
+        }
+
         // Check tier limits
         try await validateTierLimit(amount: bill.amount, userId: userId)
 
@@ -91,6 +97,12 @@ class ConnectionService: ObservableObject {
     func offerSupport(connectionId: UUID) async throws -> Connection {
         guard let userId = currentUserId else {
             throw ConnectionError.notAuthenticated
+        }
+
+        // REQUIRED: Verify ID before any swap
+        let isVerified = try await checkIDVerification(userId: userId)
+        guard isVerified else {
+            throw ConnectionError.idVerificationRequired
         }
 
         // Get the connection
@@ -343,6 +355,7 @@ class ConnectionService: ObservableObject {
     // MARK: - Cancel / Dispute
 
     /// Cancel a connection
+    /// If this is a mutual pair, BOTH connections are cancelled and penalty applied
     func cancelConnection(connectionId: UUID, reason: String? = nil) async throws {
         guard let userId = currentUserId else {
             throw ConnectionError.notAuthenticated
@@ -360,6 +373,19 @@ class ConnectionService: ObservableObject {
             throw ConnectionError.invalidState("Cannot cancel completed or disputed connections")
         }
 
+        // Check if this is a mutual pair - if so, cancel both
+        if let pairId = connection.mutualPairId {
+            try await cancelMutualPair(pairId: pairId, reason: reason ?? "User cancelled", cancelledBy: userId)
+        } else {
+            // Single connection cancel
+            try await cancelSingleConnection(connectionId: connectionId, reason: reason, cancelledBy: userId)
+        }
+
+        try await fetchMyConnections()
+    }
+
+    /// Cancel a single connection (internal helper)
+    private func cancelSingleConnection(connectionId: UUID, reason: String?, cancelledBy: UUID) async throws {
         try await supabase
             .from("connections")
             .update([
@@ -374,10 +400,61 @@ class ConnectionService: ObservableObject {
         try await ConnectionEventService.shared.logEvent(
             connectionId: connectionId,
             type: .connectionCancelled,
-            payload: .cancellation(reason: reason, cancelledBy: userId)
+            payload: .cancellation(reason: reason, cancelledBy: cancelledBy)
+        )
+    }
+
+    /// Cancel both connections in a mutual pair
+    private func cancelMutualPair(pairId: UUID, reason: String, cancelledBy: UUID) async throws {
+        // Find both connections with this pair ID
+        let connections: [Connection] = try await supabase
+            .from("connections")
+            .select()
+            .eq("mutual_pair_id", value: pairId.uuidString)
+            .execute()
+            .value
+
+        guard connections.count == 2 else {
+            throw ConnectionError.invalidState("Mutual pair not found or incomplete")
+        }
+
+        let now = ISO8601DateFormatter().string(from: Date())
+        let cancelReason = "\(reason) (Mutual pair cancelled)"
+
+        // Cancel both connections
+        for connection in connections {
+            try await supabase
+                .from("connections")
+                .update([
+                    "status": ConnectionStatus.cancelled.rawValue,
+                    "cancelled_at": now,
+                    "cancel_reason": cancelReason
+                ])
+                .eq("id", value: connection.id.uuidString)
+                .execute()
+
+            // Log event for each
+            try await ConnectionEventService.shared.logEvent(
+                connectionId: connection.id,
+                type: .connectionCancelled,
+                payload: .cancellation(reason: cancelReason, cancelledBy: cancelledBy)
+            )
+        }
+
+        // Apply reputation penalty to the user who cancelled
+        try await ReputationService.shared.penalizeMutualSwapFailure(
+            userId: cancelledBy,
+            pairId: pairId,
+            reason: .abandonedConnection
         )
 
-        try await fetchMyConnections()
+        // Notify both users
+        for connection in connections {
+            await NotificationService.shared.notifyConnectionCancelled(
+                connection: connection,
+                reason: "Your mutual swap was cancelled. Both connections have been terminated."
+            )
+        }
     }
 
     /// Raise a dispute
@@ -477,8 +554,10 @@ class ConnectionService: ObservableObject {
             }
             return CommunityBoardItem(
                 bill: bill,
+                connectionId: connection.id,
                 connectionType: connection.connectionType,
-                connectionCreatedAt: connection.createdAt
+                connectionCreatedAt: connection.createdAt,
+                mutualPairId: connection.mutualPairId
             )
         }
     }
@@ -582,6 +661,19 @@ class ConnectionService: ObservableObject {
 
     // MARK: - Validation
 
+    /// Check if user has verified their ID (required for all swaps)
+    private func checkIDVerification(userId: UUID) async throws -> Bool {
+        let profile: ProfileIDCheck = try await supabase
+            .from("profiles")
+            .select("is_gov_id_verified")
+            .eq("user_id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        return profile.isGovIdVerified
+    }
+
     /// Validate bill amount against user's tier limit
     private func validateTierLimit(amount: Decimal, userId: UUID) async throws {
         let tier = try await ReputationService.shared.getUserTier(userId: userId)
@@ -613,6 +705,16 @@ class ConnectionService: ObservableObject {
                 tier: tier
             )
         }
+    }
+}
+
+// MARK: - Helper Models
+
+private struct ProfileIDCheck: Decodable {
+    let isGovIdVerified: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case isGovIdVerified = "is_gov_id_verified"
     }
 }
 
@@ -654,6 +756,7 @@ enum ConnectionError: LocalizedError {
     case amountExceedsTierLimit(amount: Decimal, limit: Decimal, tier: ReputationTier)
     case velocityLimitReached(limit: Int, tier: ReputationTier)
     case insufficientTokens
+    case idVerificationRequired
 
     var errorDescription: String? {
         switch self {
@@ -680,6 +783,8 @@ enum ConnectionError: LocalizedError {
             return "You've reached your monthly limit of \(limit) connection(s) as a \(tier.displayName). Upgrade to increase your limit."
         case .insufficientTokens:
             return "Not enough tokens to create a support request. You need 2 tokens."
+        case .idVerificationRequired:
+            return "ID verification is required before participating in Bill Connections. Please verify your ID to continue."
         }
     }
 }

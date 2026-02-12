@@ -45,12 +45,14 @@ struct FilterChip: View {
     }
 }
 
-#Preview("Filter Chips") {
-    HStack(spacing: 12) {
+struct FilterChip_Filter_Chips_Previews: PreviewProvider {
+    static var previews: some View {
+        HStack(spacing: 12) {
         FilterChip(label: "All", icon: "house.fill", isSelected: false, action: {})
         FilterChip(label: "2+ Beds", icon: "bed.double.fill", isSelected: true, action: {})
         FilterChip(label: "Price", icon: "dollarsign.circle.fill", isSelected: false, action: {})
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

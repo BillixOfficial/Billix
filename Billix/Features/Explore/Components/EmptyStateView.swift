@@ -150,18 +150,22 @@ struct BenefitCard: View {
 
 // MARK: - Previews
 
-#Preview("Marketplace Empty State") {
-    MarketplaceEmptyState(
+struct EmptyStateView_Marketplace_Empty_State_Previews: PreviewProvider {
+    static var previews: some View {
+        MarketplaceEmptyState(
         location: Location.defaultLocation,
         onUploadTapped: {
-            print("Upload tapped")
+        print("Upload tapped")
         }
-    )
+        )
+    }
 }
 
-#Preview("Empty State - SF") {
-    MarketplaceEmptyState(
+struct EmptyStateView_Empty_State___SF_Previews: PreviewProvider {
+    static var previews: some View {
+        MarketplaceEmptyState(
         location: Location.mockLocations[1],
         onUploadTapped: {}
-    )
+        )
+    }
 }

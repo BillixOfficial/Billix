@@ -176,70 +176,72 @@ struct VirtualGoodCard: View {
 
 // MARK: - Preview
 
-#Preview("Virtual Goods Carousel") {
-    ZStack {
+struct VirtualGoodsCarousel_Virtual_Goods_Carousel_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         ScrollView {
-            VStack(spacing: 30) {
-                VirtualGoodsCarousel(
-                    virtualGoods: [
-                        Reward(
-                            id: UUID(),
-                            type: .customization,
-                            category: .virtualGoods,
-                            title: "Dark Mode Theme",
-                            description: "Unlock sleek dark interface",
-                            pointsCost: 200,
-                            brand: nil,
-                            dollarValue: nil,
-                            iconName: "moon.fill",
-                            accentColor: "#2C2C2E"
-                        ),
-                        Reward(
-                            id: UUID(),
-                            type: .customization,
-                            category: .virtualGoods,
-                            title: "Premium Dashboard",
-                            description: "Advanced analytics view",
-                            pointsCost: 500,
-                            brand: nil,
-                            dollarValue: nil,
-                            iconName: "chart.bar.fill",
-                            accentColor: "#52b8df"
-                        ),
-                        Reward(
-                            id: UUID(),
-                            type: .customization,
-                            category: .virtualGoods,
-                            title: "Custom Bill Colors",
-                            description: "Personalize categories",
-                            pointsCost: 300,
-                            brand: nil,
-                            dollarValue: nil,
-                            iconName: "paintpalette.fill",
-                            accentColor: "#FF6B35"
-                        ),
-                        Reward(
-                            id: UUID(),
-                            type: .customization,
-                            category: .virtualGoods,
-                            title: "Pro Icons Pack",
-                            description: "Premium icon collection",
-                            pointsCost: 400,
-                            brand: nil,
-                            dollarValue: nil,
-                            iconName: "star.fill",
-                            accentColor: "#FFD700"
-                        )
-                    ],
-                    userPoints: 350,
-                    onItemTapped: { _ in }
-                )
-
-                Spacer()
-            }
-            .padding(.top, 20)
+        VStack(spacing: 30) {
+        VirtualGoodsCarousel(
+        virtualGoods: [
+        Reward(
+        id: UUID(),
+        type: .customization,
+        category: .virtualGoods,
+        title: "Dark Mode Theme",
+        description: "Unlock sleek dark interface",
+        pointsCost: 200,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "moon.fill",
+        accentColor: "#2C2C2E"
+        ),
+        Reward(
+        id: UUID(),
+        type: .customization,
+        category: .virtualGoods,
+        title: "Premium Dashboard",
+        description: "Advanced analytics view",
+        pointsCost: 500,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "chart.bar.fill",
+        accentColor: "#52b8df"
+        ),
+        Reward(
+        id: UUID(),
+        type: .customization,
+        category: .virtualGoods,
+        title: "Custom Bill Colors",
+        description: "Personalize categories",
+        pointsCost: 300,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "paintpalette.fill",
+        accentColor: "#FF6B35"
+        ),
+        Reward(
+        id: UUID(),
+        type: .customization,
+        category: .virtualGoods,
+        title: "Pro Icons Pack",
+        description: "Premium icon collection",
+        pointsCost: 400,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "star.fill",
+        accentColor: "#FFD700"
+        )
+        ],
+        userPoints: 350,
+        onItemTapped: { _ in }
+        )
+        
+        Spacer()
+        }
+        .padding(.top, 20)
+        }
         }
     }
 }

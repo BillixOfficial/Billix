@@ -191,52 +191,54 @@ struct CompactStepCounter: View {
 
 // MARK: - Preview
 
-#Preview {
-    VStack(spacing: 40) {
+struct RadialProgressIndicator_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 40) {
         // Radial indicator
         VStack(spacing: 20) {
-            Text("Radial Progress")
-                .font(.headline)
-
-            HStack(spacing: 30) {
-                RadialProgressIndicator(currentStep: 1, totalSteps: 4, showStepLabel: false)
-                RadialProgressIndicator(currentStep: 2, totalSteps: 4, showStepLabel: false)
-                RadialProgressIndicator(currentStep: 3, totalSteps: 4, showStepLabel: false)
-                RadialProgressIndicator(currentStep: 4, totalSteps: 4, showStepLabel: false)
-            }
-
-            RadialProgressIndicator(currentStep: 2, totalSteps: 4)
+        Text("Radial Progress")
+        .font(.headline)
+        
+        HStack(spacing: 30) {
+        RadialProgressIndicator(currentStep: 1, totalSteps: 4, showStepLabel: false)
+        RadialProgressIndicator(currentStep: 2, totalSteps: 4, showStepLabel: false)
+        RadialProgressIndicator(currentStep: 3, totalSteps: 4, showStepLabel: false)
+        RadialProgressIndicator(currentStep: 4, totalSteps: 4, showStepLabel: false)
         }
-
+        
+        RadialProgressIndicator(currentStep: 2, totalSteps: 4)
+        }
+        
         Divider()
-
+        
         // Horizontal dots
         VStack(spacing: 20) {
-            Text("Horizontal Dots")
-                .font(.headline)
-
-            HorizontalStepIndicator(currentStep: 2, totalSteps: 4)
+        Text("Horizontal Dots")
+        .font(.headline)
+        
+        HorizontalStepIndicator(currentStep: 2, totalSteps: 4)
         }
-
+        
         Divider()
-
+        
         // Pill indicator
         VStack(spacing: 20) {
-            Text("Pill Progress")
-                .font(.headline)
-
-            PillProgressIndicator(currentStep: 2, totalSteps: 4)
+        Text("Pill Progress")
+        .font(.headline)
+        
+        PillProgressIndicator(currentStep: 2, totalSteps: 4)
         }
-
+        
         Divider()
-
+        
         // Compact counter
         VStack(spacing: 20) {
-            Text("Compact Counter")
-                .font(.headline)
-
-            CompactStepCounter(currentStep: 2, totalSteps: 4)
+        Text("Compact Counter")
+        .font(.headline)
+        
+        CompactStepCounter(currentStep: 2, totalSteps: 4)
         }
+        }
+        .padding()
     }
-    .padding()
 }

@@ -270,10 +270,12 @@ struct ReportPostSheet: View {
 
 // MARK: - Preview
 
-#Preview("Report Post Sheet") {
-    ReportPostSheet(
+struct ReportPostSheet_Report_Post_Sheet_Previews: PreviewProvider {
+    static var previews: some View {
+        ReportPostSheet(
         post: CommunityPost.mockPosts[0],
         onSubmit: { reason, details in
         }
-    )
+        )
+    }
 }

@@ -592,6 +592,8 @@ private struct SetupScaleButtonStyle: ButtonStyle {
 
 // MARK: - Preview
 
-#Preview {
-    HomeSetupQuestionsView()
+struct HomeSetupQuestionsView_Previews: PreviewProvider {
+    static var previews: some View {
+        HomeSetupQuestionsView()
+    }
 }

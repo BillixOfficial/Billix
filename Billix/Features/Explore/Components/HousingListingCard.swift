@@ -259,64 +259,66 @@ struct AmenityChip: View {
 
 // MARK: - Previews
 
-#Preview("Housing Listing Cards") {
-    ScrollView {
+struct HousingListingCard_Housing_Listing_Cards_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         VStack(spacing: 16) {
-            HousingListingCard(
-                listing: HousingListing(
-                    id: "1",
-                    address: "1234 Main St",
-                    neighborhood: "Downtown Detroit",
-                    monthlyRent: 1500,
-                    bedrooms: 2,
-                    bathrooms: 1.5,
-                    sqft: 950,
-                    amenities: ["Parking", "Pet Friendly", "A/C"],
-                    fairValue: .great,
-                    marketPosition: 0.3,
-                    marketMin: 1400,
-                    marketMax: 2200,
-                    isPriceDrop: true
-                )
-            )
-
-            HousingListingCard(
-                listing: HousingListing(
-                    id: "2",
-                    address: "567 Oak Ave",
-                    neighborhood: "Midtown",
-                    monthlyRent: 1850,
-                    bedrooms: 1,
-                    bathrooms: 1,
-                    sqft: 750,
-                    amenities: ["Gym", "Pool", "Parking", "Laundry"],
-                    fairValue: .fair,
-                    marketPosition: 0.5,
-                    marketMin: 1400,
-                    marketMax: 2200,
-                    isPriceDrop: false
-                )
-            )
-
-            HousingListingCard(
-                listing: HousingListing(
-                    id: "3",
-                    address: "890 Elm St",
-                    neighborhood: "Corktown",
-                    monthlyRent: 2100,
-                    bedrooms: 3,
-                    bathrooms: 2,
-                    sqft: nil,
-                    amenities: ["Dishwasher", "Balcony"],
-                    fairValue: .premium,
-                    marketPosition: 0.75,
-                    marketMin: 1400,
-                    marketMax: 2200,
-                    isPriceDrop: false
-                )
-            )
+        HousingListingCard(
+        listing: HousingListing(
+        id: "1",
+        address: "1234 Main St",
+        neighborhood: "Downtown Detroit",
+        monthlyRent: 1500,
+        bedrooms: 2,
+        bathrooms: 1.5,
+        sqft: 950,
+        amenities: ["Parking", "Pet Friendly", "A/C"],
+        fairValue: .great,
+        marketPosition: 0.3,
+        marketMin: 1400,
+        marketMax: 2200,
+        isPriceDrop: true
+        )
+        )
+        
+        HousingListingCard(
+        listing: HousingListing(
+        id: "2",
+        address: "567 Oak Ave",
+        neighborhood: "Midtown",
+        monthlyRent: 1850,
+        bedrooms: 1,
+        bathrooms: 1,
+        sqft: 750,
+        amenities: ["Gym", "Pool", "Parking", "Laundry"],
+        fairValue: .fair,
+        marketPosition: 0.5,
+        marketMin: 1400,
+        marketMax: 2200,
+        isPriceDrop: false
+        )
+        )
+        
+        HousingListingCard(
+        listing: HousingListing(
+        id: "3",
+        address: "890 Elm St",
+        neighborhood: "Corktown",
+        monthlyRent: 2100,
+        bedrooms: 3,
+        bathrooms: 2,
+        sqft: nil,
+        amenities: ["Dishwasher", "Balcony"],
+        fairValue: .premium,
+        marketPosition: 0.75,
+        marketMin: 1400,
+        marketMax: 2200,
+        isPriceDrop: false
+        )
+        )
         }
         .padding()
+        }
+        .background(Color.billixCreamBeige)
     }
-    .background(Color.billixCreamBeige)
 }

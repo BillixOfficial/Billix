@@ -450,9 +450,11 @@ class ExternalPaymentStandaloneViewModel: ObservableObject {
 
 // MARK: - Preview
 
-#Preview {
-    ExternalPaymentView(
+struct ExternalPaymentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ExternalPaymentView(
         connection: Connection.mockExecuting(),
         viewModel: ConnectionDetailViewModel(connection: Connection.mockExecuting())
-    )
+        )
+    }
 }

@@ -104,28 +104,30 @@ struct ContinuousHealthBar: View {
 
 // MARK: - Preview
 
-#Preview("Continuous Health Bar - Various States") {
-    VStack(spacing: 40) {
+struct ContinuousHealthBar_Continuous_Health_Bar___Various_States_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 40) {
         // High health (green)
         ContinuousHealthBar(viewModel: GeoGameViewModel())
-            .padding(.horizontal, 20)
-
+        .padding(.horizontal, 20)
+        
         // Medium health (orange)
         ContinuousHealthBar(viewModel: {
-            let vm = GeoGameViewModel()
-            vm.session.health = 1  // 33%
-            return vm
+        let vm = GeoGameViewModel()
+        vm.session.health = 1  // 33%
+        return vm
         }())
         .padding(.horizontal, 20)
-
+        
         // Low health (red)
         ContinuousHealthBar(viewModel: {
-            let vm = GeoGameViewModel()
-            vm.session.health = 0  // 0%
-            return vm
+        let vm = GeoGameViewModel()
+        vm.session.health = 0  // 0%
+        return vm
         }())
         .padding(.horizontal, 20)
+        }
+        .padding(.vertical, 40)
+        .background(Color.black.opacity(0.8))
     }
-    .padding(.vertical, 40)
-    .background(Color.black.opacity(0.8))
 }

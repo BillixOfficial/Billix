@@ -126,67 +126,71 @@ struct CompactUsageMeter: View {
 
 // MARK: - Previews
 
-#Preview("Usage Context Meter - All Levels") {
-    VStack(spacing: 20) {
+struct UsageContextMeter_Usage_Context_Meter___All_Levels_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Standard Meters")
-                .font(.headline)
-
-            UsageContextMeter(level: .low)
-            UsageContextMeter(level: .medium)
-            UsageContextMeter(level: .high)
+        Text("Standard Meters")
+        .font(.headline)
+        
+        UsageContextMeter(level: .low)
+        UsageContextMeter(level: .medium)
+        UsageContextMeter(level: .high)
         }
-
+        
         Divider()
-
+        
         VStack(alignment: .leading, spacing: 12) {
-            Text("Without Labels")
-                .font(.headline)
-
-            UsageContextMeter(level: .low, showLabel: false)
-            UsageContextMeter(level: .medium, showLabel: false)
-            UsageContextMeter(level: .high, showLabel: false)
+        Text("Without Labels")
+        .font(.headline)
+        
+        UsageContextMeter(level: .low, showLabel: false)
+        UsageContextMeter(level: .medium, showLabel: false)
+        UsageContextMeter(level: .high, showLabel: false)
         }
-
+        
         Divider()
-
+        
         VStack(alignment: .leading, spacing: 12) {
-            Text("Compact Variant")
-                .font(.headline)
-
-            CompactUsageMeter(level: .low)
-            CompactUsageMeter(level: .medium)
-            CompactUsageMeter(level: .high)
+        Text("Compact Variant")
+        .font(.headline)
+        
+        CompactUsageMeter(level: .low)
+        CompactUsageMeter(level: .medium)
+        CompactUsageMeter(level: .high)
         }
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }
 
-#Preview("Usage Meter - In Card Context") {
-    VStack(spacing: 16) {
+struct UsageContextMeter_Usage_Meter___In_Card_Context_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         // Simulated bill card
         VStack(alignment: .leading, spacing: 12) {
-            Text("DTE Energy")
-                .font(.headline)
-
-            Text("Electric • Residential")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            UsageContextMeter(level: .medium)
-
-            Text("$145 - $165")
-                .font(.title3)
-                .bold()
+        Text("DTE Energy")
+        .font(.headline)
+        
+        Text("Electric • Residential")
+        .font(.caption)
+        .foregroundColor(.secondary)
+        
+        UsageContextMeter(level: .medium)
+        
+        Text("$145 - $165")
+        .font(.title3)
+        .bold()
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(radius: 4)
+        RoundedRectangle(cornerRadius: 16)
+        .fill(Color.white)
+        .shadow(radius: 4)
         )
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

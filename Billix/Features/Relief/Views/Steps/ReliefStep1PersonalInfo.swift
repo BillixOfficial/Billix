@@ -124,8 +124,10 @@ struct ReliefFormField: View {
     }
 }
 
-#Preview {
-    ReliefStep1PersonalInfo(viewModel: ReliefFlowViewModel())
+struct ReliefStep1PersonalInfo_Previews: PreviewProvider {
+    static var previews: some View {
+        ReliefStep1PersonalInfo(viewModel: ReliefFlowViewModel())
         .padding()
         .background(Color(hex: "#F7F9F8"))
+    }
 }

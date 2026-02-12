@@ -238,43 +238,47 @@ struct RoundedCorner: Shape {
 
 // MARK: - Preview
 
-#Preview("Minimal Bottom Deck - Minimal State") {
-    ZStack {
+struct MinimalBottomDeck_Minimal_Bottom_Deck___Minimal_State_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.green.opacity(0.3)
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         VStack {
-            Spacer()
-
-            MinimalBottomDeck(viewModel: {
-                let vm = GeoGameViewModel()
-                vm.questionPhase = .phase1Location
-                return vm
-            }())
+        Spacer()
+        
+        MinimalBottomDeck(viewModel: {
+        let vm = GeoGameViewModel()
+        vm.questionPhase = .phase1Location
+        return vm
+        }())
+        }
         }
     }
 }
 
-#Preview("Minimal Bottom Deck - Expanded State") {
-    ZStack {
+struct MinimalBottomDeck_Minimal_Bottom_Deck___Expanded_State_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.blue.opacity(0.3)
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         VStack {
-            Spacer()
-
-            MinimalBottomDeck(viewModel: {
-                let vm = GeoGameViewModel()
-                vm.questionPhase = .phase1Location
-                return vm
-            }())
-            .onAppear {
-                // Simulate expanded state
-                Task { @MainActor in
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                    // Note: This won't work in preview, just for visual reference
-                }
-            }
+        Spacer()
+        
+        MinimalBottomDeck(viewModel: {
+        let vm = GeoGameViewModel()
+        vm.questionPhase = .phase1Location
+        return vm
+        }())
+        .onAppear {
+        // Simulate expanded state
+        Task { @MainActor in
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        // Note: This won't work in preview, just for visual reference
+        }
+        }
+        }
         }
     }
 }

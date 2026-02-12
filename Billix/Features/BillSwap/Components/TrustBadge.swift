@@ -174,28 +174,30 @@ struct InlineTrustBadge: View {
 
 // MARK: - Preview
 
-#Preview("Trust Badge") {
-    VStack(spacing: 24) {
+struct TrustBadge_Trust_Badge_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 24) {
         HStack(spacing: 24) {
-            TrustBadge(score: 95, size: .large)
-            TrustBadge(score: 75, size: .large)
-            TrustBadge(score: 50, size: .large)
-            TrustBadge(score: 25, size: .large)
+        TrustBadge(score: 95, size: .large)
+        TrustBadge(score: 75, size: .large)
+        TrustBadge(score: 50, size: .large)
+        TrustBadge(score: 25, size: .large)
         }
-
+        
         HStack(spacing: 24) {
-            TrustBadgeWithLabel(score: 95)
-            TrustBadgeWithLabel(score: 75)
-            TrustBadgeWithLabel(score: 50)
-            TrustBadgeWithLabel(score: 25)
+        TrustBadgeWithLabel(score: 95)
+        TrustBadgeWithLabel(score: 75)
+        TrustBadgeWithLabel(score: 50)
+        TrustBadgeWithLabel(score: 25)
         }
-
+        
         HStack(spacing: 12) {
-            InlineTrustBadge(score: 95)
-            InlineTrustBadge(score: 75)
-            InlineTrustBadge(score: 50)
-            InlineTrustBadge(score: 25)
+        InlineTrustBadge(score: 95)
+        InlineTrustBadge(score: 75)
+        InlineTrustBadge(score: 50)
+        InlineTrustBadge(score: 25)
         }
+        }
+        .padding()
     }
-    .padding()
 }

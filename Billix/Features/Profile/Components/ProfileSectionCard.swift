@@ -66,43 +66,45 @@ struct ProfileDivider: View {
 
 // MARK: - Preview
 
-#Preview("Profile Section Card") {
-    VStack(spacing: 16) {
+struct ProfileSectionCard_Profile_Section_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         ProfileSectionCard {
-            ProfileSectionHeader("Account Settings", icon: "person.circle.fill")
-
-            VStack(spacing: 0) {
-                SettingsRow(
-                    title: "Edit Profile",
-                    subtitle: "Update your name and photo",
-                    icon: "pencil",
-                    action: {}
-                )
-
-                ProfileDivider()
-
-                SettingsRow(
-                    title: "Notifications",
-                    subtitle: "Manage your alerts",
-                    icon: "bell.fill",
-                    action: {}
-                )
-            }
-            .padding(.bottom, 8)
+        ProfileSectionHeader("Account Settings", icon: "person.circle.fill")
+        
+        VStack(spacing: 0) {
+        SettingsRow(
+        title: "Edit Profile",
+        subtitle: "Update your name and photo",
+        icon: "pencil",
+        action: {}
+        )
+        
+        ProfileDivider()
+        
+        SettingsRow(
+        title: "Notifications",
+        subtitle: "Manage your alerts",
+        icon: "bell.fill",
+        action: {}
+        )
         }
-
+        .padding(.bottom, 8)
+        }
+        
         ProfileSectionCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Simple Content")
-                    .font(.headline)
-
-                Text("This is a basic card with custom content")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            .padding(16)
+        VStack(alignment: .leading, spacing: 12) {
+        Text("Simple Content")
+        .font(.headline)
+        
+        Text("This is a basic card with custom content")
+        .font(.subheadline)
+        .foregroundColor(.gray)
         }
+        .padding(16)
+        }
+        }
+        .padding()
+        .background(Color.billixLightGreen)
     }
-    .padding()
-    .background(Color.billixLightGreen)
 }

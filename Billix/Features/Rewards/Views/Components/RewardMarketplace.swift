@@ -135,56 +135,62 @@ struct EmptyMarketplaceState: View {
 
 // MARK: - Preview
 
-#Preview("Unlocked Shop - All Zones") {
-    ZStack {
+struct RewardMarketplace_Unlocked_Shop___All_Zones_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         RewardMarketplace(
-            rewards: Reward.previewRewardsWithCategories,
-            userPoints: 12000,
-            canAccessShop: true,
-            currentTier: .silver,
-            onRewardTapped: { _ in },
-            onStartDonationRequest: {},
-            onViewAllGiftCards: {},
-            onViewAllGameBoosts: {},
-            onViewAllVirtualGoods: {}
+        rewards: Reward.previewRewardsWithCategories,
+        userPoints: 12000,
+        canAccessShop: true,
+        currentTier: .silver,
+        onRewardTapped: { _ in },
+        onStartDonationRequest: {},
+        onViewAllGiftCards: {},
+        onViewAllGameBoosts: {},
+        onViewAllVirtualGoods: {}
         )
+        }
     }
 }
 
-#Preview("Locked Shop - Bronze Tier") {
-    ZStack {
+struct RewardMarketplace_Locked_Shop___Bronze_Tier_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         RewardMarketplace(
-            rewards: Reward.previewRewardsWithCategories,
-            userPoints: 3500,
-            canAccessShop: false,
-            currentTier: .bronze,
-            onRewardTapped: { _ in },
-            onStartDonationRequest: {},
-            onViewAllGiftCards: {},
-            onViewAllGameBoosts: {},
-            onViewAllVirtualGoods: {}
+        rewards: Reward.previewRewardsWithCategories,
+        userPoints: 3500,
+        canAccessShop: false,
+        currentTier: .bronze,
+        onRewardTapped: { _ in },
+        onStartDonationRequest: {},
+        onViewAllGiftCards: {},
+        onViewAllGameBoosts: {},
+        onViewAllVirtualGoods: {}
         )
+        }
     }
 }
 
-#Preview("Empty Marketplace") {
-    ZStack {
+struct RewardMarketplace_Empty_Marketplace_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         RewardMarketplace(
-            rewards: [],
-            userPoints: 12000,
-            canAccessShop: true,
-            currentTier: .silver,
-            onRewardTapped: { _ in },
-            onStartDonationRequest: {},
-            onViewAllGiftCards: {},
-            onViewAllGameBoosts: {},
-            onViewAllVirtualGoods: {}
+        rewards: [],
+        userPoints: 12000,
+        canAccessShop: true,
+        currentTier: .silver,
+        onRewardTapped: { _ in },
+        onStartDonationRequest: {},
+        onViewAllGiftCards: {},
+        onViewAllGameBoosts: {},
+        onViewAllVirtualGoods: {}
         )
+        }
     }
 }

@@ -181,12 +181,14 @@ struct BlueprintTeaseZone: View {
     }
 }
 
-#Preview {
-    BlueprintTeaseZone(
+struct BlueprintTeaseZone_Previews: PreviewProvider {
+    static var previews: some View {
+        BlueprintTeaseZone(
         listing: MockMarketplaceData.billListings[0],
         onUnlock: {},
         onAskQuestion: {}
-    )
-    .padding()
-    .background(Color.white)
+        )
+        .padding()
+        .background(Color.white)
+    }
 }

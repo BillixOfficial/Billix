@@ -17,27 +17,29 @@ struct TimelineConnector: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 0) {
+struct TimelineConnector_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 0) {
         Rectangle()
-            .fill(Color.white)
-            .frame(height: 100)
-            .border(Color.gray.opacity(0.3))
-
+        .fill(Color.white)
+        .frame(height: 100)
+        .border(Color.gray.opacity(0.3))
+        
         TimelineConnector(isUnlocked: true, height: 40)
-
+        
         Rectangle()
-            .fill(Color.white)
-            .frame(height: 100)
-            .border(Color.gray.opacity(0.3))
-
+        .fill(Color.white)
+        .frame(height: 100)
+        .border(Color.gray.opacity(0.3))
+        
         TimelineConnector(isUnlocked: false, height: 40)
-
+        
         Rectangle()
-            .fill(Color.white)
-            .frame(height: 100)
-            .border(Color.gray.opacity(0.3))
+        .fill(Color.white)
+        .frame(height: 100)
+        .border(Color.gray.opacity(0.3))
+        }
+        .padding()
+        .background(Color(hex: "#FAFAFA"))
     }
-    .padding()
-    .background(Color(hex: "#FAFAFA"))
 }

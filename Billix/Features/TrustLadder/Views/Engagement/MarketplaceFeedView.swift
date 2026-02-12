@@ -546,9 +546,11 @@ struct CompactMarketplaceFeed: View {
 
 // MARK: - Preview
 
-#Preview {
-    NavigationView {
+struct MarketplaceFeedView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
         MarketplaceFeedView()
+        }
+        .preferredColorScheme(.dark)
     }
-    .preferredColorScheme(.dark)
 }

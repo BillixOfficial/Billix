@@ -262,32 +262,38 @@ struct TierUpCelebrationView: View {
 
 // MARK: - Preview
 
-#Preview("Silver Tier Unlock") {
-    TierUpCelebrationView(
+struct TierUpCelebrationView_Silver_Tier_Unlock_Previews: PreviewProvider {
+    static var previews: some View {
+        TierUpCelebrationView(
         isPresented: .constant(true),
         newTier: .silver,
         bonusPoints: 500,
         onExploreShop: {
         }
-    )
+        )
+    }
 }
 
-#Preview("Gold Tier Unlock") {
-    TierUpCelebrationView(
+struct TierUpCelebrationView_Gold_Tier_Unlock_Previews: PreviewProvider {
+    static var previews: some View {
+        TierUpCelebrationView(
         isPresented: .constant(true),
         newTier: .gold,
         bonusPoints: 1000,
         onExploreShop: {
         }
-    )
+        )
+    }
 }
 
-#Preview("Platinum Tier Unlock") {
-    TierUpCelebrationView(
+struct TierUpCelebrationView_Platinum_Tier_Unlock_Previews: PreviewProvider {
+    static var previews: some View {
+        TierUpCelebrationView(
         isPresented: .constant(true),
         newTier: .platinum,
         bonusPoints: 2000,
         onExploreShop: {
         }
-    )
+        )
+    }
 }

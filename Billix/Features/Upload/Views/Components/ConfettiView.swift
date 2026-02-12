@@ -292,25 +292,27 @@ struct AnimatedNumber: View {
 
 // MARK: - Preview
 
-#Preview {
-    VStack(spacing: 40) {
+struct ConfettiView_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 40) {
         // Confetti types
         ZStack {
-            Color.billixLightGreen
-            ConfettiView(isActive: true, type: .celebration)
+        Color.billixLightGreen
+        ConfettiView(isActive: true, type: .celebration)
         }
         .frame(height: 200)
         .cornerRadius(20)
-
+        
         // Comparison bar
         AnimatedComparisonBar(
-            userAmount: 145.50,
-            averageAmount: 125.00
+        userAmount: 145.50,
+        averageAmount: 125.00
         )
         .padding()
-
+        
         // Animated number
         AnimatedNumber(value: 145.50, color: .red)
+        }
+        .padding()
     }
-    .padding()
 }

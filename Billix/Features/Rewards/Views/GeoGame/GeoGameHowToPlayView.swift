@@ -330,8 +330,9 @@ struct TutorialPage {
     let tip: String
 }
 
-#Preview {
-    GeoGameHowToPlayView(
+struct GeoGameHowToPlayView_Previews: PreviewProvider {
+    static var previews: some View {
+        GeoGameHowToPlayView(
         onStart: {
         },
         onSkip: {
@@ -342,5 +343,6 @@ struct TutorialPage {
         },
         isLoading: false,
         isManualView: false
-    )
+        )
+    }
 }

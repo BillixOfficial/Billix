@@ -775,53 +775,55 @@ struct CustomAffordabilityIndicator: View {
 
 // MARK: - Preview
 
-#Preview {
-    GiftCardAmountSheet(
+struct GiftCardAmountSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        GiftCardAmountSheet(
         brandGroup: "target",
         brandName: "Target",
         availableAmounts: [
-            Reward(
-                id: UUID(),
-                type: .giftCard,
-                category: .giftCard,
-                title: "$5 Target Gift Card",
-                description: "Shop at Target stores or online",
-                pointsCost: 10000,
-                brand: "Target",
-                brandGroup: "target",
-                dollarValue: 5,
-                iconName: "target",
-                accentColor: "#CC0000"
-            ),
-            Reward(
-                id: UUID(),
-                type: .giftCard,
-                category: .giftCard,
-                title: "$10 Target Gift Card",
-                description: "Shop at Target stores or online",
-                pointsCost: 20000,
-                brand: "Target",
-                brandGroup: "target",
-                dollarValue: 10,
-                iconName: "target",
-                accentColor: "#CC0000"
-            ),
-            Reward(
-                id: UUID(),
-                type: .giftCard,
-                category: .giftCard,
-                title: "$15 Target Gift Card",
-                description: "Shop at Target stores or online",
-                pointsCost: 30000,
-                brand: "Target",
-                brandGroup: "target",
-                dollarValue: 15,
-                iconName: "target",
-                accentColor: "#CC0000"
-            )
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$5 Target Gift Card",
+        description: "Shop at Target stores or online",
+        pointsCost: 10000,
+        brand: "Target",
+        brandGroup: "target",
+        dollarValue: 5,
+        iconName: "target",
+        accentColor: "#CC0000"
+        ),
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$10 Target Gift Card",
+        description: "Shop at Target stores or online",
+        pointsCost: 20000,
+        brand: "Target",
+        brandGroup: "target",
+        dollarValue: 10,
+        iconName: "target",
+        accentColor: "#CC0000"
+        ),
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$15 Target Gift Card",
+        description: "Shop at Target stores or online",
+        pointsCost: 30000,
+        brand: "Target",
+        brandGroup: "target",
+        dollarValue: 15,
+        iconName: "target",
+        accentColor: "#CC0000"
+        )
         ],
         userPoints: 25000,
         onSelectAmount: { reward in
         }
-    )
+        )
+    }
 }

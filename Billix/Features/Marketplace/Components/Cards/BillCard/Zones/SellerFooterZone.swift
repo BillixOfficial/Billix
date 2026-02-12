@@ -130,22 +130,24 @@ struct SellerFooterZone: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 20) {
+struct SellerFooterZone_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         SellerFooterZone(
-            listing: MockMarketplaceData.billListings[0],
-            onWatchlist: {},
-            onAskOwner: {},
-            onReport: {}
+        listing: MockMarketplaceData.billListings[0],
+        onWatchlist: {},
+        onAskOwner: {},
+        onReport: {}
         )
-
+        
         SellerFooterZone(
-            listing: MockMarketplaceData.billListings[1],
-            onWatchlist: {},
-            onAskOwner: {},
-            onReport: {}
+        listing: MockMarketplaceData.billListings[1],
+        onWatchlist: {},
+        onAskOwner: {},
+        onReport: {}
         )
+        }
+        .padding()
+        .background(Color.white)
     }
-    .padding()
-    .background(Color.white)
 }

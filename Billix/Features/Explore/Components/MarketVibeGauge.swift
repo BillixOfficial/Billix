@@ -165,46 +165,50 @@ struct StatPill: View {
 
 // MARK: - Previews
 
-#Preview("Market Vibe Gauge - All Trends") {
-    ScrollView {
+struct MarketVibeGauge_Market_Vibe_Gauge___All_Trends_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         VStack(spacing: 30) {
-            MarketVibeGauge(
-                trend: .cooling,
-                metro: "Metro Detroit",
-                avgRent: 1650,
-                availability: 234,
-                newToday: 12
-            )
-
-            MarketVibeGauge(
-                trend: .neutral,
-                metro: "Greater Chicago",
-                avgRent: 1900,
-                availability: 456,
-                newToday: 23
-            )
-
-            MarketVibeGauge(
-                trend: .heating,
-                metro: "San Francisco Bay Area",
-                avgRent: 3200,
-                availability: 89,
-                newToday: 5
-            )
-        }
-        .padding()
-    }
-    .background(Color.billixCreamBeige)
-}
-
-#Preview("Market Vibe Gauge - Single") {
-    MarketVibeGauge(
+        MarketVibeGauge(
         trend: .cooling,
         metro: "Metro Detroit",
         avgRent: 1650,
         availability: 234,
         newToday: 12
-    )
-    .padding()
-    .background(Color.billixCreamBeige)
+        )
+        
+        MarketVibeGauge(
+        trend: .neutral,
+        metro: "Greater Chicago",
+        avgRent: 1900,
+        availability: 456,
+        newToday: 23
+        )
+        
+        MarketVibeGauge(
+        trend: .heating,
+        metro: "San Francisco Bay Area",
+        avgRent: 3200,
+        availability: 89,
+        newToday: 5
+        )
+        }
+        .padding()
+        }
+        .background(Color.billixCreamBeige)
+    }
+}
+
+struct MarketVibeGauge_Market_Vibe_Gauge___Single_Previews: PreviewProvider {
+    static var previews: some View {
+        MarketVibeGauge(
+        trend: .cooling,
+        metro: "Metro Detroit",
+        avgRent: 1650,
+        availability: 234,
+        newToday: 12
+        )
+        .padding()
+        .background(Color.billixCreamBeige)
+    }
 }

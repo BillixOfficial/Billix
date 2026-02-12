@@ -119,106 +119,110 @@ struct MinimalClusterIndicator: View {
 
 // MARK: - Previews
 
-#Preview("Cluster Badge - Variants") {
-    VStack(spacing: 20) {
+struct ClusterBadge_Cluster_Badge___Variants_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Standard Variant")
-                .font(.headline)
-
-            HStack(spacing: 12) {
-                ClusterBadge(count: 5, variant: .standard)
-                ClusterBadge(count: 15, variant: .standard)
-                ClusterBadge(count: 127, variant: .standard)
-            }
+        Text("Standard Variant")
+        .font(.headline)
+        
+        HStack(spacing: 12) {
+        ClusterBadge(count: 5, variant: .standard)
+        ClusterBadge(count: 15, variant: .standard)
+        ClusterBadge(count: 127, variant: .standard)
         }
-
+        }
+        
         Divider()
-
+        
         VStack(alignment: .leading, spacing: 12) {
-            Text("Compact Variant")
-                .font(.headline)
-
-            HStack(spacing: 12) {
-                ClusterBadge(count: 5, variant: .compact)
-                ClusterBadge(count: 15, variant: .compact)
-                ClusterBadge(count: 127, variant: .compact)
-            }
+        Text("Compact Variant")
+        .font(.headline)
+        
+        HStack(spacing: 12) {
+        ClusterBadge(count: 5, variant: .compact)
+        ClusterBadge(count: 15, variant: .compact)
+        ClusterBadge(count: 127, variant: .compact)
         }
-
+        }
+        
         Divider()
-
+        
         VStack(alignment: .leading, spacing: 12) {
-            Text("Minimal Variant")
-                .font(.headline)
-
-            HStack(spacing: 12) {
-                ClusterBadge(count: 5, variant: .minimal)
-                ClusterBadge(count: 15, variant: .minimal)
-                ClusterBadge(count: 127, variant: .minimal)
-            }
+        Text("Minimal Variant")
+        .font(.headline)
+        
+        HStack(spacing: 12) {
+        ClusterBadge(count: 5, variant: .minimal)
+        ClusterBadge(count: 15, variant: .minimal)
+        ClusterBadge(count: 127, variant: .minimal)
         }
-
+        }
+        
         Divider()
-
+        
         VStack(alignment: .leading, spacing: 12) {
-            Text("With Labels")
-                .font(.headline)
-
-            VStack(alignment: .leading, spacing: 8) {
-                ClusterBadgeWithLabel(count: 5, label: "Similar Bills")
-                ClusterBadgeWithLabel(count: 23, label: "Neighbors")
-                ClusterBadgeWithLabel(count: 8, label: "Matches")
-            }
+        Text("With Labels")
+        .font(.headline)
+        
+        VStack(alignment: .leading, spacing: 8) {
+        ClusterBadgeWithLabel(count: 5, label: "Similar Bills")
+        ClusterBadgeWithLabel(count: 23, label: "Neighbors")
+        ClusterBadgeWithLabel(count: 8, label: "Matches")
         }
-
+        }
+        
         Divider()
-
+        
         VStack(alignment: .leading, spacing: 12) {
-            Text("Minimal Indicators")
-                .font(.headline)
-
-            HStack(spacing: 12) {
-                MinimalClusterIndicator(count: 5)
-                MinimalClusterIndicator(count: 15)
-                MinimalClusterIndicator(count: 127)
-            }
+        Text("Minimal Indicators")
+        .font(.headline)
+        
+        HStack(spacing: 12) {
+        MinimalClusterIndicator(count: 5)
+        MinimalClusterIndicator(count: 15)
+        MinimalClusterIndicator(count: 127)
         }
+        }
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }
 
-#Preview("Cluster Badge - In Card Context") {
-    VStack(spacing: 16) {
+struct ClusterBadge_Cluster_Badge___In_Card_Context_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         // Simulated bill card header
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("DTE Energy")
-                        .font(.headline)
-                    Text("Electric • Residential")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                ClusterBadge(count: 15, variant: .standard)
-            }
-
-            Divider()
-
-            Text("Based on 15 similar bills from your area")
-                .font(.caption)
-                .foregroundColor(.secondary)
+        HStack {
+        VStack(alignment: .leading, spacing: 4) {
+        Text("DTE Energy")
+        .font(.headline)
+        Text("Electric • Residential")
+        .font(.caption)
+        .foregroundColor(.secondary)
+        }
+        
+        Spacer()
+        
+        ClusterBadge(count: 15, variant: .standard)
+        }
+        
+        Divider()
+        
+        Text("Based on 15 similar bills from your area")
+        .font(.caption)
+        .foregroundColor(.secondary)
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(radius: 4)
+        RoundedRectangle(cornerRadius: 16)
+        .fill(Color.white)
+        .shadow(radius: 4)
         )
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

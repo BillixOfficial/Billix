@@ -175,14 +175,16 @@ extension LeaderboardEntry {
 
 // MARK: - Preview
 
-#Preview {
-    ZStack {
+struct LeaderboardSection_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         LeaderboardSection(
-            topSavers: LeaderboardEntry.previewEntries,
-            currentUser: LeaderboardEntry.currentUserEntry
+        topSavers: LeaderboardEntry.previewEntries,
+        currentUser: LeaderboardEntry.currentUserEntry
         )
         .padding(20)
+        }
     }
 }

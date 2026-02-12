@@ -126,76 +126,78 @@ struct CompactTimerBadge: View {
 
 // MARK: - Preview
 
-#Preview("Timer States") {
-    ZStack {
+struct QuestionTimerView_Timer_States_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack(spacing: 40) {
-            VStack(spacing: 16) {
-                Text("Circular Timer")
-                    .font(.headline)
-
-                HStack(spacing: 30) {
-                    VStack {
-                        QuestionTimerView(
-                            timeRemaining: 25,
-                            progress: 0.7,
-                            color: .billixMoneyGreen,
-                            shouldPulse: false
-                        )
-                        Text("Plenty of time")
-                            .font(.caption)
-                    }
-
-                    VStack {
-                        QuestionTimerView(
-                            timeRemaining: 8,
-                            progress: 0.3,
-                            color: .orange,
-                            shouldPulse: false
-                        )
-                        Text("Warning")
-                            .font(.caption)
-                    }
-
-                    VStack {
-                        QuestionTimerView(
-                            timeRemaining: 3,
-                            progress: 0.1,
-                            color: .red,
-                            shouldPulse: true
-                        )
-                        Text("Urgent!")
-                            .font(.caption)
-                    }
-                }
-            }
-
-            VStack(spacing: 16) {
-                Text("Compact Badge")
-                    .font(.headline)
-
-                VStack(spacing: 12) {
-                    CompactTimerBadge(
-                        timeRemaining: 18,
-                        color: .billixMoneyGreen,
-                        shouldPulse: false
-                    )
-
-                    CompactTimerBadge(
-                        timeRemaining: 7,
-                        color: .orange,
-                        shouldPulse: false
-                    )
-
-                    CompactTimerBadge(
-                        timeRemaining: 2,
-                        color: .red,
-                        shouldPulse: true
-                    )
-                }
-            }
+        VStack(spacing: 16) {
+        Text("Circular Timer")
+        .font(.headline)
+        
+        HStack(spacing: 30) {
+        VStack {
+        QuestionTimerView(
+        timeRemaining: 25,
+        progress: 0.7,
+        color: .billixMoneyGreen,
+        shouldPulse: false
+        )
+        Text("Plenty of time")
+        .font(.caption)
+        }
+        
+        VStack {
+        QuestionTimerView(
+        timeRemaining: 8,
+        progress: 0.3,
+        color: .orange,
+        shouldPulse: false
+        )
+        Text("Warning")
+        .font(.caption)
+        }
+        
+        VStack {
+        QuestionTimerView(
+        timeRemaining: 3,
+        progress: 0.1,
+        color: .red,
+        shouldPulse: true
+        )
+        Text("Urgent!")
+        .font(.caption)
+        }
+        }
+        }
+        
+        VStack(spacing: 16) {
+        Text("Compact Badge")
+        .font(.headline)
+        
+        VStack(spacing: 12) {
+        CompactTimerBadge(
+        timeRemaining: 18,
+        color: .billixMoneyGreen,
+        shouldPulse: false
+        )
+        
+        CompactTimerBadge(
+        timeRemaining: 7,
+        color: .orange,
+        shouldPulse: false
+        )
+        
+        CompactTimerBadge(
+        timeRemaining: 2,
+        color: .red,
+        shouldPulse: true
+        )
+        }
+        }
         }
         .padding()
+        }
     }
 }

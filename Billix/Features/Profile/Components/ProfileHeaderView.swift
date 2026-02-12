@@ -195,26 +195,28 @@ struct BadgePill: View {
 
 // MARK: - Preview
 
-#Preview("Profile Header") {
-    VStack(spacing: 16) {
+struct ProfileHeaderView_Profile_Header_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         // Verified user
         ProfileHeaderView(
-            profile: .preview,
-            onEditTap: {}
+        profile: .preview,
+        onEditTap: {}
         )
-
+        
         // Unverified user
         ProfileHeaderView(
-            profile: .previewUnverified,
-            onEditTap: {}
+        profile: .previewUnverified,
+        onEditTap: {}
         )
-
+        
         // Power user
         ProfileHeaderView(
-            profile: .previewPowerUser,
-            onEditTap: {}
+        profile: .previewPowerUser,
+        onEditTap: {}
         )
+        }
+        .padding()
+        .background(Color.billixLightGreen)
     }
-    .padding()
-    .background(Color.billixLightGreen)
 }

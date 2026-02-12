@@ -154,22 +154,24 @@ struct CustomPriceSlider: View {
     }
 }
 
-#Preview {
-    ZStack {
+struct Phase2PriceView_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.black.ignoresSafeArea()
-
+        
         VStack {
-            Spacer()
-
-            Phase2PriceView(
-                viewModel: GeoGameViewModel(
-                    gameData: GeoGameDataService.mockGames[0]
-                )
-            )
-            .background(Color.white)
-            .cornerRadius(24)
-            .shadow(color: .black.opacity(0.2), radius: 20)
-            .padding()
+        Spacer()
+        
+        Phase2PriceView(
+        viewModel: GeoGameViewModel(
+        gameData: GeoGameDataService.mockGames[0]
+        )
+        )
+        .background(Color.white)
+        .cornerRadius(24)
+        .shadow(color: .black.opacity(0.2), radius: 20)
+        .padding()
+        }
         }
     }
 }

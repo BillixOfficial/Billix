@@ -7,17 +7,7 @@
 
 import SwiftUI
 
-// MARK: - Local Deal Model
-
-struct LocalDeal: Identifiable {
-    let id = UUID()
-    let title: String
-    let description: String
-    let category: String
-    let icon: String
-    let savingsAmount: String?
-    let deadline: String?
-}
+// LocalDeal model is defined in OpenAIService.swift
 
 struct AreaInsightsSheet: View {
     let city: String
@@ -479,6 +469,8 @@ private struct DealRow: View {
 
 // MARK: - Preview
 
-#Preview {
-    AreaInsightsSheet(city: "Plainfield", state: "NJ", zipCode: "07060")
+struct AreaInsightsSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        AreaInsightsSheet(city: "Plainfield", state: "NJ", zipCode: "07060")
+    }
 }

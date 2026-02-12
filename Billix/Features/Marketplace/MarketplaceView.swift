@@ -1217,6 +1217,8 @@ struct SignalCardCompact: View {
 
 // MARK: - Previews
 
-#Preview {
-    MarketplaceView()
+struct MarketplaceView_Previews: PreviewProvider {
+    static var previews: some View {
+        MarketplaceView()
+    }
 }

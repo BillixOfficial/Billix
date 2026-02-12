@@ -168,46 +168,48 @@ struct FadeButtonStyle: ButtonStyle {
 
 // MARK: - Preview
 
-#Preview {
-    struct PreviewWrapper: View {
+struct SegmentedSelector_Previews: PreviewProvider {
+    static var previews: some View {
+        struct PreviewWrapper: View {
         @State private var frequency: String = "Monthly"
         @State private var category: String = "Utilities"
-
+        
         var body: some View {
-            VStack(spacing: 40) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Segmented Selector")
-                        .font(.headline)
-
-                    SegmentedSelector(
-                        options: ["Monthly", "Quarterly", "Yearly"],
-                        selection: $frequency,
-                        label: { $0 }
-                    )
-                }
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Pill Selector")
-                        .font(.headline)
-
-                    PillSelector(
-                        options: ["Utilities", "Telecom", "Insurance"],
-                        selection: $category,
-                        label: { $0 },
-                        icon: { option in
-                            switch option {
-                            case "Utilities": return "bolt.fill"
-                            case "Telecom": return "wifi"
-                            case "Insurance": return "shield.fill"
-                            default: return "circle"
-                            }
-                        }
-                    )
-                }
-            }
-            .padding()
+        VStack(spacing: 40) {
+        VStack(alignment: .leading, spacing: 12) {
+        Text("Segmented Selector")
+        .font(.headline)
+        
+        SegmentedSelector(
+        options: ["Monthly", "Quarterly", "Yearly"],
+        selection: $frequency,
+        label: { $0 }
+        )
         }
+        
+        VStack(alignment: .leading, spacing: 12) {
+        Text("Pill Selector")
+        .font(.headline)
+        
+        PillSelector(
+        options: ["Utilities", "Telecom", "Insurance"],
+        selection: $category,
+        label: { $0 },
+        icon: { option in
+        switch option {
+        case "Utilities": return "bolt.fill"
+        case "Telecom": return "wifi"
+        case "Insurance": return "shield.fill"
+        default: return "circle"
+        }
+        }
+        )
+        }
+        }
+        .padding()
+        }
+        }
+        
+        return PreviewWrapper()
     }
-
-    return PreviewWrapper()
 }

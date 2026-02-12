@@ -52,21 +52,23 @@ struct BedroomBreakdownGrid: View {
 
 // MARK: - Preview
 
-#Preview("Bedroom Breakdown Grid") {
-    BedroomBreakdownGrid(
+struct BedroomBreakdownGrid_Bedroom_Breakdown_Grid_Previews: PreviewProvider {
+    static var previews: some View {
+        BedroomBreakdownGrid(
         stats: [
-            BedroomStats(bedroomCount: 0, averageRent: 826, rentChange: -2.9, sampleSize: 45),
-            BedroomStats(bedroomCount: 1, averageRent: 792, rentChange: 21.6, sampleSize: 67),
-            BedroomStats(bedroomCount: 2, averageRent: 1258, rentChange: 8.9, sampleSize: 89),
-            BedroomStats(bedroomCount: 3, averageRent: 1349, rentChange: -8.9, sampleSize: 54),
-            BedroomStats(bedroomCount: 4, averageRent: 1900, rentChange: 29.8, sampleSize: 32),
-            BedroomStats(bedroomCount: 5, averageRent: 2317, rentChange: -17.3, sampleSize: 18)
+        BedroomStats(bedroomCount: 0, averageRent: 826, rentChange: -2.9, sampleSize: 45),
+        BedroomStats(bedroomCount: 1, averageRent: 792, rentChange: 21.6, sampleSize: 67),
+        BedroomStats(bedroomCount: 2, averageRent: 1258, rentChange: 8.9, sampleSize: 89),
+        BedroomStats(bedroomCount: 3, averageRent: 1349, rentChange: -8.9, sampleSize: 54),
+        BedroomStats(bedroomCount: 4, averageRent: 1900, rentChange: 29.8, sampleSize: 32),
+        BedroomStats(bedroomCount: 5, averageRent: 2317, rentChange: -17.3, sampleSize: 18)
         ],
         selectedBedroomTypes: [.studio, .twoBed],
         onBedroomTap: { type in
-            print("Tapped: \(type.rawValue)")
+        print("Tapped: \(type.rawValue)")
         }
-    )
-    .padding()
-    .background(Color.billixCreamBeige)
+        )
+        .padding()
+        .background(Color.billixCreamBeige)
+    }
 }

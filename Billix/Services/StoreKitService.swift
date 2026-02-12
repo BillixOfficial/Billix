@@ -39,12 +39,13 @@ class StoreKitService: ObservableObject {
     @Published private(set) var purchasedProductIDs: Set<String> = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var isVerifiedMember: Bool = false
 
     private var updateListenerTask: Task<Void, Error>?
 
-    /// Check if user has an active Billix Membership
+    /// Check if user has an active Billix Membership (verified against both StoreKit and Supabase)
     var isMember: Bool {
-        purchasedProductIDs.contains(BillixProduct.billixPrimeMonthly.rawValue)
+        isVerifiedMember
     }
 
     /// Aliases for backwards compatibility
@@ -103,6 +104,8 @@ class StoreKitService: ObservableObject {
                 // Sync membership to Supabase if this is a subscription
                 if transaction.productID == BillixProduct.billixPrimeMonthly.rawValue {
                     try? await SubscriptionSyncService.shared.recordMembershipPurchase(transaction: transaction)
+                    // Re-verify membership with both sources after sync
+                    await verifyMembershipWithSupabase()
                 }
 
                 // Finish the transaction
@@ -139,10 +142,56 @@ class StoreKitService: ObservableObject {
         do {
             try await AppStore.sync()
             await updatePurchasedProducts()
+            await verifyMembershipWithSupabase()
             isLoading = false
         } catch {
             isLoading = false
             errorMessage = "Failed to restore purchases: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Verify Membership with Supabase
+
+    /// Verify membership against both StoreKit and Supabase
+    /// Both sources must confirm active subscription for isMember to return true
+    /// Falls back to StoreKit-only if Supabase check fails (network error)
+    func verifyMembershipWithSupabase() async {
+        // 1. Check if StoreKit says user has membership entitlement
+        let hasStoreKitEntitlement = purchasedProductIDs.contains(BillixProduct.billixPrimeMonthly.rawValue)
+
+        guard hasStoreKitEntitlement else {
+            isVerifiedMember = false
+            return
+        }
+
+        // 2. Check Supabase profiles table
+        guard let userId = AuthService.shared.currentUser?.id else {
+            // Not logged in - fall back to StoreKit only
+            isVerifiedMember = hasStoreKitEntitlement
+            return
+        }
+
+        do {
+            let profile: ProfileSubscriptionCheck = try await SupabaseService.shared.client
+                .from("profiles")
+                .select("subscription_tier, subscription_expires_at")
+                .eq("user_id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+
+            // 3. Verify both conditions:
+            //    - subscription_tier == "prime"
+            //    - subscription_expires_at > now (if set)
+            let tierValid = profile.subscriptionTier == "prime"
+            let notExpired = profile.subscriptionExpiresAt == nil || profile.subscriptionExpiresAt! > Date()
+
+            isVerifiedMember = tierValid && notExpired
+            print("Membership verified: tier=\(profile.subscriptionTier), expires=\(String(describing: profile.subscriptionExpiresAt)), verified=\(isVerifiedMember)")
+        } catch {
+            // If Supabase check fails, fall back to StoreKit only (graceful degradation)
+            isVerifiedMember = hasStoreKitEntitlement
+            print("Supabase membership check failed, falling back to StoreKit: \(error)")
         }
     }
 
@@ -244,8 +293,8 @@ class StoreKitService: ObservableObject {
                 // Consumable - don't add to purchasedProductIDs, just finish
                 await transaction.finish()
 
-                // Award tokens to user
-                await TokenService.shared.addTokens(2)
+                // Award tokens to user (throws if fails)
+                try await TokenService.shared.addTokens(2)
 
                 isLoading = false
                 return true
@@ -285,6 +334,18 @@ class StoreKitService: ObservableObject {
         } catch {
             throw error
         }
+    }
+}
+
+// MARK: - Supporting Types
+
+private struct ProfileSubscriptionCheck: Decodable {
+    let subscriptionTier: String
+    let subscriptionExpiresAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case subscriptionTier = "subscription_tier"
+        case subscriptionExpiresAt = "subscription_expires_at"
     }
 }
 

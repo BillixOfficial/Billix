@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import UIKit
+import class UIKit.UIImpactFeedbackGenerator
 
 struct BedroomStatCard: View {
     let stat: BedroomStats
@@ -66,44 +66,47 @@ struct BedroomStatCard: View {
 
 // MARK: - Preview
 
-#Preview("Bedroom Stat Cards") {
-    VStack(spacing: 12) {
-        BedroomStatCard(
-            stat: BedroomStats(
-                bedroomCount: 0,
-                averageRent: 826,
-                rentChange: -2.9,
-                sampleSize: 45
-            ),
-            bedroomType: .studio,
-            isSelected: false,
-            onTap: { print("Studio tapped") }
-        )
+struct BedroomStatCard_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 12) {
+            BedroomStatCard(
+                stat: BedroomStats(
+                    bedroomCount: 0,
+                    averageRent: 826,
+                    rentChange: -2.9,
+                    sampleSize: 45
+                ),
+                bedroomType: .studio,
+                isSelected: false,
+                onTap: { print("Studio tapped") }
+            )
 
-        BedroomStatCard(
-            stat: BedroomStats(
-                bedroomCount: 1,
-                averageRent: 792,
-                rentChange: 21.6,
-                sampleSize: 67
-            ),
-            bedroomType: .oneBed,
-            isSelected: true,
-            onTap: { print("1 BD tapped") }
-        )
+            BedroomStatCard(
+                stat: BedroomStats(
+                    bedroomCount: 1,
+                    averageRent: 792,
+                    rentChange: 21.6,
+                    sampleSize: 67
+                ),
+                bedroomType: .oneBed,
+                isSelected: true,
+                onTap: { print("1 BD tapped") }
+            )
 
-        BedroomStatCard(
-            stat: BedroomStats(
-                bedroomCount: 2,
-                averageRent: 1258,
-                rentChange: 8.9,
-                sampleSize: 89
-            ),
-            bedroomType: .twoBed,
-            isSelected: false,
-            onTap: { print("2 BD tapped") }
-        )
+            BedroomStatCard(
+                stat: BedroomStats(
+                    bedroomCount: 2,
+                    averageRent: 1258,
+                    rentChange: 8.9,
+                    sampleSize: 89
+                ),
+                bedroomType: .twoBed,
+                isSelected: false,
+                onTap: { print("2 BD tapped") }
+            )
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
+        .previewDisplayName("Bedroom Stat Cards")
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

@@ -562,6 +562,8 @@ class QuizViewModel: ObservableObject {
 
 // MARK: - Preview
 
-#Preview("Quiz") {
-    QuizView()
+struct QuizView_Quiz_Previews: PreviewProvider {
+    static var previews: some View {
+        QuizView()
+    }
 }

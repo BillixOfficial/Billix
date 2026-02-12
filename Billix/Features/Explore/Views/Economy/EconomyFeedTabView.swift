@@ -274,6 +274,8 @@ enum CommunityFeedFilter: String, CaseIterable {
 
 // MARK: - Preview
 
-#Preview("Economy Feed Tab") {
-    EconomyFeedTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""), groupsRouter: GroupsNavigationRouter())
+struct EconomyFeedTabView_Economy_Feed_Tab_Previews: PreviewProvider {
+    static var previews: some View {
+        EconomyFeedTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""), groupsRouter: GroupsNavigationRouter())
+    }
 }

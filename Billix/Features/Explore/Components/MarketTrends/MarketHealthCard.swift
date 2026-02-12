@@ -51,12 +51,14 @@ struct MarketHealthCard: View {
 
 // MARK: - Preview
 
-#Preview("Market Health Card - Hot") {
-    VStack(spacing: 16) {
+struct MarketHealthCard_Market_Health_Card___Hot_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         MarketHealthCard(health: .hot)
         MarketHealthCard(health: .moderate)
         MarketHealthCard(health: .cool)
+        }
+        .padding(20)
+        .background(Color(hex: "F8F9FA"))
     }
-    .padding(20)
-    .background(Color(hex: "F8F9FA"))
 }

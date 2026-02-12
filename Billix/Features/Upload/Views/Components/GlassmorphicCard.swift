@@ -233,46 +233,48 @@ extension LinearGradient {
 
 // MARK: - Preview
 
-#Preview {
-    ZStack {
+struct GlassmorphicCard_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         VStack(spacing: 20) {
-            GlassmorphicCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Glassmorphic Card")
-                        .font(.headline)
-                    Text("With frosted glass effect")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            SolidCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Solid Card")
-                        .font(.headline)
-                    Text("Clean white background")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            AccentCard(color: .accentPrimary) {
-                HStack {
-                    Image(systemName: "bolt.fill")
-                        .font(.title2)
-                    Text("Accent Card")
-                        .font(.headline)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                }
-                .foregroundColor(.white)
-            }
+        GlassmorphicCard {
+        VStack(alignment: .leading, spacing: 8) {
+        Text("Glassmorphic Card")
+        .font(.headline)
+        Text("With frosted glass effect")
+        .font(.subheadline)
+        .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        
+        SolidCard {
+        VStack(alignment: .leading, spacing: 8) {
+        Text("Solid Card")
+        .font(.headline)
+        Text("Clean white background")
+        .font(.subheadline)
+        .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        
+        AccentCard(color: .accentPrimary) {
+        HStack {
+        Image(systemName: "bolt.fill")
+        .font(.title2)
+        Text("Accent Card")
+        .font(.headline)
+        Spacer()
+        Image(systemName: "chevron.right")
+        }
+        .foregroundColor(.white)
+        }
         }
         .padding()
+        }
     }
 }

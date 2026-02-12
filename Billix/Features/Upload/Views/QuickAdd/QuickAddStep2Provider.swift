@@ -489,22 +489,24 @@ struct ShimmerCard: View {
 
 // MARK: - Preview
 
-#Preview {
-    struct PreviewWrapper: View {
+struct QuickAddStep2Provider_Previews: PreviewProvider {
+    static var previews: some View {
+        struct PreviewWrapper: View {
         @StateObject private var viewModel = QuickAddViewModel()
         @Namespace private var namespace
-
+        
         var body: some View {
-            ZStack {
-                Color.billixLightGreen.ignoresSafeArea()
-                QuickAddStep2Provider(viewModel: viewModel, namespace: namespace)
-            }
-            .onAppear {
-                viewModel.onAppear()
-                viewModel.zipCode = "48104"
-            }
+        ZStack {
+        Color.billixLightGreen.ignoresSafeArea()
+        QuickAddStep2Provider(viewModel: viewModel, namespace: namespace)
         }
+        .onAppear {
+        viewModel.onAppear()
+        viewModel.zipCode = "48104"
+        }
+        }
+        }
+        
+        return PreviewWrapper()
     }
-
-    return PreviewWrapper()
 }

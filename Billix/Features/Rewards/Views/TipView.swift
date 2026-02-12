@@ -318,6 +318,8 @@ class TipViewModel: ObservableObject {
 
 // MARK: - Preview
 
-#Preview("Tip View") {
-    TipView()
+struct TipView_Tip_View_Previews: PreviewProvider {
+    static var previews: some View {
+        TipView()
+    }
 }

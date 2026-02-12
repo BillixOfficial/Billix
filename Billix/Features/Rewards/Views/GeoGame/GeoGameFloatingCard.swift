@@ -133,37 +133,41 @@ struct GeoGameFloatingCard: View {
     }
 }
 
-#Preview("Phase 1") {
-    ZStack {
+struct GeoGameFloatingCard_Phase_1_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.black.ignoresSafeArea()
-
+        
         VStack {
-            Spacer()
-
-            GeoGameFloatingCard(
-                viewModel: GeoGameViewModel(
-                    gameData: GeoGameDataService.mockGames[0]
-                )
-            )
+        Spacer()
+        
+        GeoGameFloatingCard(
+        viewModel: GeoGameViewModel(
+        gameData: GeoGameDataService.mockGames[0]
+        )
+        )
+        }
         }
     }
 }
 
-#Preview("Phase 2") {
-    ZStack {
+struct GeoGameFloatingCard_Phase_2_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.black.ignoresSafeArea()
-
+        
         VStack {
-            Spacer()
-
-            GeoGameFloatingCard(
-                viewModel: {
-                    let vm = GeoGameViewModel(gameData: GeoGameDataService.mockGames[0])
-                    vm.gameState.phase = .phase2Price
-                    vm.gameState.phase1Points = 500
-                    return vm
-                }()
-            )
+        Spacer()
+        
+        GeoGameFloatingCard(
+        viewModel: {
+        let vm = GeoGameViewModel(gameData: GeoGameDataService.mockGames[0])
+        vm.gameState.phase = .phase2Price
+        vm.gameState.phase1Points = 500
+        return vm
+        }()
+        )
+        }
         }
     }
 }

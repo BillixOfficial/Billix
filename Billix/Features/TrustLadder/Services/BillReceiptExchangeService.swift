@@ -8,7 +8,10 @@
 
 import Foundation
 import Supabase
-import UIKit
+import class UIKit.UIImage
+import func UIKit.UIGraphicsBeginImageContextWithOptions
+import func UIKit.UIGraphicsGetImageFromCurrentImageContext
+import func UIKit.UIGraphicsEndImageContext
 
 // MARK: - Receipt Service Errors
 

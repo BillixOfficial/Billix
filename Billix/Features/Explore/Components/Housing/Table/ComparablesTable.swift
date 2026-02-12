@@ -82,11 +82,12 @@ struct ComparablesTable: View {
 
 // MARK: - Preview
 
-#Preview("Comparables Table") {
-    let vm = HousingSearchViewModel()
-
-    // Generate mock data
-    let params = PropertySearchParams(
+struct ComparablesTable_Comparables_Table_Previews: PreviewProvider {
+    static var previews: some View {
+        let vm = HousingSearchViewModel()
+        
+        // Generate mock data
+        let params = PropertySearchParams(
         address: "48067",
         propertyType: .all,
         bedrooms: 2,
@@ -94,15 +95,16 @@ struct ComparablesTable: View {
         squareFeet: 950,
         searchRadius: 1.0,
         lookbackDays: 30
-    )
-
-    let estimate = HousingMockData.generateRentEstimate(params: params)
-    let comps = HousingMockData.generateComparables(params: params, estimate: estimate)
-
-    vm.rentEstimate = estimate
-    vm.comparables = comps
-
-    return ComparablesTable(viewModel: vm)
+        )
+        
+        let estimate = HousingMockData.generateRentEstimate(params: params)
+        let comps = HousingMockData.generateComparables(params: params, estimate: estimate)
+        
+        vm.rentEstimate = estimate
+        vm.comparables = comps
+        
+        return ComparablesTable(viewModel: vm)
         .padding()
         .background(Color.billixCreamBeige)
+    }
 }

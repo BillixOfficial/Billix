@@ -276,11 +276,13 @@ enum PostTopic: String, CaseIterable {
 
 // MARK: - Preview
 
-#Preview("Create Post Sheet") {
-    CreatePostSheet(
+struct CreatePostSheet_Create_Post_Sheet_Previews: PreviewProvider {
+    static var previews: some View {
+        CreatePostSheet(
         availableGroups: CommunityGroup.mockGroups,
         preselectedGroup: nil
-    ) { content, topic, group, isAnonymous in
+        ) { content, topic, group, isAnonymous in
         print("Posted: \(content), topic: \(topic.rawValue), group: \(group?.name ?? "General"), anonymous: \(isAnonymous)")
+        }
     }
 }

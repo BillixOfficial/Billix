@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import UIKit
+import class UIKit.UIImage
 import Supabase
 
 /// Service for managing relief requests

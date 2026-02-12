@@ -50,8 +50,10 @@ struct ComingSoonView: View {
     }
 }
 
-#Preview("Coming Soon") {
-    NavigationStack {
+struct ComingSoonView_Coming_Soon_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
         ComingSoonView(title: "Economy by AI")
+        }
     }
 }

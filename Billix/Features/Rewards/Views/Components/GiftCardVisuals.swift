@@ -96,37 +96,39 @@ struct SimpleGiftCardVisual: View {
 
 // MARK: - Preview
 
-#Preview("Simple Cards") {
-    ScrollView(.horizontal) {
+struct GiftCardVisuals_Simple_Cards_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView(.horizontal) {
         HStack(spacing: 16) {
-            SimpleGiftCardVisual(
-                value: "$25",
-                brandName: "Gift Card",
-                color: .blue,
-                type: .giftCard
-            )
-            .frame(width: 180, height: 110)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-
-            SimpleGiftCardVisual(
-                value: "$15",
-                brandName: "Bill Credit",
-                color: .green,
-                type: .billCredit
-            )
-            .frame(width: 180, height: 110)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-
-            SimpleGiftCardVisual(
-                value: "$50",
-                brandName: "Digital",
-                color: .purple,
-                type: .digitalGood
-            )
-            .frame(width: 180, height: 110)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+        SimpleGiftCardVisual(
+        value: "$25",
+        brandName: "Gift Card",
+        color: .blue,
+        type: .giftCard
+        )
+        .frame(width: 180, height: 110)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        
+        SimpleGiftCardVisual(
+        value: "$15",
+        brandName: "Bill Credit",
+        color: .green,
+        type: .billCredit
+        )
+        .frame(width: 180, height: 110)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        
+        SimpleGiftCardVisual(
+        value: "$50",
+        brandName: "Digital",
+        color: .purple,
+        type: .digitalGood
+        )
+        .frame(width: 180, height: 110)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .padding()
+        }
+        .background(Color.gray.opacity(0.2))
     }
-    .background(Color.gray.opacity(0.2))
 }

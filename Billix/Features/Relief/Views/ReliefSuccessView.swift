@@ -204,29 +204,31 @@ private struct NextStepRow: View {
     }
 }
 
-#Preview {
-    ReliefSuccessView(
+struct ReliefSuccessView_Previews: PreviewProvider {
+    static var previews: some View {
+        ReliefSuccessView(
         request: ReliefRequest(
-            id: UUID(),
-            userId: UUID(),
-            fullName: "John Doe",
-            email: "john@example.com",
-            phone: nil,
-            billType: .electric,
-            billProvider: "DTE Energy",
-            amountOwed: 250.00,
-            description: nil,
-            incomeLevel: .from25kTo50k,
-            householdSize: 3,
-            employmentStatus: .unemployed,
-            urgencyLevel: .high,
-            utilityShutoffDate: nil,
-            status: .pending,
-            statusNotes: nil,
-            createdAt: Date(),
-            updatedAt: Date()
+        id: UUID(),
+        userId: UUID(),
+        fullName: "John Doe",
+        email: "john@example.com",
+        phone: nil,
+        billType: .electric,
+        billProvider: "DTE Energy",
+        amountOwed: 250.00,
+        description: nil,
+        incomeLevel: .from25kTo50k,
+        householdSize: 3,
+        employmentStatus: .unemployed,
+        urgencyLevel: .high,
+        utilityShutoffDate: nil,
+        status: .pending,
+        statusNotes: nil,
+        createdAt: Date(),
+        updatedAt: Date()
         ),
         onDone: { },
         onViewHistory: { }
-    )
+        )
+    }
 }

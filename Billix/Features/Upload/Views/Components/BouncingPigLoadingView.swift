@@ -128,6 +128,8 @@ struct BouncingPigLoadingView: View {
     }
 }
 
-#Preview {
-    BouncingPigLoadingView(message: "Analyzing your bill...")
+struct BouncingPigLoadingView_Previews: PreviewProvider {
+    static var previews: some View {
+        BouncingPigLoadingView(message: "Analyzing your bill...")
+    }
 }

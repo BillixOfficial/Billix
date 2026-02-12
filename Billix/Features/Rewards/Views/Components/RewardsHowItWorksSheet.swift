@@ -171,6 +171,8 @@ struct FeatureSection: View {
     }
 }
 
-#Preview {
-    RewardsHowItWorksSheet()
+struct RewardsHowItWorksSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        RewardsHowItWorksSheet()
+    }
 }

@@ -35,10 +35,12 @@ struct ExpeditionIconBox: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 20) {
+struct ExpeditionIconBox_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         ExpeditionIconBox(partNumber: 1, isUnlocked: true)
         ExpeditionIconBox(partNumber: 2, isUnlocked: false)
+        }
+        .padding()
     }
-    .padding()
 }

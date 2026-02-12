@@ -293,38 +293,42 @@ struct PrizeTierCompact: View {
 
 // MARK: - Preview
 
-#Preview("Eligible with Entries") {
-    ZStack {
+struct WeeklyGiveawayCard_Eligible_with_Entries_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         ScrollView {
-            WeeklyGiveawayCard(
-                userEntries: 5,
-                totalEntries: 1247,
-                currentTier: .silver,
-                isComingSoon: false,
-                onBuyEntries: {},
-                onHowToEarn: {}
-            )
-            .padding(.top, 20)
+        WeeklyGiveawayCard(
+        userEntries: 5,
+        totalEntries: 1247,
+        currentTier: .silver,
+        isComingSoon: false,
+        onBuyEntries: {},
+        onHowToEarn: {}
+        )
+        .padding(.top, 20)
+        }
         }
     }
 }
 
-#Preview("Coming Soon") {
-    ZStack {
+struct WeeklyGiveawayCard_Coming_Soon_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         ScrollView {
-            WeeklyGiveawayCard(
-                userEntries: 0,
-                totalEntries: 0,
-                currentTier: .bronze,
-                isComingSoon: true,
-                onBuyEntries: {},
-                onHowToEarn: {}
-            )
-            .padding(.top, 20)
+        WeeklyGiveawayCard(
+        userEntries: 0,
+        totalEntries: 0,
+        currentTier: .bronze,
+        isComingSoon: true,
+        onBuyEntries: {},
+        onHowToEarn: {}
+        )
+        .padding(.top, 20)
+        }
         }
     }
 }

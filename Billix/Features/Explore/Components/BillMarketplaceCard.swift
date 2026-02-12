@@ -239,113 +239,117 @@ struct FlagChip: View {
 
 // MARK: - Preview
 
-#Preview("Bill Trading Cards") {
-    ScrollView {
+struct BillMarketplaceCard_Bill_Trading_Cards_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         LazyVStack(spacing: 20) {
-            // Electric bill
-            BillMarketplaceCard(
-                data: MarketplaceData(
-                    id: "1",
-                    providerId: "dte",
-                    zipPrefix: "482",
-                    monthYear: "2025-11",
-                    avgAmount: 145.00,
-                    medianAmount: 160.00,
-                    minAmount: 100.00,
-                    maxAmount: 220.00,
-                    percentile25: 130.00,
-                    percentile75: 180.00,
-                    sampleSize: 67,
-                    avgUsage: 550,
-                    medianUsage: 525,
-                    subcategory: "Residential",
-                    provider: Provider(
-                        id: "dte",
-                        name: "DTE Energy",
-                        category: "Electric"
-                    )
-                )
-            )
-
-            // Internet bill
-            BillMarketplaceCard(
-                data: MarketplaceData(
-                    id: "2",
-                    providerId: "comcast",
-                    zipPrefix: "482",
-                    monthYear: "2025-11",
-                    avgAmount: 89.99,
-                    medianAmount: 85.00,
-                    minAmount: 49.99,
-                    maxAmount: 150.00,
-                    percentile25: 70.00,
-                    percentile75: 110.00,
-                    sampleSize: 89,
-                    avgUsage: 500,
-                    medianUsage: 450,
-                    subcategory: nil,
-                    provider: Provider(
-                        id: "comcast",
-                        name: "Comcast Xfinity",
-                        category: "Internet"
-                    )
-                )
-            )
-
-            // Water bill
-            BillMarketplaceCard(
-                data: MarketplaceData(
-                    id: "3",
-                    providerId: "water",
-                    zipPrefix: "482",
-                    monthYear: "2025-11",
-                    avgAmount: 65.00,
-                    medianAmount: 62.00,
-                    minAmount: 40.00,
-                    maxAmount: 95.00,
-                    percentile25: 55.00,
-                    percentile75: 75.00,
-                    sampleSize: 124,
-                    avgUsage: 4500,
-                    medianUsage: 4200,
-                    subcategory: "Residential",
-                    provider: Provider(
-                        id: "water",
-                        name: "Detroit Water",
-                        category: "Water"
-                    )
-                )
-            )
+        // Electric bill
+        BillMarketplaceCard(
+        data: MarketplaceData(
+        id: "1",
+        providerId: "dte",
+        zipPrefix: "482",
+        monthYear: "2025-11",
+        avgAmount: 145.00,
+        medianAmount: 160.00,
+        minAmount: 100.00,
+        maxAmount: 220.00,
+        percentile25: 130.00,
+        percentile75: 180.00,
+        sampleSize: 67,
+        avgUsage: 550,
+        medianUsage: 525,
+        subcategory: "Residential",
+        provider: Provider(
+        id: "dte",
+        name: "DTE Energy",
+        category: "Electric"
+        )
+        )
+        )
+        
+        // Internet bill
+        BillMarketplaceCard(
+        data: MarketplaceData(
+        id: "2",
+        providerId: "comcast",
+        zipPrefix: "482",
+        monthYear: "2025-11",
+        avgAmount: 89.99,
+        medianAmount: 85.00,
+        minAmount: 49.99,
+        maxAmount: 150.00,
+        percentile25: 70.00,
+        percentile75: 110.00,
+        sampleSize: 89,
+        avgUsage: 500,
+        medianUsage: 450,
+        subcategory: nil,
+        provider: Provider(
+        id: "comcast",
+        name: "Comcast Xfinity",
+        category: "Internet"
+        )
+        )
+        )
+        
+        // Water bill
+        BillMarketplaceCard(
+        data: MarketplaceData(
+        id: "3",
+        providerId: "water",
+        zipPrefix: "482",
+        monthYear: "2025-11",
+        avgAmount: 65.00,
+        medianAmount: 62.00,
+        minAmount: 40.00,
+        maxAmount: 95.00,
+        percentile25: 55.00,
+        percentile75: 75.00,
+        sampleSize: 124,
+        avgUsage: 4500,
+        medianUsage: 4200,
+        subcategory: "Residential",
+        provider: Provider(
+        id: "water",
+        name: "Detroit Water",
+        category: "Water"
+        )
+        )
+        )
         }
         .padding()
+        }
+        .background(Color.billixCreamBeige)
     }
-    .background(Color.billixCreamBeige)
 }
 
-#Preview("Single Card Detail") {
-    BillMarketplaceCard(
+struct BillMarketplaceCard_Single_Card_Detail_Previews: PreviewProvider {
+    static var previews: some View {
+        BillMarketplaceCard(
         data: MarketplaceData(
-            id: "1",
-            providerId: "dte",
-            zipPrefix: "482",
-            monthYear: "2025-11",
-            avgAmount: 145.00,
-            medianAmount: 160.00,
-            minAmount: 100.00,
-            maxAmount: 220.00,
-            percentile25: 140.00,
-            percentile75: 165.00,
-            sampleSize: 67,
-            avgUsage: 550,
-            medianUsage: 525,
-            subcategory: "Residential",
-            provider: Provider(
-                id: "dte",
-                name: "DTE Energy",
-                category: "Electric"
-            )
+        id: "1",
+        providerId: "dte",
+        zipPrefix: "482",
+        monthYear: "2025-11",
+        avgAmount: 145.00,
+        medianAmount: 160.00,
+        minAmount: 100.00,
+        maxAmount: 220.00,
+        percentile25: 140.00,
+        percentile75: 165.00,
+        sampleSize: 67,
+        avgUsage: 550,
+        medianUsage: 525,
+        subcategory: "Residential",
+        provider: Provider(
+        id: "dte",
+        name: "DTE Energy",
+        category: "Electric"
         )
-    )
-    .padding()
-    .background(Color.billixCreamBeige)
+        )
+        )
+        .padding()
+        .background(Color.billixCreamBeige)
+    }
 }

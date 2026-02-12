@@ -37,8 +37,10 @@ struct BillsTestView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
+struct BillsTestView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
         BillsTestView()
+        }
     }
 }

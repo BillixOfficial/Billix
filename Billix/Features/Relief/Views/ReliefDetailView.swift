@@ -366,27 +366,29 @@ private struct NoteRow: View {
     }
 }
 
-#Preview {
-    ReliefDetailView(
+struct ReliefDetailView_Previews: PreviewProvider {
+    static var previews: some View {
+        ReliefDetailView(
         request: ReliefRequest(
-            id: UUID(),
-            userId: UUID(),
-            fullName: "John Doe",
-            email: "john@example.com",
-            phone: nil,
-            billType: .electric,
-            billProvider: "DTE Energy",
-            amountOwed: 250.00,
-            description: "Behind on payments due to recent job loss. Looking for any assistance programs available.",
-            incomeLevel: .from25kTo50k,
-            householdSize: 3,
-            employmentStatus: .unemployed,
-            urgencyLevel: .high,
-            utilityShutoffDate: Date().addingTimeInterval(5 * 24 * 60 * 60),
-            status: .underReview,
-            statusNotes: nil,
-            createdAt: Date(),
-            updatedAt: Date()
+        id: UUID(),
+        userId: UUID(),
+        fullName: "John Doe",
+        email: "john@example.com",
+        phone: nil,
+        billType: .electric,
+        billProvider: "DTE Energy",
+        amountOwed: 250.00,
+        description: "Behind on payments due to recent job loss. Looking for any assistance programs available.",
+        incomeLevel: .from25kTo50k,
+        householdSize: 3,
+        employmentStatus: .unemployed,
+        urgencyLevel: .high,
+        utilityShutoffDate: Date().addingTimeInterval(5 * 24 * 60 * 60),
+        status: .underReview,
+        statusNotes: nil,
+        createdAt: Date(),
+        updatedAt: Date()
         )
-    )
+        )
+    }
 }

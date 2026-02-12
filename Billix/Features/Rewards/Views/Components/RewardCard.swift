@@ -342,43 +342,47 @@ struct GenericRewardIcon: View {
 
 // MARK: - Preview
 
-#Preview("Carousel Style") {
-    ZStack {
+struct RewardCard_Carousel_Style_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         HStack(spacing: 14) {
-            RewardCard(
-                reward: Reward.previewRewards[0],
-                userPoints: 250,
-                style: .carousel,
-                onTap: {}
-            )
-
-            RewardCard(
-                reward: Reward.previewRewards[1],
-                userPoints: 600,
-                style: .carousel,
-                onTap: {}
-            )
+        RewardCard(
+        reward: Reward.previewRewards[0],
+        userPoints: 250,
+        style: .carousel,
+        onTap: {}
+        )
+        
+        RewardCard(
+        reward: Reward.previewRewards[1],
+        userPoints: 600,
+        style: .carousel,
+        onTap: {}
+        )
         }
         .padding()
+        }
     }
 }
 
-#Preview("Grid Style") {
-    ZStack {
+struct RewardCard_Grid_Style_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-            ForEach(Reward.previewRewards.prefix(4)) { reward in
-                RewardCard(
-                    reward: reward,
-                    userPoints: 450,
-                    style: .grid,
-                    onTap: {}
-                )
-            }
+        ForEach(Reward.previewRewards.prefix(4)) { reward in
+        RewardCard(
+        reward: reward,
+        userPoints: 450,
+        style: .grid,
+        onTap: {}
+        )
+        }
         }
         .padding()
+        }
     }
 }

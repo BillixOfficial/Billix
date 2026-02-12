@@ -1279,6 +1279,8 @@ private struct CoachConfettiPiece: View {
 
 // MARK: - Preview
 
-#Preview {
-    BillCoachFlowView(topic: .negotiateInternet)
+struct BillCoachFlowView_Previews: PreviewProvider {
+    static var previews: some View {
+        BillCoachFlowView(topic: .negotiateInternet)
+    }
 }

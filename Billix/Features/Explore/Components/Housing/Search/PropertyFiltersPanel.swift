@@ -198,13 +198,15 @@ struct SquareFeetField: View {
 
 // MARK: - Preview
 
-#Preview("Property Filters Panel") {
-    PropertyFiltersPanel(
+struct PropertyFiltersPanel_Property_Filters_Panel_Previews: PreviewProvider {
+    static var previews: some View {
+        PropertyFiltersPanel(
         propertyType: .constant(.singleFamily),
         bedrooms: .constant(2),
         bathrooms: .constant(1.5),
         squareFeet: .constant("950")
-    )
-    .padding()
-    .background(Color.billixCreamBeige)
+        )
+        .padding()
+        .background(Color.billixCreamBeige)
+    }
 }

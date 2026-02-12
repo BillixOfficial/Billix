@@ -192,6 +192,8 @@ struct EconomyNewsTabView: View {
     }
 }
 
-#Preview("Economy News Tab") {
-    EconomyNewsTabView(viewModel: EconomyFeedViewModel(), searchText: .constant(""))
+struct EconomyNewsTabView_Economy_News_Tab_Previews: PreviewProvider {
+    static var previews: some View {
+        EconomyNewsTabView(viewModel: EconomyFeedViewModel(), searchText: .constant(""))
+    }
 }

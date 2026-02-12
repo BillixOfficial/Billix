@@ -74,19 +74,21 @@ struct GameBoostsCarousel: View {
 
 // MARK: - Preview
 
-#Preview("Game Boosts Carousel") {
-    ZStack {
+struct GameBoostsCarousel_Game_Boosts_Carousel_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack {
-            GameBoostsCarousel(
-                boosts: Reward.previewRewardsWithCategories.filter { $0.type == .digitalGood },
-                userPoints: 5000,
-                onBoostTapped: { _ in },
-                onViewAll: {}
-            )
-
-            Spacer()
+        GameBoostsCarousel(
+        boosts: Reward.previewRewardsWithCategories.filter { $0.type == .digitalGood },
+        userPoints: 5000,
+        onBoostTapped: { _ in },
+        onViewAll: {}
+        )
+        
+        Spacer()
+        }
         }
     }
 }

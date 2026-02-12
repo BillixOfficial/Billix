@@ -275,20 +275,22 @@ struct ClusterCard: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 16) {
+struct ClusterCard_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         ClusterCard(
-            cluster: MockMarketplaceData.clusters[0],
-            onPlaceBid: {},
-            onClaimOffer: nil
+        cluster: MockMarketplaceData.clusters[0],
+        onPlaceBid: {},
+        onClaimOffer: nil
         )
-
+        
         ClusterCard(
-            cluster: MockMarketplaceData.clusters[2],
-            onPlaceBid: {},
-            onClaimOffer: {}
+        cluster: MockMarketplaceData.clusters[2],
+        onPlaceBid: {},
+        onClaimOffer: {}
         )
+        }
+        .padding()
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .padding()
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

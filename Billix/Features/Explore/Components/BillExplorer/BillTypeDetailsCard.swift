@@ -396,19 +396,21 @@ struct BillTypeDetailsCard: View {
 
 // MARK: - Preview
 
-#Preview {
-    ScrollView {
+struct BillTypeDetailsCard_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         VStack(spacing: 16) {
-            // Electric with usage data
-            BillTypeDetailsCard(listing: ExploreBillListing.mockListings[0])
-
-            // Internet
-            BillTypeDetailsCard(listing: ExploreBillListing.mockListings[1])
-
-            // Gas
-            BillTypeDetailsCard(listing: ExploreBillListing.mockListings[2])
+        // Electric with usage data
+        BillTypeDetailsCard(listing: ExploreBillListing.mockListings[0])
+        
+        // Internet
+        BillTypeDetailsCard(listing: ExploreBillListing.mockListings[1])
+        
+        // Gas
+        BillTypeDetailsCard(listing: ExploreBillListing.mockListings[2])
         }
         .padding(20)
+        }
+        .background(Color(hex: "#F7F9F8"))
     }
-    .background(Color(hex: "#F7F9F8"))
 }

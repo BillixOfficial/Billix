@@ -107,18 +107,20 @@ struct EconomyHeaderView: View {
     }
 }
 
-#Preview("Economy Header") {
-    ZStack {
+struct EconomyHeaderView_Economy_Header_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.white
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         VStack {
-            EconomyHeaderView(
-                greeting: "Good Morning",
-                userName: "John",
-                searchText: .constant("")
-            )
-            Spacer()
+        EconomyHeaderView(
+        greeting: "Good Morning",
+        userName: "John",
+        searchText: .constant("")
+        )
+        Spacer()
+        }
         }
     }
 }

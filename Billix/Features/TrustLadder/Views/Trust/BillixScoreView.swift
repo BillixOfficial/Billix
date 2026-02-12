@@ -651,9 +651,11 @@ extension ScoreEventType: CaseIterable {
 
 // MARK: - Preview
 
-#Preview {
-    NavigationView {
+struct BillixScoreView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
         BillixScoreView()
+        }
+        .preferredColorScheme(.dark)
     }
-    .preferredColorScheme(.dark)
 }

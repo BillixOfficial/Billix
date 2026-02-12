@@ -78,26 +78,28 @@ struct PriceRangeBar: View {
 
 // MARK: - Preview
 
-#Preview("Price Range Bar") {
-    VStack(spacing: 24) {
+struct PriceRangeBar_Price_Range_Bar_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 24) {
         PriceRangeBar(
-            low: 560,
-            high: 3400,
-            average: 1407
+        low: 560,
+        high: 3400,
+        average: 1407
         )
-
+        
         PriceRangeBar(
-            low: 1200,
-            high: 4800,
-            average: 3200
+        low: 1200,
+        high: 4800,
+        average: 3200
         )
-
+        
         PriceRangeBar(
-            low: 800,
-            high: 2500,
-            average: 950
+        low: 800,
+        high: 2500,
+        average: 950
         )
+        }
+        .padding(20)
+        .background(Color.white)
     }
-    .padding(20)
-    .background(Color.white)
 }

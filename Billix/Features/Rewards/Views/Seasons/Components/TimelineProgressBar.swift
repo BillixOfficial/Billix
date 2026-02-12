@@ -21,35 +21,37 @@ struct TimelineProgressBar: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 20) {
+struct TimelineProgressBar_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         VStack(alignment: .leading) {
-            Text("0% Progress")
-                .font(.caption)
-            TimelineProgressBar(progress: 0.0)
-                .frame(height: 2)
+        Text("0% Progress")
+        .font(.caption)
+        TimelineProgressBar(progress: 0.0)
+        .frame(height: 2)
         }
-
+        
         VStack(alignment: .leading) {
-            Text("50% Progress")
-                .font(.caption)
-            TimelineProgressBar(progress: 0.5)
-                .frame(height: 2)
+        Text("50% Progress")
+        .font(.caption)
+        TimelineProgressBar(progress: 0.5)
+        .frame(height: 2)
         }
-
+        
         VStack(alignment: .leading) {
-            Text("80% Progress")
-                .font(.caption)
-            TimelineProgressBar(progress: 0.8)
-                .frame(height: 2)
+        Text("80% Progress")
+        .font(.caption)
+        TimelineProgressBar(progress: 0.8)
+        .frame(height: 2)
         }
-
+        
         VStack(alignment: .leading) {
-            Text("100% Progress")
-                .font(.caption)
-            TimelineProgressBar(progress: 1.0)
-                .frame(height: 2)
+        Text("100% Progress")
+        .font(.caption)
+        TimelineProgressBar(progress: 1.0)
+        .frame(height: 2)
         }
+        }
+        .padding()
     }
-    .padding()
 }

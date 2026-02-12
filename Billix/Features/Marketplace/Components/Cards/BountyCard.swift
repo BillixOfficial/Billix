@@ -117,12 +117,14 @@ struct BountyCard: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 12) {
+struct BountyCard_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 12) {
         ForEach(MockMarketplaceData.bounties) { bounty in
-            BountyCard(bounty: bounty, onSubmit: {})
+        BountyCard(bounty: bounty, onSubmit: {})
         }
+        }
+        .padding()
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .padding()
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

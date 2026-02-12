@@ -266,6 +266,8 @@ struct PhoneVerificationView: View {
 
 // MARK: - Preview
 
-#Preview {
-    PhoneVerificationView()
+struct PhoneVerificationView_Previews: PreviewProvider {
+    static var previews: some View {
+        PhoneVerificationView()
+    }
 }

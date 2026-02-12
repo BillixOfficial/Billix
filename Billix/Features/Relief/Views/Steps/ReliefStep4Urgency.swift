@@ -185,10 +185,12 @@ struct UrgencyLevelOption: View {
     }
 }
 
-#Preview {
-    ScrollView {
+struct ReliefStep4Urgency_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         ReliefStep4Urgency(viewModel: ReliefFlowViewModel())
-            .padding()
+        .padding()
+        }
+        .background(Color(hex: "#F7F9F8"))
     }
-    .background(Color(hex: "#F7F9F8"))
 }

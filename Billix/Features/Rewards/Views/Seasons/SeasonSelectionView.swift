@@ -232,6 +232,8 @@ struct SeasonSelectionView: View {
 
 // MARK: - Preview
 
-#Preview("Season Selection") {
-    SeasonSelectionView()
+struct SeasonSelectionView_Season_Selection_Previews: PreviewProvider {
+    static var previews: some View {
+        SeasonSelectionView()
+    }
 }

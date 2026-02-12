@@ -200,10 +200,12 @@ struct EmploymentStatusOption: View {
     }
 }
 
-#Preview {
-    ScrollView {
+struct ReliefStep3Situation_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         ReliefStep3Situation(viewModel: ReliefFlowViewModel())
-            .padding()
+        .padding()
+        }
+        .background(Color(hex: "#F7F9F8"))
     }
-    .background(Color(hex: "#F7F9F8"))
 }

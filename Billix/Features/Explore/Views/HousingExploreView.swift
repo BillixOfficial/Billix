@@ -841,23 +841,29 @@ struct FilterPillView: View {
 
 // MARK: - Previews
 
-#Preview("Housing Explore - Empty State") {
-    HousingExploreView(
+struct HousingExploreView_Housing_Explore___Empty_State_Previews: PreviewProvider {
+    static var previews: some View {
+        HousingExploreView(
         locationManager: LocationManager.preview(),
         viewModel: HousingSearchViewModel()
-    )
+        )
+    }
 }
 
-#Preview("Housing Explore - Loading State") {
-    HousingExploreView(
+struct HousingExploreView_Housing_Explore___Loading_State_Previews: PreviewProvider {
+    static var previews: some View {
+        HousingExploreView(
         locationManager: LocationManager.preview(),
         viewModel: HousingSearchViewModel()
-    )
+        )
+    }
 }
 
-#Preview("Housing Explore - Results State") {
-    HousingExploreView(
+struct HousingExploreView_Housing_Explore___Results_State_Previews: PreviewProvider {
+    static var previews: some View {
+        HousingExploreView(
         locationManager: LocationManager.preview(),
         viewModel: HousingSearchViewModel()
-    )
+        )
+    }
 }

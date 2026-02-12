@@ -509,8 +509,10 @@ struct BillixStoreView: View {
         }
 
         do {
-            _ = try await storeKit.purchase(storeKit.monthlyProduct!)
-            showPurchaseSuccess = true
+            let transaction = try await storeKit.purchase(storeKit.monthlyProduct!)
+            if transaction != nil {
+                showPurchaseSuccess = true
+            }
         } catch {
             errorMessage = error.localizedDescription
             showError = true
@@ -532,9 +534,11 @@ struct BillixStoreView: View {
         }
 
         do {
-            _ = try await storeKit.purchaseTokenPack()
-            await tokenService.loadTokenBalance()
-            showPurchaseSuccess = true
+            let success = try await storeKit.purchaseTokenPack()
+            if success {
+                await tokenService.loadTokenBalance()
+                showPurchaseSuccess = true
+            }
         } catch {
             errorMessage = error.localizedDescription
             showError = true
@@ -551,6 +555,8 @@ struct BillixStoreView: View {
 
 // MARK: - Preview
 
-#Preview {
-    BillixStoreView()
+struct BillixStoreView_Previews: PreviewProvider {
+    static var previews: some View {
+        BillixStoreView()
+    }
 }

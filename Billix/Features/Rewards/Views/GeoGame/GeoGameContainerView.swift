@@ -150,8 +150,9 @@ struct GeoGameContainerView: View {
     }
 }
 
-#Preview {
-    GeoGameContainerView(
+struct GeoGameContainerView_Previews: PreviewProvider {
+    static var previews: some View {
+        GeoGameContainerView(
         initialGame: GeoGameDataService.mockGames[0],
         onComplete: { result in
         },
@@ -159,5 +160,6 @@ struct GeoGameContainerView: View {
         },
         onDismiss: {
         }
-    )
+        )
+    }
 }

@@ -796,23 +796,25 @@ struct CommunityPostCard: View {
 
 // MARK: - Preview
 
-#Preview("Community Post Card") {
-    ZStack {
+struct CommunityPostCard_Community_Post_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color(hex: "#F5F5F5")
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         ScrollView {
-            VStack(spacing: 12) {
-                ForEach(CommunityPost.mockPosts.prefix(3)) { post in
-                    CommunityPostCard(
-                        post: post,
-                        onLikeTapped: {},
-                        onCommentTapped: {},
-                        onSaveTapped: {}
-                    )
-                }
-            }
-            .padding(16)
+        VStack(spacing: 12) {
+        ForEach(CommunityPost.mockPosts.prefix(3)) { post in
+        CommunityPostCard(
+        post: post,
+        onLikeTapped: {},
+        onCommentTapped: {},
+        onSaveTapped: {}
+        )
+        }
+        }
+        .padding(16)
+        }
         }
     }
 }

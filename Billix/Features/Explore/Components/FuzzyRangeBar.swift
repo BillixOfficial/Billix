@@ -162,67 +162,71 @@ struct FuzzyRangeBar: View {
 
 // MARK: - Previews
 
-#Preview("Fuzzy Range Bar - Blurred") {
-    VStack(spacing: 30) {
+struct FuzzyRangeBar_Fuzzy_Range_Bar___Blurred_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 30) {
         FuzzyRangeBar(
-            minPrice: 100,
-            maxPrice: 200,
-            highlightMin: 140,
-            highlightMax: 160,
-            totalRange: 80...220
+        minPrice: 100,
+        maxPrice: 200,
+        highlightMin: 140,
+        highlightMax: 160,
+        totalRange: 80...220
         )
         .padding()
-
+        
         Text("Hold the bar to reveal")
-            .font(.caption)
-            .foregroundColor(.secondary)
+        .font(.caption)
+        .foregroundColor(.secondary)
+        }
+        .background(Color.billixCreamBeige)
     }
-    .background(Color.billixCreamBeige)
 }
 
-#Preview("Fuzzy Range Bar - Multiple") {
-    ScrollView {
+struct FuzzyRangeBar_Fuzzy_Range_Bar___Multiple_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         VStack(spacing: 30) {
-            // Electric bill range
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Electric Bill")
-                    .font(.headline)
-                FuzzyRangeBar(
-                    minPrice: 120,
-                    maxPrice: 180,
-                    highlightMin: 145,
-                    highlightMax: 165,
-                    totalRange: 100...200
-                )
-            }
-
-            // Water bill range
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Water Bill")
-                    .font(.headline)
-                FuzzyRangeBar(
-                    minPrice: 40,
-                    maxPrice: 80,
-                    highlightMin: 55,
-                    highlightMax: 70,
-                    totalRange: 30...100
-                )
-            }
-
-            // Gas bill range
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Gas Bill")
-                    .font(.headline)
-                FuzzyRangeBar(
-                    minPrice: 60,
-                    maxPrice: 140,
-                    highlightMin: 85,
-                    highlightMax: 110,
-                    totalRange: 50...160
-                )
-            }
+        // Electric bill range
+        VStack(alignment: .leading, spacing: 8) {
+        Text("Electric Bill")
+        .font(.headline)
+        FuzzyRangeBar(
+        minPrice: 120,
+        maxPrice: 180,
+        highlightMin: 145,
+        highlightMax: 165,
+        totalRange: 100...200
+        )
+        }
+        
+        // Water bill range
+        VStack(alignment: .leading, spacing: 8) {
+        Text("Water Bill")
+        .font(.headline)
+        FuzzyRangeBar(
+        minPrice: 40,
+        maxPrice: 80,
+        highlightMin: 55,
+        highlightMax: 70,
+        totalRange: 30...100
+        )
+        }
+        
+        // Gas bill range
+        VStack(alignment: .leading, spacing: 8) {
+        Text("Gas Bill")
+        .font(.headline)
+        FuzzyRangeBar(
+        minPrice: 60,
+        maxPrice: 140,
+        highlightMin: 85,
+        highlightMax: 110,
+        totalRange: 50...160
+        )
+        }
         }
         .padding()
+        }
+        .background(Color.billixCreamBeige)
     }
-    .background(Color.billixCreamBeige)
 }

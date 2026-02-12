@@ -112,27 +112,29 @@ struct BillCardSideA: View {
     }
 }
 
-#Preview {
-    struct PreviewWrapper: View {
+struct BillCardSideA_Previews: PreviewProvider {
+    static var previews: some View {
+        struct PreviewWrapper: View {
         @State private var isVsMe = false
-
+        
         var body: some View {
-            BillCardSideA(
-                listing: MockMarketplaceData.billListings[0],
-                isVsMe: $isVsMe,
-                userCurrentPrice: 95.00,
-                onUnlock: {},
-                onAskQuestion: {},
-                onWatchlist: {},
-                onAskOwner: {},
-                onReport: {}
-            )
-            .frame(width: 360, height: 520)
-            .marketplaceCard(elevation: .high)
+        BillCardSideA(
+        listing: MockMarketplaceData.billListings[0],
+        isVsMe: $isVsMe,
+        userCurrentPrice: 95.00,
+        onUnlock: {},
+        onAskQuestion: {},
+        onWatchlist: {},
+        onAskOwner: {},
+        onReport: {}
+        )
+        .frame(width: 360, height: 520)
+        .marketplaceCard(elevation: .high)
         }
-    }
-
-    return PreviewWrapper()
+        }
+        
+        return PreviewWrapper()
         .padding()
         .background(Color.gray.opacity(0.1))
+    }
 }

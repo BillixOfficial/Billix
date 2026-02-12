@@ -334,86 +334,94 @@ struct PrizeTierRow: View {
 
 // MARK: - Preview
 
-#Preview("Silver Tier - No Entries") {
-    ZStack {
+struct GiveawayEntryCard_Silver_Tier___No_Entries_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack {
-            GiveawayEntryCard(
-                userEntries: 0,
-                totalEntries: 1247,
-                currentTier: .silver,
-                onBuyEntries: {
-                },
-                onHowToEarn: {
-                }
-            )
-            .padding(20)
-
-            Spacer()
+        GiveawayEntryCard(
+        userEntries: 0,
+        totalEntries: 1247,
+        currentTier: .silver,
+        onBuyEntries: {
+        },
+        onHowToEarn: {
+        }
+        )
+        .padding(20)
+        
+        Spacer()
+        }
         }
     }
 }
 
-#Preview("Silver Tier - 5 Entries") {
-    ZStack {
+struct GiveawayEntryCard_Silver_Tier___5_Entries_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack {
-            GiveawayEntryCard(
-                userEntries: 5,
-                totalEntries: 1247,
-                currentTier: .silver,
-                onBuyEntries: {
-                },
-                onHowToEarn: {
-                }
-            )
-            .padding(20)
-
-            Spacer()
+        GiveawayEntryCard(
+        userEntries: 5,
+        totalEntries: 1247,
+        currentTier: .silver,
+        onBuyEntries: {
+        },
+        onHowToEarn: {
+        }
+        )
+        .padding(20)
+        
+        Spacer()
+        }
         }
     }
 }
 
-#Preview("Gold Tier - 25 Entries") {
-    ZStack {
+struct GiveawayEntryCard_Gold_Tier___25_Entries_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack {
-            GiveawayEntryCard(
-                userEntries: 25,
-                totalEntries: 1247,
-                currentTier: .gold,
-                onBuyEntries: {
-                },
-                onHowToEarn: {
-                }
-            )
-            .padding(20)
-
-            Spacer()
+        GiveawayEntryCard(
+        userEntries: 25,
+        totalEntries: 1247,
+        currentTier: .gold,
+        onBuyEntries: {
+        },
+        onHowToEarn: {
+        }
+        )
+        .padding(20)
+        
+        Spacer()
+        }
         }
     }
 }
 
-#Preview("Bronze Tier - Locked") {
-    ZStack {
+struct GiveawayEntryCard_Bronze_Tier___Locked_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack {
-            GiveawayEntryCard(
-                userEntries: 0,
-                totalEntries: 1247,
-                currentTier: .bronze,
-                onBuyEntries: {
-                },
-                onHowToEarn: {
-                }
-            )
-            .padding(20)
-
-            Spacer()
+        GiveawayEntryCard(
+        userEntries: 0,
+        totalEntries: 1247,
+        currentTier: .bronze,
+        onBuyEntries: {
+        },
+        onHowToEarn: {
+        }
+        )
+        .padding(20)
+        
+        Spacer()
+        }
         }
     }
 }

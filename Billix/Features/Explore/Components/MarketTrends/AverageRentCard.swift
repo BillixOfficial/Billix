@@ -128,22 +128,24 @@ struct AverageRentCard: View {
 
 // MARK: - Preview
 
-#Preview("Average Rent Card") {
-    VStack(spacing: 20) {
+struct AverageRentCard_Average_Rent_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         AverageRentCard(
-            averageRent: 1407,
-            changePercent: 0.5,
-            lowRent: 560,
-            highRent: 3400
+        averageRent: 1407,
+        changePercent: 0.5,
+        lowRent: 560,
+        highRent: 3400
         )
-
+        
         AverageRentCard(
-            averageRent: 2200,
-            changePercent: -3.2,
-            lowRent: 1100,
-            highRent: 4500
+        averageRent: 2200,
+        changePercent: -3.2,
+        lowRent: 1100,
+        highRent: 4500
         )
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

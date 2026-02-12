@@ -834,6 +834,8 @@ struct HouseholdSettingsRow: View {
     }
 }
 
-#Preview {
-    HouseholdDashboardView()
+struct HouseholdDashboardView_Previews: PreviewProvider {
+    static var previews: some View {
+        HouseholdDashboardView()
+    }
 }

@@ -478,11 +478,13 @@ enum ProofUploadError: LocalizedError {
     }
 }
 
-// MARK: - Preview
+/// MARK: - Preview
 
-#Preview {
-    ProofUploadView(
-        connection: Connection.mockExecuting(),
-        viewModel: ConnectionDetailViewModel(connection: Connection.mockExecuting())
-    )
+struct ProofUploadView_Previews: PreviewProvider {
+    static var previews: some View {
+        ProofUploadView(
+            connection: Connection.mockExecuting(),
+            viewModel: ConnectionDetailViewModel(connection: Connection.mockExecuting())
+        )
+    }
 }

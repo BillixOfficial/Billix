@@ -8,7 +8,7 @@
 
 import SwiftUI
 import Charts
-import UIKit
+import class UIKit.UIImpactFeedbackGenerator
 
 enum ChartMode {
     case averageOnly  // Show only average with gradient
@@ -475,8 +475,8 @@ struct RentHistoryChart: View {
 
 // MARK: - Preview
 
-#Preview("Rent History Chart - All Types") {
-    struct PreviewWrapper: View {
+struct RentHistoryChart_Previews: PreviewProvider {
+    struct AllTypesPreviewWrapper: View {
         @State private var selectedDataPoint: RentHistoryPoint?
         @State private var isScrubbing: Bool = false
         @State private var timeRange: TimeRange = .oneYear
@@ -499,11 +499,7 @@ struct RentHistoryChart: View {
         }
     }
 
-    return PreviewWrapper()
-}
-
-#Preview("Rent History Chart - Average Only") {
-    struct PreviewWrapper: View {
+    struct AverageOnlyPreviewWrapper: View {
         @State private var selectedDataPoint: RentHistoryPoint?
         @State private var isScrubbing: Bool = false
         @State private var timeRange: TimeRange = .oneYear
@@ -526,5 +522,12 @@ struct RentHistoryChart: View {
         }
     }
 
-    return PreviewWrapper()
+    static var previews: some View {
+        Group {
+            AllTypesPreviewWrapper()
+                .previewDisplayName("Rent History Chart - All Types")
+            AverageOnlyPreviewWrapper()
+                .previewDisplayName("Rent History Chart - Average Only")
+        }
+    }
 }

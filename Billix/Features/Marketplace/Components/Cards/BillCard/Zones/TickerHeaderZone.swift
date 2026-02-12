@@ -88,8 +88,10 @@ struct TickerHeaderZone: View {
     }
 }
 
-#Preview {
-    TickerHeaderZone(listing: MockMarketplaceData.billListings[0])
+struct TickerHeaderZone_Previews: PreviewProvider {
+    static var previews: some View {
+        TickerHeaderZone(listing: MockMarketplaceData.billListings[0])
         .padding()
         .background(Color.white)
+    }
 }

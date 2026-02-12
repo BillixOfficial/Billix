@@ -48,18 +48,20 @@ struct ExploreSearchBar: View {
     }
 }
 
-#Preview("Search Bar") {
-    VStack(spacing: 20) {
+struct ExploreSearchBar_Search_Bar_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         ExploreSearchBar(
-            searchQuery: .constant(""),
-            onVoiceSearch: {}
+        searchQuery: .constant(""),
+        onVoiceSearch: {}
         )
-
+        
         ExploreSearchBar(
-            searchQuery: .constant("New York"),
-            onVoiceSearch: {}
+        searchQuery: .constant("New York"),
+        onVoiceSearch: {}
         )
+        }
+        .padding()
+        .background(Color.billixCreamBeige.opacity(0.3))
     }
-    .padding()
-    .background(Color.billixCreamBeige.opacity(0.3))
 }

@@ -59,39 +59,51 @@ struct StarDisplay: View {
 
 // MARK: - Preview
 
-#Preview("No Stars") {
-    StarDisplay(starsEarned: 0)
+struct StarDisplay_No_Stars_Previews: PreviewProvider {
+    static var previews: some View {
+        StarDisplay(starsEarned: 0)
         .padding()
+    }
 }
 
-#Preview("One Star") {
-    StarDisplay(starsEarned: 1)
+struct StarDisplay_One_Star_Previews: PreviewProvider {
+    static var previews: some View {
+        StarDisplay(starsEarned: 1)
         .padding()
+    }
 }
 
-#Preview("Two Stars") {
-    StarDisplay(starsEarned: 2)
+struct StarDisplay_Two_Stars_Previews: PreviewProvider {
+    static var previews: some View {
+        StarDisplay(starsEarned: 2)
         .padding()
+    }
 }
 
-#Preview("Three Stars") {
-    StarDisplay(starsEarned: 3)
+struct StarDisplay_Three_Stars_Previews: PreviewProvider {
+    static var previews: some View {
+        StarDisplay(starsEarned: 3)
         .padding()
+    }
 }
 
-#Preview("Large Stars") {
-    VStack(spacing: 20) {
+struct StarDisplay_Large_Stars_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         StarDisplay(starsEarned: 3, size: 32)
         StarDisplay(starsEarned: 2, size: 40)
         StarDisplay(starsEarned: 1, size: 48)
+        }
+        .padding()
     }
-    .padding()
 }
 
-#Preview("Custom Max Stars") {
-    VStack(spacing: 20) {
+struct StarDisplay_Custom_Max_Stars_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         StarDisplay(starsEarned: 3, maxStars: 5, size: 28)
         StarDisplay(starsEarned: 5, maxStars: 5, size: 28)
+        }
+        .padding()
     }
-    .padding()
 }

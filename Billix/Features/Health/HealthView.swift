@@ -35,6 +35,8 @@ struct HealthView: View {
     }
 }
 
-#Preview {
-    HealthView()
+struct HealthView_Previews: PreviewProvider {
+    static var previews: some View {
+        HealthView()
+    }
 }

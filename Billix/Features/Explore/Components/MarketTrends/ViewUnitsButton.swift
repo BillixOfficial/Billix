@@ -42,10 +42,12 @@ struct ViewUnitsButton: View {
 
 // MARK: - Preview
 
-#Preview("View Units Button") {
-    ViewUnitsButton {
+struct ViewUnitsButton_View_Units_Button_Previews: PreviewProvider {
+    static var previews: some View {
+        ViewUnitsButton {
         print("Navigate to Housing tab")
+        }
+        .padding(20)
+        .background(Color(hex: "F8F9FA"))
     }
-    .padding(20)
-    .background(Color(hex: "F8F9FA"))
 }

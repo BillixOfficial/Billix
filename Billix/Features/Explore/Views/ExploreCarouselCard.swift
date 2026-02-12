@@ -177,13 +177,15 @@ struct ExploreCarouselView: View {
 
 // MARK: - Preview
 
-#Preview {
-    ZStack {
+struct ExploreCarouselCard_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         ExploreTheme.background.ignoresSafeArea()
-
+        
         ExploreCarouselView(
-            selectedFeature: .constant(nil),
-            showFeatureSheet: .constant(false)
+        selectedFeature: .constant(nil),
+        showFeatureSheet: .constant(false)
         )
+        }
     }
 }

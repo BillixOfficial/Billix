@@ -486,33 +486,35 @@ private struct ScrollOffsetPreferenceKey: PreferenceKey {
 
 // MARK: - Preview
 
-#Preview("Disclaimers") {
-    ZStack {
+struct LegalDisclaimerComponents_Disclaimers_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color(red: 0.06, green: 0.06, blue: 0.08).ignoresSafeArea()
-
+        
         ScrollView {
-            VStack(spacing: 20) {
-                DisclaimerBanner(type: DisclaimerType.onboarding)
-                DisclaimerBanner(type: DisclaimerType.swapConfirmation)
-                DisclaimerBanner(type: DisclaimerType.paymentInstructions, isExpandable: true)
-
-                SwapConfirmationDisclaimer(
-                    partnerName: "Alex",
-                    billProvider: "AT&T",
-                    billAmount: 85.00,
-                    hasAccepted: .constant(false)
-                )
-
-                PaymentInstructionsCard(
-                    providerName: "Verizon",
-                    accountNumber: "***-***-1234",
-                    amount: 120.50
-                )
-
-                InlineDisclaimer(text: "Billix is a coordination platform. We do not transfer money, hold funds, or guarantee payments.")
-            }
-            .padding()
+        VStack(spacing: 20) {
+        DisclaimerBanner(type: DisclaimerType.onboarding)
+        DisclaimerBanner(type: DisclaimerType.swapConfirmation)
+        DisclaimerBanner(type: DisclaimerType.paymentInstructions, isExpandable: true)
+        
+        SwapConfirmationDisclaimer(
+        partnerName: "Alex",
+        billProvider: "AT&T",
+        billAmount: 85.00,
+        hasAccepted: .constant(false)
+        )
+        
+        PaymentInstructionsCard(
+        providerName: "Verizon",
+        accountNumber: "***-***-1234",
+        amount: 120.50
+        )
+        
+        InlineDisclaimer(text: "Billix is a coordination platform. We do not transfer money, hold funds, or guarantee payments.")
         }
+        .padding()
+        }
+        }
+        .preferredColorScheme(.dark)
     }
-    .preferredColorScheme(.dark)
 }

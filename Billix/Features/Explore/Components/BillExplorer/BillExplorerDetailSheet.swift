@@ -372,8 +372,9 @@ struct BillExplorerDetailSheet: View {
 
 // MARK: - Preview
 
-#Preview {
-    BillExplorerDetailSheet(
+struct BillExplorerDetailSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        BillExplorerDetailSheet(
         listing: ExploreBillListing.mockListings[0],
         userVote: .up,
         isBookmarked: true,
@@ -383,5 +384,6 @@ struct BillExplorerDetailSheet: View {
         onGetSimilarRates: {},
         onNegotiationScript: {},
         onFindSwapMatch: {}
-    )
+        )
+    }
 }

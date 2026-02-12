@@ -19,17 +19,19 @@ struct MetadataPillView: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 12) {
+struct MetadataPillView_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 12) {
         HStack(spacing: 8) {
-            MetadataPillView(icon: "target", text: "10 Stops")
-            MetadataPillView(icon: "arrow.right", text: "Sequential")
+        MetadataPillView(icon: "target", text: "10 Stops")
+        MetadataPillView(icon: "arrow.right", text: "Sequential")
         }
-
+        
         HStack(spacing: 8) {
-            MetadataPillView(icon: "shuffle", text: "Randomized")
-            MetadataPillView(icon: "gamecontroller.fill", text: "0 plays")
+        MetadataPillView(icon: "shuffle", text: "Randomized")
+        MetadataPillView(icon: "gamecontroller.fill", text: "0 plays")
         }
+        }
+        .padding()
     }
-    .padding()
 }

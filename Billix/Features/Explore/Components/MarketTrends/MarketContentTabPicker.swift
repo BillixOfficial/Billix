@@ -41,6 +41,8 @@ private struct MarketContentTabPicker_Preview: View {
     }
 }
 
-#Preview("Market Content Tab Picker") {
-    MarketContentTabPicker_Preview()
+struct MarketContentTabPicker_Market_Content_Tab_Picker_Previews: PreviewProvider {
+    static var previews: some View {
+        MarketContentTabPicker_Preview()
+    }
 }

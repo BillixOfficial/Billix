@@ -239,8 +239,10 @@ private struct GlassCircleButton: View {
 
 // MARK: - Preview
 
-#Preview {
-    NavigationStack {
+struct UploadMethodSelectionView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
         UploadMethodSelectionView(viewModel: UploadViewModel())
+        }
     }
 }

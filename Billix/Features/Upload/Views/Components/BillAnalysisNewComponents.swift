@@ -852,89 +852,99 @@ struct ComparisonBarCard: View {
 
 // MARK: - Previews
 
-#Preview("Plain English Summary") {
-    PlainEnglishSummaryCard(
+struct BillAnalysisNewComponents_Plain_English_Summary_Previews: PreviewProvider {
+    static var previews: some View {
+        PlainEnglishSummaryCard(
         summary: "Your November electric bill is $142.50, due December 15th. You used 147 kWh of electricity, which is about average for a home your size."
-    )
-    .padding()
-    .background(Color.billixLightGreen)
-}
-
-#Preview("Red Flags") {
-    RedFlagsAlertCard(
-        redFlags: [
-            BillAnalysis.RedFlag(type: "high", description: "Service fee appears twice on your bill", recommendation: "Contact your provider to remove the duplicate charge", potentialSavings: 15.0),
-            BillAnalysis.RedFlag(type: "medium", description: "Your electricity rate went up 15% since last month", recommendation: "Review rate change notice and consider switching plans", potentialSavings: 8.0),
-            BillAnalysis.RedFlag(type: "low", description: "You were charged a $5 late fee", recommendation: "Set up autopay to avoid future late fees", potentialSavings: 5.0)
-        ]
-    )
-    .padding()
-    .background(Color.billixLightGreen)
-}
-
-#Preview("Control Analysis") {
-    ControlAnalysisSection(
-        controlAnalysis: BillAnalysis.ControlAnalysis(
-            fixedCosts: BillAnalysis.ControlAnalysis.CostDetail(
-                total: 45.0,
-                items: ["Service Charge ($8.50)", "LIEAF Factor ($1.25)", "Sales Tax ($1.50)"],
-                explanation: "These charges stay the same regardless of usage"
-            ),
-            variableCosts: BillAnalysis.ControlAnalysis.CostDetail(
-                total: 97.5,
-                items: ["On Peak Charges ($12.46)", "Off Peak Charges ($35.54)", "Distribution Charge ($49.50)"],
-                explanation: "These charges depend on how much electricity you consume"
-            ),
-            controllablePercentage: 68.0
         )
-    )
-    .padding()
-    .background(Color.billixLightGreen)
+        .padding()
+        .background(Color.billixLightGreen)
+    }
 }
 
-#Preview("Ways to Save") {
-    WaysToSaveSection(
+struct BillAnalysisNewComponents_Red_Flags_Previews: PreviewProvider {
+    static var previews: some View {
+        RedFlagsAlertCard(
+        redFlags: [
+        BillAnalysis.RedFlag(type: "high", description: "Service fee appears twice on your bill", recommendation: "Contact your provider to remove the duplicate charge", potentialSavings: 15.0),
+        BillAnalysis.RedFlag(type: "medium", description: "Your electricity rate went up 15% since last month", recommendation: "Review rate change notice and consider switching plans", potentialSavings: 8.0),
+        BillAnalysis.RedFlag(type: "low", description: "You were charged a $5 late fee", recommendation: "Set up autopay to avoid future late fees", potentialSavings: 5.0)
+        ]
+        )
+        .padding()
+        .background(Color.billixLightGreen)
+    }
+}
+
+struct BillAnalysisNewComponents_Control_Analysis_Previews: PreviewProvider {
+    static var previews: some View {
+        ControlAnalysisSection(
+        controlAnalysis: BillAnalysis.ControlAnalysis(
+        fixedCosts: BillAnalysis.ControlAnalysis.CostDetail(
+        total: 45.0,
+        items: ["Service Charge ($8.50)", "LIEAF Factor ($1.25)", "Sales Tax ($1.50)"],
+        explanation: "These charges stay the same regardless of usage"
+        ),
+        variableCosts: BillAnalysis.ControlAnalysis.CostDetail(
+        total: 97.5,
+        items: ["On Peak Charges ($12.46)", "Off Peak Charges ($35.54)", "Distribution Charge ($49.50)"],
+        explanation: "These charges depend on how much electricity you consume"
+        ),
+        controllablePercentage: 68.0
+        )
+        )
+        .padding()
+        .background(Color.billixLightGreen)
+    }
+}
+
+struct BillAnalysisNewComponents_Ways_to_Save_Previews: PreviewProvider {
+    static var previews: some View {
+        WaysToSaveSection(
         actionItems: [
-            BillAnalysis.ActionItem(
-                action: "Switch to Off-Peak Hours",
-                explanation: "Most of your usage happens during peak hours (2-7pm). Shifting laundry and dishwasher to off-peak could save money.",
-                potentialSavings: 25.0,
-                difficulty: "easy",
-                category: "usage"
-            ),
-            BillAnalysis.ActionItem(
-                action: "Negotiate Service Fee",
-                explanation: "Your $15/month service fee is higher than average. Call and ask for a reduction.",
-                potentialSavings: 8.0,
-                difficulty: "medium",
-                category: "plan"
-            )
+        BillAnalysis.ActionItem(
+        action: "Switch to Off-Peak Hours",
+        explanation: "Most of your usage happens during peak hours (2-7pm). Shifting laundry and dishwasher to off-peak could save money.",
+        potentialSavings: 25.0,
+        difficulty: "easy",
+        category: "usage"
+        ),
+        BillAnalysis.ActionItem(
+        action: "Negotiate Service Fee",
+        explanation: "Your $15/month service fee is higher than average. Call and ask for a reduction.",
+        potentialSavings: 8.0,
+        difficulty: "medium",
+        category: "plan"
+        )
         ]
-    )
-    .padding()
-    .background(Color.billixLightGreen)
+        )
+        .padding()
+        .background(Color.billixLightGreen)
+    }
 }
 
-#Preview("Jargon Decoder") {
-    JargonDecoderSection(
+struct BillAnalysisNewComponents_Jargon_Decoder_Previews: PreviewProvider {
+    static var previews: some View {
+        JargonDecoderSection(
         glossary: [
-            BillAnalysis.GlossaryTerm(
-                term: "kWh",
-                definition: "Kilowatt-hour: A unit of energy equal to 1,000 watts used for one hour.",
-                context: "If you run a 100W light bulb for 10 hours, that's 1 kWh."
-            ),
-            BillAnalysis.GlossaryTerm(
-                term: "Peak Hours",
-                definition: "Times when electricity demand is highest, typically 2-7pm on weekdays.",
-                context: "Your peak rate is $0.25/kWh vs $0.12/kWh off-peak."
-            ),
-            BillAnalysis.GlossaryTerm(
-                term: "Delivery Charge",
-                definition: "The cost to transport electricity from the power plant to your home.",
-                context: "This covers the infrastructure to bring power to your home."
-            )
+        BillAnalysis.GlossaryTerm(
+        term: "kWh",
+        definition: "Kilowatt-hour: A unit of energy equal to 1,000 watts used for one hour.",
+        context: "If you run a 100W light bulb for 10 hours, that's 1 kWh."
+        ),
+        BillAnalysis.GlossaryTerm(
+        term: "Peak Hours",
+        definition: "Times when electricity demand is highest, typically 2-7pm on weekdays.",
+        context: "Your peak rate is $0.25/kWh vs $0.12/kWh off-peak."
+        ),
+        BillAnalysis.GlossaryTerm(
+        term: "Delivery Charge",
+        definition: "The cost to transport electricity from the power plant to your home.",
+        context: "This covers the infrastructure to bring power to your home."
+        )
         ]
-    )
-    .padding()
-    .background(Color.billixLightGreen)
+        )
+        .padding()
+        .background(Color.billixLightGreen)
+    }
 }

@@ -204,6 +204,8 @@ struct RequestCard: View {
     }
 }
 
-#Preview {
-    ReliefHistoryView()
+struct ReliefHistoryView_Previews: PreviewProvider {
+    static var previews: some View {
+        ReliefHistoryView()
+    }
 }

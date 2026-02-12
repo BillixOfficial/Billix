@@ -113,82 +113,84 @@ struct CompactToggleRow: View {
 
 // MARK: - Preview
 
-#Preview("Toggle Rows") {
-    struct PreviewWrapper: View {
+struct SettingsToggleRow_Toggle_Rows_Previews: PreviewProvider {
+    static var previews: some View {
+        struct PreviewWrapper: View {
         @State private var toggle1 = true
         @State private var toggle2 = false
         @State private var toggle3 = true
         @State private var toggle4 = false
-
+        
         var body: some View {
-            VStack(spacing: 16) {
-                // With icon and subtitle
-                ProfileSectionCard {
-                    SettingsToggleRow(
-                        title: "Push Notifications",
-                        subtitle: "Get alerts about your bills",
-                        icon: "bell.fill",
-                        isOn: $toggle1
-                    )
-                }
-
-                // With icon, no subtitle
-                ProfileSectionCard {
-                    SettingsToggleRow(
-                        title: "Email Notifications",
-                        icon: "envelope.fill",
-                        isOn: $toggle2
-                    )
-                }
-
-                // Grouped toggles
-                ProfileSectionCard {
-                    ProfileSectionHeader("Bill Alerts")
-
-                    VStack(spacing: 0) {
-                        CompactToggleRow(
-                            title: "Upcoming due dates",
-                            isOn: $toggle3
-                        )
-
-                        ProfileDivider()
-
-                        CompactToggleRow(
-                            title: "Price changes",
-                            isOn: $toggle4
-                        )
-                    }
-                    .padding(.bottom, 8)
-                }
-
-                // Multiple toggles with subtitles
-                ProfileSectionCard {
-                    VStack(spacing: 0) {
-                        SettingsToggleRow(
-                            title: "Marketplace Participation",
-                            subtitle: "Help others see real bill prices in your area",
-                            icon: "chart.bar.fill",
-                            iconColor: .billixPurple,
-                            isOn: $toggle1
-                        )
-
-                        ProfileDivider()
-
-                        SettingsToggleRow(
-                            title: "Show Tenure",
-                            subtitle: "Display how long you've been with providers",
-                            icon: "clock.fill",
-                            iconColor: .billixGoldenAmber,
-                            isOn: $toggle2
-                        )
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
-            .padding()
-            .background(Color.billixLightGreen)
+        VStack(spacing: 16) {
+        // With icon and subtitle
+        ProfileSectionCard {
+        SettingsToggleRow(
+        title: "Push Notifications",
+        subtitle: "Get alerts about your bills",
+        icon: "bell.fill",
+        isOn: $toggle1
+        )
         }
+        
+        // With icon, no subtitle
+        ProfileSectionCard {
+        SettingsToggleRow(
+        title: "Email Notifications",
+        icon: "envelope.fill",
+        isOn: $toggle2
+        )
+        }
+        
+        // Grouped toggles
+        ProfileSectionCard {
+        ProfileSectionHeader("Bill Alerts")
+        
+        VStack(spacing: 0) {
+        CompactToggleRow(
+        title: "Upcoming due dates",
+        isOn: $toggle3
+        )
+        
+        ProfileDivider()
+        
+        CompactToggleRow(
+        title: "Price changes",
+        isOn: $toggle4
+        )
+        }
+        .padding(.bottom, 8)
+        }
+        
+        // Multiple toggles with subtitles
+        ProfileSectionCard {
+        VStack(spacing: 0) {
+        SettingsToggleRow(
+        title: "Marketplace Participation",
+        subtitle: "Help others see real bill prices in your area",
+        icon: "chart.bar.fill",
+        iconColor: .billixPurple,
+        isOn: $toggle1
+        )
+        
+        ProfileDivider()
+        
+        SettingsToggleRow(
+        title: "Show Tenure",
+        subtitle: "Display how long you've been with providers",
+        icon: "clock.fill",
+        iconColor: .billixGoldenAmber,
+        isOn: $toggle2
+        )
+        }
+        .padding(.vertical, 4)
+        }
+        }
+        .padding()
+        .background(Color.billixLightGreen)
+        }
+        }
+        
+        return PreviewWrapper()
     }
-
-    return PreviewWrapper()
 }

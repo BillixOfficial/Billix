@@ -1711,6 +1711,8 @@ struct RewardRedeemSheet: View {
 
 // MARK: - Preview
 
-#Preview {
-    RewardsHubView()
+struct RewardsHubView_Previews: PreviewProvider {
+    static var previews: some View {
+        RewardsHubView()
+    }
 }

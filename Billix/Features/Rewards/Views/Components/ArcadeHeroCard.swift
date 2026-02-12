@@ -667,32 +667,36 @@ struct WindowShape: View {
 
 // MARK: - Preview
 
-#Preview("Unplayed") {
-    ZStack {
+struct ArcadeHeroCard_Unplayed_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         ArcadeHeroCard(
-            game: .preview,
-            result: nil,
-            hasPlayedToday: false,
-            timeRemaining: "14h 20m",
-            onPlay: {}
+        game: .preview,
+        result: nil,
+        hasPlayedToday: false,
+        timeRemaining: "14h 20m",
+        onPlay: {}
         )
         .padding(20)
+        }
     }
 }
 
-#Preview("Played") {
-    ZStack {
+struct ArcadeHeroCard_Played_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         ArcadeHeroCard(
-            game: .preview,
-            result: .preview,
-            hasPlayedToday: true,
-            timeRemaining: "14h 20m",
-            onPlay: {}
+        game: .preview,
+        result: .preview,
+        hasPlayedToday: true,
+        timeRemaining: "14h 20m",
+        onPlay: {}
         )
         .padding(20)
+        }
     }
 }

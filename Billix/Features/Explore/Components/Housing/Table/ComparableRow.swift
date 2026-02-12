@@ -117,33 +117,35 @@ struct ComparableRow: View {
 
 // MARK: - Preview
 
-#Preview("Comparable Rows") {
-    ScrollView(.horizontal) {
+struct ComparableRow_Comparable_Rows_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView(.horizontal) {
         VStack(spacing: 0) {
-            ForEach(1...5, id: \.self) { index in
-                ComparableRow(
-                    comparable: RentalComparable(
-                        id: "comp\(index)",
-                        address: "418 N Center St, Royal Oak, MI",
-                        rent: 2000 + Double(index * 100),
-                        lastSeen: Calendar.current.date(byAdding: .day, value: -index, to: Date()) ?? Date(),
-                        similarity: 99.9 - Double(index) * 0.2,
-                        distance: Double(index) * 0.3,
-                        bedrooms: 2,
-                        bathrooms: 1.5,
-                        sqft: 950,
-                        propertyType: .apartment,
-                        coordinate: .init(latitude: 42.3314, longitude: -83.0458),
-                        yearBuilt: 2010,
-                        lotSize: 5000,
-                        status: index % 2 == 0 ? "Active" : "Inactive"
-                    ),
-                    rowNumber: index,
-                    isSelected: index == 1  // First row selected
-                )
-                Divider()
-            }
+        ForEach(1...5, id: \.self) { index in
+        ComparableRow(
+        comparable: RentalComparable(
+        id: "comp\(index)",
+        address: "418 N Center St, Royal Oak, MI",
+        rent: 2000 + Double(index * 100),
+        lastSeen: Calendar.current.date(byAdding: .day, value: -index, to: Date()) ?? Date(),
+        similarity: 99.9 - Double(index) * 0.2,
+        distance: Double(index) * 0.3,
+        bedrooms: 2,
+        bathrooms: 1.5,
+        sqft: 950,
+        propertyType: .apartment,
+        coordinate: .init(latitude: 42.3314, longitude: -83.0458),
+        yearBuilt: 2010,
+        lotSize: 5000,
+        status: index % 2 == 0 ? "Active" : "Inactive"
+        ),
+        rowNumber: index,
+        isSelected: index == 1  // First row selected
+        )
+        Divider()
         }
+        }
+        }
+        .background(Color.white)
     }
-    .background(Color.white)
 }

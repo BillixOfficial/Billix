@@ -313,6 +313,8 @@ private struct ImprovementTipRow: View {
 
 // MARK: - Preview
 
-#Preview {
-    BillixScoreDetailSheet()
+struct BillixScoreDetailSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        BillixScoreDetailSheet()
+    }
 }

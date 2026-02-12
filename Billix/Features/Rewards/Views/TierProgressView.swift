@@ -291,18 +291,26 @@ struct TierCard: View {
 
 // MARK: - Preview
 
-#Preview("Bronze Tier (1,450 pts)") {
-    TierProgressView(currentPoints: 1450, currentTier: .bronze)
+struct TierProgressView_Bronze_Tier__1_450_pts__Previews: PreviewProvider {
+    static var previews: some View {
+        TierProgressView(currentPoints: 1450, currentTier: .bronze)
+    }
 }
 
-#Preview("Silver Tier (12,000 pts)") {
-    TierProgressView(currentPoints: 12000, currentTier: .silver)
+struct TierProgressView_Silver_Tier__12_000_pts__Previews: PreviewProvider {
+    static var previews: some View {
+        TierProgressView(currentPoints: 12000, currentTier: .silver)
+    }
 }
 
-#Preview("Gold Tier (45,000 pts)") {
-    TierProgressView(currentPoints: 45000, currentTier: .gold)
+struct TierProgressView_Gold_Tier__45_000_pts__Previews: PreviewProvider {
+    static var previews: some View {
+        TierProgressView(currentPoints: 45000, currentTier: .gold)
+    }
 }
 
-#Preview("Platinum Tier (150,000 pts)") {
-    TierProgressView(currentPoints: 150000, currentTier: .platinum)
+struct TierProgressView_Platinum_Tier__150_000_pts__Previews: PreviewProvider {
+    static var previews: some View {
+        TierProgressView(currentPoints: 150000, currentTier: .platinum)
+    }
 }

@@ -44,25 +44,27 @@ struct PercentileBar: View {
 
 // MARK: - Preview
 
-#Preview("Percentile Bar") {
-    VStack(spacing: 20) {
+struct PercentileBar_Percentile_Bar_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Low bill (18th percentile)")
-                .font(.caption)
-            PercentileBar(percentile: 18)
+        Text("Low bill (18th percentile)")
+        .font(.caption)
+        PercentileBar(percentile: 18)
         }
-
+        
         VStack(alignment: .leading, spacing: 4) {
-            Text("Average bill (50th percentile)")
-                .font(.caption)
-            PercentileBar(percentile: 50)
+        Text("Average bill (50th percentile)")
+        .font(.caption)
+        PercentileBar(percentile: 50)
         }
-
+        
         VStack(alignment: .leading, spacing: 4) {
-            Text("High bill (78th percentile)")
-                .font(.caption)
-            PercentileBar(percentile: 78)
+        Text("High bill (78th percentile)")
+        .font(.caption)
+        PercentileBar(percentile: 78)
         }
+        }
+        .padding()
     }
-    .padding()
 }

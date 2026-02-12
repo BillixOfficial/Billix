@@ -237,6 +237,8 @@ struct ReliefFlowView: View {
 
 // MARK: - Preview
 
-#Preview {
-    ReliefFlowView()
+struct ReliefFlowView_Previews: PreviewProvider {
+    static var previews: some View {
+        ReliefFlowView()
+    }
 }

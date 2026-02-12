@@ -189,13 +189,15 @@ struct TakeoverCard: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 16) {
+struct TakeoverCard_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         TakeoverCard(
-            takeover: MockMarketplaceData.takeovers[0],
-            onInquire: {}
+        takeover: MockMarketplaceData.takeovers[0],
+        onInquire: {}
         )
+        }
+        .padding()
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .padding()
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

@@ -201,48 +201,52 @@ struct TimerDisplay: View {
 
 // MARK: - Preview
 
-#Preview("Compact Top HUD - Session Mode") {
-    ZStack {
+struct CompactTopHUD_Compact_Top_HUD___Session_Mode_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         // Simulated map background
         Color.green.opacity(0.3)
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         VStack {
-            CompactTopHUD(
-                viewModel: {
-                    let vm = GeoGameViewModel()
-                    vm.session.totalPoints = 1250
-                    vm.session.health = 2  // 66%
-                    return vm
-                }(),
-                onClose: {},
-                onHelp: {}
-            )
-
-            Spacer()
+        CompactTopHUD(
+        viewModel: {
+        let vm = GeoGameViewModel()
+        vm.session.totalPoints = 1250
+        vm.session.health = 2  // 66%
+        return vm
+        }(),
+        onClose: {},
+        onHelp: {}
+        )
+        
+        Spacer()
+        }
         }
     }
 }
 
-#Preview("Compact Top HUD - Season Mode") {
-    ZStack {
+struct CompactTopHUD_Compact_Top_HUD___Season_Mode_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         // Simulated map background
         Color.blue.opacity(0.3)
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         VStack {
-            CompactTopHUD(
-                viewModel: {
-                    let vm = GeoGameViewModel()
-                    vm.session.totalPoints = 450
-                    vm.session.health = 3  // 100%
-                    return vm
-                }(),
-                onClose: {},
-                onHelp: {}
-            )
-
-            Spacer()
+        CompactTopHUD(
+        viewModel: {
+        let vm = GeoGameViewModel()
+        vm.session.totalPoints = 450
+        vm.session.health = 3  // 100%
+        return vm
+        }(),
+        onClose: {},
+        onHelp: {}
+        )
+        
+        Spacer()
+        }
         }
     }
 }

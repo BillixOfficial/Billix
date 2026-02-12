@@ -125,31 +125,39 @@ struct LocationPickerRow: View {
 
 // MARK: - Previews
 
-#Preview("Location Picker Button") {
-    VStack {
+struct LocationPickerButton_Location_Picker_Button_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack {
         LocationPickerButton(locationManager: .preview())
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }
 
-#Preview("Location Picker Sheet") {
-    LocationPickerSheet(
+struct LocationPickerButton_Location_Picker_Sheet_Previews: PreviewProvider {
+    static var previews: some View {
+        LocationPickerSheet(
         locationManager: .preview(),
         isPresented: .constant(true)
-    )
+        )
+    }
 }
 
-#Preview("Location Picker Row - Selected") {
-    LocationPickerRow(
+struct LocationPickerButton_Location_Picker_Row___Selected_Previews: PreviewProvider {
+    static var previews: some View {
+        LocationPickerRow(
         location: Location.defaultLocation,
         isSelected: true
-    )
+        )
+    }
 }
 
-#Preview("Location Picker Row - Unselected") {
-    LocationPickerRow(
+struct LocationPickerButton_Location_Picker_Row___Unselected_Previews: PreviewProvider {
+    static var previews: some View {
+        LocationPickerRow(
         location: Location.mockLocations[1],
         isSelected: false
-    )
+        )
+    }
 }

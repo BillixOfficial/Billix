@@ -121,41 +121,43 @@ struct LegendItem: View {
 
 // MARK: - Preview
 
-#Preview("Property Map View") {
-    PropertyMapView(
+struct PropertyMapView_Property_Map_View_Previews: PreviewProvider {
+    static var previews: some View {
+        PropertyMapView(
         searchedProperty: PropertyMarker(
-            id: "searched",
-            coordinate: CLLocationCoordinate2D(latitude: 42.3314, longitude: -83.0458),
-            isSearchedProperty: true,
-            isActive: true
+        id: "searched",
+        coordinate: CLLocationCoordinate2D(latitude: 42.3314, longitude: -83.0458),
+        isSearchedProperty: true,
+        isActive: true
         ),
         comparables: [
-            PropertyMarker(
-                id: "comp1",
-                coordinate: CLLocationCoordinate2D(latitude: 42.3354, longitude: -83.0498),
-                isSearchedProperty: false,
-                isActive: true
-            ),
-            PropertyMarker(
-                id: "comp2",
-                coordinate: CLLocationCoordinate2D(latitude: 42.3274, longitude: -83.0418),
-                isSearchedProperty: false,
-                isActive: false
-            ),
-            PropertyMarker(
-                id: "comp3",
-                coordinate: CLLocationCoordinate2D(latitude: 42.3344, longitude: -83.0428),
-                isSearchedProperty: false,
-                isActive: true
-            )
+        PropertyMarker(
+        id: "comp1",
+        coordinate: CLLocationCoordinate2D(latitude: 42.3354, longitude: -83.0498),
+        isSearchedProperty: false,
+        isActive: true
+        ),
+        PropertyMarker(
+        id: "comp2",
+        coordinate: CLLocationCoordinate2D(latitude: 42.3274, longitude: -83.0418),
+        isSearchedProperty: false,
+        isActive: false
+        ),
+        PropertyMarker(
+        id: "comp3",
+        coordinate: CLLocationCoordinate2D(latitude: 42.3344, longitude: -83.0428),
+        isSearchedProperty: false,
+        isActive: true
+        )
         ],
         region: .constant(MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 42.3314, longitude: -83.0458),
-            span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+        center: CLLocationCoordinate2D(latitude: 42.3314, longitude: -83.0458),
+        span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
         )),
         selectedPropertyId: .constant(nil),
         onPinTap: { _ in }
-    )
-    .padding()
-    .background(Color.billixCreamBeige)
+        )
+        .padding()
+        .background(Color.billixCreamBeige)
+    }
 }

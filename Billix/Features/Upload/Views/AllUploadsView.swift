@@ -158,8 +158,10 @@ struct AllUploadsView: View {
     }
 }
 
-#Preview {
-    NavigationView {
+struct AllUploadsView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
         AllUploadsView()
+        }
     }
 }

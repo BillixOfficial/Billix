@@ -318,21 +318,23 @@ struct BillCardSideB: View {
     }
 }
 
-#Preview {
-    struct PreviewWrapper: View {
+struct BillCardSideB_Previews: PreviewProvider {
+    static var previews: some View {
+        struct PreviewWrapper: View {
         @State private var isVsMe = false
-
+        
         var body: some View {
-            BillCardSideB(
-                listing: MockMarketplaceData.billListings[0],
-                isVsMe: $isVsMe
-            )
-            .frame(width: 360, height: 520)
-            .marketplaceCard(elevation: .high)
+        BillCardSideB(
+        listing: MockMarketplaceData.billListings[0],
+        isVsMe: $isVsMe
+        )
+        .frame(width: 360, height: 520)
+        .marketplaceCard(elevation: .high)
         }
-    }
-
-    return PreviewWrapper()
+        }
+        
+        return PreviewWrapper()
         .padding()
         .background(Color.gray.opacity(0.1))
+    }
 }

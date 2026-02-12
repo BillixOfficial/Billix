@@ -146,120 +146,122 @@ struct LocationRow: View {
 
 // MARK: - Preview
 
-#Preview("Location Row") {
-    VStack(spacing: 12) {
+struct LocationRow_Location_Row_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 12) {
         // Not played
         LocationRow(
-            location: SeasonLocation(
-                id: UUID(),
-                seasonPartId: UUID(),
-                locationNumber: 1,
-                subject: "Manhattan Prices",
-                locationName: "Manhattan, NY",
-                category: "urban",
-                difficulty: "hard",
-                locationData: LocationDataJSON(
-                    landmarkName: "Empire State Building",
-                    coordinates: CoordinateData(lat: 40.7484, lng: -73.9857),
-                    landmark: CoordinateData(lat: 40.7484, lng: -73.9857),
-                    mapRegion: MapRegionDataJSON(pitch: 60, heading: 0, altitude: 1500),
-                    decoyLocations: []
-                ),
-                priceData: PriceDataJSON(questions: []),
-                createdAt: Date()
-            ),
-            progress: nil,
-            onTap: {}
+        location: SeasonLocation(
+        id: UUID(),
+        seasonPartId: UUID(),
+        locationNumber: 1,
+        subject: "Manhattan Prices",
+        locationName: "Manhattan, NY",
+        category: "urban",
+        difficulty: "hard",
+        locationData: LocationDataJSON(
+        landmarkName: "Empire State Building",
+        coordinates: CoordinateData(lat: 40.7484, lng: -73.9857),
+        landmark: CoordinateData(lat: 40.7484, lng: -73.9857),
+        mapRegion: MapRegionDataJSON(pitch: 60, heading: 0, altitude: 1500),
+        decoyLocations: []
+        ),
+        priceData: PriceDataJSON(questions: []),
+        createdAt: Date()
+        ),
+        progress: nil,
+        onTap: {}
         )
         .padding(.horizontal, 20)
-
+        
         // Completed with 3 stars
         LocationRow(
-            location: SeasonLocation(
-                id: UUID(),
-                seasonPartId: UUID(),
-                locationNumber: 2,
-                subject: "San Antonio Prices",
-                locationName: "San Antonio, TX",
-                category: "urban",
-                difficulty: "moderate",
-                locationData: LocationDataJSON(
-                    landmarkName: "The Alamo",
-                    coordinates: CoordinateData(lat: 29.4252, lng: -98.4861),
-                    landmark: CoordinateData(lat: 29.4252, lng: -98.4861),
-                    mapRegion: MapRegionDataJSON(pitch: 60, heading: 0, altitude: 1500),
-                    decoyLocations: []
-                ),
-                priceData: PriceDataJSON(questions: []),
-                createdAt: Date()
-            ),
-            progress: UserSeasonProgress(
-                id: UUID(),
-                userId: UUID(),
-                seasonId: UUID(),
-                partId: UUID(),
-                locationId: UUID(),
-                isCompleted: true,
-                starsEarned: 3,
-                pointsEarned: 450,
-                bestCombo: 6,
-                finalHealth: 3,
-                accuracyPercent: 90,
-                landmarksCorrect: 1,
-                landmarksAttempted: 1,
-                pricesCorrect: 2,
-                pricesAttempted: 2,
-                firstPlayedAt: Date(),
-                completedAt: Date(),
-                lastPlayedAt: Date()
-            ),
-            onTap: {}
+        location: SeasonLocation(
+        id: UUID(),
+        seasonPartId: UUID(),
+        locationNumber: 2,
+        subject: "San Antonio Prices",
+        locationName: "San Antonio, TX",
+        category: "urban",
+        difficulty: "moderate",
+        locationData: LocationDataJSON(
+        landmarkName: "The Alamo",
+        coordinates: CoordinateData(lat: 29.4252, lng: -98.4861),
+        landmark: CoordinateData(lat: 29.4252, lng: -98.4861),
+        mapRegion: MapRegionDataJSON(pitch: 60, heading: 0, altitude: 1500),
+        decoyLocations: []
+        ),
+        priceData: PriceDataJSON(questions: []),
+        createdAt: Date()
+        ),
+        progress: UserSeasonProgress(
+        id: UUID(),
+        userId: UUID(),
+        seasonId: UUID(),
+        partId: UUID(),
+        locationId: UUID(),
+        isCompleted: true,
+        starsEarned: 3,
+        pointsEarned: 450,
+        bestCombo: 6,
+        finalHealth: 3,
+        accuracyPercent: 90,
+        landmarksCorrect: 1,
+        landmarksAttempted: 1,
+        pricesCorrect: 2,
+        pricesAttempted: 2,
+        firstPlayedAt: Date(),
+        completedAt: Date(),
+        lastPlayedAt: Date()
+        ),
+        onTap: {}
         )
         .padding(.horizontal, 20)
-
+        
         // Completed with 1 star
         LocationRow(
-            location: SeasonLocation(
-                id: UUID(),
-                seasonPartId: UUID(),
-                locationNumber: 3,
-                subject: "Honolulu Prices",
-                locationName: "Honolulu, HI",
-                category: "island",
-                difficulty: "easy",
-                locationData: LocationDataJSON(
-                    landmarkName: "Diamond Head",
-                    coordinates: CoordinateData(lat: 21.3099, lng: -157.8581),
-                    landmark: CoordinateData(lat: 21.3099, lng: -157.8581),
-                    mapRegion: MapRegionDataJSON(pitch: 60, heading: 0, altitude: 1500),
-                    decoyLocations: []
-                ),
-                priceData: PriceDataJSON(questions: []),
-                createdAt: Date()
-            ),
-            progress: UserSeasonProgress(
-                id: UUID(),
-                userId: UUID(),
-                seasonId: UUID(),
-                partId: UUID(),
-                locationId: UUID(),
-                isCompleted: true,
-                starsEarned: 1,
-                pointsEarned: 120,
-                bestCombo: 2,
-                finalHealth: 1,
-                accuracyPercent: 50,
-                landmarksCorrect: 1,
-                landmarksAttempted: 1,
-                pricesCorrect: 1,
-                pricesAttempted: 2,
-                firstPlayedAt: Date(),
-                completedAt: Date(),
-                lastPlayedAt: Date()
-            ),
-            onTap: {}
+        location: SeasonLocation(
+        id: UUID(),
+        seasonPartId: UUID(),
+        locationNumber: 3,
+        subject: "Honolulu Prices",
+        locationName: "Honolulu, HI",
+        category: "island",
+        difficulty: "easy",
+        locationData: LocationDataJSON(
+        landmarkName: "Diamond Head",
+        coordinates: CoordinateData(lat: 21.3099, lng: -157.8581),
+        landmark: CoordinateData(lat: 21.3099, lng: -157.8581),
+        mapRegion: MapRegionDataJSON(pitch: 60, heading: 0, altitude: 1500),
+        decoyLocations: []
+        ),
+        priceData: PriceDataJSON(questions: []),
+        createdAt: Date()
+        ),
+        progress: UserSeasonProgress(
+        id: UUID(),
+        userId: UUID(),
+        seasonId: UUID(),
+        partId: UUID(),
+        locationId: UUID(),
+        isCompleted: true,
+        starsEarned: 1,
+        pointsEarned: 120,
+        bestCombo: 2,
+        finalHealth: 1,
+        accuracyPercent: 50,
+        landmarksCorrect: 1,
+        landmarksAttempted: 1,
+        pricesCorrect: 1,
+        pricesAttempted: 2,
+        firstPlayedAt: Date(),
+        completedAt: Date(),
+        lastPlayedAt: Date()
+        ),
+        onTap: {}
         )
         .padding(.horizontal, 20)
+        }
+        .background(Color.billixLightGreen)
     }
-    .background(Color.billixLightGreen)
 }

@@ -255,28 +255,30 @@ struct CurrencyInputField: View {
 
 // MARK: - Preview
 
-#Preview {
-    struct PreviewWrapper: View {
+struct QuickAddStep3Amount_Previews: PreviewProvider {
+    static var previews: some View {
+        struct PreviewWrapper: View {
         @StateObject private var viewModel = QuickAddViewModel()
         @Namespace private var namespace
-
+        
         var body: some View {
-            ZStack {
-                Color.billixLightGreen.ignoresSafeArea()
-                QuickAddStep3Amount(viewModel: viewModel, namespace: namespace)
-            }
-            .onAppear {
-                viewModel.onAppear()
-                // Simulate having selected bill type and provider
-                Task {
-                    await viewModel.loadBillTypes()
-                    if let first = viewModel.billTypes.first {
-                        viewModel.selectBillType(first)
-                    }
-                }
-            }
+        ZStack {
+        Color.billixLightGreen.ignoresSafeArea()
+        QuickAddStep3Amount(viewModel: viewModel, namespace: namespace)
         }
+        .onAppear {
+        viewModel.onAppear()
+        // Simulate having selected bill type and provider
+        Task {
+        await viewModel.loadBillTypes()
+        if let first = viewModel.billTypes.first {
+        viewModel.selectBillType(first)
+        }
+        }
+        }
+        }
+        }
+        
+        return PreviewWrapper()
     }
-
-    return PreviewWrapper()
 }

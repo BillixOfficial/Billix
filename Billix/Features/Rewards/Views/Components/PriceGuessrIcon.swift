@@ -207,17 +207,20 @@ struct PriceTag: View {
 
 // MARK: - Preview
 
-#Preview("Price Guessr Icon") {
-    ZStack {
-        Color(hex: "#2d5a5e")
-            .ignoresSafeArea()
+struct PriceGuessrIcon_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
+            Color(hex: "#2d5a5e")
+                .ignoresSafeArea()
 
-        VStack(spacing: 40) {
-            PriceGuessrIcon()
+            VStack(spacing: 40) {
+                PriceGuessrIcon()
 
-            Text("Animated Dollar Sign with Price Tag")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
+                Text("Animated Dollar Sign with Price Tag")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+            }
         }
+        .previewDisplayName("Price Guessr Icon")
     }
 }

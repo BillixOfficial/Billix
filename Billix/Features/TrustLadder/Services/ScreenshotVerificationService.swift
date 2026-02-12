@@ -8,7 +8,7 @@
 
 import Foundation
 import Vision
-import UIKit
+import class UIKit.UIImage
 import Supabase
 
 // Note: ScreenshotVerificationStatus is defined in TrustLadderEnums.swift

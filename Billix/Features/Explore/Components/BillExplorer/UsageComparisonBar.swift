@@ -167,38 +167,40 @@ struct UsageComparisonBar: View {
 
 // MARK: - Preview
 
-#Preview {
-    VStack(spacing: 20) {
+struct UsageComparisonBar_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         // Below average (good)
         UsageComparisonBar(
-            userValue: 892,
-            areaAverage: 1200,
-            areaMin: 400,
-            areaMax: 2500,
-            unit: "kWh",
-            valuePrefix: ""
+        userValue: 892,
+        areaAverage: 1200,
+        areaMin: 400,
+        areaMax: 2500,
+        unit: "kWh",
+        valuePrefix: ""
         )
-
+        
         // Above average (concerning)
         UsageComparisonBar(
-            userValue: 185,
-            areaAverage: 120,
-            areaMin: 45,
-            areaMax: 320,
-            unit: "",
-            valuePrefix: "$"
+        userValue: 185,
+        areaAverage: 120,
+        areaMin: 45,
+        areaMax: 320,
+        unit: "",
+        valuePrefix: "$"
         )
-
+        
         // Around average
         UsageComparisonBar(
-            userValue: 48,
-            areaAverage: 50,
-            areaMin: 25,
-            areaMax: 85,
-            unit: "therms",
-            valuePrefix: ""
+        userValue: 48,
+        areaAverage: 50,
+        areaMin: 25,
+        areaMax: 85,
+        unit: "therms",
+        valuePrefix: ""
         )
+        }
+        .padding(20)
+        .background(Color(hex: "#F7F9F8"))
     }
-    .padding(20)
-    .background(Color(hex: "#F7F9F8"))
 }

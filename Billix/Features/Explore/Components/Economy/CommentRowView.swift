@@ -179,48 +179,50 @@ struct CommentRowView: View {
 
 // MARK: - Preview
 
-#Preview("Comment Row") {
-    VStack(spacing: 20) {
+struct CommentRowView_Comment_Row_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         CommentRowView(
-            comment: CommunityComment(
-                authorName: "Sarah M.",
-                authorUsername: "@sarahm",
-                content: "Great tip! I'll definitely try this out. Thanks for sharing!",
-                timestamp: Date().addingTimeInterval(-3600),
-                likeCount: 5,
-                replies: [
-                    CommunityComment(
-                        authorName: "Mike R.",
-                        authorUsername: "@mike_r",
-                        content: "Same here! Let us know how it goes.",
-                        timestamp: Date().addingTimeInterval(-1800),
-                        likeCount: 2
-                    )
-                ],
-                isLiked: true
-            ),
-            isReply: false,
-            onLike: { _ in },
-            onReply: { _ in },
-            onDelete: { _ in }
+        comment: CommunityComment(
+        authorName: "Sarah M.",
+        authorUsername: "@sarahm",
+        content: "Great tip! I'll definitely try this out. Thanks for sharing!",
+        timestamp: Date().addingTimeInterval(-3600),
+        likeCount: 5,
+        replies: [
+        CommunityComment(
+        authorName: "Mike R.",
+        authorUsername: "@mike_r",
+        content: "Same here! Let us know how it goes.",
+        timestamp: Date().addingTimeInterval(-1800),
+        likeCount: 2
         )
-
+        ],
+        isLiked: true
+        ),
+        isReply: false,
+        onLike: { _ in },
+        onReply: { _ in },
+        onDelete: { _ in }
+        )
+        
         Divider()
-
+        
         CommentRowView(
-            comment: CommunityComment(
-                authorName: "You",
-                authorUsername: "@you",
-                content: "This is my own comment that I can delete.",
-                timestamp: Date(),
-                likeCount: 0,
-                isOwnComment: true
-            ),
-            isReply: false,
-            onLike: { _ in },
-            onReply: { _ in },
-            onDelete: { _ in }
+        comment: CommunityComment(
+        authorName: "You",
+        authorUsername: "@you",
+        content: "This is my own comment that I can delete.",
+        timestamp: Date(),
+        likeCount: 0,
+        isOwnComment: true
+        ),
+        isReply: false,
+        onLike: { _ in },
+        onReply: { _ in },
+        onDelete: { _ in }
         )
+        }
+        .padding()
     }
-    .padding()
 }

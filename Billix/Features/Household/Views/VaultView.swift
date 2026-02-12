@@ -497,6 +497,8 @@ class VaultViewModel: ObservableObject {
     }
 }
 
-#Preview {
-    VaultView()
+struct VaultView_Previews: PreviewProvider {
+    static var previews: some View {
+        VaultView()
+    }
 }

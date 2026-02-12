@@ -198,25 +198,27 @@ struct ReliefReviewRow: View {
     }
 }
 
-#Preview {
-    ScrollView {
+struct ReliefStep5Review_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         ReliefStep5Review(viewModel: {
-            let vm = ReliefFlowViewModel()
-            vm.fullName = "John Doe"
-            vm.email = "john@example.com"
-            vm.phone = "(555) 123-4567"
-            vm.billType = .electric
-            vm.billProvider = "DTE Energy"
-            vm.amountOwed = "250.00"
-            vm.description = "Behind on payments due to job loss"
-            vm.incomeLevel = .from25kTo50k
-            vm.householdSize = 3
-            vm.employmentStatus = .unemployed
-            vm.urgencyLevel = .high
-            vm.hasShutoffDate = true
-            return vm
+        let vm = ReliefFlowViewModel()
+        vm.fullName = "John Doe"
+        vm.email = "john@example.com"
+        vm.phone = "(555) 123-4567"
+        vm.billType = .electric
+        vm.billProvider = "DTE Energy"
+        vm.amountOwed = "250.00"
+        vm.description = "Behind on payments due to job loss"
+        vm.incomeLevel = .from25kTo50k
+        vm.householdSize = 3
+        vm.employmentStatus = .unemployed
+        vm.urgencyLevel = .high
+        vm.hasShutoffDate = true
+        return vm
         }())
         .padding()
+        }
+        .background(Color(hex: "#F7F9F8"))
     }
-    .background(Color(hex: "#F7F9F8"))
 }

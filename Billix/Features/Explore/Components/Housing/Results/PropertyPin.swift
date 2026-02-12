@@ -77,40 +77,42 @@ struct PropertyPin: View {
     }
 }
 
-#Preview("Property Pins") {
-    VStack(spacing: 24) {
+struct PropertyPin_Property_Pins_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 24) {
         HStack(spacing: 40) {
-            VStack(spacing: 8) {
-                PropertyPin(isSelected: false, isMain: true, isActive: true)
-                Text("Main")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-
-            VStack(spacing: 8) {
-                PropertyPin(isSelected: true, isMain: false, isActive: true)
-                Text("Selected")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+        VStack(spacing: 8) {
+        PropertyPin(isSelected: false, isMain: true, isActive: true)
+        Text("Main")
+        .font(.caption)
+        .foregroundColor(.secondary)
         }
-
+        
+        VStack(spacing: 8) {
+        PropertyPin(isSelected: true, isMain: false, isActive: true)
+        Text("Selected")
+        .font(.caption)
+        .foregroundColor(.secondary)
+        }
+        }
+        
         HStack(spacing: 40) {
-            VStack(spacing: 8) {
-                PropertyPin(isSelected: false, isMain: false, isActive: true)
-                Text("Active")
-                    .font(.caption)
-                    .foregroundColor(.billixMoneyGreen)
-            }
-
-            VStack(spacing: 8) {
-                PropertyPin(isSelected: false, isMain: false, isActive: false)
-                Text("Inactive")
-                    .font(.caption)
-                    .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.45))
-            }
+        VStack(spacing: 8) {
+        PropertyPin(isSelected: false, isMain: false, isActive: true)
+        Text("Active")
+        .font(.caption)
+        .foregroundColor(.billixMoneyGreen)
         }
+        
+        VStack(spacing: 8) {
+        PropertyPin(isSelected: false, isMain: false, isActive: false)
+        Text("Inactive")
+        .font(.caption)
+        .foregroundColor(Color(red: 0.85, green: 0.45, blue: 0.45))
+        }
+        }
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

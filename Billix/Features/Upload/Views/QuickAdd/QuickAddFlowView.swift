@@ -212,6 +212,8 @@ struct PercentageProgressIndicator: View {
 
 // MARK: - Preview
 
-#Preview {
-    QuickAddFlowView(onComplete: {})
+struct QuickAddFlowView_Previews: PreviewProvider {
+    static var previews: some View {
+        QuickAddFlowView(onComplete: {})
+    }
 }

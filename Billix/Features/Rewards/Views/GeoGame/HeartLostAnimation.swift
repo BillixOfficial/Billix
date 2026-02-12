@@ -97,11 +97,13 @@ struct HeartLostAnimation: View {
     }
 }
 
-#Preview {
-    ZStack {
+struct HeartLostAnimation_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.black.ignoresSafeArea()
-
+        
         HeartLostAnimation {
+        }
         }
     }
 }

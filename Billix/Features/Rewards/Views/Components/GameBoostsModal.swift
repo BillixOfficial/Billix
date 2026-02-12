@@ -176,92 +176,96 @@ struct GameBoostsModal: View {
 
 // MARK: - Preview
 
-#Preview("Game Boosts Modal - Can Afford Some") {
-    GameBoostsModal(
+struct GameBoostsModal_Game_Boosts_Modal___Can_Afford_Some_Previews: PreviewProvider {
+    static var previews: some View {
+        GameBoostsModal(
         gameBoosts: [
-            Reward(
-                id: UUID(),
-                type: .digitalGood,
-                category: .virtualGoods,
-                title: "Extra Life",
-                description: "One more chance",
-                pointsCost: 250,
-                brand: nil,
-                        brandGroup: nil,                dollarValue: nil,
-                iconName: "heart.fill",
-                accentColor: "#FF6B6B"
-            ),
-            Reward(
-                id: UUID(),
-                type: .digitalGood,
-                category: .virtualGoods,
-                title: "Skip Question",
-                description: "Pass any question",
-                pointsCost: 300,
-                brand: nil,
-                        brandGroup: nil,                dollarValue: nil,
-                iconName: "forward.fill",
-                accentColor: "#4ECDC4"
-            ),
-            Reward(
-                id: UUID(),
-                type: .digitalGood,
-                category: .virtualGoods,
-                title: "Time Freeze",
-                description: "Pause the timer",
-                pointsCost: 350,
-                brand: nil,
-                        brandGroup: nil,                dollarValue: nil,
-                iconName: "clock.fill",
-                accentColor: "#45B7D1"
-            ),
-            Reward(
-                id: UUID(),
-                type: .digitalGood,
-                category: .virtualGoods,
-                title: "Hint Token",
-                description: "Get a helpful hint",
-                pointsCost: 200,
-                brand: nil,
-                        brandGroup: nil,                dollarValue: nil,
-                iconName: "lightbulb.fill",
-                accentColor: "#FFD93D"
-            ),
-            Reward(
-                id: UUID(),
-                type: .digitalGood,
-                category: .virtualGoods,
-                title: "Double Points",
-                description: "2x points next game",
-                pointsCost: 500,
-                brand: nil,
-                        brandGroup: nil,                dollarValue: nil,
-                iconName: "star.fill",
-                accentColor: "#e8b54d"
-            )
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Extra Life",
+        description: "One more chance",
+        pointsCost: 250,
+        brand: nil,
+        brandGroup: nil,                dollarValue: nil,
+        iconName: "heart.fill",
+        accentColor: "#FF6B6B"
+        ),
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Skip Question",
+        description: "Pass any question",
+        pointsCost: 300,
+        brand: nil,
+        brandGroup: nil,                dollarValue: nil,
+        iconName: "forward.fill",
+        accentColor: "#4ECDC4"
+        ),
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Time Freeze",
+        description: "Pause the timer",
+        pointsCost: 350,
+        brand: nil,
+        brandGroup: nil,                dollarValue: nil,
+        iconName: "clock.fill",
+        accentColor: "#45B7D1"
+        ),
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Hint Token",
+        description: "Get a helpful hint",
+        pointsCost: 200,
+        brand: nil,
+        brandGroup: nil,                dollarValue: nil,
+        iconName: "lightbulb.fill",
+        accentColor: "#FFD93D"
+        ),
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Double Points",
+        description: "2x points next game",
+        pointsCost: 500,
+        brand: nil,
+        brandGroup: nil,                dollarValue: nil,
+        iconName: "star.fill",
+        accentColor: "#e8b54d"
+        )
         ],
         userPoints: 400,
         onBoostTapped: { _ in }
-    )
+        )
+    }
 }
 
-#Preview("Game Boosts Modal - Empty (Filtered)") {
-    GameBoostsModal(
+struct GameBoostsModal_Game_Boosts_Modal___Empty__Filtered__Previews: PreviewProvider {
+    static var previews: some View {
+        GameBoostsModal(
         gameBoosts: [
-            Reward(
-                id: UUID(),
-                type: .digitalGood,
-                category: .virtualGoods,
-                title: "Double Points",
-                description: "2x points next game",
-                pointsCost: 10000,
-                brand: nil,
-                        brandGroup: nil,                dollarValue: nil,
-                iconName: "star.fill",
-                accentColor: "#e8b54d"
-            )
+        Reward(
+        id: UUID(),
+        type: .digitalGood,
+        category: .virtualGoods,
+        title: "Double Points",
+        description: "2x points next game",
+        pointsCost: 10000,
+        brand: nil,
+        brandGroup: nil,                dollarValue: nil,
+        iconName: "star.fill",
+        accentColor: "#e8b54d"
+        )
         ],
         userPoints: 500,
         onBoostTapped: { _ in }
-    )
+        )
+    }
 }

@@ -150,20 +150,22 @@ struct FinancialSpreadZone: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 20) {
+struct FinancialSpreadZone_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         FinancialSpreadZone(
-            listing: MockMarketplaceData.billListings[0],
-            isVsMe: false,
-            userCurrentPrice: 95.00
+        listing: MockMarketplaceData.billListings[0],
+        isVsMe: false,
+        userCurrentPrice: 95.00
         )
-
+        
         FinancialSpreadZone(
-            listing: MockMarketplaceData.billListings[0],
-            isVsMe: true,
-            userCurrentPrice: 95.00
+        listing: MockMarketplaceData.billListings[0],
+        isVsMe: true,
+        userCurrentPrice: 95.00
         )
+        }
+        .padding()
+        .background(Color.white)
     }
-    .padding()
-    .background(Color.white)
 }

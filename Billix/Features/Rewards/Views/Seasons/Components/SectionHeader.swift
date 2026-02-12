@@ -48,23 +48,25 @@ struct SectionHeader: View {
 
 // MARK: - Preview
 
-#Preview("Section Headers") {
-    VStack(spacing: Spacing.xl) {
+struct SectionHeader_Section_Headers_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: Spacing.xl) {
         SectionHeader(
-            title: "Available Seasons",
-            subtitle: "2 seasons",
-            icon: "map.fill"
+        title: "Available Seasons",
+        subtitle: "2 seasons",
+        icon: "map.fill"
         )
-
+        
         SectionHeader(
-            title: "Continue Playing",
-            icon: "play.circle.fill"
+        title: "Continue Playing",
+        icon: "play.circle.fill"
         )
-
+        
         SectionHeader(
-            title: "Coming Soon",
-            icon: "bell.fill"
+        title: "Coming Soon",
+        icon: "bell.fill"
         )
+        }
+        .background(Color.billixLightGreen)
     }
-    .background(Color.billixLightGreen)
 }

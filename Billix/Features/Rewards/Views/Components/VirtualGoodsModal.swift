@@ -176,80 +176,84 @@ struct VirtualGoodsModal: View {
 
 // MARK: - Preview
 
-#Preview("Virtual Goods Modal - Can Afford Some") {
-    VirtualGoodsModal(
+struct VirtualGoodsModal_Virtual_Goods_Modal___Can_Afford_Some_Previews: PreviewProvider {
+    static var previews: some View {
+        VirtualGoodsModal(
         virtualGoods: [
-            Reward(
-                id: UUID(),
-                type: .customization,
-                category: .virtualGoods,
-                title: "Dark Mode Theme",
-                description: "Unlock sleek dark interface",
-                pointsCost: 200,
-                brand: nil,
-                dollarValue: nil,
-                iconName: "moon.fill",
-                accentColor: "#2C2C2E"
-            ),
-            Reward(
-                id: UUID(),
-                type: .customization,
-                category: .virtualGoods,
-                title: "Premium Dashboard",
-                description: "Advanced analytics view",
-                pointsCost: 500,
-                brand: nil,
-                dollarValue: nil,
-                iconName: "chart.bar.fill",
-                accentColor: "#52b8df"
-            ),
-            Reward(
-                id: UUID(),
-                type: .customization,
-                category: .virtualGoods,
-                title: "Custom Bill Colors",
-                description: "Personalize categories",
-                pointsCost: 300,
-                brand: nil,
-                dollarValue: nil,
-                iconName: "paintpalette.fill",
-                accentColor: "#E8A54B"
-            ),
-            Reward(
-                id: UUID(),
-                type: .customization,
-                category: .virtualGoods,
-                title: "Pro Icons Pack",
-                description: "Premium icon collection",
-                pointsCost: 400,
-                brand: nil,
-                dollarValue: nil,
-                iconName: "star.fill",
-                accentColor: "#e8b54d"
-            )
+        Reward(
+        id: UUID(),
+        type: .customization,
+        category: .virtualGoods,
+        title: "Dark Mode Theme",
+        description: "Unlock sleek dark interface",
+        pointsCost: 200,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "moon.fill",
+        accentColor: "#2C2C2E"
+        ),
+        Reward(
+        id: UUID(),
+        type: .customization,
+        category: .virtualGoods,
+        title: "Premium Dashboard",
+        description: "Advanced analytics view",
+        pointsCost: 500,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "chart.bar.fill",
+        accentColor: "#52b8df"
+        ),
+        Reward(
+        id: UUID(),
+        type: .customization,
+        category: .virtualGoods,
+        title: "Custom Bill Colors",
+        description: "Personalize categories",
+        pointsCost: 300,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "paintpalette.fill",
+        accentColor: "#E8A54B"
+        ),
+        Reward(
+        id: UUID(),
+        type: .customization,
+        category: .virtualGoods,
+        title: "Pro Icons Pack",
+        description: "Premium icon collection",
+        pointsCost: 400,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "star.fill",
+        accentColor: "#e8b54d"
+        )
         ],
         userPoints: 350,
         onItemTapped: { _ in }
-    )
+        )
+    }
 }
 
-#Preview("Virtual Goods Modal - Empty (Filtered)") {
-    VirtualGoodsModal(
+struct VirtualGoodsModal_Virtual_Goods_Modal___Empty__Filtered__Previews: PreviewProvider {
+    static var previews: some View {
+        VirtualGoodsModal(
         virtualGoods: [
-            Reward(
-                id: UUID(),
-                type: .customization,
-                category: .virtualGoods,
-                title: "Premium Dashboard",
-                description: "Advanced analytics view",
-                pointsCost: 10000,
-                brand: nil,
-                dollarValue: nil,
-                iconName: "chart.bar.fill",
-                accentColor: "#52b8df"
-            )
+        Reward(
+        id: UUID(),
+        type: .customization,
+        category: .virtualGoods,
+        title: "Premium Dashboard",
+        description: "Advanced analytics view",
+        pointsCost: 10000,
+        brand: nil,
+        dollarValue: nil,
+        iconName: "chart.bar.fill",
+        accentColor: "#52b8df"
+        )
         ],
         userPoints: 500,
         onItemTapped: { _ in }
-    )
+        )
+    }
 }

@@ -37,12 +37,14 @@ struct TimeRangeSelector: View {
 
 // MARK: - Preview
 
-#Preview("Time Range Selector") {
-    VStack(spacing: 20) {
+struct TimeRangeSelector_Time_Range_Selector_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         TimeRangeSelector(selectedRange: .constant(.sixMonths))
         TimeRangeSelector(selectedRange: .constant(.oneYear))
         TimeRangeSelector(selectedRange: .constant(.allTime))
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

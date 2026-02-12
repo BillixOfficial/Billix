@@ -349,11 +349,13 @@ struct DonationAmountChip: View {
 
 // MARK: - Preview
 
-#Preview {
-    CustomDonationRequestSheet(
+struct CustomDonationRequestSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        CustomDonationRequestSheet(
         userPoints: 50000,
         userName: "John Doe",
         userEmail: "john@example.com",
         onSubmit: { org, location, amount, inName, donorName, donorEmail in }
-    )
+        )
+    }
 }

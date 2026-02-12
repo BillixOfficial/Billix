@@ -499,14 +499,13 @@ class TokenService: ObservableObject {
     }
 
     /// Public method to add purchased tokens (called from StoreKitService)
-    func addTokens(_ amount: Int) async {
-        guard let userId = currentUserId else { return }
-
-        do {
-            try await addTokens(amount: amount, for: userId)
-        } catch {
-            print("Failed to add purchased tokens: \(error)")
+    /// Throws error if user not authenticated or Supabase update fails
+    func addTokens(_ amount: Int) async throws {
+        guard let userId = currentUserId else {
+            throw TokenError.notAuthenticated
         }
+
+        try await addTokens(amount: amount, for: userId)
     }
 
     // MARK: - Monthly Reset

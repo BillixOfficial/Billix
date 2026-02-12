@@ -123,11 +123,15 @@ struct WelcomeRewardsSheet: View {
 
 // MARK: - Preview
 
-#Preview("Welcome Bonus") {
-    WelcomeRewardsSheet(isPresented: .constant(true), pointsAwarded: 500)
+struct WelcomeRewardsSheet_Welcome_Bonus_Previews: PreviewProvider {
+    static var previews: some View {
+        WelcomeRewardsSheet(isPresented: .constant(true), pointsAwarded: 500)
+    }
 }
 
-#Preview("Dark Mode") {
-    WelcomeRewardsSheet(isPresented: .constant(true), pointsAwarded: 500)
+struct WelcomeRewardsSheet_Dark_Mode_Previews: PreviewProvider {
+    static var previews: some View {
+        WelcomeRewardsSheet(isPresented: .constant(true), pointsAwarded: 500)
         .preferredColorScheme(.dark)
+    }
 }

@@ -159,8 +159,10 @@ struct BillTypeChip: View {
     }
 }
 
-#Preview {
-    ReliefStep2BillInfo(viewModel: ReliefFlowViewModel())
+struct ReliefStep2BillInfo_Previews: PreviewProvider {
+    static var previews: some View {
+        ReliefStep2BillInfo(viewModel: ReliefFlowViewModel())
         .padding()
         .background(Color(hex: "#F7F9F8"))
+    }
 }

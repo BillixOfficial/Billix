@@ -41,10 +41,12 @@ struct GeoGameMapView: View {
 
 }
 
-#Preview {
-    GeoGameMapView(
+struct GeoGameMapView_Previews: PreviewProvider {
+    static var previews: some View {
+        GeoGameMapView(
         viewModel: GeoGameViewModel(
-            gameData: GeoGameDataService.mockGames[0]
+        gameData: GeoGameDataService.mockGames[0]
         )
-    )
+        )
+    }
 }

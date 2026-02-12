@@ -156,52 +156,54 @@ struct SecondaryDetail: View {
 
 // MARK: - Preview
 
-#Preview("Property List Cards") {
-    ScrollView {
+struct PropertyListCard_Property_List_Cards_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         VStack(spacing: 12) {
-            PropertyListCard(
-                property: RentalComparable(
-                    id: "1",
-                    address: "234 Lincoln Ave, Royal Oak, MI 48067",
-                    rent: 1605,
-                    lastSeen: Date(),
-                    similarity: 99.2,
-                    distance: 0.3,
-                    bedrooms: 2,
-                    bathrooms: 1.5,
-                    sqft: 950,
-                    propertyType: .apartment,
-                    coordinate: .init(latitude: 42.3314, longitude: -83.0458),
-                    yearBuilt: nil,
-                    lotSize: nil,
-                    status: "Active"
-                ),
-                isSelected: true,
-                onTap: {}
-            )
-
-            PropertyListCard(
-                property: RentalComparable(
-                    id: "2",
-                    address: "435 N Washington Ave, Royal Oak, MI 48067",
-                    rent: 1532,
-                    lastSeen: Calendar.current.date(byAdding: .day, value: -2, to: Date()) ?? Date(),
-                    similarity: 95.8,
-                    distance: 0.5,
-                    bedrooms: 2,
-                    bathrooms: 1.0,
-                    sqft: 850,
-                    propertyType: .apartment,
-                    coordinate: .init(latitude: 42.3314, longitude: -83.0458),
-                    yearBuilt: nil,
-                    lotSize: nil,
-                    status: "Inactive"
-                ),
-                isSelected: false,
-                onTap: {}
-            )
+        PropertyListCard(
+        property: RentalComparable(
+        id: "1",
+        address: "234 Lincoln Ave, Royal Oak, MI 48067",
+        rent: 1605,
+        lastSeen: Date(),
+        similarity: 99.2,
+        distance: 0.3,
+        bedrooms: 2,
+        bathrooms: 1.5,
+        sqft: 950,
+        propertyType: .apartment,
+        coordinate: .init(latitude: 42.3314, longitude: -83.0458),
+        yearBuilt: nil,
+        lotSize: nil,
+        status: "Active"
+        ),
+        isSelected: true,
+        onTap: {}
+        )
+        
+        PropertyListCard(
+        property: RentalComparable(
+        id: "2",
+        address: "435 N Washington Ave, Royal Oak, MI 48067",
+        rent: 1532,
+        lastSeen: Calendar.current.date(byAdding: .day, value: -2, to: Date()) ?? Date(),
+        similarity: 95.8,
+        distance: 0.5,
+        bedrooms: 2,
+        bathrooms: 1.0,
+        sqft: 850,
+        propertyType: .apartment,
+        coordinate: .init(latitude: 42.3314, longitude: -83.0458),
+        yearBuilt: nil,
+        lotSize: nil,
+        status: "Inactive"
+        ),
+        isSelected: false,
+        onTap: {}
+        )
         }
         .padding()
+        }
+        .background(Color.billixCreamBeige)
     }
-    .background(Color.billixCreamBeige)
 }

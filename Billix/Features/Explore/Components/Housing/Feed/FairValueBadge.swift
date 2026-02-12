@@ -37,18 +37,20 @@ struct FairValueBadge: View {
     }
 }
 
-#Preview("Fair Value Badges") {
-    VStack(spacing: 16) {
+struct FairValueBadge_Fair_Value_Badges_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         FairValueBadge(fairValue: .greatDeal, rent: 1850)
         FairValueBadge(fairValue: .fairPrice, rent: 2450)
         FairValueBadge(fairValue: .aboveAverage, rent: 3200)
-    }
-    .padding()
-    .background(
+        }
+        .padding()
+        .background(
         LinearGradient(
-            colors: [Color(hex: "F8F9FA"), Color(hex: "E9ECEF")],
-            startPoint: .top,
-            endPoint: .bottom
+        colors: [Color(hex: "F8F9FA"), Color(hex: "E9ECEF")],
+        startPoint: .top,
+        endPoint: .bottom
         )
-    )
+        )
+    }
 }

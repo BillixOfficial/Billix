@@ -396,6 +396,8 @@ struct QuickTaskCard: View {
 
 // MARK: - Preview
 
-#Preview {
-    QuickTasksScreen()
+struct QuickTasksScreen_Previews: PreviewProvider {
+    static var previews: some View {
+        QuickTasksScreen()
+    }
 }

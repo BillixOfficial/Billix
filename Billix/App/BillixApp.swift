@@ -92,6 +92,9 @@ struct BillixApp: App {
 
                             // Sync subscription status from StoreKit to Supabase
                             await SubscriptionSyncService.shared.syncSubscriptionStatus()
+
+                            // Verify membership with both StoreKit and Supabase
+                            await StoreKitService.shared.verifyMembershipWithSupabase()
                         } else {
                             // Unsubscribe and remove device token when user logs out
                             await notificationService.unsubscribeFromSwapUpdates()

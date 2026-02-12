@@ -149,18 +149,20 @@ struct MockSurvivalCostData {
 
 // MARK: - Previews
 
-#Preview("Total Survival Badge") {
-    VStack(spacing: 20) {
+struct TotalSurvivalBadge_Total_Survival_Badge_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         TotalSurvivalBadge(locationManager: .preview())
-
+        
         TotalSurvivalBadge(
-            locationManager: .preview(location: Location.mockLocations[1])
+        locationManager: .preview(location: Location.mockLocations[1])
         )
-
+        
         TotalSurvivalBadge(
-            locationManager: .preview(location: Location.mockLocations[2])
+        locationManager: .preview(location: Location.mockLocations[2])
         )
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

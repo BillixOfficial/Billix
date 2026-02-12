@@ -269,6 +269,8 @@ private struct AnimatedExploreCarousel_Preview: View {
     }
 }
 
-#Preview("Animated Carousel") {
-    AnimatedExploreCarousel_Preview()
+struct AnimatedExploreCarousel_Animated_Carousel_Previews: PreviewProvider {
+    static var previews: some View {
+        AnimatedExploreCarousel_Preview()
+    }
 }

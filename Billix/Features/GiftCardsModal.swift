@@ -308,104 +308,108 @@ struct GiftCardGridItem: View {
 
 // MARK: - Preview
 
-#Preview("Gift Cards Modal - Can Afford Some") {
-    GiftCardsModal(
+struct GiftCardsModal_Gift_Cards_Modal___Can_Afford_Some_Previews: PreviewProvider {
+    static var previews: some View {
+        GiftCardsModal(
         giftCards: [
-            Reward(
-                id: UUID(),
-                type: .giftCard,
-                category: .giftCard,
-                title: "$0.50 Starbucks Card",
-                description: "Micro reward",
-                pointsCost: 1000,
-                brand: "Starbucks",
-                dollarValue: 0.5,
-                iconName: "cup.and.saucer.fill",
-                accentColor: "#00704A"
-            ),
-            Reward(
-                id: UUID(),
-                type: .billCredit,
-                category: .giftCard,
-                title: "$1.00 Bill Credit",
-                description: "$1 off payment",
-                pointsCost: 2000,
-                brand: "Billix",
-                dollarValue: 1,
-                iconName: "dollarsign.circle.fill",
-                accentColor: "#5b8a6b"
-            ),
-            Reward(
-                id: UUID(),
-                type: .giftCard,
-                category: .giftCard,
-                title: "$2.00 Amazon Card",
-                description: "Amazon.com",
-                pointsCost: 4000,
-                brand: "Amazon",
-                dollarValue: 2,
-                iconName: "gift.fill",
-                accentColor: "#FF9900"
-            ),
-            Reward(
-                id: UUID(),
-                type: .giftCard,
-                category: .giftCard,
-                title: "$5.00 Target Card",
-                description: "Shop at Target",
-                pointsCost: 10000,
-                brand: "Target",
-                dollarValue: 5,
-                iconName: "target",
-                accentColor: "#CC0000"
-            ),
-            Reward(
-                id: UUID(),
-                type: .giftCard,
-                category: .giftCard,
-                title: "$10 Uber Eats",
-                description: "Food delivery",
-                pointsCost: 20000,
-                brand: "Uber Eats",
-                dollarValue: 10,
-                iconName: "fork.knife",
-                accentColor: "#06C167"
-            ),
-            Reward(
-                id: UUID(),
-                type: .giftCard,
-                category: .giftCard,
-                title: "$10 DoorDash",
-                description: "Food delivery",
-                pointsCost: 20000,
-                brand: "DoorDash",
-                dollarValue: 10,
-                iconName: "bicycle",
-                accentColor: "#FF3008"
-            )
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$0.50 Starbucks Card",
+        description: "Micro reward",
+        pointsCost: 1000,
+        brand: "Starbucks",
+        dollarValue: 0.5,
+        iconName: "cup.and.saucer.fill",
+        accentColor: "#00704A"
+        ),
+        Reward(
+        id: UUID(),
+        type: .billCredit,
+        category: .giftCard,
+        title: "$1.00 Bill Credit",
+        description: "$1 off payment",
+        pointsCost: 2000,
+        brand: "Billix",
+        dollarValue: 1,
+        iconName: "dollarsign.circle.fill",
+        accentColor: "#5b8a6b"
+        ),
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$2.00 Amazon Card",
+        description: "Amazon.com",
+        pointsCost: 4000,
+        brand: "Amazon",
+        dollarValue: 2,
+        iconName: "gift.fill",
+        accentColor: "#FF9900"
+        ),
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$5.00 Target Card",
+        description: "Shop at Target",
+        pointsCost: 10000,
+        brand: "Target",
+        dollarValue: 5,
+        iconName: "target",
+        accentColor: "#CC0000"
+        ),
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$10 Uber Eats",
+        description: "Food delivery",
+        pointsCost: 20000,
+        brand: "Uber Eats",
+        dollarValue: 10,
+        iconName: "fork.knife",
+        accentColor: "#06C167"
+        ),
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$10 DoorDash",
+        description: "Food delivery",
+        pointsCost: 20000,
+        brand: "DoorDash",
+        dollarValue: 10,
+        iconName: "bicycle",
+        accentColor: "#FF3008"
+        )
         ],
         userPoints: 5000,
         onCardTapped: { _ in }
-    )
+        )
+    }
 }
 
-#Preview("Gift Cards Modal - Empty (Filtered)") {
-    GiftCardsModal(
+struct GiftCardsModal_Gift_Cards_Modal___Empty__Filtered__Previews: PreviewProvider {
+    static var previews: some View {
+        GiftCardsModal(
         giftCards: [
-            Reward(
-                id: UUID(),
-                type: .giftCard,
-                category: .giftCard,
-                title: "$10 Target Card",
-                description: "Shop at Target",
-                pointsCost: 20000,
-                brand: "Target",
-                dollarValue: 10,
-                iconName: "target",
-                accentColor: "#CC0000"
-            )
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$10 Target Card",
+        description: "Shop at Target",
+        pointsCost: 20000,
+        brand: "Target",
+        dollarValue: 10,
+        iconName: "target",
+        accentColor: "#CC0000"
+        )
         ],
         userPoints: 500,
         onCardTapped: { _ in }
-    )
+        )
+    }
 }

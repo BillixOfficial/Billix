@@ -312,10 +312,12 @@ struct RecessionSimulatorView: View {
     }
 }
 
-#Preview {
-    ScrollView {
+struct RecessionSimulatorView_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         RecessionSimulatorView(viewModel: ExploreViewModel())
-            .padding()
+        .padding()
+        }
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

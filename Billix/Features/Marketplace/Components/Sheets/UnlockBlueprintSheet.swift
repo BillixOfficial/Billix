@@ -261,6 +261,8 @@ struct UnlockBlueprintSheet: View {
     }
 }
 
-#Preview {
-    UnlockBlueprintSheet(listing: MockMarketplaceData.billListings[0])
+struct UnlockBlueprintSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        UnlockBlueprintSheet(listing: MockMarketplaceData.billListings[0])
+    }
 }

@@ -188,6 +188,8 @@ struct FilterSheetView: View {
     }
 }
 
-#Preview {
-    FilterSheetView(viewModel: MarketplaceViewModel())
+struct FilterSheetView_Previews: PreviewProvider {
+    static var previews: some View {
+        FilterSheetView(viewModel: MarketplaceViewModel())
+    }
 }

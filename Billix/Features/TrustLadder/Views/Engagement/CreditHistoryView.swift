@@ -415,9 +415,11 @@ struct TransactionDetailView: View {
 
 // MARK: - Preview
 
-#Preview {
-    NavigationView {
+struct CreditHistoryView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
         CreditHistoryView()
+        }
+        .preferredColorScheme(.dark)
     }
-    .preferredColorScheme(.dark)
 }

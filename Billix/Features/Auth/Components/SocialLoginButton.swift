@@ -82,20 +82,22 @@ struct SocialLoginButton: View {
 
 // MARK: - Preview
 
-#Preview {
-    VStack(spacing: 20) {
+struct SocialLoginButton_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         SocialLoginButton(
-            provider: .google,
-            action: { },
-            isLoading: false
+        provider: .google,
+        action: { },
+        isLoading: false
         )
-
+        
         SocialLoginButton(
-            provider: .google,
-            action: { },
-            isLoading: true
+        provider: .google,
+        action: { },
+        isLoading: true
         )
+        }
+        .padding()
+        .background(Color(hex: "#F7F9F8"))
     }
-    .padding()
-    .background(Color(hex: "#F7F9F8"))
 }

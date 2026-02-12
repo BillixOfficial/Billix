@@ -164,6 +164,8 @@ struct RateLimitExceededView: View {
 
 // MARK: - Preview
 
-#Preview("Rate Limit Exceeded") {
-    RateLimitExceededView(rateLimitService: RateLimitService.shared)
+struct RateLimitExceededView_Rate_Limit_Exceeded_Previews: PreviewProvider {
+    static var previews: some View {
+        RateLimitExceededView(rateLimitService: RateLimitService.shared)
+    }
 }

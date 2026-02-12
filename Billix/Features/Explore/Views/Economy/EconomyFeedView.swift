@@ -187,6 +187,8 @@ struct EconomyFeedView: View {
     }
 }
 
-#Preview("Economy Feed") {
-    EconomyFeedView()
+struct EconomyFeedView_Economy_Feed_Previews: PreviewProvider {
+    static var previews: some View {
+        EconomyFeedView()
+    }
 }

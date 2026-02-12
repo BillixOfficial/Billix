@@ -193,26 +193,28 @@ struct PropertyFeedCard: View {
     }
 }
 
-#Preview("Property Feed Card") {
-    PropertyFeedCard(
+struct PropertyFeedCard_Property_Feed_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        PropertyFeedCard(
         property: RentalComparable(
-            id: "comp1",
-            address: "418 N Center St, Royal Oak, MI",
-            rent: 2450,
-            lastSeen: Date(),
-            similarity: 99.5,
-            distance: 0.4,
-            bedrooms: 2,
-            bathrooms: 1.5,
-            sqft: 950,
-            propertyType: .apartment,
-            coordinate: .init(latitude: 42.3314, longitude: -83.0458),
-            yearBuilt: nil,
-            lotSize: nil,
-            status: "Active"
+        id: "comp1",
+        address: "418 N Center St, Royal Oak, MI",
+        rent: 2450,
+        lastSeen: Date(),
+        similarity: 99.5,
+        distance: 0.4,
+        bedrooms: 2,
+        bathrooms: 1.5,
+        sqft: 950,
+        propertyType: .apartment,
+        coordinate: .init(latitude: 42.3314, longitude: -83.0458),
+        yearBuilt: nil,
+        lotSize: nil,
+        status: "Active"
         ),
         fairValue: .greatDeal
-    )
-    .padding()
-    .background(Color.billixCreamBeige)
+        )
+        .padding()
+        .background(Color.billixCreamBeige)
+    }
 }

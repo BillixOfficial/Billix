@@ -238,43 +238,45 @@ struct SeasonCard: View {
 
 // MARK: - Preview
 
-#Preview("Season Card - Unlocked") {
-    VStack(spacing: Spacing.xl) {
+struct SeasonCard_Season_Card___Unlocked_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: Spacing.xl) {
         SeasonCard(
-            season: Season(
-                id: UUID(),
-                seasonNumber: 1,
-                title: "USA Roadtrip",
-                description: "Explore grocery prices across America",
-                isReleased: true,
-                releaseDate: nil,
-                totalParts: 2,
-                iconName: "flag.fill",
-                createdAt: Date()
-            ),
-            progress: (completed: 12, total: 20),
-            isLocked: false,
-            onTap: {}
+        season: Season(
+        id: UUID(),
+        seasonNumber: 1,
+        title: "USA Roadtrip",
+        description: "Explore grocery prices across America",
+        isReleased: true,
+        releaseDate: nil,
+        totalParts: 2,
+        iconName: "flag.fill",
+        createdAt: Date()
+        ),
+        progress: (completed: 12, total: 20),
+        isLocked: false,
+        onTap: {}
         )
         .padding(.horizontal, Spacing.xl)
-
+        
         SeasonCard(
-            season: Season(
-                id: UUID(),
-                seasonNumber: 2,
-                title: "Global",
-                description: "Price adventure around the world",
-                isReleased: false,
-                releaseDate: nil,
-                totalParts: 3,
-                iconName: "globe",
-                createdAt: Date()
-            ),
-            progress: (completed: 0, total: 30),
-            isLocked: true,
-            onTap: {}
+        season: Season(
+        id: UUID(),
+        seasonNumber: 2,
+        title: "Global",
+        description: "Price adventure around the world",
+        isReleased: false,
+        releaseDate: nil,
+        totalParts: 3,
+        iconName: "globe",
+        createdAt: Date()
+        ),
+        progress: (completed: 0, total: 30),
+        isLocked: true,
+        onTap: {}
         )
         .padding(.horizontal, Spacing.xl)
+        }
+        .background(Color.billixLightGreen)
     }
-    .background(Color.billixLightGreen)
 }

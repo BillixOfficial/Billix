@@ -472,38 +472,42 @@ struct PulseButtonStyle: ButtonStyle {
 
 // MARK: - Preview
 
-#Preview("Premium Eligible") {
-    ZStack {
+struct WeeklyGiveawayCard_Premium_Eligible_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         ScrollView {
-            WeeklyGiveawayCard(
-                userEntries: 5,
-                totalEntries: 1240,
-                currentTier: .silver,
-                isComingSoon: false,
-                onBuyEntries: {},
-                onHowToEarn: {}
-            )
-            .padding(.top, 20)
+        WeeklyGiveawayCard(
+        userEntries: 5,
+        totalEntries: 1240,
+        currentTier: .silver,
+        isComingSoon: false,
+        onBuyEntries: {},
+        onHowToEarn: {}
+        )
+        .padding(.top, 20)
+        }
         }
     }
 }
 
-#Preview("Coming Soon") {
-    ZStack {
+struct WeeklyGiveawayCard_Coming_Soon_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         ScrollView {
-            WeeklyGiveawayCard(
-                userEntries: 0,
-                totalEntries: 0,
-                currentTier: .bronze,
-                isComingSoon: true,
-                onBuyEntries: {},
-                onHowToEarn: {}
-            )
-            .padding(.top, 20)
+        WeeklyGiveawayCard(
+        userEntries: 0,
+        totalEntries: 0,
+        currentTier: .bronze,
+        isComingSoon: true,
+        onBuyEntries: {},
+        onHowToEarn: {}
+        )
+        .padding(.top, 20)
+        }
         }
     }
 }

@@ -66,12 +66,14 @@ struct SearchButton: View {
     }
 }
 
-#Preview("Search Buttons") {
-    VStack(spacing: 20) {
+struct SearchButton_Search_Buttons_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         SearchButton(action: {}, isEnabled: true, isLoading: false)
         SearchButton(action: {}, isEnabled: false, isLoading: false)
         SearchButton(action: {}, isEnabled: true, isLoading: true)
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

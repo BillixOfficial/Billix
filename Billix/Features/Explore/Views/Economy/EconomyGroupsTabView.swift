@@ -330,6 +330,8 @@ struct GroupCard: View {
 
 // MARK: - Preview
 
-#Preview("Economy Groups Tab") {
-    EconomyGroupsTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""), router: GroupsNavigationRouter())
+struct EconomyGroupsTabView_Economy_Groups_Tab_Previews: PreviewProvider {
+    static var previews: some View {
+        EconomyGroupsTabView(viewModel: CommunityFeedViewModel(), searchText: .constant(""), router: GroupsNavigationRouter())
+    }
 }

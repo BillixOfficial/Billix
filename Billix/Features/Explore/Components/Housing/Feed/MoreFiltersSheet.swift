@@ -465,6 +465,8 @@ struct PropertyTypeChip: View {
 
 // MARK: - Preview
 
-#Preview("More Filters Sheet") {
-    MoreFiltersSheet(viewModel: HousingSearchViewModel())
+struct MoreFiltersSheet_More_Filters_Sheet_Previews: PreviewProvider {
+    static var previews: some View {
+        MoreFiltersSheet(viewModel: HousingSearchViewModel())
+    }
 }

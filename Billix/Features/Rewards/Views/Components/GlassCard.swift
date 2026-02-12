@@ -50,38 +50,40 @@ struct GlassCard<Content: View>: View {
 
 // MARK: - Preview
 
-#Preview("Glass Card") {
-    ZStack {
+struct GlassCard_Glass_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         // Dark teal gradient background (like Price Guessr card)
         LinearGradient(
-            colors: [Color(hex: "#1e3d40"), Color(hex: "#2d5a5e")],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
+        colors: [Color(hex: "#1e3d40"), Color(hex: "#2d5a5e")],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
         )
         .ignoresSafeArea()
-
+        
         VStack(spacing: 20) {
-            GlassCard {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Glass Card Example")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.white)
-
-                    Text("Frosted glass effect with blur")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.8))
-                }
-                .padding(20)
-            }
-            .padding(.horizontal, 20)
-
-            GlassCard(cornerRadius: 16, backgroundOpacity: 0.2) {
-                Text("Custom opacity")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.white)
-                    .padding(16)
-            }
-            .padding(.horizontal, 20)
+        GlassCard {
+        VStack(alignment: .leading, spacing: 8) {
+        Text("Glass Card Example")
+        .font(.system(size: 18, weight: .bold))
+        .foregroundColor(.white)
+        
+        Text("Frosted glass effect with blur")
+        .font(.system(size: 14, weight: .medium))
+        .foregroundColor(.white.opacity(0.8))
+        }
+        .padding(20)
+        }
+        .padding(.horizontal, 20)
+        
+        GlassCard(cornerRadius: 16, backgroundOpacity: 0.2) {
+        Text("Custom opacity")
+        .font(.system(size: 16, weight: .semibold))
+        .foregroundColor(.white)
+        .padding(16)
+        }
+        .padding(.horizontal, 20)
+        }
         }
     }
 }

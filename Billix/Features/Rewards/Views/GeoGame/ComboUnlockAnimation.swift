@@ -121,13 +121,15 @@ struct ComboUnlockAnimation: View {
     }
 }
 
-#Preview {
-    ZStack {
+struct ComboUnlockAnimation_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.black.ignoresSafeArea()
-
+        
         VStack(spacing: 40) {
-            ComboUnlockAnimation(comboStreak: 2) {
-            }
+        ComboUnlockAnimation(comboStreak: 2) {
+        }
+        }
         }
     }
 }

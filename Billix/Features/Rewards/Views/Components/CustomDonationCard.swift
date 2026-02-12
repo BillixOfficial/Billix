@@ -104,14 +104,16 @@ struct CustomDonationCard: View {
 
 // MARK: - Preview
 
-#Preview {
-    ZStack {
+struct CustomDonationCard_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         CustomDonationCard(
-            onStartRequest: {
-            }
+        onStartRequest: {
+        }
         )
         .padding(20)
+        }
     }
 }

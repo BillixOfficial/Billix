@@ -175,6 +175,8 @@ struct ExploreHeaderView: View {
     }
 }
 
-#Preview("Explore Landing") {
-    ExploreLandingView()
+struct ExploreLandingView_Explore_Landing_Previews: PreviewProvider {
+    static var previews: some View {
+        ExploreLandingView()
+    }
 }

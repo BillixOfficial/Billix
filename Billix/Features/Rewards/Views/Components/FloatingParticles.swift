@@ -162,26 +162,28 @@ struct FloatingParticle: View {
 
 // MARK: - Preview
 
-#Preview("Floating Particles") {
-    ZStack {
+struct FloatingParticles_Floating_Particles_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         LinearGradient(
-            colors: [Color(hex: "#1e3d40"), Color(hex: "#2d5a5e")],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
+        colors: [Color(hex: "#1e3d40"), Color(hex: "#2d5a5e")],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
         )
         .ignoresSafeArea()
-
+        
         FloatingParticlesBackground(particleCount: 8)
-
+        
         VStack {
-            Spacer()
-            Text("Floating Particles Demo")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-            Text("Watch the subtle particles float upward")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.white.opacity(0.8))
-            Spacer()
+        Spacer()
+        Text("Floating Particles Demo")
+        .font(.system(size: 20, weight: .bold))
+        .foregroundColor(.white)
+        Text("Watch the subtle particles float upward")
+        .font(.system(size: 14, weight: .medium))
+        .foregroundColor(.white.opacity(0.8))
+        Spacer()
+        }
         }
     }
 }

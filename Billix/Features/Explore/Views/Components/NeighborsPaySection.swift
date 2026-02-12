@@ -141,9 +141,11 @@ struct NeighborsPaySection: View {
     }
 }
 
-#Preview("Neighbors Pay Section") {
-    NavigationStack {
+struct NeighborsPaySection_Neighbors_Pay_Section_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
         NeighborsPaySection()
-            .background(Color.billixCreamBeige.opacity(0.3))
+        .background(Color.billixCreamBeige.opacity(0.3))
+        }
     }
 }

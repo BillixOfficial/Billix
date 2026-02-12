@@ -445,12 +445,14 @@ private struct AddPriceBillTypeButton: View {
     }
 }
 
-#Preview {
-    ScrollView {
+struct NameYourPriceZone_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         VStack(spacing: 20) {
-            NameYourPriceZone(userState: "NJ")
+        NameYourPriceZone(userState: "NJ")
         }
         .padding(.top, 20)
+        }
+        .background(Color(hex: "#F7F9F8"))
     }
-    .background(Color(hex: "#F7F9F8"))
 }

@@ -498,23 +498,25 @@ struct CardPressButtonStyle: ButtonStyle {
 
 // MARK: - Preview
 
-#Preview {
-    ScrollView {
+struct BillListingCard_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
         VStack(spacing: 16) {
-            ForEach(ExploreBillListing.mockListings) { listing in
-                BillListingCard(
-                    listing: listing,
-                    userVote: listing.voteScore > 20 ? .up : nil,
-                    isBookmarked: listing.tipCount > 10,
-                    onTap: { },
-                    onUpvote: { },
-                    onDownvote: { },
-                    onBookmark: { },
-                    onMessage: { }
-                )
-            }
+        ForEach(ExploreBillListing.mockListings) { listing in
+        BillListingCard(
+        listing: listing,
+        userVote: listing.voteScore > 20 ? .up : nil,
+        isBookmarked: listing.tipCount > 10,
+        onTap: { },
+        onUpvote: { },
+        onDownvote: { },
+        onBookmark: { },
+        onMessage: { }
+        )
+        }
         }
         .padding()
+        }
+        .background(Color(hex: "#F7F9F8"))
     }
-    .background(Color(hex: "#F7F9F8"))
 }

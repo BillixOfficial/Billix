@@ -227,30 +227,32 @@ struct HealthScoreCard: View {
 
 // MARK: - Preview
 
-#Preview {
-    VStack(spacing: 16) {
+struct MetricCardView_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            SavingsMetricCard(savings: 14.50)
-
-            HealthScoreCard(score: 72, status: "Good")
-
-            MetricCardView(
-                title: "Provider",
-                value: "DTE Energy",
-                subtitle: "Electric",
-                icon: "bolt.fill",
-                iconColor: .billixChartBlue
-            )
-
-            MetricCardView(
-                title: "Due Date",
-                value: "Dec 15",
-                subtitle: "19 days left",
-                icon: "calendar",
-                iconColor: .billixMoneyGreen
-            )
+        SavingsMetricCard(savings: 14.50)
+        
+        HealthScoreCard(score: 72, status: "Good")
+        
+        MetricCardView(
+        title: "Provider",
+        value: "DTE Energy",
+        subtitle: "Electric",
+        icon: "bolt.fill",
+        iconColor: .billixChartBlue
+        )
+        
+        MetricCardView(
+        title: "Due Date",
+        value: "Dec 15",
+        subtitle: "19 days left",
+        icon: "calendar",
+        iconColor: .billixMoneyGreen
+        )
         }
         .padding()
+        }
+        .background(Color.billixLightGreen)
     }
-    .background(Color.billixLightGreen)
 }

@@ -280,9 +280,11 @@ struct GroupDetailView: View {
 
 // MARK: - Preview
 
-#Preview("Group Detail View") {
-    NavigationStack {
+struct GroupDetailView_Group_Detail_View_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
         GroupDetailView(group: CommunityGroup.mockGroups[0])
-            .environmentObject(CommunityFeedViewModel())
+        .environmentObject(CommunityFeedViewModel())
+        }
     }
 }

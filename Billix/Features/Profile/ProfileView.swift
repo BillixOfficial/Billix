@@ -2058,7 +2058,9 @@ struct ProfileView: View {
 
 // MARK: - Preview
 
-#Preview {
-    ProfileView()
+struct ProfileView_Previews: PreviewProvider {
+    static var previews: some View {
+        ProfileView()
         .environmentObject(AuthService.shared)
+    }
 }

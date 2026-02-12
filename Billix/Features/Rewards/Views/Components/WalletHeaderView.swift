@@ -634,50 +634,56 @@ struct RollingNumberView: View {
 
 // MARK: - Preview
 
-#Preview("Bronze Tier - 1,450 pts") {
-    VStack {
+struct WalletHeaderView_Bronze_Tier___1_450_pts_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack {
         WalletHeaderView(
-            points: 1450,
-            cashEquivalent: 0.73,
-            currentTier: .bronze,
-            tierProgress: 0.18,  // 1,450 / 8,000 = ~18%
-            streakCount: 3,
-            weeklyCheckIns: [false, false, false, false, true, true, true]  // Thu-Fri-Sat checked
+        points: 1450,
+        cashEquivalent: 0.73,
+        currentTier: .bronze,
+        tierProgress: 0.18,  // 1,450 / 8,000 = ~18%
+        streakCount: 3,
+        weeklyCheckIns: [false, false, false, false, true, true, true]  // Thu-Fri-Sat checked
         )
-
+        
         Spacer()
+        }
+        .background(Color.billixLightGreen)
     }
-    .background(Color.billixLightGreen)
 }
 
-#Preview("Silver Tier - 12,000 pts") {
-    VStack {
+struct WalletHeaderView_Silver_Tier___12_000_pts_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack {
         WalletHeaderView(
-            points: 12000,
-            cashEquivalent: 6.00,
-            currentTier: .silver,
-            tierProgress: 0.18,  // 4,000 / 22,000 = ~18%
-            streakCount: 5,
-            weeklyCheckIns: [false, false, true, true, true, true, true]  // Wed-Sun checked
+        points: 12000,
+        cashEquivalent: 6.00,
+        currentTier: .silver,
+        tierProgress: 0.18,  // 4,000 / 22,000 = ~18%
+        streakCount: 5,
+        weeklyCheckIns: [false, false, true, true, true, true, true]  // Wed-Sun checked
         )
-
+        
         Spacer()
+        }
+        .background(Color.billixLightGreen)
     }
-    .background(Color.billixLightGreen)
 }
 
-#Preview("Gold Tier - 45,000 pts") {
-    VStack {
+struct WalletHeaderView_Gold_Tier___45_000_pts_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack {
         WalletHeaderView(
-            points: 45000,
-            cashEquivalent: 22.50,
-            currentTier: .gold,
-            tierProgress: 0.21,  // 15,000 / 70,000 = ~21%
-            streakCount: 7,
-            weeklyCheckIns: [true, true, true, true, true, true, true]  // Full week checked
+        points: 45000,
+        cashEquivalent: 22.50,
+        currentTier: .gold,
+        tierProgress: 0.21,  // 15,000 / 70,000 = ~21%
+        streakCount: 7,
+        weeklyCheckIns: [true, true, true, true, true, true, true]  // Full week checked
         )
-
+        
         Spacer()
+        }
+        .background(Color.billixLightGreen)
     }
-    .background(Color.billixLightGreen)
 }

@@ -59,15 +59,17 @@ extension View {
 
 // MARK: - Preview
 
-#Preview("Toast Showing") {
-    ZStack {
+struct ToastNotification_Toast_Showing_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.gray.opacity(0.1)
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         ToastNotification(
-            message: "Vote submitted!",
-            points: 5,
-            isShowing: .constant(true)
+        message: "Vote submitted!",
+        points: 5,
+        isShowing: .constant(true)
         )
+        }
     }
 }

@@ -52,16 +52,18 @@ struct ProgressBarView: View {
     }
 }
 
-#Preview {
-    ZStack {
+struct ProgressBarView_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.black.ignoresSafeArea()
-
+        
         VStack(spacing: 20) {
-            ProgressBarView(currentQuestion: 1, totalQuestions: 12)
-            ProgressBarView(currentQuestion: 4, totalQuestions: 12)
-            ProgressBarView(currentQuestion: 8, totalQuestions: 12)
-            ProgressBarView(currentQuestion: 12, totalQuestions: 12)
+        ProgressBarView(currentQuestion: 1, totalQuestions: 12)
+        ProgressBarView(currentQuestion: 4, totalQuestions: 12)
+        ProgressBarView(currentQuestion: 8, totalQuestions: 12)
+        ProgressBarView(currentQuestion: 12, totalQuestions: 12)
         }
         .padding()
+        }
     }
 }

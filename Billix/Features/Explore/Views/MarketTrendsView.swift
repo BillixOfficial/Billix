@@ -176,11 +176,13 @@ struct MarketTrendsView: View {
 
 // MARK: - Preview
 
-#Preview("Market Trends View") {
-    MarketTrendsView(
+struct MarketTrendsView_Market_Trends_View_Previews: PreviewProvider {
+    static var previews: some View {
+        MarketTrendsView(
         locationManager: LocationManager.preview(),
         housingViewModel: HousingSearchViewModel(),
         onSwitchToHousing: {
         }
-    )
+        )
+    }
 }

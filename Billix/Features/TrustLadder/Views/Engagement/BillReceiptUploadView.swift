@@ -612,7 +612,9 @@ struct ReceiptHistoryView: View {
 
 // MARK: - Preview
 
-#Preview {
-    BillReceiptUploadView()
-        .preferredColorScheme(.dark)
+struct BillReceiptUploadView_Previews: PreviewProvider {
+    static var previews: some View {
+        BillReceiptUploadView()
+            .preferredColorScheme(.dark)
+    }
 }

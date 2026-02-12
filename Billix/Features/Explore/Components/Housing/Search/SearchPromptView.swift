@@ -76,23 +76,27 @@ struct SearchPromptView: View {
     }
 }
 
-#Preview("Search Prompt View - Empty") {
-    SearchPromptView(
+struct SearchPromptView_Search_Prompt_View___Empty_Previews: PreviewProvider {
+    static var previews: some View {
+        SearchPromptView(
         viewModel: HousingSearchViewModel(),
         onSearch: {}
-    )
+        )
+    }
 }
 
-#Preview("Search Prompt View - With Values") {
-    let vm = HousingSearchViewModel()
-    vm.searchAddress = "48067"
-    vm.selectedPropertyType = .singleFamily
-    vm.selectedBedrooms = 2
-    vm.selectedBathrooms = 1.5
-    vm.squareFeet = "950"
-
-    return SearchPromptView(
+struct SearchPromptView_Search_Prompt_View___With_Values_Previews: PreviewProvider {
+    static var previews: some View {
+        let vm = HousingSearchViewModel()
+        vm.searchAddress = "48067"
+        vm.selectedPropertyType = .singleFamily
+        vm.selectedBedrooms = 2
+        vm.selectedBathrooms = 1.5
+        vm.squareFeet = "950"
+        
+        return SearchPromptView(
         viewModel: vm,
         onSearch: {}
-    )
+        )
+    }
 }

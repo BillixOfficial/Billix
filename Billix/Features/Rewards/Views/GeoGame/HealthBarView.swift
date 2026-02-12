@@ -115,15 +115,17 @@ struct HealthBarView: View {
     }
 }
 
-#Preview {
-    ZStack {
+struct HealthBarView_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.black.ignoresSafeArea()
-
+        
         VStack(spacing: 20) {
-            HealthBarView(currentHealth: 3)
-            HealthBarView(currentHealth: 2)
-            HealthBarView(currentHealth: 1)
-            HealthBarView(currentHealth: 0)
+        HealthBarView(currentHealth: 3)
+        HealthBarView(currentHealth: 2)
+        HealthBarView(currentHealth: 1)
+        HealthBarView(currentHealth: 0)
+        }
         }
     }
 }

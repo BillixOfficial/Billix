@@ -348,36 +348,38 @@ struct QuickAddStep4Result: View {
 
 // MARK: - Preview
 
-#Preview {
-    struct PreviewWrapper: View {
+struct QuickAddStep4Result_Previews: PreviewProvider {
+    static var previews: some View {
+        struct PreviewWrapper: View {
         @StateObject private var viewModel = QuickAddViewModel()
         @Namespace private var namespace
-
+        
         var body: some View {
-            ZStack {
-                Color.billixLightGreen.ignoresSafeArea()
-                QuickAddStep4Result(viewModel: viewModel, namespace: namespace, onComplete: {}, onSeeWhatImMissing: {})
-            }
-            .onAppear {
-                // Create mock result
-                let mockBillType = BillType(id: "electric", name: "Electric", icon: "bolt.fill", category: "Utilities")
-                let mockProvider = BillProvider(id: "dte", name: "DTE Energy", category: "utilities", avgAmount: 125.00, sampleSize: 47)
-
-                viewModel.result = QuickAddResult(
-                    billType: mockBillType,
-                    provider: mockProvider,
-                    amount: 145.50,
-                    frequency: .monthly,
-                    areaAverage: 125.00,
-                    percentDifference: 16.4,
-                    status: .overpaying,
-                    potentialSavings: 14.35,
-                    message: "You're paying 16% more than average",
-                    ctaMessage: "Upload your bill for more details"
-                )
-            }
+        ZStack {
+        Color.billixLightGreen.ignoresSafeArea()
+        QuickAddStep4Result(viewModel: viewModel, namespace: namespace, onComplete: {}, onSeeWhatImMissing: {})
         }
+        .onAppear {
+        // Create mock result
+        let mockBillType = BillType(id: "electric", name: "Electric", icon: "bolt.fill", category: "Utilities")
+        let mockProvider = BillProvider(id: "dte", name: "DTE Energy", category: "utilities", avgAmount: 125.00, sampleSize: 47)
+        
+        viewModel.result = QuickAddResult(
+        billType: mockBillType,
+        provider: mockProvider,
+        amount: 145.50,
+        frequency: .monthly,
+        areaAverage: 125.00,
+        percentDifference: 16.4,
+        status: .overpaying,
+        potentialSavings: 14.35,
+        message: "You're paying 16% more than average",
+        ctaMessage: "Upload your bill for more details"
+        )
+        }
+        }
+        }
+        
+        return PreviewWrapper()
     }
-
-    return PreviewWrapper()
 }

@@ -230,21 +230,23 @@ struct BillTypeButton: View {
 
 // MARK: - Preview
 
-#Preview {
-    struct PreviewWrapper: View {
+struct QuickAddStep1BillType_Previews: PreviewProvider {
+    static var previews: some View {
+        struct PreviewWrapper: View {
         @StateObject private var viewModel = QuickAddViewModel()
         @Namespace private var namespace
-
+        
         var body: some View {
-            ZStack {
-                Color.billixLightGreen.ignoresSafeArea()
-                QuickAddStep1BillType(viewModel: viewModel, namespace: namespace)
-            }
-            .onAppear {
-                viewModel.onAppear()
-            }
+        ZStack {
+        Color.billixLightGreen.ignoresSafeArea()
+        QuickAddStep1BillType(viewModel: viewModel, namespace: namespace)
         }
+        .onAppear {
+        viewModel.onAppear()
+        }
+        }
+        }
+        
+        return PreviewWrapper()
     }
-
-    return PreviewWrapper()
 }

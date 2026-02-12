@@ -142,6 +142,8 @@ struct PrivacyFeature: View {
 
 // MARK: - Previews
 
-#Preview("Privacy Info Sheet") {
-    PrivacyInfoSheet(isPresented: .constant(true))
+struct PrivacyInfoSheet_Privacy_Info_Sheet_Previews: PreviewProvider {
+    static var previews: some View {
+        PrivacyInfoSheet(isPresented: .constant(true))
+    }
 }

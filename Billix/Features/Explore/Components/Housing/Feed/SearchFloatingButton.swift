@@ -37,8 +37,10 @@ struct SearchFloatingButton: View {
     }
 }
 
-#Preview("Search Floating Button") {
-    SearchFloatingButton(action: {})
+struct SearchFloatingButton_Search_Floating_Button_Previews: PreviewProvider {
+    static var previews: some View {
+        SearchFloatingButton(action: {})
         .padding()
         .background(Color.billixCreamBeige)
+    }
 }

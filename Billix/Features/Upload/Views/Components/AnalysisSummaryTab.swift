@@ -474,44 +474,46 @@ struct AnalysisSummaryTab: View {
 
 // MARK: - Preview
 
-#Preview {
-    AnalysisSummaryTab(
+struct AnalysisSummaryTab_Previews: PreviewProvider {
+    static var previews: some View {
+        AnalysisSummaryTab(
         analysis: BillAnalysis(
-            provider: "DTE Energy",
-            amount: 142.50,
-            billDate: "2024-11-15",
-            dueDate: "2024-12-15",
-            accountNumber: "****4521",
-            category: "Electric",
-            zipCode: "48127",
-            keyFacts: nil,
-            lineItems: [
-                BillAnalysis.LineItem(description: "Power Supply", amount: 78.00),
-                BillAnalysis.LineItem(description: "Delivery", amount: 42.00),
-                BillAnalysis.LineItem(description: "Taxes", amount: 22.50)
-            ],
-            costBreakdown: nil,
-            insights: [
-                BillAnalysis.Insight(type: .savings, title: "Save Money", description: "Switch plans")
-            ],
-            marketplaceComparison: BillAnalysis.MarketplaceComparison(
-                areaAverage: 128.00,
-                percentDiff: 11.3,
-                zipPrefix: "481",
-                position: .above,
-                state: "MI",
-                sampleSize: 42
-            ),
-            plainEnglishSummary: "Your November electric bill is $142.50, due December 15th. You used 147 kWh of electricity, which is about average for a home your size.",
-            redFlags: [
-                BillAnalysis.RedFlag(type: "high", description: "Service fee appears twice on your bill", recommendation: "Contact your provider to remove the duplicate charge", potentialSavings: 15.0)
-            ],
-            controllableCosts: nil,
-            savingsOpportunities: nil,
-            jargonGlossary: nil,
-            assistancePrograms: nil,
-            rawExtractedText: nil
+        provider: "DTE Energy",
+        amount: 142.50,
+        billDate: "2024-11-15",
+        dueDate: "2024-12-15",
+        accountNumber: "****4521",
+        category: "Electric",
+        zipCode: "48127",
+        keyFacts: nil,
+        lineItems: [
+        BillAnalysis.LineItem(description: "Power Supply", amount: 78.00),
+        BillAnalysis.LineItem(description: "Delivery", amount: 42.00),
+        BillAnalysis.LineItem(description: "Taxes", amount: 22.50)
+        ],
+        costBreakdown: nil,
+        insights: [
+        BillAnalysis.Insight(type: .savings, title: "Save Money", description: "Switch plans")
+        ],
+        marketplaceComparison: BillAnalysis.MarketplaceComparison(
+        areaAverage: 128.00,
+        percentDiff: 11.3,
+        zipPrefix: "481",
+        position: .above,
+        state: "MI",
+        sampleSize: 42
+        ),
+        plainEnglishSummary: "Your November electric bill is $142.50, due December 15th. You used 147 kWh of electricity, which is about average for a home your size.",
+        redFlags: [
+        BillAnalysis.RedFlag(type: "high", description: "Service fee appears twice on your bill", recommendation: "Contact your provider to remove the duplicate charge", potentialSavings: 15.0)
+        ],
+        controllableCosts: nil,
+        savingsOpportunities: nil,
+        jargonGlossary: nil,
+        assistancePrograms: nil,
+        rawExtractedText: nil
         )
-    )
-    .background(Color.billixLightGreen)
+        )
+        .background(Color.billixLightGreen)
+    }
 }

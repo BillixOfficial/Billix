@@ -175,8 +175,10 @@ struct BillsExploreView: View {
 
 // MARK: - Preview
 
-#Preview("Bill Explorer") {
-    NavigationStack {
+struct BillsExploreView_Bill_Explorer_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
         BillsExploreView()
+        }
     }
 }

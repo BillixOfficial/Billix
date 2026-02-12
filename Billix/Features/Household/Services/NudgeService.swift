@@ -8,7 +8,8 @@
 
 import Foundation
 import Supabase
-import UIKit
+import class UIKit.UIImpactFeedbackGenerator
+import class UIKit.UINotificationFeedbackGenerator
 
 @MainActor
 class NudgeService: ObservableObject {

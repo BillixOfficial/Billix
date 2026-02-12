@@ -160,62 +160,64 @@ private struct BillExplorerScaleButtonStyle: ButtonStyle {
 
 // MARK: - Preview
 
-#Preview {
-    VStack(spacing: 20) {
+struct BillInteractionBar_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         // Full bar
         BillInteractionBar(
-            voteScore: 24,
-            tipCount: 12,
-            userVote: .up,
-            isBookmarked: true,
-            onUpvote: {},
-            onDownvote: {},
-            onBookmark: {},
-            onMessage: {}
+        voteScore: 24,
+        tipCount: 12,
+        userVote: .up,
+        isBookmarked: true,
+        onUpvote: {},
+        onDownvote: {},
+        onBookmark: {},
+        onMessage: {}
         )
         .padding(.horizontal)
-
+        
         // Neutral state
         BillInteractionBar(
-            voteScore: 0,
-            tipCount: 3,
-            userVote: nil,
-            isBookmarked: false,
-            onUpvote: {},
-            onDownvote: {},
-            onBookmark: {},
-            onMessage: {}
+        voteScore: 0,
+        tipCount: 3,
+        userVote: nil,
+        isBookmarked: false,
+        onUpvote: {},
+        onDownvote: {},
+        onBookmark: {},
+        onMessage: {}
         )
         .padding(.horizontal)
-
+        
         // Negative score
         BillInteractionBar(
-            voteScore: -5,
-            tipCount: 1,
-            userVote: .down,
-            isBookmarked: false,
-            onUpvote: {},
-            onDownvote: {},
-            onBookmark: {},
-            onMessage: {}
+        voteScore: -5,
+        tipCount: 1,
+        userVote: .down,
+        isBookmarked: false,
+        onUpvote: {},
+        onDownvote: {},
+        onBookmark: {},
+        onMessage: {}
         )
         .padding(.horizontal)
-
+        
         Divider()
-
+        
         // Compact version
         CompactInteractionBar(
-            voteScore: 18,
-            tipCount: 7,
-            userVote: nil,
-            isBookmarked: false,
-            onUpvote: {},
-            onDownvote: {},
-            onBookmark: {},
-            onMessage: {}
+        voteScore: 18,
+        tipCount: 7,
+        userVote: nil,
+        isBookmarked: false,
+        onUpvote: {},
+        onDownvote: {},
+        onBookmark: {},
+        onMessage: {}
         )
         .padding(.horizontal)
+        }
+        .padding(.vertical)
+        .background(Color.white)
     }
-    .padding(.vertical)
-    .background(Color.white)
 }

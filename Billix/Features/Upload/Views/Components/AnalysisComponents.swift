@@ -439,41 +439,47 @@ private struct LineItemRow: View {
 
 // MARK: - Previews
 
-#Preview("Marketplace Comparison") {
-    MarketplaceComparisonCard(
+struct AnalysisComponents_Marketplace_Comparison_Previews: PreviewProvider {
+    static var previews: some View {
+        MarketplaceComparisonCard(
         comparison: BillAnalysis.MarketplaceComparison(
-            areaAverage: 125.00,
-            percentDiff: 16.4,
-            zipPrefix: "481",
-            position: .above,
-            state: "MI",
-            sampleSize: 42
+        areaAverage: 125.00,
+        percentDiff: 16.4,
+        zipPrefix: "481",
+        position: .above,
+        state: "MI",
+        sampleSize: 42
         ),
         userAmount: 145.50
-    )
-    .padding()
-    .background(Color.billixLightGreen)
+        )
+        .padding()
+        .background(Color.billixLightGreen)
+    }
 }
 
-#Preview("Cost Breakdown") {
-    CostBreakdownSection(
+struct AnalysisComponents_Cost_Breakdown_Previews: PreviewProvider {
+    static var previews: some View {
+        CostBreakdownSection(
         breakdown: [
-            BillAnalysis.CostBreakdown(category: "Power Supply", amount: 94.50, percentage: 65),
-            BillAnalysis.CostBreakdown(category: "Delivery", amount: 36.25, percentage: 25),
-            BillAnalysis.CostBreakdown(category: "Taxes", amount: 14.75, percentage: 10)
+        BillAnalysis.CostBreakdown(category: "Power Supply", amount: 94.50, percentage: 65),
+        BillAnalysis.CostBreakdown(category: "Delivery", amount: 36.25, percentage: 25),
+        BillAnalysis.CostBreakdown(category: "Taxes", amount: 14.75, percentage: 10)
         ]
-    )
-    .padding()
-    .background(Color.billixLightGreen)
+        )
+        .padding()
+        .background(Color.billixLightGreen)
+    }
 }
 
-#Preview("Insights") {
-    InsightsSection(
+struct AnalysisComponents_Insights_Previews: PreviewProvider {
+    static var previews: some View {
+        InsightsSection(
         insights: [
-            BillAnalysis.Insight(type: .warning, title: "Higher Usage", description: "Your usage is 20% higher than last month"),
-            BillAnalysis.Insight(type: .savings, title: "Off-Peak Savings", description: "Shifting usage to off-peak hours could save $8/month")
+        BillAnalysis.Insight(type: .warning, title: "Higher Usage", description: "Your usage is 20% higher than last month"),
+        BillAnalysis.Insight(type: .savings, title: "Off-Peak Savings", description: "Shifting usage to off-peak hours could save $8/month")
         ]
-    )
-    .padding()
-    .background(Color.billixLightGreen)
+        )
+        .padding()
+        .background(Color.billixLightGreen)
+    }
 }

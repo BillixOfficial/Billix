@@ -2587,6 +2587,8 @@ private struct InviteEarnBanner: View {
 
 // MARK: - Preview
 
-#Preview {
-    HomeView()
+struct HomeView_Previews: PreviewProvider {
+    static var previews: some View {
+        HomeView()
+    }
 }

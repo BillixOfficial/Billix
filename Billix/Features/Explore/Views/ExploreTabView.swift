@@ -100,6 +100,8 @@ enum ExploreTab: String, CaseIterable {
     }
 }
 
-#Preview {
-    ExploreTabView()
+struct ExploreTabView_Previews: PreviewProvider {
+    static var previews: some View {
+        ExploreTabView()
+    }
 }

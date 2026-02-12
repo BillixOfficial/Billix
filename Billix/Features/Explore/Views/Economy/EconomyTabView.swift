@@ -266,6 +266,8 @@ struct EconomyTabView: View {
 
 // MARK: - Preview
 
-#Preview("Economy Tab View") {
-    EconomyTabView()
+struct EconomyTabView_Economy_Tab_View_Previews: PreviewProvider {
+    static var previews: some View {
+        EconomyTabView()
+    }
 }

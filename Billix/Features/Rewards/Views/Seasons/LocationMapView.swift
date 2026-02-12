@@ -187,12 +187,14 @@ struct LocationMapView: View {
 
 // MARK: - Preview
 
-#Preview("Location Map") {
-    NavigationStack {
+struct LocationMapView_Location_Map_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
         LocationMapView(
-            partId: UUID(),
-            partTitle: "Coast to Coast",
-            viewModel: SeasonViewModel()
+        partId: UUID(),
+        partTitle: "Coast to Coast",
+        viewModel: SeasonViewModel()
         )
+        }
     }
 }

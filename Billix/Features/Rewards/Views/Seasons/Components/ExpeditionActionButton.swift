@@ -34,10 +34,12 @@ struct ExpeditionActionButton: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 20) {
+struct ExpeditionActionButton_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         ExpeditionActionButton(isUnlocked: true, requiredPart: nil)
         ExpeditionActionButton(isUnlocked: false, requiredPart: 1)
+        }
+        .padding()
     }
-    .padding()
 }

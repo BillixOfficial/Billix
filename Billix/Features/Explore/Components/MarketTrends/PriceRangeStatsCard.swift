@@ -76,20 +76,22 @@ struct StatColumn: View {
 
 // MARK: - Preview
 
-#Preview("Price Range Stats Card") {
-    VStack(spacing: 20) {
+struct PriceRangeStatsCard_Price_Range_Stats_Card_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         PriceRangeStatsCard(
-            lowRent: 560,
-            averageRent: 1407,
-            highRent: 3400
+        lowRent: 560,
+        averageRent: 1407,
+        highRent: 3400
         )
-
+        
         PriceRangeStatsCard(
-            lowRent: 1200,
-            averageRent: 2180,
-            highRent: 4800
+        lowRent: 1200,
+        averageRent: 2180,
+        highRent: 4800
         )
+        }
+        .padding(20)
+        .background(Color(hex: "F8F9FA"))
     }
-    .padding(20)
-    .background(Color(hex: "F8F9FA"))
 }

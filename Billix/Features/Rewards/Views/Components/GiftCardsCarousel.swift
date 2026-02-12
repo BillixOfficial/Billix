@@ -77,58 +77,60 @@ struct GiftCardsCarousel: View {
     }
 }
 
-#Preview {
-    ZStack {
+struct GiftCardsCarousel_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         ScrollView {
-            GiftCardsCarousel(
-                giftCards: [
-                    Reward(
-                        id: UUID(),
-                        type: .giftCard,
-                        category: .giftCard,
-                        title: "$5 Target",
-                        description: "Target Gift Card",
-                        pointsCost: 10000,
-                        brand: "Target",
-                        brandGroup: "target",
-                        dollarValue: 5.0,
-                        iconName: "target",
-                        accentColor: "#CC0000"
-                    ),
-                    Reward(
-                        id: UUID(),
-                        type: .giftCard,
-                        category: .giftCard,
-                        title: "$5 Kroger",
-                        description: "Kroger Gift Card",
-                        pointsCost: 10000,
-                        brand: "Kroger",
-                        brandGroup: "kroger",
-                        dollarValue: 5.0,
-                        iconName: "cart.fill",
-                        accentColor: "#0033A0"
-                    ),
-                    Reward(
-                        id: UUID(),
-                        type: .giftCard,
-                        category: .giftCard,
-                        title: "$5 Walmart",
-                        description: "Walmart Gift Card",
-                        pointsCost: 10000,
-                        brand: "Walmart",
-                        brandGroup: "walmart",
-                        dollarValue: 5.0,
-                        iconName: "bag.fill",
-                        accentColor: "#0071CE"
-                    )
-                ],
-                userPoints: 750,
-                onViewAll: {},
-                onCardTapped: { _ in }
-            )
-            .padding(.top, 20)
+        GiftCardsCarousel(
+        giftCards: [
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$5 Target",
+        description: "Target Gift Card",
+        pointsCost: 10000,
+        brand: "Target",
+        brandGroup: "target",
+        dollarValue: 5.0,
+        iconName: "target",
+        accentColor: "#CC0000"
+        ),
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$5 Kroger",
+        description: "Kroger Gift Card",
+        pointsCost: 10000,
+        brand: "Kroger",
+        brandGroup: "kroger",
+        dollarValue: 5.0,
+        iconName: "cart.fill",
+        accentColor: "#0033A0"
+        ),
+        Reward(
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$5 Walmart",
+        description: "Walmart Gift Card",
+        pointsCost: 10000,
+        brand: "Walmart",
+        brandGroup: "walmart",
+        dollarValue: 5.0,
+        iconName: "bag.fill",
+        accentColor: "#0071CE"
+        )
+        ],
+        userPoints: 750,
+        onViewAll: {},
+        onCardTapped: { _ in }
+        )
+        .padding(.top, 20)
+        }
         }
     }
 }

@@ -1148,45 +1148,47 @@ struct AnalysisResultsSimpleEmbeddedView: View {
 
 // MARK: - Preview
 
-#Preview {
-    AnalysisResultsSimpleView(
+struct AnalysisResultsSimpleView_Previews: PreviewProvider {
+    static var previews: some View {
+        AnalysisResultsSimpleView(
         analysis: BillAnalysis(
-            provider: "DTE Energy",
-            amount: 142.50,
-            billDate: "2024-11-15",
-            dueDate: "2024-12-15",
-            accountNumber: "****4521",
-            category: "Electric",
-            zipCode: "48127",
-            keyFacts: [
-                BillAnalysis.KeyFact(label: "Service Type", value: "Residential", icon: "house.fill"),
-                BillAnalysis.KeyFact(label: "Billing Period", value: "Oct 15 - Nov 14", icon: "calendar")
-            ],
-            lineItems: [
-                BillAnalysis.LineItem(description: "Power Supply", amount: 78.00, category: "Supply", quantity: 850, rate: 0.0918, unit: "kWh"),
-                BillAnalysis.LineItem(description: "Delivery Charges", amount: 42.00, category: "Delivery"),
-                BillAnalysis.LineItem(description: "State Tax", amount: 12.50, category: "Taxes"),
-                BillAnalysis.LineItem(description: "Regulatory Fees", amount: 10.00, category: "Taxes")
-            ],
-            costBreakdown: nil,
-            insights: [
-                BillAnalysis.Insight(type: .savings, title: "Potential Savings", description: "You could save $14/month by switching to a time-of-use plan."),
-                BillAnalysis.Insight(type: .info, title: "Usage Trend", description: "Your usage is 12% higher than last month.")
-            ],
-            marketplaceComparison: BillAnalysis.MarketplaceComparison(
-                areaAverage: 128.00,
-                percentDiff: 11.3,
-                zipPrefix: "481",
-                position: .above,
-                state: "MI",
-                sampleSize: 42
-            ),
-            plainEnglishSummary: nil,
-            redFlags: nil,
-            controllableCosts: nil,
-            savingsOpportunities: nil,
-            jargonGlossary: nil
+        provider: "DTE Energy",
+        amount: 142.50,
+        billDate: "2024-11-15",
+        dueDate: "2024-12-15",
+        accountNumber: "****4521",
+        category: "Electric",
+        zipCode: "48127",
+        keyFacts: [
+        BillAnalysis.KeyFact(label: "Service Type", value: "Residential", icon: "house.fill"),
+        BillAnalysis.KeyFact(label: "Billing Period", value: "Oct 15 - Nov 14", icon: "calendar")
+        ],
+        lineItems: [
+        BillAnalysis.LineItem(description: "Power Supply", amount: 78.00, category: "Supply", quantity: 850, rate: 0.0918, unit: "kWh"),
+        BillAnalysis.LineItem(description: "Delivery Charges", amount: 42.00, category: "Delivery"),
+        BillAnalysis.LineItem(description: "State Tax", amount: 12.50, category: "Taxes"),
+        BillAnalysis.LineItem(description: "Regulatory Fees", amount: 10.00, category: "Taxes")
+        ],
+        costBreakdown: nil,
+        insights: [
+        BillAnalysis.Insight(type: .savings, title: "Potential Savings", description: "You could save $14/month by switching to a time-of-use plan."),
+        BillAnalysis.Insight(type: .info, title: "Usage Trend", description: "Your usage is 12% higher than last month.")
+        ],
+        marketplaceComparison: BillAnalysis.MarketplaceComparison(
+        areaAverage: 128.00,
+        percentDiff: 11.3,
+        zipPrefix: "481",
+        position: .above,
+        state: "MI",
+        sampleSize: 42
+        ),
+        plainEnglishSummary: nil,
+        redFlags: nil,
+        controllableCosts: nil,
+        savingsOpportunities: nil,
+        jargonGlossary: nil
         ),
         onComplete: {}
-    )
+        )
+    }
 }

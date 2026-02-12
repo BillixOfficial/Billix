@@ -26,28 +26,30 @@ struct LargeExploreCard: View {
     }
 }
 
-#Preview("Large Cards") {
-    VStack(spacing: 16) {
+struct LargeExploreCard_Large_Cards_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 16) {
         LargeExploreCard(
-            imageName: "HousingIcon",
-            title: "Housing Trends",
-            subtitle: "Rising Market",
-            gradientColors: [Color.clear, Color.orange.opacity(0.8)],
-            isActive: true,
-            cardWidth: 150,
-            cardHeight: 150
+        imageName: "HousingIcon",
+        title: "Housing Trends",
+        subtitle: "Rising Market",
+        gradientColors: [Color.clear, Color.orange.opacity(0.8)],
+        isActive: true,
+        cardWidth: 150,
+        cardHeight: 150
         )
-
+        
         LargeExploreCard(
-            imageName: "UtilityBillsIcon",
-            title: "Bills & Cost",
-            subtitle: "Monthly Overview",
-            gradientColors: [Color.clear, Color.purple.opacity(0.8)],
-            isActive: true,
-            cardWidth: 150,
-            cardHeight: 150
+        imageName: "UtilityBillsIcon",
+        title: "Bills & Cost",
+        subtitle: "Monthly Overview",
+        gradientColors: [Color.clear, Color.purple.opacity(0.8)],
+        isActive: true,
+        cardWidth: 150,
+        cardHeight: 150
         )
+        }
+        .padding()
+        .background(Color.billixCreamBeige.opacity(0.3))
     }
-    .padding()
-    .background(Color.billixCreamBeige.opacity(0.3))
 }

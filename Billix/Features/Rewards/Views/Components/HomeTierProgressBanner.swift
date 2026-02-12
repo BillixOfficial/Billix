@@ -124,53 +124,59 @@ struct HomeTierProgressBanner: View {
 
 // MARK: - Preview
 
-#Preview("Close to unlock (75%)") {
-    ZStack {
+struct HomeTierProgressBanner_Close_to_unlock__75___Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack(spacing: 20) {
-            HomeTierProgressBanner(
-                currentPoints: 6000,
-                isDismissed: .constant(false),
-                onEarnMoreTapped: {}
-            )
-
-            Spacer()
+        HomeTierProgressBanner(
+        currentPoints: 6000,
+        isDismissed: .constant(false),
+        onEarnMoreTapped: {}
+        )
+        
+        Spacer()
         }
         .padding(.top, 20)
+        }
     }
 }
 
-#Preview("Just started (20%)") {
-    ZStack {
+struct HomeTierProgressBanner_Just_started__20___Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack(spacing: 20) {
-            HomeTierProgressBanner(
-                currentPoints: 1600,
-                isDismissed: .constant(false),
-                onEarnMoreTapped: {}
-            )
-
-            Spacer()
+        HomeTierProgressBanner(
+        currentPoints: 1600,
+        isDismissed: .constant(false),
+        onEarnMoreTapped: {}
+        )
+        
+        Spacer()
         }
         .padding(.top, 20)
+        }
     }
 }
 
-#Preview("Almost there (95%)") {
-    ZStack {
+struct HomeTierProgressBanner_Almost_there__95___Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.billixLightGreen.ignoresSafeArea()
-
+        
         VStack(spacing: 20) {
-            HomeTierProgressBanner(
-                currentPoints: 7600,
-                isDismissed: .constant(false),
-                onEarnMoreTapped: {}
-            )
-
-            Spacer()
+        HomeTierProgressBanner(
+        currentPoints: 7600,
+        isDismissed: .constant(false),
+        onEarnMoreTapped: {}
+        )
+        
+        Spacer()
         }
         .padding(.top, 20)
+        }
     }
 }

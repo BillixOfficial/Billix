@@ -256,9 +256,11 @@ struct CommentsSheetView: View {
 
 // MARK: - Preview
 
-#Preview("Comments Sheet") {
-    CommentsSheetView(
+struct CommentsSheetView_Comments_Sheet_Previews: PreviewProvider {
+    static var previews: some View {
+        CommentsSheetView(
         post: CommunityPost.mockPosts[0],
         onCommentCountChanged: { _ in }
-    )
+        )
+    }
 }

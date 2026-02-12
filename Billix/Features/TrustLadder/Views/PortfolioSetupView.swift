@@ -605,6 +605,8 @@ private struct RoundedTextFieldStyle: TextFieldStyle {
 
 // MARK: - Preview
 
-#Preview {
-    PortfolioSetupView()
+struct PortfolioSetupView_Previews: PreviewProvider {
+    static var previews: some View {
+        PortfolioSetupView()
+    }
 }

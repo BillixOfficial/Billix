@@ -304,6 +304,8 @@ private struct SavingsTrackerDestinationView: View {
 
 // MARK: - Preview
 
-#Preview {
-    ExploreView()
+struct ExploreView_Previews: PreviewProvider {
+    static var previews: some View {
+        ExploreView()
+    }
 }

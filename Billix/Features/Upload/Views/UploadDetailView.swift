@@ -335,31 +335,33 @@ struct DetailRow: View {
     }
 }
 
-#Preview {
-    UploadDetailView(
+struct UploadDetailView_Previews: PreviewProvider {
+    static var previews: some View {
+        UploadDetailView(
         upload: RecentUpload(
-            id: UUID(),
-            provider: "DTE Energy",
-            amount: 145.50,
-            source: .quickAdd,
-            status: .analyzed,
-            uploadDate: Date(),
-            thumbnailName: nil
+        id: UUID(),
+        provider: "DTE Energy",
+        amount: 145.50,
+        source: .quickAdd,
+        status: .analyzed,
+        uploadDate: Date(),
+        thumbnailName: nil
         ),
         storedBill: StoredBill(
-            uploadDate: Date(),
-            quickAddResult: QuickAddResult(
-                billType: BillType(id: "electric", name: "Electric", icon: "bolt.fill", category: "Utilities"),
-                provider: BillProvider(id: "dte", name: "DTE Energy", category: "utilities", avgAmount: 125.00, sampleSize: 47),
-                amount: 145.50,
-                frequency: .monthly,
-                areaAverage: 125.00,
-                percentDifference: 16.4,
-                status: .overpaying,
-                potentialSavings: 14.35,
-                message: "You're paying 16% more than average",
-                ctaMessage: nil
-            )
+        uploadDate: Date(),
+        quickAddResult: QuickAddResult(
+        billType: BillType(id: "electric", name: "Electric", icon: "bolt.fill", category: "Utilities"),
+        provider: BillProvider(id: "dte", name: "DTE Energy", category: "utilities", avgAmount: 125.00, sampleSize: 47),
+        amount: 145.50,
+        frequency: .monthly,
+        areaAverage: 125.00,
+        percentDifference: 16.4,
+        status: .overpaying,
+        potentialSavings: 14.35,
+        message: "You're paying 16% more than average",
+        ctaMessage: nil
         )
-    )
+        )
+        )
+    }
 }

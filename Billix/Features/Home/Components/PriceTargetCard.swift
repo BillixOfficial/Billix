@@ -155,19 +155,21 @@ struct PriceTargetCard: View {
     }
 }
 
-#Preview {
-    PriceTargetCard(
+struct PriceTargetCard_Previews: PreviewProvider {
+    static var previews: some View {
+        PriceTargetCard(
         target: PriceTarget(billType: PriceBillType.electric, targetAmount: 100),
         regionalAverage: 153,
         options: [
-            PriceOption(type: .betterRate, title: "2 better rates found in your area", subtitle: "", potentialSavings: 20, action: .viewRates),
-            PriceOption(type: .billConnection, title: "3 Bill Connection matches available", subtitle: "", potentialSavings: 15, action: .openBillConnection),
-            PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "", potentialSavings: 12, action: .showNegotiationScript)
+        PriceOption(type: .betterRate, title: "2 better rates found in your area", subtitle: "", potentialSavings: 20, action: .viewRates),
+        PriceOption(type: .billConnection, title: "3 Bill Connection matches available", subtitle: "", potentialSavings: 15, action: .openBillConnection),
+        PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "", potentialSavings: 12, action: .showNegotiationScript)
         ],
         onEdit: {},
         onViewOptions: {},
         onDelete: {}
-    )
-    .padding()
-    .background(Color(hex: "#F7F9F8"))
+        )
+        .padding()
+        .background(Color(hex: "#F7F9F8"))
+    }
 }

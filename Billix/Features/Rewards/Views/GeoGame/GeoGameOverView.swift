@@ -522,34 +522,38 @@ struct AnimatedStatRow: View {
 
 // MARK: - Previews
 
-#Preview("Victory") {
-    let winSession = GameSession(
+struct GeoGameOverView_Victory_Previews: PreviewProvider {
+    static var previews: some View {
+        let winSession = GameSession(
         questions: GeoGameDataService.mockQuestions,
         currentQuestionIndex: 12,
         health: 2,
         totalPoints: 2850,
         questionsCorrect: 11
-    )
-
-    return GeoGameOverView(
+        )
+        
+        return GeoGameOverView(
         session: winSession,
         onPlayAgain: {},
         onDismiss: {}
-    )
+        )
+    }
 }
 
-#Preview("Loss") {
-    let lossSession = GameSession(
+struct GeoGameOverView_Loss_Previews: PreviewProvider {
+    static var previews: some View {
+        let lossSession = GameSession(
         questions: GeoGameDataService.mockQuestions,
         currentQuestionIndex: 6,
         health: 0,
         totalPoints: 1200,
         questionsCorrect: 4
-    )
-
-    return GeoGameOverView(
+        )
+        
+        return GeoGameOverView(
         session: lossSession,
         onPlayAgain: {},
         onDismiss: {}
-    )
+        )
+    }
 }

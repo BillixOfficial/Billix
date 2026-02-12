@@ -99,11 +99,13 @@ struct SearchSettingsPanel: View {
     }
 }
 
-#Preview("Search Settings Panel") {
-    SearchSettingsPanel(
+struct SearchSettingsPanel_Search_Settings_Panel_Previews: PreviewProvider {
+    static var previews: some View {
+        SearchSettingsPanel(
         searchRadius: .constant(1.0),
         lookbackDays: .constant(30)
-    )
-    .padding()
-    .background(Color.billixCreamBeige)
+        )
+        .padding()
+        .background(Color.billixCreamBeige)
+    }
 }

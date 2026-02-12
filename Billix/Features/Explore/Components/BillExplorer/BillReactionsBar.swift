@@ -86,19 +86,21 @@ struct BillReactionsBar: View {
 
 // MARK: - Preview
 
-#Preview("Bill Reactions Bar") {
-    VStack(spacing: 20) {
+struct BillReactionsBar_Bill_Reactions_Bar_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         BillReactionsBar(
-            reactions: [.looksLow: 12, .high: 3, .howDidYou: 5, .jumped: 2],
-            commentCount: 8,
-            onReactionTapped: { _ in },
-            onCommentTapped: { }
+        reactions: [.looksLow: 12, .high: 3, .howDidYou: 5, .jumped: 2],
+        commentCount: 8,
+        onReactionTapped: { _ in },
+        onCommentTapped: { }
         )
         .padding()
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(radius: 2)
+        }
+        .padding()
+        .background(Color(hex: "#F5F5F7"))
     }
-    .padding()
-    .background(Color(hex: "#F5F5F7"))
 }

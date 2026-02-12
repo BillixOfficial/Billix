@@ -112,27 +112,29 @@ struct RecentUploadRow: View {
     }
 }
 
-#Preview {
-    VStack {
+struct RecentUploadRow_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack {
         RecentUploadRow(upload: RecentUpload(
-            id: UUID(),
-            provider: "DTE Energy",
-            amount: 124.56,
-            source: .camera,
-            status: .analyzed,
-            uploadDate: Date().addingTimeInterval(-86400),
-            thumbnailName: nil
+        id: UUID(),
+        provider: "DTE Energy",
+        amount: 124.56,
+        source: .camera,
+        status: .analyzed,
+        uploadDate: Date().addingTimeInterval(-86400),
+        thumbnailName: nil
         ))
-
+        
         RecentUploadRow(upload: RecentUpload(
-            id: UUID(),
-            provider: "Comcast",
-            amount: 89.99,
-            source: .quickAdd,
-            status: .processing,
-            uploadDate: Date(),
-            thumbnailName: nil
+        id: UUID(),
+        provider: "Comcast",
+        amount: 89.99,
+        source: .quickAdd,
+        status: .processing,
+        uploadDate: Date(),
+        thumbnailName: nil
         ))
+        }
+        .padding()
     }
-    .padding()
 }

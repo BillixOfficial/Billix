@@ -64,13 +64,15 @@ struct FeaturedFeedView: View {
     }
 }
 
-#Preview("Featured Feed View") {
-    FeaturedFeedView(viewModel: HousingSearchViewModel())
+struct FeaturedFeedView_Featured_Feed_View_Previews: PreviewProvider {
+    static var previews: some View {
+        FeaturedFeedView(viewModel: HousingSearchViewModel())
         .background(
-            LinearGradient(
-                colors: [Color(hex: "F8F9FA"), Color(hex: "E9ECEF")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+        LinearGradient(
+        colors: [Color(hex: "F8F9FA"), Color(hex: "E9ECEF")],
+        startPoint: .top,
+        endPoint: .bottom
         )
+        )
+    }
 }

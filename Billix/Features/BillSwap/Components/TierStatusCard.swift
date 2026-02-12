@@ -228,38 +228,46 @@ struct TierStatusCard: View {
 
 // MARK: - Preview
 
-#Preview("Tier 1 - Neighbor") {
-    TierStatusCard(
+struct TierStatusCard_Tier_1___Neighbor_Previews: PreviewProvider {
+    static var previews: some View {
+        TierStatusCard(
         currentTier: 1,
         completedSwaps: 2,
         onLearnMore: {}
-    )
-    .padding()
+        )
+        .padding()
+    }
 }
 
-#Preview("Tier 2 - Contributor") {
-    TierStatusCard(
+struct TierStatusCard_Tier_2___Contributor_Previews: PreviewProvider {
+    static var previews: some View {
+        TierStatusCard(
         currentTier: 2,
         completedSwaps: 8,
         onLearnMore: {}
-    )
-    .padding()
+        )
+        .padding()
+    }
 }
 
-#Preview("Tier 3 - Pillar") {
-    TierStatusCard(
+struct TierStatusCard_Tier_3___Pillar_Previews: PreviewProvider {
+    static var previews: some View {
+        TierStatusCard(
         currentTier: 3,
         completedSwaps: 20,
         onLearnMore: {}
-    )
-    .padding()
+        )
+        .padding()
+    }
 }
 
-#Preview("Tier 4 - Guardian (Max)") {
-    TierStatusCard(
+struct TierStatusCard_Tier_4___Guardian__Max__Previews: PreviewProvider {
+    static var previews: some View {
+        TierStatusCard(
         currentTier: 4,
         completedSwaps: 50,
         onLearnMore: {}
-    )
-    .padding()
+        )
+        .padding()
+    }
 }

@@ -328,7 +328,9 @@ struct SetNewPasswordView: View {
     }
 }
 
-#Preview {
-    SetNewPasswordView()
+struct SetNewPasswordView_Previews: PreviewProvider {
+    static var previews: some View {
+        SetNewPasswordView()
         .environmentObject(AuthService.shared)
+    }
 }

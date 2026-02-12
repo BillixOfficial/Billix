@@ -67,24 +67,28 @@ struct TickerHeaderView: View {
 
 // MARK: - Preview
 
-#Preview("Ticker Header - Positive Change") {
-    TickerHeaderView(
+struct TickerHeaderView_Ticker_Header___Positive_Change_Previews: PreviewProvider {
+    static var previews: some View {
+        TickerHeaderView(
         averageRent: 1407,
         changePercent: 3.1,
         lowRent: 560,
         highRent: 3400
-    )
-    .padding(20)
-    .background(Color(hex: "F8F9FA"))
+        )
+        .padding(20)
+        .background(Color(hex: "F8F9FA"))
+    }
 }
 
-#Preview("Ticker Header - Negative Change") {
-    TickerHeaderView(
+struct TickerHeaderView_Ticker_Header___Negative_Change_Previews: PreviewProvider {
+    static var previews: some View {
+        TickerHeaderView(
         averageRent: 2180,
         changePercent: -2.4,
         lowRent: 850,
         highRent: 4200
-    )
-    .padding(20)
-    .background(Color(hex: "F8F9FA"))
+        )
+        .padding(20)
+        .background(Color(hex: "F8F9FA"))
+    }
 }

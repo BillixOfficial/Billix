@@ -7,7 +7,7 @@
 
 import Foundation
 import SwiftData
-import UIKit
+import class UIKit.UIImage
 
 /// ViewModel for Scan/Upload flow
 @MainActor

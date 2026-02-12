@@ -135,7 +135,9 @@ struct FeedFiltersBar: View {
     }
 }
 
-#Preview("Feed Filters Bar") {
-    FeedFiltersBar(viewModel: HousingSearchViewModel())
+struct FeedFiltersBar_Feed_Filters_Bar_Previews: PreviewProvider {
+    static var previews: some View {
+        FeedFiltersBar(viewModel: HousingSearchViewModel())
         .background(Color.billixCreamBeige)
+    }
 }

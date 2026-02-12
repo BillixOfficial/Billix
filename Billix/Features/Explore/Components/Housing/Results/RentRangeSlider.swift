@@ -101,44 +101,46 @@ struct RentRangeSlider: View {
     }
 }
 
-#Preview("Rent Range Slider") {
-    VStack(spacing: 20) {
+struct RentRangeSlider_Rent_Range_Slider_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         RentRangeSlider(
-            estimate: RentEstimateResult(
-                estimatedRent: 2450,
-                lowEstimate: 2083,
-                highEstimate: 2818,
-                perSqft: 2.58,
-                perBedroom: 1225,
-                confidence: "High",
-                comparablesCount: 15
-            )
+        estimate: RentEstimateResult(
+        estimatedRent: 2450,
+        lowEstimate: 2083,
+        highEstimate: 2818,
+        perSqft: 2.58,
+        perBedroom: 1225,
+        confidence: "High",
+        comparablesCount: 15
         )
-
+        )
+        
         RentRangeSlider(
-            estimate: RentEstimateResult(
-                estimatedRent: 1650,
-                lowEstimate: 1403,
-                highEstimate: 1898,
-                perSqft: 1.74,
-                perBedroom: 825,
-                confidence: "Medium",
-                comparablesCount: 10
-            )
+        estimate: RentEstimateResult(
+        estimatedRent: 1650,
+        lowEstimate: 1403,
+        highEstimate: 1898,
+        perSqft: 1.74,
+        perBedroom: 825,
+        confidence: "Medium",
+        comparablesCount: 10
         )
-
+        )
+        
         RentRangeSlider(
-            estimate: RentEstimateResult(
-                estimatedRent: 3200,
-                lowEstimate: 2720,
-                highEstimate: 3680,
-                perSqft: 3.37,
-                perBedroom: 1600,
-                confidence: "High",
-                comparablesCount: 12
-            )
+        estimate: RentEstimateResult(
+        estimatedRent: 3200,
+        lowEstimate: 2720,
+        highEstimate: 3680,
+        perSqft: 3.37,
+        perBedroom: 1600,
+        confidence: "High",
+        comparablesCount: 12
         )
+        )
+        }
+        .padding()
+        .background(Color.billixCreamBeige)
     }
-    .padding()
-    .background(Color.billixCreamBeige)
 }

@@ -63,17 +63,20 @@ struct MarketSummaryView: View {
 
 // MARK: - Preview
 
-#Preview("Market Summary View - Hot Market") {
-    MarketSummaryView(
+struct MarketSummaryView_Market_Summary_View___Hot_Market_Previews: PreviewProvider {
+    static var previews: some View {
+        MarketSummaryView(
         marketData: MarketTrendsMockData.generateMarketData(location: "Brooklyn, NY"),
         marketHealth: .hot
-    )
-    .padding(20)
-    .background(Color.billixCreamBeige)
+        )
+        .padding(20)
+        .background(Color.billixCreamBeige)
+    }
 }
 
-#Preview("Market Summary View - Cool Market") {
-    let mockData = MarketTrendsData(
+struct MarketSummaryView_Market_Summary_View___Cool_Market_Previews: PreviewProvider {
+    static var previews: some View {
+        let mockData = MarketTrendsData(
         location: "Detroit, MI",
         averageRent: 980,
         rentChange12Month: -4.2,
@@ -81,12 +84,13 @@ struct MarketSummaryView: View {
         highRent: 2200,
         bedroomStats: [],
         lastUpdated: Date()
-    )
-
-    return MarketSummaryView(
+        )
+        
+        return MarketSummaryView(
         marketData: mockData,
         marketHealth: .cool
-    )
-    .padding(20)
-    .background(Color.billixCreamBeige)
+        )
+        .padding(20)
+        .background(Color.billixCreamBeige)
+    }
 }

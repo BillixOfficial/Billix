@@ -334,22 +334,24 @@ struct GiftCardEmailSheet: View {
 
 // MARK: - Preview
 
-#Preview {
-    GiftCardEmailSheet(
+struct GiftCardEmailSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        GiftCardEmailSheet(
         reward: Reward(
-            id: UUID(),
-            type: .giftCard,
-            category: .giftCard,
-            title: "$10 Target Gift Card",
-            description: "Shop at Target stores or online",
-            pointsCost: 20000,
-            brand: "Target",
-            brandGroup: "target",
-            dollarValue: 10,
-            iconName: "target",
-            accentColor: "#CC0000"
+        id: UUID(),
+        type: .giftCard,
+        category: .giftCard,
+        title: "$10 Target Gift Card",
+        description: "Shop at Target stores or online",
+        pointsCost: 20000,
+        brand: "Target",
+        brandGroup: "target",
+        dollarValue: 10,
+        iconName: "target",
+        accentColor: "#CC0000"
         ),
         userPoints: 25000,
         onRedeem: { email in }
-    )
+        )
+    }
 }

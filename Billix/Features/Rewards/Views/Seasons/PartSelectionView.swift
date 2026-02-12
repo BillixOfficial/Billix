@@ -180,12 +180,14 @@ struct PartSelectionView: View {
 
 // MARK: - Preview
 
-#Preview("Part Selection") {
-    NavigationStack {
+struct PartSelectionView_Part_Selection_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
         PartSelectionView(
-            seasonId: UUID(),
-            seasonTitle: "USA Roadtrip",
-            viewModel: SeasonViewModel()
+        seasonId: UUID(),
+        seasonTitle: "USA Roadtrip",
+        viewModel: SeasonViewModel()
         )
+        }
     }
 }

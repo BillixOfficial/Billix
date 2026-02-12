@@ -145,10 +145,14 @@ struct TransactionRow: View {
 
 // MARK: - Preview
 
-#Preview {
-    PointsHistoryView(transactions: RewardsPoints.preview.transactions)
+struct PointsHistoryView_Preview1_Previews: PreviewProvider {
+    static var previews: some View {
+        PointsHistoryView(transactions: RewardsPoints.preview.transactions)
+    }
 }
 
-#Preview("Empty") {
-    PointsHistoryView(transactions: [])
+struct PointsHistoryView_Empty_Previews: PreviewProvider {
+    static var previews: some View {
+        PointsHistoryView(transactions: [])
+    }
 }

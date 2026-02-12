@@ -354,6 +354,8 @@ struct StateChipButton: View {
 
 // MARK: - Preview
 
-#Preview {
-    BillExplorerFeedView()
+struct BillExplorerFeedView_Previews: PreviewProvider {
+    static var previews: some View {
+        BillExplorerFeedView()
+    }
 }

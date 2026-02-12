@@ -105,10 +105,14 @@ struct ExploreMarketplaceView: View {
 
 // MARK: - Previews
 
-#Preview("Explore Marketplace - Bills Tab") {
-    ExploreMarketplaceView()
+struct ExploreMarketplaceView_Explore_Marketplace___Bills_Tab_Previews: PreviewProvider {
+    static var previews: some View {
+        ExploreMarketplaceView()
+    }
 }
 
-#Preview("Explore Marketplace - Housing Tab") {
-    ExploreMarketplaceView()
+struct ExploreMarketplaceView_Explore_Marketplace___Housing_Tab_Previews: PreviewProvider {
+    static var previews: some View {
+        ExploreMarketplaceView()
+    }
 }

@@ -403,45 +403,47 @@ struct TrustLevelComparison: View {
 
 // MARK: - Preview
 
-#Preview("Trust Badge Sizes") {
-    ZStack {
+struct TrustBadgeView_Trust_Badge_Sizes_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color(red: 0.06, green: 0.06, blue: 0.08).ignoresSafeArea()
-
+        
         VStack(spacing: 30) {
-            // Different sizes
-            HStack(spacing: 20) {
-                TrustBadgeView(badgeLevel: .elite, size: .small, style: .iconOnly)
-                TrustBadgeView(badgeLevel: .elite, size: .medium, style: .iconOnly)
-                TrustBadgeView(badgeLevel: .elite, size: .large, style: .iconOnly)
-                TrustBadgeView(badgeLevel: .elite, size: .xlarge, style: .iconOnly)
-            }
-
-            // Different styles
-            VStack(spacing: 16) {
-                TrustBadgeView(badgeLevel: .verified, score: 750, size: .medium, style: .compact)
-                TrustBadgeView(badgeLevel: .verified, score: 750, size: .medium, style: .standard)
-                TrustBadgeView(badgeLevel: .verified, score: 750, size: .large, style: .detailed)
-            }
-
-            // Chips
-            HStack {
-                TrustBadgeChip(badgeLevel: .newcomer)
-                TrustBadgeChip(badgeLevel: .trusted, showScore: true)
-                TrustBadgeChip(badgeLevel: .elite, showScore: true)
-            }
-
-            // Progress ring
-            ScoreProgressRing(score: 680, badgeLevel: .verified, size: 100)
-
-            // Comparison
-            TrustLevelComparison(
-                userBadge: .verified,
-                userScore: 720,
-                partnerBadge: .trusted,
-                partnerScore: 580
-            )
+        // Different sizes
+        HStack(spacing: 20) {
+        TrustBadgeView(badgeLevel: .elite, size: .small, style: .iconOnly)
+        TrustBadgeView(badgeLevel: .elite, size: .medium, style: .iconOnly)
+        TrustBadgeView(badgeLevel: .elite, size: .large, style: .iconOnly)
+        TrustBadgeView(badgeLevel: .elite, size: .xlarge, style: .iconOnly)
+        }
+        
+        // Different styles
+        VStack(spacing: 16) {
+        TrustBadgeView(badgeLevel: .verified, score: 750, size: .medium, style: .compact)
+        TrustBadgeView(badgeLevel: .verified, score: 750, size: .medium, style: .standard)
+        TrustBadgeView(badgeLevel: .verified, score: 750, size: .large, style: .detailed)
+        }
+        
+        // Chips
+        HStack {
+        TrustBadgeChip(badgeLevel: .newcomer)
+        TrustBadgeChip(badgeLevel: .trusted, showScore: true)
+        TrustBadgeChip(badgeLevel: .elite, showScore: true)
+        }
+        
+        // Progress ring
+        ScoreProgressRing(score: 680, badgeLevel: .verified, size: 100)
+        
+        // Comparison
+        TrustLevelComparison(
+        userBadge: .verified,
+        userScore: 720,
+        partnerBadge: .trusted,
+        partnerScore: 580
+        )
         }
         .padding()
+        }
+        .preferredColorScheme(.dark)
     }
-    .preferredColorScheme(.dark)
 }

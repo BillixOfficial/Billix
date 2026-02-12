@@ -403,6 +403,8 @@ struct KarmaEventRow: View {
     }
 }
 
-#Preview {
-    KarmaLeaderboardView(viewModel: HouseholdViewModel())
+struct KarmaLeaderboardView_Previews: PreviewProvider {
+    static var previews: some View {
+        KarmaLeaderboardView(viewModel: HouseholdViewModel())
+    }
 }

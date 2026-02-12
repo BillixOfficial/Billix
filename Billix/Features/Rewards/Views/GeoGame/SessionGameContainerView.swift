@@ -128,19 +128,21 @@ struct SessionGameContainerView: View {
 
 // MARK: - Preview
 
-#Preview("Session Game - 30 Questions") {
-    // Use mock questions from GeoGameDataService
-    let mockSession = GameSession(
+struct SessionGameContainerView_Session_Game___30_Questions_Previews: PreviewProvider {
+    static var previews: some View {
+        // Use mock questions from GeoGameDataService
+        let mockSession = GameSession(
         questions: GeoGameDataService.mockQuestions,
         currentQuestionIndex: 0,
         health: 3,
         totalPoints: 0,
         questionsCorrect: 0
-    )
-
-    return SessionGameContainerView(
+        )
+        
+        return SessionGameContainerView(
         session: mockSession,
         partId: UUID(),
         onComplete: { _ in }
-    )
+        )
+    }
 }

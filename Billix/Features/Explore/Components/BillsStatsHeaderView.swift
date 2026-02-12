@@ -143,20 +143,22 @@ struct StatCard: View {
 
 // MARK: - Preview
 
-#Preview {
-    VStack(spacing: 20) {
+struct BillsStatsHeaderView_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
         BillsStatsHeaderView(
-            totalProviders: 45,
-            averageSavings: 87.50,
-            totalSamples: 3420
+        totalProviders: 45,
+        averageSavings: 87.50,
+        totalSamples: 3420
         )
-
+        
         BillsStatsHeaderView(
-            totalProviders: 12,
-            averageSavings: 42.30,
-            totalSamples: 156
+        totalProviders: 12,
+        averageSavings: 42.30,
+        totalSamples: 156
         )
+        }
+        .padding()
+        .background(Color.billixCreamBeige.opacity(0.3))
     }
-    .padding()
-    .background(Color.billixCreamBeige.opacity(0.3))
 }

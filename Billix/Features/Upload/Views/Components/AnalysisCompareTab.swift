@@ -295,34 +295,36 @@ struct ComparisonItem: Identifiable {
 
 // MARK: - Preview
 
-#Preview {
-    AnalysisCompareTab(
+struct AnalysisCompareTab_Previews: PreviewProvider {
+    static var previews: some View {
+        AnalysisCompareTab(
         analysis: BillAnalysis(
-            provider: "DTE Energy",
-            amount: 142.50,
-            billDate: "2024-11-15",
-            dueDate: nil,
-            accountNumber: nil,
-            category: "Electric",
-            zipCode: "48127",
-            keyFacts: nil,
-            lineItems: [],
-            costBreakdown: nil,
-            insights: nil,
-            marketplaceComparison: BillAnalysis.MarketplaceComparison(
-                areaAverage: 128.00,
-                percentDiff: 11.3,
-                zipPrefix: "481",
-                position: .above,
-                state: "MI",
-                sampleSize: 42
-            ),
-            plainEnglishSummary: nil,
-            redFlags: nil,
-            controllableCosts: nil,
-            savingsOpportunities: nil,
-            jargonGlossary: nil
+        provider: "DTE Energy",
+        amount: 142.50,
+        billDate: "2024-11-15",
+        dueDate: nil,
+        accountNumber: nil,
+        category: "Electric",
+        zipCode: "48127",
+        keyFacts: nil,
+        lineItems: [],
+        costBreakdown: nil,
+        insights: nil,
+        marketplaceComparison: BillAnalysis.MarketplaceComparison(
+        areaAverage: 128.00,
+        percentDiff: 11.3,
+        zipPrefix: "481",
+        position: .above,
+        state: "MI",
+        sampleSize: 42
+        ),
+        plainEnglishSummary: nil,
+        redFlags: nil,
+        controllableCosts: nil,
+        savingsOpportunities: nil,
+        jargonGlossary: nil
         )
-    )
-    .background(Color.billixLightGreen)
+        )
+        .background(Color.billixLightGreen)
+    }
 }

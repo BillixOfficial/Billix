@@ -674,6 +674,8 @@ struct OnboardingImagePicker: UIViewControllerRepresentable {
 
 // MARK: - Preview
 
-#Preview {
-    OnboardingView()
+struct OnboardingView_Previews: PreviewProvider {
+    static var previews: some View {
+        OnboardingView()
+    }
 }

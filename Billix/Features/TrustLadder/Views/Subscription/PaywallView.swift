@@ -442,7 +442,9 @@ struct PaywallView: View {
 
 // MARK: - Preview
 
-#Preview {
-    PaywallView(context: .featureGate(.fractionalSwaps))
+struct PaywallView_Previews: PreviewProvider {
+    static var previews: some View {
+        PaywallView(context: .featureGate(.fractionalSwaps))
         .preferredColorScheme(.dark)
+    }
 }

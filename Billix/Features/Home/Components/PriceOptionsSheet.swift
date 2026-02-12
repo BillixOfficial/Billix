@@ -367,15 +367,17 @@ private struct NegotiationTipRow: View {
     }
 }
 
-#Preview {
-    PriceOptionsSheet(
+struct PriceOptionsSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        PriceOptionsSheet(
         billType: PriceBillType.electric,
         targetAmount: 100,
         regionalAverage: 153,
         options: [
-            PriceOption(type: .betterRate, title: "2 better rates found in your area", subtitle: "Compare plans from local providers", potentialSavings: 20, action: .viewRates),
-            PriceOption(type: .billConnection, title: "3 Bill Connection matches available", subtitle: "Get help from your community", potentialSavings: 15, action: .openBillConnection),
-            PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "Call your provider with proven tactics", potentialSavings: 12, action: .showNegotiationScript)
+        PriceOption(type: .betterRate, title: "2 better rates found in your area", subtitle: "Compare plans from local providers", potentialSavings: 20, action: .viewRates),
+        PriceOption(type: .billConnection, title: "3 Bill Connection matches available", subtitle: "Get help from your community", potentialSavings: 15, action: .openBillConnection),
+        PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "Call your provider with proven tactics", potentialSavings: 12, action: .showNegotiationScript)
         ]
-    )
+        )
+    }
 }

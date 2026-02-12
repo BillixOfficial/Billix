@@ -8,7 +8,7 @@
 
 import Foundation
 import UserNotifications
-import UIKit
+@preconcurrency import class UIKit.UIApplication
 import Supabase
 import SwiftUI
 
@@ -32,6 +32,7 @@ enum AppNotificationType: String, CaseIterable {
     case termsRejected = "terms_rejected"
     case proofSubmitted = "proof_submitted"
     case connectionComplete = "connection_complete"
+    case connectionCancelled = "connection_cancelled"
     case tierAdvancement = "tier_advancement"
 
     // Other notification types (future extensibility)
@@ -55,6 +56,7 @@ enum AppNotificationType: String, CaseIterable {
         case .termsRejected: return "Terms Declined"
         case .proofSubmitted: return "Proof Submitted"
         case .connectionComplete: return "Connection Complete!"
+        case .connectionCancelled: return "Connection Cancelled"
         case .tierAdvancement: return "Tier Upgrade!"
         case .billDueSoon: return "Bill Due Soon"
         case .savingsFound: return "Savings Found"
@@ -78,6 +80,7 @@ enum AppNotificationType: String, CaseIterable {
         case .termsRejected: return "xmark.circle.fill"
         case .proofSubmitted: return "camera.fill"
         case .connectionComplete: return "star.fill"
+        case .connectionCancelled: return "xmark.circle.fill"
         case .tierAdvancement: return "trophy.fill"
         case .billDueSoon: return "bolt.fill"
         case .savingsFound: return "arrow.down.circle.fill"
@@ -101,6 +104,7 @@ enum AppNotificationType: String, CaseIterable {
         case .termsRejected: return Color(hex: "#C45C5C")
         case .proofSubmitted: return Color(hex: "#5BA4D4")
         case .connectionComplete: return Color(hex: "#E8B54D")
+        case .connectionCancelled: return Color(hex: "#C45C5C")
         case .tierAdvancement: return Color(hex: "#E8B54D")
         case .billDueSoon: return Color(hex: "#E8A54B")
         case .savingsFound: return Color(hex: "#4CAF7A")
@@ -590,6 +594,17 @@ class NotificationService: NSObject, ObservableObject {
         )
 
         // TODO: Also notify supporter via push notification
+    }
+
+    /// Notify user when their connection is cancelled
+    func notifyConnectionCancelled(connection: Connection, reason: String) async {
+        addNotification(type: .connectionCancelled, subtitle: reason, swapId: connection.id)
+
+        await sendConnectionLocalNotification(
+            type: .connectionCancelled,
+            message: reason,
+            connectionId: connection.id
+        )
     }
 
     /// Notify user of tier advancement

@@ -110,26 +110,28 @@ struct GeoGameResultView: View {
     }
 }
 
-#Preview {
-    ZStack {
+struct GeoGameResultView_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.black.ignoresSafeArea()
-
+        
         VStack {
-            Spacer()
-
-            GeoGameResultView(
-                viewModel: {
-                    let vm = GeoGameViewModel(gameData: GeoGameDataService.mockGames[0])
-                    vm.gameState.phase2Points = 600
-                    vm.gameState.priceGuess = 4.25
-                    vm.gameState.phase = .result
-                    return vm
-                }()
-            )
-            .background(Color.white)
-            .cornerRadius(24)
-            .shadow(color: .black.opacity(0.2), radius: 20)
-            .padding()
+        Spacer()
+        
+        GeoGameResultView(
+        viewModel: {
+        let vm = GeoGameViewModel(gameData: GeoGameDataService.mockGames[0])
+        vm.gameState.phase2Points = 600
+        vm.gameState.priceGuess = 4.25
+        vm.gameState.phase = .result
+        return vm
+        }()
+        )
+        .background(Color.white)
+        .cornerRadius(24)
+        .shadow(color: .black.opacity(0.2), radius: 20)
+        .padding()
+        }
         }
     }
 }

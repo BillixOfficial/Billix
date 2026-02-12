@@ -169,12 +169,14 @@ private struct SubFeatureButtonStyle: ButtonStyle {
 
 // MARK: - Preview
 
-#Preview {
-    Color.black
+struct ExploreSubFeatureSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        Color.black
         .sheet(isPresented: .constant(true)) {
-            ExploreSubFeatureSheet(
-                feature: ExploreFeatureCard.allFeatures[0],
-                navigationDestination: .constant(nil)
-            )
+        ExploreSubFeatureSheet(
+        feature: ExploreFeatureCard.allFeatures[0],
+        navigationDestination: .constant(nil)
+        )
         }
+    }
 }

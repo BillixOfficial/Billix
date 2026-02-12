@@ -154,16 +154,18 @@ struct PredictionCard: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 12) {
+struct PredictionCard_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 12) {
         ForEach(MockMarketplaceData.predictions) { prediction in
-            PredictionCard(
-                prediction: prediction,
-                onStakeYes: {},
-                onStakeNo: {}
-            )
+        PredictionCard(
+        prediction: prediction,
+        onStakeYes: {},
+        onStakeNo: {}
+        )
         }
+        }
+        .padding()
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .padding()
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

@@ -516,9 +516,11 @@ struct CreditsBadge: View {
 
 // MARK: - Preview
 
-#Preview {
-    NavigationView {
+struct CreditsWalletView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
         CreditsWalletView()
+        }
+        .preferredColorScheme(.dark)
     }
-    .preferredColorScheme(.dark)
 }

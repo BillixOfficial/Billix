@@ -325,11 +325,13 @@ struct SetPriceSheet: View {
 
 }
 
-#Preview {
-    SetPriceSheet(
+struct SetPriceSheet_Previews: PreviewProvider {
+    static var previews: some View {
+        SetPriceSheet(
         billType: PriceBillType.electric,
         regionalAverage: 153,
         existingTarget: nil,
         onSave: { _, _, _, _ in }
-    )
+        )
+    }
 }

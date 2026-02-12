@@ -179,12 +179,14 @@ struct ServiceCard: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 12) {
+struct ServiceCard_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 12) {
         ForEach(MockMarketplaceData.services) { service in
-            ServiceCard(service: service, onRequest: {})
+        ServiceCard(service: service, onRequest: {})
         }
+        }
+        .padding()
+        .background(MarketplaceTheme.Colors.backgroundPrimary)
     }
-    .padding()
-    .background(MarketplaceTheme.Colors.backgroundPrimary)
 }

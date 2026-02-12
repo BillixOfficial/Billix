@@ -66,17 +66,19 @@ struct EconomyCategoryPill: View {
     }
 }
 
-#Preview("Economy Filter Bar") {
-    ZStack {
+struct EconomyFilterBar_Economy_Filter_Bar_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
         Color.white
-            .ignoresSafeArea()
-
+        .ignoresSafeArea()
+        
         VStack {
-            EconomyFilterBar(
-                selected: .constant(.all)
-            )
-            Spacer()
+        EconomyFilterBar(
+        selected: .constant(.all)
+        )
+        Spacer()
         }
         .padding(.top, 20)
+        }
     }
 }

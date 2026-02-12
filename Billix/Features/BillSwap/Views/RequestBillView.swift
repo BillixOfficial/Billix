@@ -488,7 +488,7 @@ struct RequestBillView: View {
                     .foregroundColor(RequestTheme.secondaryText)
                     .tracking(0.5)
 
-                Text("(Recommended)")
+                Text("(Required)")
                     .font(.system(size: 10, weight: .medium))
                     .foregroundColor(RequestTheme.accent)
             }
@@ -505,6 +505,25 @@ struct RequestBillView: View {
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(
+                                    !viewModel.guestPayLink.isEmpty && !viewModel.isValidGuestPayLink
+                                        ? RequestTheme.danger
+                                        : Color.clear,
+                                    lineWidth: 1.5
+                                )
+                        )
+
+                    if !viewModel.guestPayLink.isEmpty && !viewModel.isValidGuestPayLink {
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 11))
+                            Text("Please enter a valid URL starting with https://")
+                                .font(.system(size: 11))
+                        }
+                        .foregroundColor(RequestTheme.danger)
+                    }
                 }
 
                 // Help tip
@@ -672,7 +691,18 @@ class RequestBillViewModel: ObservableObject {
                !isAmountOverLimit &&
                currentTokens >= 1 &&
                hasBillImage &&
+               isValidGuestPayLink &&
                !isSubmitting
+    }
+
+    var isValidGuestPayLink: Bool {
+        guard !guestPayLink.isEmpty else { return false }
+        // Basic URL validation
+        guard let url = URL(string: guestPayLink),
+              url.scheme == "https" || url.scheme == "http" else {
+            return false
+        }
+        return true
     }
 
     // MARK: - Methods
@@ -1145,8 +1175,10 @@ struct RequestBillDocumentPicker: UIViewControllerRepresentable {
     }
 }
 
-// MARK: - Preview
+/// MARK: - Preview
 
-#Preview {
-    RequestBillView()
+struct RequestBillView_Previews: PreviewProvider {
+    static var previews: some View {
+        RequestBillView()
+    }
 }

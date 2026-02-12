@@ -108,38 +108,44 @@ struct SeasonThemeBackground: View {
 
 // MARK: - Preview
 
-#Preview("Season 1 Background") {
-    SeasonThemeBackground(
+struct SeasonThemeBackground_Season_1_Background_Previews: PreviewProvider {
+    static var previews: some View {
+        SeasonThemeBackground(
         season: Season(
-            id: UUID(),
-            seasonNumber: 1,
-            title: "USA Roadtrip",
-            description: "Explore prices across America",
-            isReleased: true,
-            releaseDate: Date(),
-            totalParts: 3,
-            iconName: "flag.fill",
-            createdAt: Date()
+        id: UUID(),
+        seasonNumber: 1,
+        title: "USA Roadtrip",
+        description: "Explore prices across America",
+        isReleased: true,
+        releaseDate: Date(),
+        totalParts: 3,
+        iconName: "flag.fill",
+        createdAt: Date()
         )
-    )
+        )
+    }
 }
 
-#Preview("Season 2 Background") {
-    SeasonThemeBackground(
+struct SeasonThemeBackground_Season_2_Background_Previews: PreviewProvider {
+    static var previews: some View {
+        SeasonThemeBackground(
         season: Season(
-            id: UUID(),
-            seasonNumber: 2,
-            title: "Global",
-            description: "Price adventure around the world",
-            isReleased: false,
-            releaseDate: Date(),
-            totalParts: 5,
-            iconName: "globe.americas.fill",
-            createdAt: Date()
+        id: UUID(),
+        seasonNumber: 2,
+        title: "Global",
+        description: "Price adventure around the world",
+        isReleased: false,
+        releaseDate: Date(),
+        totalParts: 5,
+        iconName: "globe.americas.fill",
+        createdAt: Date()
         )
-    )
+        )
+    }
 }
 
-#Preview("Default Background") {
-    SeasonThemeBackground(season: nil)
+struct SeasonThemeBackground_Default_Background_Previews: PreviewProvider {
+    static var previews: some View {
+        SeasonThemeBackground(season: nil)
+    }
 }
