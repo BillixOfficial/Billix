@@ -13,6 +13,7 @@ struct BouncingPigLoadingView: View {
     @State private var bounceOffset: CGFloat = 0
     @State private var dotIndex: Int = 0
 
+
     var body: some View {
         ZStack {
             // Greenish gradient background
@@ -69,9 +70,9 @@ struct BouncingPigLoadingView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 90, height: 90)
-                        .offset(y: bounceOffset - 30)
+                        .offset(y: bounceOffset - 57)
                         .animation(
-                            .easeInOut(duration: 0.5).repeatForever(autoreverses: true),
+                            .easeInOut(duration: 0.75).repeatForever(autoreverses: true),
                             value: bounceOffset
                         )
                 }
@@ -116,6 +117,7 @@ struct BouncingPigLoadingView: View {
                 Spacer()
             }
             .padding()
+
         }
     }
 
