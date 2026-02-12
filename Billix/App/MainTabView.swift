@@ -57,7 +57,7 @@ struct CustomBottomNavBar: View {
         ("house.fill", "Home", Color.billixLoginTeal),
         ("chart.bar.xaxis", "Explore", Color.blue),
         ("arrow.up.doc.fill", "Upload", Color.billixMoneyGreen),
-        ("star.circle.fill", "Rewards", Color.billixPrizeOrange),
+        ("star.circle.fill", "Rewards", Color.billixGoldenAmber),
         ("person.crop.circle.fill", "Profile", Color.billixDarkGreen)
     ]
 

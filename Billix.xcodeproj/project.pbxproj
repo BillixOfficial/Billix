@@ -8,15 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		026616F06A2AC97D284507A7 /* BountyCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010C6E2DD4FA58D78A2C9242 /* BountyCard.swift */; };
-		04473EEB06DC470B82DCA7F2 /* TypographyStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356536A013AE49BFAC0913C1 /* TypographyStyles.swift */; };
+		04473EEB06DC470B82DCA7F2 /* Billix/Utilities/TypographyStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356536A013AE49BFAC0913C1 /* Billix/Utilities/TypographyStyles.swift */; };
 		04C5E42336EC8D5467AF071B /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37618943593B07EF1C2D38C /* ForgotPasswordView.swift */; };
 		04E6DEB7422799173C16DCE0 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBAAB8320C9A7923EFFF7A1B /* QuizView.swift */; };
-		08D120758A2C45E38383DC5F /* AnimationModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD1DE91B69548D4B2D8ABA0 /* AnimationModifiers.swift */; };
+		08D120758A2C45E38383DC5F /* Billix/Utilities/AnimationModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFD1DE91B69548D4B2D8ABA0 /* Billix/Utilities/AnimationModifiers.swift */; };
 		09AD6D04672F7F26EF5338FE /* SupportBill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08AE878793E9BFE9B42DF2EC /* SupportBill.swift */; };
 		0B016A56D3A8893EC4D71A22 /* VaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF7B42B62D1376A06567910 /* VaultView.swift */; };
 		0B3978E45C38518CA2B82A3D /* MockMarketplaceData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5028E3D5E60C51F1F213D4CC /* MockMarketplaceData.swift */; };
 		0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */; };
-		0D6380F18C3DF20AA20387E1 /* PerformanceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1082688485D72FF0A1A8F4D6 /* PerformanceMonitor.swift */; };
+		0D6380F18C3DF20AA20387E1 /* Billix/Utilities/PerformanceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1082688485D72FF0A1A8F4D6 /* Billix/Utilities/PerformanceMonitor.swift */; };
 		0E58FE07F481E233517930FA /* TickerHeaderZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08B85166487B826F6FAFA03 /* TickerHeaderZone.swift */; };
 		105CDC90740F2D3D993826F3 /* SellerFooterZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09E1FA3E4B9B6F22CDA05B91 /* SellerFooterZone.swift */; };
 		1241ADF6413B2EF8978DA403 /* ProofUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F7862E627E13DC98E78131 /* ProofUploadView.swift */; };
@@ -44,15 +44,19 @@
 		386274001DDC5BC67E434A3F /* HouseholdModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105A9D4079FDDAD55678A5C /* HouseholdModels.swift */; };
 		39E9FF59B6EEAF996EE99B07 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 132A29F1FF0310568DEB7B3F /* NewChatView.swift */; };
 		3B2C5926D24417EDCAC377EF /* ChatConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC365B9C1B51AB96B5DFEEE8 /* ChatConversationView.swift */; };
-		3C882A86A4134847B543CAFE /* SectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26365EB6C107413EAA295BA9 /* SectionHeader.swift */; };
+		3C882A86A4134847B543CAFE /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26365EB6C107413EAA295BA9 /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift */; };
 		3DBC140FAD80A9F118448006 /* HouseholdDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A20664EF1CE8B4798EE5DE0 /* HouseholdDashboardView.swift */; };
 		3E7F5552D44F111094EBDDFD /* ReliefStep5Review.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BCD0842D934665F8860B3B /* ReliefStep5Review.swift */; };
-		408450C83E8A5B64B125F652 /* NameYourPriceZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6EA051F44EA92555332753 /* NameYourPriceZone.swift */; };
+		404C74A26487BB18EEB742AA /* CollateralService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3376BD91D443FCA7FC9D6A2 /* CollateralService.swift */; };
+		408450C83E8A5B64B125F652 /* Components/NameYourPriceZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6EA051F44EA92555332753 /* Components/NameYourPriceZone.swift */; };
 		4265CAF09A91FB2883CA56F9 /* ReliefFlowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 051D7309EB27071CB7D992BE /* ReliefFlowViewModel.swift */; };
-		45ACBFCDBB434C6481C55A3D /* SeasonThemeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD1B78C91A154500A69DB025 /* SeasonThemeBackground.swift */; };
+		45ACBFCDBB434C6481C55A3D /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD1B78C91A154500A69DB025 /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift */; };
+		45ED54B6F41ECBD43B9DBAA6 /* BillSwapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD5FCEA27B1F4DB6F198F02 /* BillSwapView.swift */; };
 		4614EEB8EF0F53C5ED197D9C /* BillListing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 904AD05D3A84D6A25E0D92DB /* BillListing.swift */; };
 		4779F305744AD3EEE7AFC236 /* TierStatusCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0433D9AABFA981890936B0EE /* TierStatusCard.swift */; };
-		4A4775FCE691563A775A55F5 /* HomeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */; };
+		48DB4BA78BB27F8B5A493DAB /* ExtensionRequestSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19F7166C53262BB47537C84A /* ExtensionRequestSheet.swift */; };
+		49B81D2B0B8AFB61B1B06775 /* SwapEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94DDD87B265D47890DB5711 /* SwapEvent.swift */; };
+		4A4775FCE691563A775A55F5 /* Theme/HomeTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12922BB48C9B4D4E51F4A208 /* Theme/HomeTheme.swift */; };
 		4A481D87CACB424C8A22B899 /* ClusterCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3144A8AD7B2C94D39FF81EFA /* ClusterCard.swift */; };
 		4C6E6EF29EB32982216D7511 /* BillAnalysisNewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CE4C5AFDCCDD73CCE56C73C /* BillAnalysisNewComponents.swift */; };
 		4EDF2DA492CE26CFAE5296F6 /* ScriptCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A754D4C404308C96FC0AC5B8 /* ScriptCard.swift */; };
@@ -193,6 +197,9 @@
 		A66171192F29B86900B24FD5 /* CommentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171182F29B86900B24FD5 /* CommentsViewModel.swift */; };
 		A661711B2F29B88200B24FD5 /* CommentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A661711A2F29B88200B24FD5 /* CommentRowView.swift */; };
 		A661711D2F29B89C00B24FD5 /* CommentsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A661711C2F29B89C00B24FD5 /* CommentsSheetView.swift */; };
+		A66171252F35717F00B24FD5 /* StoredChatSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171242F35717F00B24FD5 /* StoredChatSession.swift */; };
+		A66171282F3571C100B24FD5 /* AskBillixService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171262F3571C100B24FD5 /* AskBillixService.swift */; };
+		A66171292F3571C100B24FD5 /* EncryptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66171272F3571C100B24FD5 /* EncryptionService.swift */; };
 		A69E78142F05D397004E63B4 /* StreakService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78122F05D397004E63B4 /* StreakService.swift */; };
 		A69E78152F05D397004E63B4 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78112F05D397004E63B4 /* OpenAIService.swift */; };
 		A69E78162F05D397004E63B4 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A69E78132F05D397004E63B4 /* WeatherService.swift */; };
@@ -386,7 +393,7 @@
 		ACC8ACA8DCD1DAF716AF0174 /* ExternalPaymentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AE348EAD30CA5A7F043ED81 /* ExternalPaymentView.swift */; };
 		AED4F139991DA2075F2FC6B6 /* BillixStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ECC2EF120C19ED85E97A0E5 /* BillixStoreView.swift */; };
 		AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = C362B529A9C1435B9DEC721F /* StarDisplay.swift */; };
-		B09286EAA01182CAE0A34A14 /* SetPriceSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DA2401C08A6D91ADA4767D /* SetPriceSheet.swift */; };
+		B09286EAA01182CAE0A34A14 /* Components/SetPriceSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DA2401C08A6D91ADA4767D /* Components/SetPriceSheet.swift */; };
 		B1462877EF3D0DD3C3868EF9 /* BillConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC80505910B3C026F74A0796 /* BillConnectionView.swift */; };
 		B213B823B86FBC855E230735 /* KarmaLeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38E05A16366636C697D06ABC /* KarmaLeaderboardView.swift */; };
 		B42853C238F012FDE7F5C47F /* AnalysisComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = B41ECA1FDF3D80A03CE00E92 /* AnalysisComponents.swift */; };
@@ -396,7 +403,9 @@
 		BFCB80529BEDDF31A719C498 /* HouseholdService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F31A485219F8C6FC916CE5B /* HouseholdService.swift */; };
 		C12C710EDAE0C74EA7365DF7 /* FairnessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 441EF5142067732FB83D32B3 /* FairnessService.swift */; };
 		C1541C610287E94E784CBF8F /* CommunityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3FF2A3E3C427FD330FAFEB /* CommunityService.swift */; };
-		C606071B5D44CFE310E40E38 /* HeaderZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B71E8B16DA66E5F2CCA01E3 /* HeaderZone.swift */; };
+		C1A2B3D4E5F6A7B8C9D0E1F3 /* AskBillixViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F2 /* AskBillixViewModel.swift */; };
+		C1A2B3D4E5F6A7B8C9D0E1F5 /* AskBillixChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F6A7B8C9D0E1F4 /* AskBillixChatView.swift */; };
+		C606071B5D44CFE310E40E38 /* Components/HeaderZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B71E8B16DA66E5F2CCA01E3 /* Components/HeaderZone.swift */; };
 		C93D6D9B9A4E2E8A36D2063C /* AskOwnerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80AD8FACEEDCF0AAE60EFEF2 /* AskOwnerSheet.swift */; };
 		CA7C7B50CF9476F529B03B11 /* ReliefFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B5A8C7B6C44C2A51CFA0206 /* ReliefFlowView.swift */; };
 		CB02F3F073671F44BB0D0643 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD606C9AE17A9CA79C993E27 /* Connection.swift */; };
@@ -414,7 +423,7 @@
 		D8A3232124C49449DEBEF7B3 /* ProfileModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152A86C73D084938AC0F9E09 /* ProfileModels.swift */; };
 		D8A3B7F2E91C4D5A6B7E8F02 /* RequestBillView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A3B7F2E91C4D5A6B7E8F01 /* RequestBillView.swift */; };
 		D8E729C509255F5015837DD4 /* PlaceBidSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD1BBF98A3A97EE7273155A /* PlaceBidSheet.swift */; };
-		DA4CE8C1D3FB84A3824C258E /* PriceOptionsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED86E0A84EF041F20EB729 /* PriceOptionsSheet.swift */; };
+		DA4CE8C1D3FB84A3824C258E /* Components/PriceOptionsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEED86E0A84EF041F20EB729 /* Components/PriceOptionsSheet.swift */; };
 		DC376C996DCB7C3C8892CC57 /* GroupsNavigationRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6536E4BEBD7BDD25CF9B6F29 /* GroupsNavigationRouter.swift */; };
 		DD94C01F40F9C98906B530BC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41E79A6FE4F5BA2E1F917761 /* MainTabView.swift */; };
 		DE7A061EF4C44553BCDA621A /* BillCardSideA.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */; };
@@ -473,7 +482,7 @@
 		F974B1F42EC9553C003EBF59 /* BillixUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B1F32EC9553C003EBF59 /* BillixUITestsLaunchTests.swift */; };
 		F974B2012EC955A1003EBF59 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2002EC955A1003EBF59 /* LoginView.swift */; };
 		F974B2032EC955C0003EBF59 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = F974B2022EC955C0003EBF59 /* ColorPalette.swift */; };
-		F9BC2322822703F3435F3E96 /* PriceTargetCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255D4FF7831141C778F3E0A5 /* PriceTargetCard.swift */; };
+		F9BC2322822703F3435F3E96 /* Components/PriceTargetCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255D4FF7831141C778F3E0A5 /* Components/PriceTargetCard.swift */; };
 		F9E3E3EBB719AEA961FB2312 /* PhoneVerificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72968254CC027164D389E59F /* PhoneVerificationService.swift */; };
 		F9F1891E2F05F5E6007CF227 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F1891B2F05F5E6007CF227 /* WeatherService.swift */; };
 		F9F1891F2F05F5E6007CF227 /* StreakService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F1891C2F05F5E6007CF227 /* StreakService.swift */; };
@@ -529,12 +538,13 @@
 		0964190A2E5107305E47963E /* ServiceCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServiceCard.swift; sourceTree = "<group>"; };
 		09E1FA3E4B9B6F22CDA05B91 /* SellerFooterZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SellerFooterZone.swift; sourceTree = "<group>"; };
 		0ABFBBB24D03DF6AC2EB9314 /* MarketplaceItems.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceItems.swift; sourceTree = "<group>"; };
-		0B71E8B16DA66E5F2CCA01E3 /* HeaderZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/HeaderZone.swift; sourceTree = "<group>"; };
+		0B5810EAC623887EB2177FAE /* UploadBillViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadBillViewModel.swift; sourceTree = "<group>"; };
+		0B71E8B16DA66E5F2CCA01E3 /* Components/HeaderZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/HeaderZone.swift; sourceTree = "<group>"; };
 		0D96A9B24910B32BBBD1F0F9 /* AreaInsightsSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AreaInsightsSheet.swift; path = Billix/Features/Home/Components/AreaInsightsSheet.swift; sourceTree = SOURCE_ROOT; };
 		0E4CBA2CBC31B58C27A8C15D /* ProfileSheets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileSheets.swift; sourceTree = "<group>"; };
-		1082688485D72FF0A1A8F4D6 /* PerformanceMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Billix/Utilities/PerformanceMonitor.swift; sourceTree = SOURCE_ROOT; };
+		1082688485D72FF0A1A8F4D6 /* Billix/Utilities/PerformanceMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Billix/Utilities/PerformanceMonitor.swift; sourceTree = SOURCE_ROOT; };
 		10F631CF6558C21FBD6393C7 /* UtilityNewsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UtilityNewsService.swift; sourceTree = "<group>"; };
-		12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme/HomeTheme.swift; sourceTree = "<group>"; };
+		12922BB48C9B4D4E51F4A208 /* Theme/HomeTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme/HomeTheme.swift; sourceTree = "<group>"; };
 		132A29F1FF0310568DEB7B3F /* NewChatView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NewChatView.swift; path = ../../../../../Chat/Views/NewChatView.swift; sourceTree = "<group>"; };
 		152A86C73D084938AC0F9E09 /* ProfileModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileModels.swift; sourceTree = "<group>"; };
 		15BCD0842D934665F8860B3B /* ReliefStep5Review.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefStep5Review.swift; sourceTree = "<group>"; };
@@ -543,9 +553,9 @@
 		1B1C6158C932DB9CC81A9C76 /* ConnectionEventService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConnectionEventService.swift; path = Billix/Features/BillSwap/Services/ConnectionEventService.swift; sourceTree = "<group>"; };
 		1ECC2EF120C19ED85E97A0E5 /* BillixStoreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillixStoreView.swift; sourceTree = "<group>"; };
 		220D8D9D7A165939DA8EB413 /* UploadDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadDetailView.swift; sourceTree = "<group>"; };
-		255D4FF7831141C778F3E0A5 /* PriceTargetCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/PriceTargetCard.swift; sourceTree = "<group>"; };
+		255D4FF7831141C778F3E0A5 /* Components/PriceTargetCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/PriceTargetCard.swift; sourceTree = "<group>"; };
 		261C047EFAEF6E91A8E3D2F0 /* ChatModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ChatModels.swift; path = ../../../../../Chat/Models/ChatModels.swift; sourceTree = "<group>"; };
-		26365EB6C107413EAA295BA9 /* SectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift; sourceTree = SOURCE_ROOT; };
+		26365EB6C107413EAA295BA9 /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift; sourceTree = SOURCE_ROOT; };
 		26718EDD5F14EC366ABD07C8 /* BlueprintTeaseZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BlueprintTeaseZone.swift; sourceTree = "<group>"; };
 		29BA42822EF142C4F0785CC1 /* HomePageZones.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HomePageZones.swift; path = Billix/Features/Home/HomePageZones.swift; sourceTree = SOURCE_ROOT; };
 		2B3B1CFB47DF052D3A92FDEE /* QuizService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuizService.swift; path = Billix/Features/Rewards/Services/QuizService.swift; sourceTree = SOURCE_ROOT; };
@@ -556,7 +566,7 @@
 		33663A1F52E8D3337C6DB801 /* TokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenService.swift; sourceTree = "<group>"; };
 		3380B8C2DC712CB1727F3012 /* BillTypeDetailsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillTypeDetailsCard.swift; sourceTree = "<group>"; };
 		34F7862E627E13DC98E78131 /* ProofUploadView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProofUploadView.swift; path = Billix/Features/BillSwap/Views/ProofUploadView.swift; sourceTree = "<group>"; };
-		356536A013AE49BFAC0913C1 /* TypographyStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Utilities/TypographyStyles.swift; sourceTree = SOURCE_ROOT; };
+		356536A013AE49BFAC0913C1 /* Billix/Utilities/TypographyStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Utilities/TypographyStyles.swift; sourceTree = SOURCE_ROOT; };
 		38E05A16366636C697D06ABC /* KarmaLeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KarmaLeaderboardView.swift; sourceTree = "<group>"; };
 		3BD4EDC4999053161C1DBAC6 /* GameBoostsCarousel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameBoostsCarousel.swift; sourceTree = "<group>"; };
 		3C41E3F4126EEEBEC41D501E /* HouseholdViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdViewModel.swift; sourceTree = "<group>"; };
@@ -611,7 +621,7 @@
 		84E8A84B928DCE3392C317C8 /* PriceTargetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceTargetService.swift; sourceTree = "<group>"; };
 		8B1LLHEATMAP23456789CDEF /* BillHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillHeatmapView.swift; sourceTree = "<group>"; };
 		8B5A8C7B6C44C2A51CFA0206 /* ReliefFlowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefFlowView.swift; sourceTree = "<group>"; };
-		8D6EA051F44EA92555332753 /* NameYourPriceZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/NameYourPriceZone.swift; sourceTree = "<group>"; };
+		8D6EA051F44EA92555332753 /* Components/NameYourPriceZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/NameYourPriceZone.swift; sourceTree = "<group>"; };
 		8EXP10RE2M0DELS23456789CD /* ExploreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreModels.swift; sourceTree = "<group>"; };
 		8EXP10RE4V1EWM0DEL456789 /* ExploreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreViewModel.swift; sourceTree = "<group>"; };
 		8F31A485219F8C6FC916CE5B /* HouseholdService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdService.swift; sourceTree = "<group>"; };
@@ -687,6 +697,9 @@
 		A66171182F29B86900B24FD5 /* CommentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsViewModel.swift; sourceTree = "<group>"; };
 		A661711A2F29B88200B24FD5 /* CommentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentRowView.swift; sourceTree = "<group>"; };
 		A661711C2F29B89C00B24FD5 /* CommentsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsSheetView.swift; sourceTree = "<group>"; };
+		A66171242F35717F00B24FD5 /* StoredChatSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredChatSession.swift; sourceTree = "<group>"; };
+		A66171262F3571C100B24FD5 /* AskBillixService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskBillixService.swift; sourceTree = "<group>"; };
+		A66171272F3571C100B24FD5 /* EncryptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionService.swift; sourceTree = "<group>"; };
 		A6958208A3EF284183F59F07 /* ConnectionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConnectionService.swift; path = Billix/Features/BillSwap/Services/ConnectionService.swift; sourceTree = "<group>"; };
 		A69E78112F05D397004E63B4 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
 		A69E78122F05D397004E63B4 /* StreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakService.swift; sourceTree = "<group>"; };
@@ -880,11 +893,11 @@
 		A754D4C404308C96FC0AC5B8 /* ScriptCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptCard.swift; sourceTree = "<group>"; };
 		AC30325EE1A810C41F1B194D /* SubscriptionSyncService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionSyncService.swift; sourceTree = "<group>"; };
 		ACC550DCFF96B6630A6C8F70 /* ProfileView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
-		AD1B78C91A154500A69DB025 /* SeasonThemeBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift; sourceTree = SOURCE_ROOT; };
+		AD1B78C91A154500A69DB025 /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift; sourceTree = SOURCE_ROOT; };
 		AD3740C0DA841148DCCE43EA /* ReliefStep3Situation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefStep3Situation.swift; sourceTree = "<group>"; };
 		AEB3571426BAEC6110CD897F /* ReliefRequest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReliefRequest.swift; sourceTree = "<group>"; };
-		AEED86E0A84EF041F20EB729 /* PriceOptionsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/PriceOptionsSheet.swift; sourceTree = "<group>"; };
-		AFD1DE91B69548D4B2D8ABA0 /* AnimationModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Utilities/AnimationModifiers.swift; sourceTree = SOURCE_ROOT; };
+		AEED86E0A84EF041F20EB729 /* Components/PriceOptionsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/PriceOptionsSheet.swift; sourceTree = "<group>"; };
+		AFD1DE91B69548D4B2D8ABA0 /* Billix/Utilities/AnimationModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Billix/Utilities/AnimationModifiers.swift; sourceTree = SOURCE_ROOT; };
 		B14EFA54C472ACE4DF038890 /* TrustBadge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrustBadge.swift; sourceTree = "<group>"; };
 		B303E91D8140C541A2E64E57 /* ReputationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ReputationService.swift; path = Billix/Features/BillSwap/Services/ReputationService.swift; sourceTree = "<group>"; };
 		B3B407070E54249D2D340339 /* FinancialSpreadZone.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FinancialSpreadZone.swift; sourceTree = "<group>"; };
@@ -898,13 +911,15 @@
 		BFA30F18C10E4AE487758EE4 /* SeasonCardLarge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonCardLarge.swift; sourceTree = "<group>"; };
 		C0CFC527D1624B5FA58FBE52 /* PropertyListCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyListCard.swift; sourceTree = "<group>"; };
 		C0F0BC29C7510992AC7E2679 /* BillCardSideA.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BillCardSideA.swift; sourceTree = "<group>"; };
+		C1A2B3D4E5F6A7B8C9D0E1F2 /* AskBillixViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskBillixViewModel.swift; sourceTree = "<group>"; };
+		C1A2B3D4E5F6A7B8C9D0E1F4 /* AskBillixChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskBillixChatView.swift; sourceTree = "<group>"; };
 		C362B529A9C1435B9DEC721F /* StarDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarDisplay.swift; sourceTree = "<group>"; };
 		C3848DF3E7CF3C95772D3BF7 /* RequestSuccessView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RequestSuccessView.swift; sourceTree = "<group>"; };
 		C56DC69D843A7C6DF09FEDA7 /* BillixScoreDetailSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BillixScoreDetailSheet.swift; path = Billix/Features/Home/Components/BillixScoreDetailSheet.swift; sourceTree = SOURCE_ROOT; };
 		C7247F4ADA027D2DEC5E080C /* QuickTasksScreen.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuickTasksScreen.swift; path = Billix/Features/Rewards/Views/QuickTasksScreen.swift; sourceTree = SOURCE_ROOT; };
 		C7AD9F3A26B6766B03B3A4BE /* UsageComparisonBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageComparisonBar.swift; sourceTree = "<group>"; };
 		C89EC00ED13981D09603CF99 /* ExploreView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
-		C9DA2401C08A6D91ADA4767D /* SetPriceSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/SetPriceSheet.swift; sourceTree = "<group>"; };
+		C9DA2401C08A6D91ADA4767D /* Components/SetPriceSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components/SetPriceSheet.swift; sourceTree = "<group>"; };
 		CAAB209E825C16247ABD000C /* BouncingPigLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BouncingPigLoadingView.swift; sourceTree = "<group>"; };
 		CBAAB8320C9A7923EFFF7A1B /* QuizView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuizView.swift; path = Billix/Features/Rewards/Views/QuizView.swift; sourceTree = SOURCE_ROOT; };
 		CC3FF2A3E3C427FD330FAFEB /* CommunityService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CommunityService.swift; sourceTree = "<group>"; };
@@ -1162,7 +1177,7 @@
 			isa = PBXGroup;
 			children = (
 				F974B2022EC955C0003EBF59 /* ColorPalette.swift */,
-				1082688485D72FF0A1A8F4D6 /* PerformanceMonitor.swift */,
+				1082688485D72FF0A1A8F4D6 /* Billix/Utilities/PerformanceMonitor.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -1337,12 +1352,12 @@
 		8B8B8B8B8B8B8B8B8B8B8B8B /* Home */ = {
 			isa = PBXGroup;
 			children = (
-				AEED86E0A84EF041F20EB729 /* PriceOptionsSheet.swift */,
-				C9DA2401C08A6D91ADA4767D /* SetPriceSheet.swift */,
-				255D4FF7831141C778F3E0A5 /* PriceTargetCard.swift */,
-				8D6EA051F44EA92555332753 /* NameYourPriceZone.swift */,
-				12922BB48C9B4D4E51F4A208 /* HomeTheme.swift */,
-				0B71E8B16DA66E5F2CCA01E3 /* HeaderZone.swift */,
+				AEED86E0A84EF041F20EB729 /* Components/PriceOptionsSheet.swift */,
+				C9DA2401C08A6D91ADA4767D /* Components/SetPriceSheet.swift */,
+				255D4FF7831141C778F3E0A5 /* Components/PriceTargetCard.swift */,
+				8D6EA051F44EA92555332753 /* Components/NameYourPriceZone.swift */,
+				12922BB48C9B4D4E51F4A208 /* Theme/HomeTheme.swift */,
+				0B71E8B16DA66E5F2CCA01E3 /* Components/HeaderZone.swift */,
 				A69E782C2F05D4BC004E63B4 /* HomeSetupQuestionsView.swift */,
 				F9F1894F2F05F79C007CF227 /* HomeSetupQuestionsView.swift */,
 				EDF1E5E15C4654C0F526462A /* HomeView.swift */,
@@ -1463,10 +1478,10 @@
 		A602F1F42EF33C1E00856DEE /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
-				356536A013AE49BFAC0913C1 /* TypographyStyles.swift */,
-				AFD1DE91B69548D4B2D8ABA0 /* AnimationModifiers.swift */,
-				AD1B78C91A154500A69DB025 /* SeasonThemeBackground.swift */,
-				26365EB6C107413EAA295BA9 /* SectionHeader.swift */,
+				356536A013AE49BFAC0913C1 /* Billix/Utilities/TypographyStyles.swift */,
+				AFD1DE91B69548D4B2D8ABA0 /* Billix/Utilities/AnimationModifiers.swift */,
+				AD1B78C91A154500A69DB025 /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift */,
+				26365EB6C107413EAA295BA9 /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -1571,6 +1586,7 @@
 		A64F7F4C2ECBB46B005576C5 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A66171242F35717F00B24FD5 /* StoredChatSession.swift */,
 				A6FF827B2EE6418A008330C9 /* Seasons */,
 				A6FF81562ED4BB03008330C9 /* Upload */,
 				F9076D572ED19DC10051E1D8 /* Profile */,
@@ -1584,6 +1600,8 @@
 		A64F7F502ECBB46B005576C5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				A66171262F3571C100B24FD5 /* AskBillixService.swift */,
+				A66171272F3571C100B24FD5 /* EncryptionService.swift */,
 				84E8A84B928DCE3392C317C8 /* PriceTargetService.swift */,
 				A66170E22F25E2A600B24FD5 /* EconomyNewsService.swift */,
 				5DE1642796379DA2C49C2FF8 /* IDVerificationService.swift */,
@@ -1932,6 +1950,7 @@
 				A6FF815A2ED4BB24008330C9 /* RecentUploadsViewModel.swift */,
 				A6FF815B2ED4BB24008330C9 /* ScanUploadViewModel.swift */,
 				A6FF815C2ED4BB24008330C9 /* UploadViewModel.swift */,
+				C1A2B3D4E5F6A7B8C9D0E1F2 /* AskBillixViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -1955,6 +1974,7 @@
 				B41ECA1FDF3D80A03CE00E92 /* AnalysisComponents.swift */,
 				E19DB0EADA90394B7F05D82E /* AnalysisSaveMoneyTab.swift */,
 				9C811776FB90B05B8190935B /* AnalysisBreakdownTab.swift */,
+				C1A2B3D4E5F6A7B8C9D0E1F4 /* AskBillixChatView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -2633,10 +2653,10 @@
 				53B31F2AA624979A5BA44697 /* USRegion.swift in Sources */,
 				E48EC8A07D5697F88D447036 /* BillTypeDetailsCard.swift in Sources */,
 				F2FA6CD17340402CCBF99B90 /* UsageComparisonBar.swift in Sources */,
-				DA4CE8C1D3FB84A3824C258E /* PriceOptionsSheet.swift in Sources */,
-				B09286EAA01182CAE0A34A14 /* SetPriceSheet.swift in Sources */,
-				F9BC2322822703F3435F3E96 /* PriceTargetCard.swift in Sources */,
-				408450C83E8A5B64B125F652 /* NameYourPriceZone.swift in Sources */,
+				DA4CE8C1D3FB84A3824C258E /* Components/PriceOptionsSheet.swift in Sources */,
+				B09286EAA01182CAE0A34A14 /* Components/SetPriceSheet.swift in Sources */,
+				F9BC2322822703F3435F3E96 /* Components/PriceTargetCard.swift in Sources */,
+				408450C83E8A5B64B125F652 /* Components/NameYourPriceZone.swift in Sources */,
 				865DDD23F588479B54DE2DF6 /* PriceTargetService.swift in Sources */,
 				0B016A56D3A8893EC4D71A22 /* VaultView.swift in Sources */,
 				B213B823B86FBC855E230735 /* KarmaLeaderboardView.swift in Sources */,
@@ -2648,8 +2668,8 @@
 				2730E19F51DAABF8E6C6FCAB /* KarmaService.swift in Sources */,
 				BFCB80529BEDDF31A719C498 /* HouseholdService.swift in Sources */,
 				386274001DDC5BC67E434A3F /* HouseholdModels.swift in Sources */,
-				4A4775FCE691563A775A55F5 /* HomeTheme.swift in Sources */,
-				C606071B5D44CFE310E40E38 /* HeaderZone.swift in Sources */,
+				4A4775FCE691563A775A55F5 /* Theme/HomeTheme.swift in Sources */,
+				C606071B5D44CFE310E40E38 /* Components/HeaderZone.swift in Sources */,
 				6FF24326E1DCEF1CDBBC6D14 /* NotificationService.swift in Sources */,
 				70B5F4AD0198AEA9D127B088 /* IDVerificationView.swift in Sources */,
 				D4B3D8C9DD85041F46316B24 /* PhoneVerificationView.swift in Sources */,
@@ -2662,16 +2682,16 @@
 				AF465CBFD67C47F8BF3F01D8 /* StarDisplay.swift in Sources */,
 				0C7B1270A61D4576A21B8222 /* SeasonCardLarge.swift in Sources */,
 				A661711D2F29B89C00B24FD5 /* CommentsSheetView.swift in Sources */,
-				04473EEB06DC470B82DCA7F2 /* TypographyStyles.swift in Sources */,
-				08D120758A2C45E38383DC5F /* AnimationModifiers.swift in Sources */,
-				45ACBFCDBB434C6481C55A3D /* SeasonThemeBackground.swift in Sources */,
+				04473EEB06DC470B82DCA7F2 /* Billix/Utilities/TypographyStyles.swift in Sources */,
+				08D120758A2C45E38383DC5F /* Billix/Utilities/AnimationModifiers.swift in Sources */,
+				45ACBFCDBB434C6481C55A3D /* Billix/Features/Rewards/Views/Seasons/Components/SeasonThemeBackground.swift in Sources */,
 				A66170CB2F25DF5800B24FD5 /* FeaturedNewsCard.swift in Sources */,
 				A66170CC2F25DF5800B24FD5 /* EconomyHeaderView.swift in Sources */,
 				A66170CD2F25DF5800B24FD5 /* CommunityPostCard.swift in Sources */,
 				A66170CE2F25DF5800B24FD5 /* EconomyNewsCard.swift in Sources */,
 				A66170CF2F25DF5800B24FD5 /* EconomyFilterBar.swift in Sources */,
 				A66170D02F25DF5800B24FD5 /* FeaturedNewsCarousel.swift in Sources */,
-				3C882A86A4134847B543CAFE /* SectionHeader.swift in Sources */,
+				3C882A86A4134847B543CAFE /* Billix/Features/Rewards/Views/Seasons/Components/SectionHeader.swift in Sources */,
 				A6F3C78D2EEF74CC00264730 /* LocationRow.swift in Sources */,
 				A6F3C78C2EEF74C300264730 /* LocationMapView.swift in Sources */,
 				A6E5FF7F2F0C3D86009F1277 /* HousingSearchViewModel.swift in Sources */,
@@ -2694,12 +2714,16 @@
 				A69E781A2F05D3AC004E63B4 /* BillixScoreService.swift in Sources */,
 				A6FF81732ED4BB24008330C9 /* QuickAddStep4Result.swift in Sources */,
 				A69E78232F05D400004E63B4 /* ExploreCarouselModels.swift in Sources */,
+				A66171282F3571C100B24FD5 /* AskBillixService.swift in Sources */,
+				A66171292F3571C100B24FD5 /* EncryptionService.swift in Sources */,
 				A69E78242F05D400004E63B4 /* OutageBotModels.swift in Sources */,
 				A6FF81742ED4BB24008330C9 /* UploadViewModel.swift in Sources */,
 				A6FF81752ED4BB24008330C9 /* QuickAddStep3Amount.swift in Sources */,
 				A6FF81762ED4BB24008330C9 /* QuickAddStep1BillType.swift in Sources */,
 				A6FF81772ED4BB24008330C9 /* RecentUploadsViewModel.swift in Sources */,
 				A6FF81782ED4BB24008330C9 /* QuickAddViewModel.swift in Sources */,
+				C1A2B3D4E5F6A7B8C9D0E1F3 /* AskBillixViewModel.swift in Sources */,
+				C1A2B3D4E5F6A7B8C9D0E1F5 /* AskBillixChatView.swift in Sources */,
 				A6FF81862ED504CB008330C9 /* MediaPickers.swift in Sources */,
 				A6FF81792ED4BB24008330C9 /* RecentUploadRow.swift in Sources */,
 				A6FF817A2ED4BB24008330C9 /* ScanUploadOptionsView.swift in Sources */,
@@ -2998,6 +3022,7 @@
 				78CC9A4B4CE73C72FDFDAFBF /* UploadDetailView.swift in Sources */,
 				94CA342EC160B25D39828956 /* AnalysisResultsTabbedView.swift in Sources */,
 				ED2452AAD36A456AE11AB438 /* AnalysisSummaryTab.swift in Sources */,
+				A66171252F35717F00B24FD5 /* StoredChatSession.swift in Sources */,
 				EBC33E84E1E375DAEA261508 /* AnalysisDetailsTab.swift in Sources */,
 				4C6E6EF29EB32982216D7511 /* BillAnalysisNewComponents.swift in Sources */,
 				F481B0C94242552459CC9E64 /* MetricCardView.swift in Sources */,
@@ -3068,7 +3093,7 @@
 				D8A3232124C49449DEBEF7B3 /* ProfileModels.swift in Sources */,
 				7A796BAAD6000A4AF91AAE57 /* ProfileComponents.swift in Sources */,
 				F1F9DBD5CE05BE19191F46EE /* ProfileSheets.swift in Sources */,
-				0D6380F18C3DF20AA20387E1 /* PerformanceMonitor.swift in Sources */,
+				0D6380F18C3DF20AA20387E1 /* Billix/Utilities/PerformanceMonitor.swift in Sources */,
 				F31E1DCABCDDCC2D611DDEFF /* HelpTipCard.swift in Sources */,
 				4779F305744AD3EEE7AFC236 /* TierStatusCard.swift in Sources */,
 				04C5E42336EC8D5467AF071B /* ForgotPasswordView.swift in Sources */,

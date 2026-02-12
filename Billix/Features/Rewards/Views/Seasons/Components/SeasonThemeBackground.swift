@@ -85,7 +85,7 @@ struct SeasonThemeBackground: View {
             // USA: Warm whites and golds
             return [
                 .white.opacity(0.8),
-                Color(hex: "#FFD700").opacity(0.6)
+                Color.billixGoldenAmber.opacity(0.6)
             ]
         case 2:
             // Global: Cool whites and teals

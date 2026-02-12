@@ -237,7 +237,7 @@ struct GameBoostsModal: View {
                 brand: nil,
                         brandGroup: nil,                dollarValue: nil,
                 iconName: "star.fill",
-                accentColor: "#FFD700"
+                accentColor: "#e8b54d"
             )
         ],
         userPoints: 400,
@@ -258,7 +258,7 @@ struct GameBoostsModal: View {
                 brand: nil,
                         brandGroup: nil,                dollarValue: nil,
                 iconName: "star.fill",
-                accentColor: "#FFD700"
+                accentColor: "#e8b54d"
             )
         ],
         userPoints: 500,

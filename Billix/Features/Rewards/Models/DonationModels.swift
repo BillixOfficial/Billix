@@ -81,7 +81,7 @@ struct Donation: Identifiable {
             charityName: "Feeding America",
             category: .hunger,
             logoName: "fork.knife",
-            accentColor: "#FF6B35",
+            accentColor: "#E8A54B",
             impactTitle: "Feed a family for a week",
             impactDescription: "Your donation provides 10 meals to families facing hunger in your community.",
             dollarValue: 5.00

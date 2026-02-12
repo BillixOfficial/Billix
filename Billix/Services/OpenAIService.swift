@@ -391,3 +391,12 @@ enum OpenAIError: LocalizedError {
         }
     }
 }
+
+// MARK: - Local Deals
+
+extension OpenAIService {
+    func getLocalDeals(zipCode: String, city: String, state: String) async throws -> [LocalDeal] {
+        // Placeholder - returns empty until AI-powered deals are implemented
+        return []
+    }
+}

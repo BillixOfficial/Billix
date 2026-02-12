@@ -85,9 +85,9 @@ struct ArcadeHeroCard: View {
             // Main gradient - darker navy/purple
             LinearGradient(
                 colors: [
-                    Color(hex: "#1a1d4a"),
-                    Color(hex: "#2d1f52"),
-                    Color(hex: "#4a2563")
+                    Color(hex: "#1e3d40"),
+                    Color(hex: "#2d5a5e"),
+                    Color(hex: "#3a6e6e")
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -190,7 +190,7 @@ struct ArcadeHeroCard: View {
     private var rewardBadge: some View {
         Text("WIN UP TO 200 PTS")
             .font(.system(size: 11, weight: .bold))
-            .foregroundColor(Color(hex: "#1a1d4a"))
+            .foregroundColor(Color(hex: "#1e3d40"))
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(
@@ -572,7 +572,7 @@ struct CoinView: View {
             // Coin detail
             Text("$")
                 .font(.system(size: 8, weight: .bold))
-                .foregroundColor(Color(hex: "#1a1d4a").opacity(0.6))
+                .foregroundColor(Color(hex: "#1e3d40").opacity(0.6))
         }
         .rotationEffect(.degrees(isAnimating ? 360 : 0))
         .animation(isVisible && isTabActive ? .linear(duration: 8).repeatForever(autoreverses: false) : .default, value: isAnimating)
@@ -637,7 +637,7 @@ struct PriceTagIcon: View {
 
             // Hole for tag string
             Circle()
-                .fill(Color(hex: "#1a1d4a"))
+                .fill(Color(hex: "#1e3d40"))
                 .frame(width: 6, height: 6)
                 .offset(y: -16)
         }

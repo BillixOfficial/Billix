@@ -11,17 +11,7 @@ struct BouncingPigLoadingView: View {
     let message: String
 
     @State private var bounceOffset: CGFloat = 0
-    @State private var rotation: Double = 0
-    @State private var scale: CGFloat = 1.0
-    @State private var pulseOpacity: Double = 0.3
-
-    private let loadingMessages = [
-        "Analyzing your bill...",
-        "This usually takes about a minute",
-        "Hang tight! We're processing your receipt",
-        "Almost there...",
-        "Crunching the numbers..."
-    ]
+    @State private var dotIndex: Int = 0
 
     var body: some View {
         ZStack {
@@ -37,7 +27,7 @@ struct BouncingPigLoadingView: View {
             )
             .ignoresSafeArea()
 
-            // Decorative circles
+            // Decorative circles (static bubbles)
             GeometryReader { geo in
                 Circle()
                     .fill(Color.billixMoneyGreen.opacity(0.08))
@@ -58,40 +48,40 @@ struct BouncingPigLoadingView: View {
             VStack(spacing: 32) {
                 Spacer()
 
-                // Pig Bouncing on Money Stack with glow effect
+                // Pig Bouncing on Money Stack
                 ZStack(alignment: .bottom) {
-                    // Pulsing glow behind
+                    // Static glow behind
                     Circle()
-                        .fill(Color.billixMoneyGreen.opacity(pulseOpacity))
+                        .fill(Color.billixMoneyGreen.opacity(0.4))
                         .frame(width: 160, height: 160)
                         .blur(radius: 30)
                         .offset(y: -20)
 
-                    // Money Stack (stationary) - rendered first (background)
+                    // Money Stack (stationary)
                     Image("money_stack")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 180, height: 110)
                         .offset(y: 20)
 
-                    // Bouncing Pig on top - rendered last (foreground)
+                    // Bouncing Pig ONLY - animation scoped to just this element
                     Image("pig_loading")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 90, height: 90)
                         .offset(y: bounceOffset - 30)
-                        .rotationEffect(.degrees(rotation))
-                        .scaleEffect(scale)
+                        .animation(
+                            .easeInOut(duration: 0.5).repeatForever(autoreverses: true),
+                            value: bounceOffset
+                        )
                 }
                 .frame(height: 200)
                 .onAppear {
-                    startBounceAnimation()
-                    startSubtleRotation()
-                    startScalePulse()
-                    startGlowPulse()
+                    bounceOffset = -15
+                    startDotAnimation()
                 }
 
-                // Loading Message Card
+                // Loading Message Card (static)
                 VStack(spacing: 12) {
                     Text(message)
                         .font(.system(size: 20, weight: .bold))
@@ -103,14 +93,13 @@ struct BouncingPigLoadingView: View {
                         .foregroundColor(.billixMediumGreen)
                         .multilineTextAlignment(.center)
 
-                    // Progress dots
+                    // Progress dots (simple opacity animation)
                     HStack(spacing: 8) {
                         ForEach(0..<3) { index in
                             Circle()
                                 .fill(Color.billixMoneyGreen)
                                 .frame(width: 8, height: 8)
-                                .scaleEffect(pulseOpacity > 0.4 && index == Int(Date().timeIntervalSince1970) % 3 ? 1.3 : 1.0)
-                                .animation(.easeInOut(duration: 0.4), value: pulseOpacity)
+                                .opacity(dotIndex == index ? 1.0 : 0.4)
                         }
                     }
                     .padding(.top, 8)
@@ -130,39 +119,9 @@ struct BouncingPigLoadingView: View {
         }
     }
 
-    private func startBounceAnimation() {
-        withAnimation(
-            .spring(duration: 0.6, bounce: 0.5)
-            .repeatForever(autoreverses: true)
-        ) {
-            bounceOffset = -20  // Bounce UP - negative moves up, pig floats above money
-        }
-    }
-
-    private func startSubtleRotation() {
-        withAnimation(
-            .easeInOut(duration: 1.2)
-            .repeatForever(autoreverses: true)
-        ) {
-            rotation = 5
-        }
-    }
-
-    private func startScalePulse() {
-        withAnimation(
-            .easeInOut(duration: 0.8)
-            .repeatForever(autoreverses: true)
-        ) {
-            scale = 1.1
-        }
-    }
-
-    private func startGlowPulse() {
-        withAnimation(
-            .easeInOut(duration: 1.5)
-            .repeatForever(autoreverses: true)
-        ) {
-            pulseOpacity = 0.6
+    private func startDotAnimation() {
+        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+            dotIndex = (dotIndex + 1) % 3
         }
     }
 }

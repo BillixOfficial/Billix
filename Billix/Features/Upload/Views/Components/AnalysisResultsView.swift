@@ -277,7 +277,9 @@ struct AnalysisResultsEmbeddedView: View {
                 areaAverage: 128.00,
                 percentDiff: 11.3,
                 zipPrefix: "481",
-                position: .above
+                position: .above,
+                state: "MI",
+                sampleSize: 42
             ),
             plainEnglishSummary: nil,
             redFlags: nil,

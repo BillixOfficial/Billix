@@ -41,8 +41,8 @@ struct ScanUploadFlowView: View {
                 case .uploading, .analyzing:
                     ScanUploadProgressView(viewModel: viewModel)
 
-                case .success(let analysis):
-                    ScanUploadResultView(analysis: analysis, onComplete: {
+                case .success(let analysis, let billId):
+                    ScanUploadResultView(analysis: analysis, billId: billId, onComplete: {
                         onComplete()
                         dismiss()
                     })
@@ -61,14 +61,7 @@ struct ScanUploadFlowView: View {
             }
             .navigationTitle("Full Analysis")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.billixChartBlue)
-                }
-            }
+            .toolbarColorScheme(.dark, for: .navigationBar)
         }
         .onAppear {
             // Inject ModelContext into ViewModel for saving bills

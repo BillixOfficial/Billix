@@ -200,6 +200,14 @@ struct CombinedUser: Identifiable, Equatable {
         profile.displayName == nil && billixProfile?.displayName == nil
     }
 
+    var requesterPoints: Int {
+        0 // TODO: Connect to BillConnection reputation system
+    }
+
+    var supporterPoints: Int {
+        0 // TODO: Connect to BillConnection reputation system
+    }
+
     var needsHomeSetup: Bool {
         // Show home setup questions if not completed yet
         billixProfile?.homeSetupCompleted != true

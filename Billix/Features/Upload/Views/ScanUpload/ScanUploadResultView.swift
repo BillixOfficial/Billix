@@ -11,10 +11,17 @@ import SwiftUI
 /// Uses tabbed layout with hero section and swipeable tabs
 struct ScanUploadResultView: View {
     let analysis: BillAnalysis
+    let billId: UUID?
     let onComplete: () -> Void
 
+    init(analysis: BillAnalysis, billId: UUID? = nil, onComplete: @escaping () -> Void) {
+        self.analysis = analysis
+        self.billId = billId
+        self.onComplete = onComplete
+    }
+
     var body: some View {
-        AnalysisResultsTabbedView(analysis: analysis, onComplete: onComplete)
+        AnalysisResultsTabbedView(analysis: analysis, onComplete: onComplete, billId: billId)
     }
 }
 

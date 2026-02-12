@@ -20,7 +20,7 @@ class ScanUploadViewModel: ObservableObject {
         case selecting
         case uploading
         case analyzing
-        case success(BillAnalysis)
+        case success(BillAnalysis, billId: UUID?)
         case error(UploadError)
     }
 
@@ -166,7 +166,7 @@ class ScanUploadViewModel: ObservableObject {
 
             progress = 1.0
             statusMessage = "Complete!"
-            uploadState = .success(analysis)
+            uploadState = .success(analysis, billId: billId)
 
             // Track bill upload for tasks
             if let billId = billId {

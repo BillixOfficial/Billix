@@ -79,6 +79,7 @@ struct CommunityPost: Identifiable {
     var topComment: CommunityComment?  // Featured comment to show below post
     var isSaved: Bool  // Whether the current user has saved/bookmarked this post
     var userReaction: String?  // The current user's reaction type (e.g., "heart", "fire", "thumbsUp")
+    var reactionCounts: [String: Int]  // Breakdown of reaction counts by type (e.g., ["heart": 3, "fire": 1])
     var isOwnPost: Bool  // Whether the current user is the author of this post
     let isAnonymous: Bool  // Whether the post was submitted anonymously
 
@@ -100,6 +101,7 @@ struct CommunityPost: Identifiable {
         topComment: CommunityComment? = nil,
         isSaved: Bool = false,
         userReaction: String? = nil,
+        reactionCounts: [String: Int] = [:],
         isOwnPost: Bool = false,
         isAnonymous: Bool = false
     ) {
@@ -120,6 +122,7 @@ struct CommunityPost: Identifiable {
         self.topComment = topComment
         self.isSaved = isSaved
         self.userReaction = userReaction
+        self.reactionCounts = reactionCounts
         self.isOwnPost = isOwnPost
         self.isAnonymous = isAnonymous
     }

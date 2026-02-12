@@ -234,14 +234,16 @@ class RealBillUploadService: BillUploadServiceProtocol {
 
         switch httpResponse.statusCode {
         case 200, 201:
-            // Parse wrapped response: { analysis: { ... } }
+            // Parse wrapped response: { analysis: { ... }, rawExtractedText: "..." }
             struct UploadResponse: Decodable {
                 let analysis: BillAnalysis
+                let rawExtractedText: String?
             }
 
             do {
                 let apiResponse = try jsonDecoder.decode(UploadResponse.self, from: data)
-                return apiResponse.analysis
+                // Merge rawExtractedText into the analysis (it comes at top level of response)
+                return apiResponse.analysis.withRawExtractedText(apiResponse.rawExtractedText)
             } catch {
                 print("❌ Decoding Error: \(error)")
                 if let decodingError = error as? DecodingError {

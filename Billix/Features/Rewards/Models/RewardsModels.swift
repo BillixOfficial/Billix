@@ -332,11 +332,11 @@ struct LeaderboardEntry: Identifiable, Codable, Equatable {
     let rank: Int
     let displayName: String
     let avatarInitials: String
-    let pointsThisWeek: Int
+    let totalPoints: Int
     let isCurrentUser: Bool
 
     var formattedPoints: String {
-        "\(pointsThisWeek) pts"
+        "\(totalPoints) pts"
     }
 
     var rankBadgeColor: Color {
@@ -506,7 +506,7 @@ extension Reward {
             brandGroup: nil,
             dollarValue: 0.05,
             iconName: "ticket.fill",
-            accentColor: "#FFD700"
+            accentColor: "#e8b54d"
         ),
         Reward(
             id: UUID(),
@@ -519,7 +519,7 @@ extension Reward {
             brandGroup: nil,
             dollarValue: 0.25,
             iconName: "ticket.fill",
-            accentColor: "#FFA500"
+            accentColor: "#d4a04e"
         ),
 
         // AMAZON GIFT CARDS
@@ -702,7 +702,7 @@ extension LeaderboardEntry {
             rank: 1,
             displayName: "Sarah M.",
             avatarInitials: "SM",
-            pointsThisWeek: 850,
+            totalPoints: 850,
             isCurrentUser: false
         ),
         LeaderboardEntry(
@@ -710,7 +710,7 @@ extension LeaderboardEntry {
             rank: 2,
             displayName: "Mike T.",
             avatarInitials: "MT",
-            pointsThisWeek: 720,
+            totalPoints: 720,
             isCurrentUser: false
         ),
         LeaderboardEntry(
@@ -718,7 +718,7 @@ extension LeaderboardEntry {
             rank: 3,
             displayName: "Jessica L.",
             avatarInitials: "JL",
-            pointsThisWeek: 680,
+            totalPoints: 680,
             isCurrentUser: false
         )
     ]
@@ -728,7 +728,7 @@ extension LeaderboardEntry {
         rank: 42,
         displayName: "You",
         avatarInitials: "DK",
-        pointsThisWeek: 150,
+        totalPoints: 150,
         isCurrentUser: true
     )
 }

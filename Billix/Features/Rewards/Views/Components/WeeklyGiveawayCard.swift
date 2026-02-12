@@ -271,8 +271,8 @@ struct WeeklyGiveawayCard: View {
                                 .fill(
                                     LinearGradient(
                                         colors: [
-                                            Color(hex: "#FFD700"), // Gold
-                                            Color(hex: "#FFA500")  // Orange
+                                            .billixGoldenAmber,
+                                            .billixGold
                                         ],
                                         startPoint: .leading,
                                         endPoint: .trailing

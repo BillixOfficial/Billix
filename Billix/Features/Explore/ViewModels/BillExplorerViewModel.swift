@@ -201,11 +201,12 @@ class BillExplorerViewModel: ObservableObject {
 
             print("[BillExplorer] Loaded \(response.count) bills from database")
 
-            // Filter out rent and insurance - only show utility bills in explorer
+            // Filter out rent, insurance, and unknown categories (e.g., medical)
+            // compactMap filters out nil values from failable init
             let validTypes = Set(ExploreBillType.explorerTypes)
             allListings = response
-                .map { ExploreBillListing(from: $0) }
-                .filter { validTypes.contains($0.billType) }
+                .compactMap { ExploreBillListing(from: $0) }  // Filters out unknown categories
+                .filter { validTypes.contains($0.billType) }  // Further filter to explorer types only
 
             print("[BillExplorer] After filtering: \(allListings.count) utility bills")
             applyRotationAlgorithm()
@@ -519,8 +520,8 @@ class BillExplorerViewModel: ObservableObject {
                 .execute()
                 .value
 
-            guard let row = response.first else { return }
-            let updatedListing = ExploreBillListing(from: row)
+            guard let row = response.first,
+                  let updatedListing = ExploreBillListing(from: row) else { return }
 
             // Update in all arrays
             if let index = allListings.firstIndex(where: { $0.id == id }) {
@@ -747,8 +748,8 @@ extension BillExplorerViewModel {
                 .execute()
                 .value
 
-            guard let row = response.first else { return }
-            let updatedListing = ExploreBillListing(from: row)
+            guard let row = response.first,
+                  let updatedListing = ExploreBillListing(from: row) else { return }
 
             // Update in all arrays
             if let index = allListings.firstIndex(where: { $0.id == id }) {

@@ -47,7 +47,9 @@ struct AnalysisSummaryTab: View {
                         position: comparison.position,
                         percentDiff: comparison.percentDiff,
                         areaAverage: comparison.areaAverage,
-                        yourAmount: analysis.amount
+                        yourAmount: analysis.amount,
+                        state: comparison.state,
+                        sampleSize: comparison.sampleSize
                     )
                 }
 
@@ -496,7 +498,9 @@ struct AnalysisSummaryTab: View {
                 areaAverage: 128.00,
                 percentDiff: 11.3,
                 zipPrefix: "481",
-                position: .above
+                position: .above,
+                state: "MI",
+                sampleSize: 42
             ),
             plainEnglishSummary: "Your November electric bill is $142.50, due December 15th. You used 147 kWh of electricity, which is about average for a home your size.",
             redFlags: [
@@ -505,7 +509,8 @@ struct AnalysisSummaryTab: View {
             controllableCosts: nil,
             savingsOpportunities: nil,
             jargonGlossary: nil,
-            assistancePrograms: nil
+            assistancePrograms: nil,
+            rawExtractedText: nil
         )
     )
     .background(Color.billixLightGreen)
