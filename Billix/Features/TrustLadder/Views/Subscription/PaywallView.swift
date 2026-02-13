@@ -49,6 +49,9 @@ struct PaywallView: View {
                         // Subscription options
                         subscriptionCards
 
+                        // Purchase button
+                        purchaseButton
+
                         // Or use credits (if applicable)
                         if case .featureGate(let feature) = context,
                            let creditCost = feature.creditCost {

@@ -160,7 +160,12 @@ struct IDVerificationView: View {
                 .fontWeight(.bold)
                 .foregroundColor(.billixDarkTeal)
 
-            Text("Your ID verification is being reviewed. This usually takes less than 24 hours. We'll notify you once it's approved.")
+            Text("Estimated review time: ~24 hours")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(.billixGoldenAmber)
+
+            Text("Your ID verification is being reviewed. We'll notify you once it's approved.")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -171,7 +176,20 @@ struct IDVerificationView: View {
                     .foregroundColor(.secondary)
             }
 
+            // Info banner - upload blocked while pending
+            HStack(spacing: 12) {
+                Image(systemName: "info.circle.fill")
+                    .foregroundColor(.billixDarkTeal)
+                Text("You cannot submit a new verification while one is under review.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color.billixDarkTeal.opacity(0.1))
+            .cornerRadius(12)
+
             Button("Done") {
+                onVerificationComplete?()
                 dismiss()
             }
             .frame(maxWidth: .infinity)

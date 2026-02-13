@@ -14,8 +14,13 @@ struct UpgradeMembershipView: View {
     let onDismiss: () -> Void
     let onUpgrade: () -> Void
 
+    @StateObject private var storeKit = StoreKitService.shared
     @State private var animateGradient = false
     @State private var animateContent = false
+    @State private var isPurchasing = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    @State private var showPurchaseSuccess = false
 
     private let accentColor = Color(hex: "#5B8A6B")
     private let goldColor = Color(hex: "#E8B54D")
@@ -299,30 +304,58 @@ struct UpgradeMembershipView: View {
     // MARK: - Action Buttons
 
     private var actionButtons: some View {
-        VStack(spacing: 12) {
-            Button {
-                onUpgrade()
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "arrow.up.right.circle.fill")
-                        .font(.system(size: 18))
+        VStack(spacing: 16) {
+            // Membership price card
+            VStack(spacing: 12) {
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text("$6.99")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(hex: "#2D3B35"))
+                    Text("/month")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Color(hex: "#8B9A94"))
 
-                    Text("Start Verification")
-                        .font(.system(size: 16, weight: .semibold))
+                    Spacer()
+
+                    Text("Cancel anytime")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: "#8B9A94"))
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    LinearGradient(
-                        colors: [accentColor, Color(hex: "#4A7A5B")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+
+                // Purchase button
+                Button {
+                    Task { await purchaseMembership() }
+                } label: {
+                    HStack(spacing: 10) {
+                        if isPurchasing {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 16))
+                            Text("Get Membership")
+                                .font(.system(size: 16, weight: .bold))
+                        }
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(
+                        LinearGradient(
+                            colors: [accentColor, Color(hex: "#4A7A5B")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
-                )
-                .cornerRadius(14)
-                .shadow(color: accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
+                    .cornerRadius(14)
+                    .shadow(color: accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
+                }
+                .disabled(isPurchasing)
             }
+            .padding(20)
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(color: Color.black.opacity(0.06), radius: 16, x: 0, y: 6)
 
             Button {
                 onDismiss()
@@ -333,6 +366,97 @@ struct UpgradeMembershipView: View {
             }
             .padding(.top, 4)
         }
+        .alert("Purchase", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
+        }
+        .overlay {
+            if showPurchaseSuccess {
+                purchaseSuccessOverlay
+            }
+        }
+    }
+
+    // MARK: - Purchase Success Overlay
+
+    private var purchaseSuccessOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                ZStack {
+                    Circle()
+                        .fill(accentColor.opacity(0.15))
+                        .frame(width: 80, height: 80)
+
+                    Circle()
+                        .fill(accentColor)
+                        .frame(width: 56, height: 56)
+
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(.white)
+                }
+
+                Text("Welcome to Contributor!")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(Color(hex: "#2D3B35"))
+
+                Text("You now have unlimited connections")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#8B9A94"))
+
+                Button {
+                    showPurchaseSuccess = false
+                    onDismiss()
+                } label: {
+                    Text("Continue")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 12)
+                        .background(accentColor)
+                        .cornerRadius(12)
+                }
+            }
+            .padding(32)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+            )
+            .padding(40)
+        }
+    }
+
+    // MARK: - Purchase Action
+
+    private func purchaseMembership() async {
+        isPurchasing = true
+
+        if storeKit.monthlyProduct == nil {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            await MainActor.run {
+                isPurchasing = false
+                errorMessage = "In-app purchases will be available soon! Products are being set up in App Store Connect."
+                showError = true
+            }
+            return
+        }
+
+        do {
+            let transaction = try await storeKit.purchase(storeKit.monthlyProduct!)
+            // Only show success if transaction completed (not cancelled)
+            if transaction != nil {
+                showPurchaseSuccess = true
+            }
+            // If nil, user cancelled - do nothing
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
+        isPurchasing = false
     }
 }
 
