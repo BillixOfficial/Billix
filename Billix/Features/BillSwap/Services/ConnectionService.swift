@@ -689,7 +689,13 @@ class ConnectionService: ObservableObject {
     }
 
     /// Check velocity limit for Neighbor tier (1/month)
+    /// Members with active subscription bypass this limit
     private func checkVelocityLimit(userId: UUID) async throws {
+        // Members have unlimited connections - bypass velocity limit
+        if await StoreKitService.shared.isMember {
+            return
+        }
+
         let tier = try await ReputationService.shared.getUserTier(userId: userId)
 
         guard let velocityLimit = tier.velocityLimit else {

@@ -1461,9 +1461,10 @@ private struct OfferSupportSheet: View {
             }
             .sheet(isPresented: $showIDVerificationSheet) {
                 IDVerificationView(onVerificationComplete: {
-                    // User submitted verification - dismiss sheet
+                    // User submitted verification - dismiss sheet and return to Home
                     // They'll need to wait for approval before offering support
                     showIDVerificationSheet = false
+                    dismiss()
                 })
             }
         }

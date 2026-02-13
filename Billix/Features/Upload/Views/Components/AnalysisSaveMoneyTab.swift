@@ -365,76 +365,78 @@ struct LegalDisclaimerView: View {
 
 // MARK: - Previews
 
-#Preview("Save Money Tab - With Programs") {
-    let mockPrograms = [
-        BillAnalysis.AssistanceProgram(
-            title: "Low Income Home Energy Assistance Program (LIHEAP)",
-            description: "Federal program helping with heating and cooling costs for eligible households across the United States.",
-            programType: .government,
-            eligibility: "Household income at or below 150% of federal poverty level",
-            applicationUrl: "https://www.acf.hhs.gov/ocs/liheap",
-            phoneNumber: "800-677-1116",
-            estimatedBenefit: "$100-$500/year",
-            provider: "U.S. Department of Health and Human Services"
-        ),
-        BillAnalysis.AssistanceProgram(
-            title: "DTE Energy Assistance Fund",
-            description: "Emergency assistance for DTE customers facing financial hardship",
-            programType: .utility,
-            eligibility: "DTE customers with past-due balance or demonstrated financial need",
-            applicationUrl: "https://www.dteenergy.com/assistance",
-            phoneNumber: "800-477-4747",
-            estimatedBenefit: "Up to $200/year",
-            provider: "DTE Energy"
-        ),
-        BillAnalysis.AssistanceProgram(
-            title: "United Way 211 - Utility Assistance",
-            description: "Connects you to local charities and nonprofits offering utility bill help in your area",
-            programType: .local,
-            eligibility: "Varies by organization, typically income-based",
-            applicationUrl: nil,
-            phoneNumber: "211",
-            estimatedBenefit: "Varies by program",
-            provider: "United Way"
-        )
-    ]
-
-    let mockAnalysis = BillAnalysis(
-        provider: "DTE Energy",
-        amount: 142.50,
-        billDate: "2024-11-01",
-        dueDate: "2024-11-15",
-        accountNumber: "1234567890",
-        category: "Electric",
-        zipCode: "48127",
-        keyFacts: nil,
-        lineItems: [],
-        costBreakdown: nil,
-        insights: nil,
-        marketplaceComparison: BillAnalysis.MarketplaceComparison(
-            areaAverage: 120.0,
-            percentDiff: 18.75,
-            zipPrefix: "481",
-            position: .above,
-            state: "MI",
-            sampleSize: 42
-        ),
-        plainEnglishSummary: nil,
-        redFlags: nil,
-        controllableCosts: nil,
-        savingsOpportunities: [
-            BillAnalysis.ActionItem(
-                action: "Switch to time-of-use electricity plan",
-                explanation: "Save during off-peak hours",
-                potentialSavings: 25,
-                difficulty: "easy",
-                category: "provider-option"
+struct AnalysisSaveMoneyTab_Previews: PreviewProvider {
+    static var previews: some View {
+        let mockPrograms = [
+            BillAnalysis.AssistanceProgram(
+                title: "Low Income Home Energy Assistance Program (LIHEAP)",
+                description: "Federal program helping with heating and cooling costs for eligible households across the United States.",
+                programType: .government,
+                eligibility: "Household income at or below 150% of federal poverty level",
+                applicationUrl: "https://www.acf.hhs.gov/ocs/liheap",
+                phoneNumber: "800-677-1116",
+                estimatedBenefit: "$100-$500/year",
+                provider: "U.S. Department of Health and Human Services"
+            ),
+            BillAnalysis.AssistanceProgram(
+                title: "DTE Energy Assistance Fund",
+                description: "Emergency assistance for DTE customers facing financial hardship",
+                programType: .utility,
+                eligibility: "DTE customers with past-due balance or demonstrated financial need",
+                applicationUrl: "https://www.dteenergy.com/assistance",
+                phoneNumber: "800-477-4747",
+                estimatedBenefit: "Up to $200/year",
+                provider: "DTE Energy"
+            ),
+            BillAnalysis.AssistanceProgram(
+                title: "United Way 211 - Utility Assistance",
+                description: "Connects you to local charities and nonprofits offering utility bill help in your area",
+                programType: .local,
+                eligibility: "Varies by organization, typically income-based",
+                applicationUrl: nil,
+                phoneNumber: "211",
+                estimatedBenefit: "Varies by program",
+                provider: "United Way"
             )
-        ],
-        jargonGlossary: nil,
-        assistancePrograms: mockPrograms,
-        rawExtractedText: nil
-    )
+        ]
 
-    AnalysisSaveMoneyTab(analysis: mockAnalysis)
+        let mockAnalysis = BillAnalysis(
+            provider: "DTE Energy",
+            amount: 142.50,
+            billDate: "2024-11-01",
+            dueDate: "2024-11-15",
+            accountNumber: "1234567890",
+            category: "Electric",
+            zipCode: "48127",
+            keyFacts: nil,
+            lineItems: [],
+            costBreakdown: nil,
+            insights: nil,
+            marketplaceComparison: BillAnalysis.MarketplaceComparison(
+                areaAverage: 120.0,
+                percentDiff: 18.75,
+                zipPrefix: "481",
+                position: .above,
+                state: "MI",
+                sampleSize: 42
+            ),
+            plainEnglishSummary: nil,
+            redFlags: nil,
+            controllableCosts: nil,
+            savingsOpportunities: [
+                BillAnalysis.ActionItem(
+                    action: "Switch to time-of-use electricity plan",
+                    explanation: "Save during off-peak hours",
+                    potentialSavings: 25,
+                    difficulty: "easy",
+                    category: "provider-option"
+                )
+            ],
+            jargonGlossary: nil,
+            assistancePrograms: mockPrograms,
+            rawExtractedText: nil
+        )
+
+        return AnalysisSaveMoneyTab(analysis: mockAnalysis)
+    }
 }

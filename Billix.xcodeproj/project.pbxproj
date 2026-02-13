@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		43841E5AA691638BE749489B /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD10DE83FAC5253BFE19823F /* PaywallView.swift */; };
+		C0NNSTAT51SHT23456789AB /* ConnectionStatsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0NNSTAT52SHT34567890CD /* ConnectionStatsSheet.swift */; };
+		MUTUALMATCH1SVC23456789AB /* MutualMatchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = MUTUALMATCH2SVC34567890CD /* MutualMatchService.swift */; };
+		FA6E5117BAEA0BA6552AECE9 /* MutualPairStatusCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CB81267E86AF92610F87234 /* MutualPairStatusCard.swift */; };
+		820C642894D4327A09A6803D /* UpgradeMembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC85FDF5F85EFB68C6B99E09 /* UpgradeMembershipView.swift */; };
+		98D68EB172B949332063065B /* MutualMatchesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C28A89FD0B4F5BA316D22928 /* MutualMatchesView.swift */; };
 		026616F06A2AC97D284507A7 /* BountyCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010C6E2DD4FA58D78A2C9242 /* BountyCard.swift */; };
 		04473EEB06DC470B82DCA7F2 /* Billix/Utilities/TypographyStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 356536A013AE49BFAC0913C1 /* Billix/Utilities/TypographyStyles.swift */; };
 		04C5E42336EC8D5467AF071B /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37618943593B07EF1C2D38C /* ForgotPasswordView.swift */; };
@@ -528,6 +534,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BD10DE83FAC5253BFE19823F /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PaywallView.swift; path = Billix/Features/TrustLadder/Views/Subscription/PaywallView.swift; sourceTree = "<group>"; };
+		C0NNSTAT52SHT34567890CD /* ConnectionStatsSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConnectionStatsSheet.swift; path = Billix/Features/Home/Components/ConnectionStatsSheet.swift; sourceTree = "<group>"; };
+		MUTUALMATCH2SVC34567890CD /* MutualMatchService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MutualMatchService.swift; path = Billix/Features/BillSwap/Services/MutualMatchService.swift; sourceTree = "<group>"; };
+		0CB81267E86AF92610F87234 /* MutualPairStatusCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MutualPairStatusCard.swift; path = Billix/Features/BillSwap/Components/MutualPairStatusCard.swift; sourceTree = "<group>"; };
+		EC85FDF5F85EFB68C6B99E09 /* UpgradeMembershipView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UpgradeMembershipView.swift; path = Billix/Features/BillSwap/Views/UpgradeMembershipView.swift; sourceTree = "<group>"; };
+		C28A89FD0B4F5BA316D22928 /* MutualMatchesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MutualMatchesView.swift; path = Billix/Features/BillSwap/Views/MutualMatchesView.swift; sourceTree = "<group>"; };
 		002C297BCE0CB75808BC2755 /* MarketplaceView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MarketplaceView.swift; sourceTree = "<group>"; };
 		00E8B290FA340C69190B6D63 /* SessionGameContainerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SessionGameContainerView.swift; path = ../../../../../Billix/Features/Rewards/Views/GeoGame/SessionGameContainerView.swift; sourceTree = "<group>"; };
 		010C6E2DD4FA58D78A2C9242 /* BountyCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BountyCard.swift; sourceTree = "<group>"; };
@@ -2650,6 +2662,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43841E5AA691638BE749489B /* PaywallView.swift in Sources */,
+				C0NNSTAT51SHT23456789AB /* ConnectionStatsSheet.swift in Sources */,
+				MUTUALMATCH1SVC23456789AB /* MutualMatchService.swift in Sources */,
+				FA6E5117BAEA0BA6552AECE9 /* MutualPairStatusCard.swift in Sources */,
+				820C642894D4327A09A6803D /* UpgradeMembershipView.swift in Sources */,
+				98D68EB172B949332063065B /* MutualMatchesView.swift in Sources */,
 				53B31F2AA624979A5BA44697 /* USRegion.swift in Sources */,
 				E48EC8A07D5697F88D447036 /* BillTypeDetailsCard.swift in Sources */,
 				F2FA6CD17340402CCBF99B90 /* UsageComparisonBar.swift in Sources */,
