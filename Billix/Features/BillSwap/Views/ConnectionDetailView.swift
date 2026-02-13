@@ -40,6 +40,15 @@ struct ConnectionDetailView: View {
                     viewModel: viewModel
                 )
 
+                // Mutual Pair Status (if this is a paired mutual connection)
+                if let pairId = connection.mutualPairId {
+                    MutualPairStatusCard(
+                        pairId: pairId,
+                        currentConnectionId: connection.id
+                    )
+                    .padding(.horizontal)
+                }
+
                 // Phase-Specific Content
                 PhaseContentView(
                     connection: connection,
@@ -89,7 +98,7 @@ struct ConnectionDetailView: View {
                 }
             }
         }
-        .alert("Cancel Connection?", isPresented: $showCancelAlert) {
+        .alert(connection.mutualPairId != nil ? "Cancel Mutual Swap?" : "Cancel Connection?", isPresented: $showCancelAlert) {
             Button("Keep Connection", role: .cancel) { }
             Button("Cancel", role: .destructive) {
                 Task {
@@ -98,7 +107,11 @@ struct ConnectionDetailView: View {
                 }
             }
         } message: {
-            Text("This will end the connection. If payment has already been made, please raise a dispute instead.")
+            if connection.mutualPairId != nil {
+                Text("This will cancel BOTH your connection AND your partner's connection. A reputation penalty will be applied. If payment has already been made, please raise a dispute instead.")
+            } else {
+                Text("This will end the connection. If payment has already been made, please raise a dispute instead.")
+            }
         }
         .sheet(isPresented: $showDisputeSheet) {
             DisputeSheet(connection: connection, viewModel: viewModel)
@@ -1609,8 +1622,10 @@ class ConnectionDetailViewModel: ObservableObject {
 
 // MARK: - Preview
 
-#Preview {
-    NavigationStack {
+struct ConnectionDetailView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
         ConnectionDetailView(connection: Connection.mockRequested())
+        }
     }
 }

@@ -308,6 +308,30 @@ enum UrgencyLevel: String, Codable {
 // MARK: - Mock Data
 
 extension SupportBill {
+    /// Mock electric bill for previews
+    static func mockElectric() -> SupportBill {
+        SupportBill(
+            id: UUID(),
+            userId: UUID(),
+            amount: 125.50,
+            dueDate: Calendar.current.date(byAdding: .day, value: 5, to: Date()),
+            providerName: "DTE Energy",
+            category: .electric,
+            zipCode: "48201",
+            status: .posted,
+            guestPayLink: "https://newlook.dteenergy.com/wps/wcm/connect/dte-web/quicklinks/pay-your-bill",
+            tokensCharged: 2,
+            billAnalysis: SupportBillAnalysisData(
+                provider: "DTE Energy",
+                amount: 125.50,
+                category: "electric",
+                healthScore: 72
+            ),
+            isVerified: true,
+            verifiedAt: Date()
+        )
+    }
+
     static let mockBills: [SupportBill] = [
         SupportBill(
             id: UUID(),

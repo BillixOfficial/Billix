@@ -2,11 +2,12 @@
 //  IDVerificationService.swift
 //  Billix
 //
-//  Service for ID document verification via ID Analyzer
+//  Service for manual ID verification - users upload selfie + ID photos
+//  for founder review via Supabase Storage
 //
 
 import Foundation
-import UIKit
+import class UIKit.UIImage
 import Supabase
 
 // MARK: - ID Verification Status
@@ -16,6 +17,15 @@ enum IDVerificationStatus: String {
     case pending = "pending"
     case verified = "verified"
     case failed = "failed"
+    case rejected = "rejected"
+}
+
+// MARK: - Submission Status (from database)
+
+struct IDSubmissionStatus {
+    let status: IDVerificationStatus
+    let rejectionReason: String?
+    let submittedAt: Date?
 }
 
 // MARK: - ID Verification Service
@@ -31,6 +41,12 @@ class IDVerificationService: ObservableObject {
     @Published var error: Error?
     @Published var lastErrorMessage: String?
     @Published var isIDVerified = false
+
+    /// Current submission status (for pending/rejected states)
+    @Published var submissionStatus: IDSubmissionStatus?
+
+    /// Rejection reason if verification was rejected
+    @Published var rejectionReason: String?
 
     // MARK: - Private Properties
 
@@ -101,6 +117,151 @@ class IDVerificationService: ObservableObject {
             let verificationError = IDVerificationError.networkError(error.localizedDescription)
             self.error = verificationError
             throw verificationError
+        }
+    }
+
+    // MARK: - Manual Verification (New Flow)
+
+    /// Submit ID documents for manual verification by founder
+    /// Uploads selfie + ID images to Supabase Storage and creates submission record
+    func submitForManualVerification(selfie: UIImage, idFront: UIImage, idBack: UIImage?) async throws {
+        guard let userId = AuthService.shared.currentUser?.id else {
+            throw IDVerificationError.notAuthenticated
+        }
+
+        isLoading = true
+        error = nil
+        lastErrorMessage = nil
+
+        defer { isLoading = false }
+
+        do {
+            // Upload images to Supabase Storage
+            let selfieUrl = try await uploadImage(selfie, type: "selfie", userId: userId)
+            let idFrontUrl = try await uploadImage(idFront, type: "id_front", userId: userId)
+            let idBackUrl = idBack != nil ? try await uploadImage(idBack!, type: "id_back", userId: userId) : nil
+
+            // Create submission record
+            let submission = IDVerificationSubmissionInsert(
+                userId: userId,
+                selfieUrl: selfieUrl,
+                idFrontUrl: idFrontUrl,
+                idBackUrl: idBackUrl
+            )
+
+            try await supabase
+                .from("id_verification_submissions")
+                .insert(submission)
+                .execute()
+
+            // Update local status
+            verificationStatus = .pending
+            submissionStatus = IDSubmissionStatus(
+                status: .pending,
+                rejectionReason: nil,
+                submittedAt: Date()
+            )
+
+            print("ID verification submitted successfully")
+
+        } catch {
+            verificationStatus = .failed
+            lastErrorMessage = "Failed to submit verification: \(error.localizedDescription)"
+            throw IDVerificationError.networkError(error.localizedDescription)
+        }
+    }
+
+    /// Upload an image to Supabase Storage
+    private func uploadImage(_ image: UIImage, type: String, userId: UUID) async throws -> String {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            throw IDVerificationError.imageConversionFailed
+        }
+
+        // Store in user's folder: {userId}/{type}_{timestamp}.jpg
+        // IMPORTANT: Use lowercase UUID to match Supabase auth.uid() format
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let filename = "\(userId.uuidString.lowercased())/\(type)_\(timestamp).jpg"
+
+        try await supabase.storage
+            .from("id-verification")
+            .upload(
+                path: filename,
+                file: imageData,
+                options: FileOptions(contentType: "image/jpeg")
+            )
+
+        // Return just the path (not full URL since it's a private bucket)
+        return filename
+    }
+
+    /// Fetch the current submission status from the database
+    func fetchSubmissionStatus() async {
+        guard let userId = AuthService.shared.currentUser?.id else {
+            verificationStatus = .notStarted
+            return
+        }
+
+        do {
+            // First check if already verified in profiles
+            let profile: IDVerificationProfile? = try? await supabase
+                .from("profiles")
+                .select("id_verified, id_verified_at")
+                .eq("user_id", value: userId.uuidString)
+                .single()
+                .execute()
+                .value
+
+            if profile?.idVerified == true {
+                verificationStatus = .verified
+                isIDVerified = true
+                return
+            }
+
+            // Check for submissions
+            let submissions: [IDVerificationSubmissionResponse] = try await supabase
+                .from("id_verification_submissions")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .order("created_at", ascending: false)
+                .limit(1)
+                .execute()
+                .value
+
+            if let latest = submissions.first {
+                switch latest.status {
+                case "pending":
+                    verificationStatus = .pending
+                    submissionStatus = IDSubmissionStatus(
+                        status: .pending,
+                        rejectionReason: nil,
+                        submittedAt: latest.submittedAt
+                    )
+                case "approved":
+                    verificationStatus = .verified
+                    isIDVerified = true
+                    submissionStatus = IDSubmissionStatus(
+                        status: .verified,
+                        rejectionReason: nil,
+                        submittedAt: latest.submittedAt
+                    )
+                case "rejected":
+                    verificationStatus = .rejected
+                    rejectionReason = latest.rejectionReason
+                    submissionStatus = IDSubmissionStatus(
+                        status: .rejected,
+                        rejectionReason: latest.rejectionReason,
+                        submittedAt: latest.submittedAt
+                    )
+                default:
+                    verificationStatus = .notStarted
+                }
+            } else {
+                verificationStatus = .notStarted
+            }
+
+        } catch {
+            print("Failed to fetch submission status: \(error)")
+            verificationStatus = .notStarted
         }
     }
 
@@ -180,6 +341,14 @@ class IDVerificationService: ObservableObject {
         verificationStatus = .notStarted
         error = nil
         lastErrorMessage = nil
+        submissionStatus = nil
+        rejectionReason = nil
+        isIDVerified = false
+    }
+
+    /// Check if user can resubmit verification (only allowed if rejected)
+    var canResubmit: Bool {
+        verificationStatus == .rejected || verificationStatus == .notStarted || verificationStatus == .failed
     }
 }
 
@@ -269,6 +438,60 @@ private struct FullVerificationProfile: Decodable {
     enum CodingKeys: String, CodingKey {
         case phoneVerified = "phone_verified"
         case idVerified = "id_verified"
+    }
+}
+
+// MARK: - Manual Verification Models
+
+/// Model for inserting a new verification submission
+private struct IDVerificationSubmissionInsert: Encodable {
+    let userId: UUID
+    let selfieUrl: String
+    let idFrontUrl: String
+    let idBackUrl: String?
+    let status: String
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case selfieUrl = "selfie_url"
+        case idFrontUrl = "id_front_url"
+        case idBackUrl = "id_back_url"
+        case status
+    }
+
+    init(userId: UUID, selfieUrl: String, idFrontUrl: String, idBackUrl: String?) {
+        self.userId = userId
+        self.selfieUrl = selfieUrl
+        self.idFrontUrl = idFrontUrl
+        self.idBackUrl = idBackUrl
+        self.status = "pending"
+    }
+}
+
+/// Model for reading submission responses
+private struct IDVerificationSubmissionResponse: Decodable {
+    let id: UUID
+    let userId: UUID
+    let selfieUrl: String
+    let idFrontUrl: String
+    let idBackUrl: String?
+    let status: String
+    let rejectionReason: String?
+    let submittedAt: Date?
+    let reviewedAt: Date?
+    let createdAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case selfieUrl = "selfie_url"
+        case idFrontUrl = "id_front_url"
+        case idBackUrl = "id_back_url"
+        case status
+        case rejectionReason = "rejection_reason"
+        case submittedAt = "submitted_at"
+        case reviewedAt = "reviewed_at"
+        case createdAt = "created_at"
     }
 }
 

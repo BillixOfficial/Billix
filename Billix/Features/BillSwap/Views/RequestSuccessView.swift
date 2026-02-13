@@ -18,6 +18,10 @@ struct RequestSuccessView: View {
     @State private var animateCheckmark = false
     @State private var animateContent = false
     @State private var tokenBalance: Int = 0
+    @State private var showUpgradeView = false
+    @State private var showIDVerificationSheet = false
+    @State private var currentTier: ReputationTier = .neighbor
+    @State private var monthlyLimit: Int = 1
 
     private let accentColor = Color(hex: "#5B8A6B")
     private let cardBackground = Color.white
@@ -78,6 +82,25 @@ struct RequestSuccessView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(errorMessage)
+        }
+        .fullScreenCover(isPresented: $showUpgradeView) {
+            UpgradeMembershipView(
+                currentTier: currentTier,
+                monthlyLimit: monthlyLimit,
+                onDismiss: {
+                    showUpgradeView = false
+                },
+                onUpgrade: {
+                    navigateToVerification()
+                }
+            )
+        }
+        .sheet(isPresented: $showIDVerificationSheet) {
+            IDVerificationView(onVerificationComplete: {
+                // User submitted verification - dismiss sheet
+                // They'll need to wait for approval before posting
+                showIDVerificationSheet = false
+            })
         }
     }
 
@@ -304,6 +327,24 @@ struct RequestSuccessView: View {
             await MainActor.run {
                 onComplete()
             }
+        } catch let error as ConnectionError {
+            await MainActor.run {
+                isCreatingConnection = false
+
+                switch error {
+                case .velocityLimitReached(let limit, let tier):
+                    // Show upgrade view for velocity limit errors
+                    currentTier = tier
+                    monthlyLimit = limit
+                    showUpgradeView = true
+                case .idVerificationRequired:
+                    // Show ID verification view instead of alert
+                    showIDVerificationSheet = true
+                default:
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription
@@ -311,6 +352,13 @@ struct RequestSuccessView: View {
                 isCreatingConnection = false
             }
         }
+    }
+
+    private func navigateToVerification() {
+        // Dismiss upgrade view and navigate to verification
+        showUpgradeView = false
+        // TODO: Navigate to verification flow
+        onComplete()
     }
 }
 
@@ -384,17 +432,19 @@ struct ConnectionTypeCard: View {
 
 // MARK: - Preview
 
-#Preview {
-    RequestSuccessView(
+struct RequestSuccessView_Previews: PreviewProvider {
+    static var previews: some View {
+        RequestSuccessView(
         bill: SupportBill(
-            id: UUID(),
-            userId: UUID(),
-            amount: 9.00,
-            dueDate: Date(),
-            providerName: "Rutgers University",
-            category: .electric,
-            status: .posted
+        id: UUID(),
+        userId: UUID(),
+        amount: 9.00,
+        dueDate: Date(),
+        providerName: "Rutgers University",
+        category: .electric,
+        status: .posted
         ),
         onComplete: {}
-    )
+        )
+    }
 }
