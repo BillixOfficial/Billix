@@ -368,6 +368,60 @@ class OpenAIService: ObservableObject {
         nationalAveragesCache.removeAll()
         upcomingEstimatesCache.removeAll()
     }
+
+    // MARK: - Local Deals
+
+    /// Get local deals for a specific area
+    /// Returns deals based on the user's location (zip code, city, state)
+    func getLocalDeals(zipCode: String, city: String, state: String) async throws -> [LocalDeal] {
+        isLoading = true
+        defer { isLoading = false }
+
+        // For now, return mock deals - will be replaced with actual API call
+        // TODO: Implement edge function for local deals
+        return [
+            LocalDeal(
+                id: UUID(),
+                title: "Energy Efficiency Rebate",
+                description: "Get up to $500 back on qualifying appliances",
+                category: "rebate",
+                icon: "leaf.fill",
+                savingsAmount: "Up to $500",
+                deadline: "Ends Dec 31"
+            ),
+            LocalDeal(
+                id: UUID(),
+                title: "LIHEAP Assistance",
+                description: "Low-income home energy assistance program",
+                category: "assistance",
+                icon: "heart.fill",
+                savingsAmount: nil,
+                deadline: nil
+            ),
+            LocalDeal(
+                id: UUID(),
+                title: "Solar Panel Tax Credit",
+                description: "Federal solar investment tax credit for homeowners",
+                category: "solar",
+                icon: "sun.max.fill",
+                savingsAmount: "30% credit",
+                deadline: nil
+            )
+        ]
+    }
+}
+
+// MARK: - Local Deal Model
+
+/// A local deal or savings opportunity
+struct LocalDeal: Identifiable, Codable {
+    let id: UUID
+    let title: String
+    let description: String
+    let category: String   // rebate, solar, assistance, billing
+    let icon: String
+    let savingsAmount: String?
+    let deadline: String?
 }
 
 // MARK: - OpenAI Errors
@@ -392,11 +446,3 @@ enum OpenAIError: LocalizedError {
     }
 }
 
-// MARK: - Local Deals
-
-extension OpenAIService {
-    func getLocalDeals(zipCode: String, city: String, state: String) async throws -> [LocalDeal] {
-        // Placeholder - returns empty until AI-powered deals are implemented
-        return []
-    }
-}

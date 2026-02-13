@@ -12,21 +12,23 @@ struct IDVerificationView: View {
     @StateObject private var verificationService = IDVerificationService.shared
     @Environment(\.dismiss) private var dismiss
 
+    @State private var selfieImage: UIImage?
     @State private var frontImage: UIImage?
     @State private var backImage: UIImage?
+    @State private var showSelfiePicker = false
     @State private var showFrontPicker = false
     @State private var showBackPicker = false
     @State private var showCamera = false
-    @State private var cameraTarget: CameraTarget = .front
+    @State private var cameraTarget: CameraTarget = .selfie
     @State private var showSuccess = false
     @State private var showError = false
     @State private var errorMessage = ""
 
     enum CameraTarget {
-        case front, back
+        case selfie, front, back
     }
 
-    // Callback when verification completes
+    // Callback when verification completes (submission sent, not approved)
     var onVerificationComplete: (() -> Void)?
 
     var body: some View {
@@ -37,17 +39,21 @@ struct IDVerificationView: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Header
-                        headerSection
-
-                        // ID capture sections
-                        idCaptureSection
-
-                        // Submit button
-                        submitButton
-
-                        // Privacy note
-                        privacyNote
+                        // Show different content based on status
+                        switch verificationService.verificationStatus {
+                        case .verified:
+                            verifiedStatusView
+                        case .pending:
+                            pendingStatusView
+                        case .rejected:
+                            rejectedStatusView
+                        case .notStarted, .failed:
+                            // Show upload UI
+                            headerSection
+                            idCaptureSection
+                            submitButton
+                            privacyNote
+                        }
 
                         Spacer()
                     }
@@ -58,10 +64,13 @@ struct IDVerificationView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button("Close") {
                         dismiss()
                     }
                 }
+            }
+            .sheet(isPresented: $showSelfiePicker) {
+                IDImagePicker(image: $selfieImage, sourceType: .photoLibrary)
             }
             .sheet(isPresented: $showFrontPicker) {
                 IDImagePicker(image: $frontImage, sourceType: .photoLibrary)
@@ -71,7 +80,7 @@ struct IDVerificationView: View {
             }
             .sheet(isPresented: $showCamera) {
                 IDImagePicker(
-                    image: cameraTarget == .front ? $frontImage : $backImage,
+                    image: cameraTargetBinding,
                     sourceType: .camera
                 )
             }
@@ -80,15 +89,148 @@ struct IDVerificationView: View {
             } message: {
                 Text(errorMessage)
             }
-            .alert("ID Verified!", isPresented: $showSuccess) {
+            .alert("Verification Submitted!", isPresented: $showSuccess) {
                 Button("Done") {
                     onVerificationComplete?()
                     dismiss()
                 }
             } message: {
-                Text("Your ID has been verified successfully. You now have the Verified badge!")
+                Text("Your ID verification has been submitted. We'll review it within 24 hours and notify you once approved.")
+            }
+            .task {
+                // Fetch current status on appear
+                await verificationService.fetchSubmissionStatus()
             }
         }
+    }
+
+    /// Binding for camera target image
+    private var cameraTargetBinding: Binding<UIImage?> {
+        switch cameraTarget {
+        case .selfie:
+            return $selfieImage
+        case .front:
+            return $frontImage
+        case .back:
+            return $backImage
+        }
+    }
+
+    // MARK: - Status Views
+
+    /// View shown when verification is complete
+    private var verifiedStatusView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 80))
+                .foregroundColor(.billixMoneyGreen)
+
+            Text("ID Verified")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.billixDarkTeal)
+
+            Text("Your identity has been verified. You can now participate in Bill Connections.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+
+            Button("Done") {
+                dismiss()
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.billixDarkTeal)
+            .foregroundColor(.white)
+            .cornerRadius(12)
+            .padding(.top)
+        }
+        .padding(.top, 40)
+    }
+
+    /// View shown when verification is pending review
+    private var pendingStatusView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "clock.badge.checkmark")
+                .font(.system(size: 80))
+                .foregroundColor(.billixGoldenAmber)
+
+            Text("Under Review")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.billixDarkTeal)
+
+            Text("Your ID verification is being reviewed. This usually takes less than 24 hours. We'll notify you once it's approved.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+
+            if let submittedAt = verificationService.submissionStatus?.submittedAt {
+                Text("Submitted: \(submittedAt.formatted(date: .abbreviated, time: .shortened))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Button("Done") {
+                dismiss()
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.billixDarkTeal)
+            .foregroundColor(.white)
+            .cornerRadius(12)
+            .padding(.top)
+        }
+        .padding(.top, 40)
+    }
+
+    /// View shown when verification was rejected
+    private var rejectedStatusView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 80))
+                .foregroundColor(.red)
+
+            Text("Verification Rejected")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.billixDarkTeal)
+
+            if let reason = verificationService.rejectionReason {
+                VStack(spacing: 8) {
+                    Text("Reason:")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Text(reason)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(12)
+            }
+
+            Text("Please review the reason above and submit new photos.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+
+            Button("Try Again") {
+                // Reset to show upload UI
+                verificationService.verificationStatus = .notStarted
+                selfieImage = nil
+                frontImage = nil
+                backImage = nil
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.billixDarkTeal)
+            .foregroundColor(.white)
+            .cornerRadius(12)
+            .padding(.top)
+        }
+        .padding(.top, 40)
     }
 
     // MARK: - Header Section
@@ -116,7 +258,26 @@ struct IDVerificationView: View {
 
     private var idCaptureSection: some View {
         VStack(spacing: 20) {
-            // Front of ID
+            // Selfie (required)
+            IDCaptureCard(
+                title: "Selfie",
+                subtitle: "Take a clear photo of your face",
+                image: selfieImage,
+                isRequired: true,
+                preferCamera: true,
+                onCameraCapture: {
+                    cameraTarget = .selfie
+                    showCamera = true
+                },
+                onGallerySelect: {
+                    showSelfiePicker = true
+                },
+                onRemove: {
+                    selfieImage = nil
+                }
+            )
+
+            // Front of ID (required)
             IDCaptureCard(
                 title: "Front of ID",
                 subtitle: "Driver's License, Passport, or State ID",
@@ -156,25 +317,30 @@ struct IDVerificationView: View {
 
     // MARK: - Submit Button
 
+    /// Check if all required images are captured
+    private var canSubmit: Bool {
+        selfieImage != nil && frontImage != nil
+    }
+
     private var submitButton: some View {
         Button(action: submitVerification) {
             HStack {
                 if verificationService.isLoading {
                     ProgressView()
                         .tint(.white)
-                    Text("Verifying...")
+                    Text("Submitting...")
                 } else {
-                    Image(systemName: "checkmark.shield")
-                    Text("Verify My ID")
+                    Image(systemName: "paperplane.fill")
+                    Text("Submit for Review")
                 }
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(frontImage != nil ? Color.billixDarkTeal : Color.gray)
+            .background(canSubmit ? Color.billixDarkTeal : Color.gray)
             .foregroundColor(.white)
             .cornerRadius(12)
         }
-        .disabled(frontImage == nil || verificationService.isLoading)
+        .disabled(!canSubmit || verificationService.isLoading)
         .padding(.top)
     }
 
@@ -185,12 +351,12 @@ struct IDVerificationView: View {
             HStack {
                 Image(systemName: "lock.shield")
                     .foregroundColor(.secondary)
-                Text("Your Privacy is Protected")
+                Text("Secure Verification")
                     .font(.subheadline)
                     .fontWeight(.medium)
             }
 
-            Text("We use your ID only to verify your identity. We do NOT store your ID images or personal information from your ID. Only your verification status is saved.")
+            Text("Your photos are securely stored and only reviewed by Billix staff to verify your identity. Once verified, your photos are deleted. We never share your information with third parties.")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -203,17 +369,16 @@ struct IDVerificationView: View {
     // MARK: - Actions
 
     private func submitVerification() {
-        guard let front = frontImage else { return }
+        guard let selfie = selfieImage, let front = frontImage else { return }
 
         Task {
             do {
-                let verified = try await verificationService.verifyID(
-                    frontImage: front,
-                    backImage: backImage
+                try await verificationService.submitForManualVerification(
+                    selfie: selfie,
+                    idFront: front,
+                    idBack: backImage
                 )
-                if verified {
-                    showSuccess = true
-                }
+                showSuccess = true
             } catch {
                 errorMessage = error.localizedDescription
                 showError = true
@@ -229,6 +394,7 @@ struct IDCaptureCard: View {
     let subtitle: String
     let image: UIImage?
     let isRequired: Bool
+    var preferCamera: Bool = false
     let onCameraCapture: () -> Void
     let onGallerySelect: () -> Void
     let onRemove: () -> Void
@@ -361,6 +527,8 @@ private struct IDImagePicker: UIViewControllerRepresentable {
 
 // MARK: - Preview
 
-#Preview {
-    IDVerificationView()
+struct IDVerificationView_Previews: PreviewProvider {
+    static var previews: some View {
+        IDVerificationView()
+    }
 }

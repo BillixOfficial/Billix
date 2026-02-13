@@ -500,9 +500,11 @@ enum TermsProposalError: LocalizedError {
 
 // MARK: - Preview
 
-#Preview {
-    TermsProposalView(
+struct TermsProposalView_Previews: PreviewProvider {
+    static var previews: some View {
+        TermsProposalView(
         connection: Connection.mockHandshake(),
         viewModel: ConnectionDetailViewModel(connection: Connection.mockHandshake())
-    )
+        )
+    }
 }

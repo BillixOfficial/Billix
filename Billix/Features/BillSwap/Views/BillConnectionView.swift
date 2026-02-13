@@ -627,6 +627,16 @@ private struct MyRequestCard: View {
     let connection: Connection
     let onTap: () -> Void
 
+    @State private var showMutualMatches = false
+    @State private var bill: SupportBill?
+
+    /// Whether this connection can find a mutual partner
+    private var canFindMutualPartner: Bool {
+        connection.connectionType == .mutual &&
+        connection.status == .requested &&
+        connection.mutualPairId == nil
+    }
+
     private var statusConfig: (color: Color, icon: String) {
         switch connection.status {
         case .requested: return (ConnectionTheme.warning, "clock.fill")
@@ -640,81 +650,139 @@ private struct MyRequestCard: View {
     }
 
     var body: some View {
-        Button(action: onTap) {
-            VStack(spacing: 12) {
-                HStack {
-                    // Phase indicator
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(statusConfig.color.opacity(0.12))
-                            .frame(width: 36, height: 36)
+        VStack(spacing: 0) {
+            Button(action: onTap) {
+                VStack(spacing: 12) {
+                    HStack {
+                        // Phase indicator
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(statusConfig.color.opacity(0.12))
+                                .frame(width: 36, height: 36)
 
-                        Image(systemName: statusConfig.icon)
-                            .font(.system(size: 14))
-                            .foregroundColor(statusConfig.color)
+                            Image(systemName: statusConfig.icon)
+                                .font(.system(size: 14))
+                                .foregroundColor(statusConfig.color)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 6) {
+                                Text("Connection #\(connection.id.uuidString.prefix(8))")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(ConnectionTheme.primaryText)
+
+                                // Mutual badge
+                                if connection.connectionType == .mutual {
+                                    HStack(spacing: 2) {
+                                        Image(systemName: "arrow.left.arrow.right")
+                                            .font(.system(size: 8, weight: .bold))
+                                    }
+                                    .foregroundColor(ConnectionTheme.accent)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .background(ConnectionTheme.accent.opacity(0.12))
+                                    .cornerRadius(4)
+                                }
+                            }
+
+                            Text(connection.status.phaseDescription)
+                                .font(.system(size: 12))
+                                .foregroundColor(ConnectionTheme.secondaryText)
+                                .lineLimit(1)
+                        }
+
+                        Spacer()
+
+                        // Phase badge
+                        if let phase = connection.status.phaseNumber {
+                            Text("Phase \(phase)")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(statusConfig.color)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(statusConfig.color.opacity(0.12))
+                                .cornerRadius(6)
+                        }
                     }
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Connection #\(connection.id.uuidString.prefix(8))")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(ConnectionTheme.primaryText)
+                    // Progress bar
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(ConnectionTheme.accent.opacity(0.15))
+                                .frame(height: 6)
 
-                        Text(connection.status.phaseDescription)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(ConnectionTheme.accent)
+                                .frame(width: geo.size.width * connection.progressPercentage, height: 6)
+                        }
+                    }
+                    .frame(height: 6)
+
+                    HStack {
+                        Text("\(Int(connection.progressPercentage * 100))% complete")
                             .font(.system(size: 12))
                             .foregroundColor(ConnectionTheme.secondaryText)
-                            .lineLimit(1)
-                    }
 
-                    Spacer()
+                        Spacer()
 
-                    // Phase badge
-                    if let phase = connection.status.phaseNumber {
-                        Text("Phase \(phase)")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(statusConfig.color)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(statusConfig.color.opacity(0.12))
-                            .cornerRadius(6)
+                        HStack(spacing: 4) {
+                            Text("View")
+                                .font(.system(size: 12, weight: .medium))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                        .foregroundColor(ConnectionTheme.accent)
                     }
                 }
+                .padding(14)
+            }
+            .buttonStyle(PlainButtonStyle())
 
-                // Progress bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(ConnectionTheme.accent.opacity(0.15))
-                            .frame(height: 6)
+            // Find Mutual Partner button (for unpaired mutual requests)
+            if canFindMutualPartner {
+                Divider()
+                    .padding(.horizontal, 14)
 
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(ConnectionTheme.accent)
-                            .frame(width: geo.size.width * connection.progressPercentage, height: 6)
+                Button {
+                    Task {
+                        // Load bill if not already loaded
+                        if bill == nil {
+                            bill = try? await ConnectionService.shared.getBill(id: connection.billId)
+                        }
+                        showMutualMatches = true
                     }
-                }
-                .frame(height: 6)
-
-                HStack {
-                    Text("\(Int(connection.progressPercentage * 100))% complete")
-                        .font(.system(size: 12))
-                        .foregroundColor(ConnectionTheme.secondaryText)
-
-                    Spacer()
-
-                    HStack(spacing: 4) {
-                        Text("View")
-                            .font(.system(size: 12, weight: .medium))
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "person.2.fill")
+                            .font(.system(size: 14))
+                        Text("Find Mutual Partner")
+                            .font(.system(size: 14, weight: .semibold))
+                        Spacer()
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 12, weight: .semibold))
                     }
                     .foregroundColor(ConnectionTheme.accent)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
                 }
+                .buttonStyle(PlainButtonStyle())
             }
-            .padding(14)
-            .background(ConnectionTheme.cardBackground)
-            .cornerRadius(ConnectionTheme.cornerRadius)
-            .shadow(color: ConnectionTheme.shadowColor, radius: ConnectionTheme.shadowRadius, x: 0, y: 2)
         }
-        .buttonStyle(PlainButtonStyle())
+        .background(ConnectionTheme.cardBackground)
+        .cornerRadius(ConnectionTheme.cornerRadius)
+        .shadow(color: ConnectionTheme.shadowColor, radius: ConnectionTheme.shadowRadius, x: 0, y: 2)
+        .sheet(isPresented: $showMutualMatches) {
+            if let bill = bill {
+                MutualMatchesView(myConnection: connection, myBill: bill)
+            }
+        }
+        .task {
+            // Pre-load bill if this is a mutual request
+            if canFindMutualPartner && bill == nil {
+                bill = try? await ConnectionService.shared.getBill(id: connection.billId)
+            }
+        }
     }
 }
 
@@ -1284,6 +1352,7 @@ private struct OfferSupportSheet: View {
     @State private var isLoading = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showIDVerificationSheet = false
 
     var body: some View {
         NavigationStack {
@@ -1339,6 +1408,15 @@ private struct OfferSupportSheet: View {
                             // Refresh data and dismiss
                             await viewModel.refresh()
                             dismiss()
+                        } catch let error as ConnectionError {
+                            // Check for ID verification requirement
+                            if case .idVerificationRequired = error {
+                                showIDVerificationSheet = true
+                            } else {
+                                errorMessage = error.localizedDescription
+                                showError = true
+                            }
+                            isLoading = false
                         } catch {
                             errorMessage = error.localizedDescription
                             showError = true
@@ -1380,6 +1458,13 @@ private struct OfferSupportSheet: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage)
+            }
+            .sheet(isPresented: $showIDVerificationSheet) {
+                IDVerificationView(onVerificationComplete: {
+                    // User submitted verification - dismiss sheet
+                    // They'll need to wait for approval before offering support
+                    showIDVerificationSheet = false
+                })
             }
         }
     }
@@ -1733,6 +1818,8 @@ struct ConnectionUserProfile: Codable {
 
 // MARK: - Previews
 
-#Preview("Bill Connection View") {
-    BillConnectionView()
+struct BillConnectionView_Bill_Connection_View_Previews: PreviewProvider {
+    static var previews: some View {
+        BillConnectionView()
+    }
 }

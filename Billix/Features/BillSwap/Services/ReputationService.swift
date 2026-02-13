@@ -456,6 +456,74 @@ class ReputationService: ObservableObject {
         )
     }
 
+    // MARK: - Mutual Swap Failure Penalty
+
+    /// Additional penalty for failing a mutual swap
+    /// This is applied on top of the standard sanction
+    static let mutualBreakPenalty = 5
+
+    /// Penalize a user for causing a mutual swap to fail
+    /// Applies standard sanction + additional penalty for breaking mutual promise
+    func penalizeMutualSwapFailure(
+        userId: UUID,
+        pairId: UUID,
+        reason: SanctionReason
+    ) async throws {
+        isLoading = true
+        defer { isLoading = false }
+
+        let info = try await getReputationInfo(userId: userId)
+
+        // Calculate base penalty from reason
+        let basePenalty: Int
+        switch reason.severity {
+        case .mild: basePenalty = 5
+        case .moderate: basePenalty = 15
+        case .severe: basePenalty = 30
+        }
+
+        // Add mutual break penalty
+        let totalPenalty = basePenalty + Self.mutualBreakPenalty
+
+        // Apply penalty
+        let newScore = max(0, info.reputationScore - totalPenalty)
+
+        var shouldDeactivate = false
+        if newScore < 0 || reason.severity == .severe {
+            shouldDeactivate = true
+        }
+
+        var updateData: [String: String] = [
+            "reputation_score": "\(newScore)"
+        ]
+
+        if shouldDeactivate {
+            updateData["is_deactivated"] = "true"
+        }
+
+        try await supabase
+            .from("profiles")
+            .update(updateData)
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+
+        // Log the sanction with mutual swap context
+        try await logSanction(
+            userId: userId,
+            reason: reason,
+            penalty: totalPenalty,
+            connectionId: nil,
+            details: "Mutual swap failure - pair ID: \(pairId.uuidString). Partner connection also cancelled. Additional penalty of \(Self.mutualBreakPenalty) points applied.",
+            wasDeactivated: shouldDeactivate,
+            wasBanned: false
+        )
+
+        // Reload if current user
+        if userId == currentUserId {
+            _ = try await loadUserReputation()
+        }
+    }
+
     // MARK: - Monthly Reset
 
     /// Reset monthly connection counts (call at month start)

@@ -195,6 +195,7 @@ struct Connection: Identifiable, Codable, Equatable, Hashable {
     var completedAt: Date?
     var cancelledAt: Date?
     var cancelReason: String?
+    var mutualPairId: UUID?         // Links two mutual connections together
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -212,6 +213,7 @@ struct Connection: Identifiable, Codable, Equatable, Hashable {
         case completedAt = "completed_at"
         case cancelledAt = "cancelled_at"
         case cancelReason = "cancel_reason"
+        case mutualPairId = "mutual_pair_id"
     }
 
     init(
@@ -229,7 +231,8 @@ struct Connection: Identifiable, Codable, Equatable, Hashable {
         matchedAt: Date? = nil,
         completedAt: Date? = nil,
         cancelledAt: Date? = nil,
-        cancelReason: String? = nil
+        cancelReason: String? = nil,
+        mutualPairId: UUID? = nil
     ) {
         self.id = id
         self.initiatorId = initiatorId
@@ -246,6 +249,7 @@ struct Connection: Identifiable, Codable, Equatable, Hashable {
         self.completedAt = completedAt
         self.cancelledAt = cancelledAt
         self.cancelReason = cancelReason
+        self.mutualPairId = mutualPairId
     }
 
     // MARK: - Computed Properties
@@ -368,6 +372,16 @@ struct Connection: Identifiable, Codable, Equatable, Hashable {
     var isProofVerified: Bool {
         return proofVerifiedAt != nil
     }
+
+    /// Whether this connection is part of a mutual pair
+    var isMutualPaired: Bool {
+        return mutualPairId != nil
+    }
+
+    /// Whether this is an unpaired mutual request (can still find a partner)
+    var canFindMutualPartner: Bool {
+        return connectionType == .mutual && mutualPairId == nil && status == .requested
+    }
 }
 
 // MARK: - Mock Data
@@ -457,8 +471,10 @@ extension Connection {
 /// Includes both the support bill and its associated connection info
 struct CommunityBoardItem: Identifiable {
     let bill: SupportBill
+    let connectionId: UUID          // The connection ID (needed for mutual matching)
     let connectionType: ConnectionType
     let connectionCreatedAt: Date
+    let mutualPairId: UUID?         // If already paired with a mutual partner
 
     var id: UUID { bill.id }
 
@@ -491,5 +507,70 @@ struct CommunityBoardItem: Identifiable {
             let minutes = (seconds % 3600) / 60
             return "\(minutes)m"
         }
+    }
+
+    /// Whether this mutual request can find a partner (not yet paired)
+    var canFindMutualPartner: Bool {
+        return connectionType == .mutual && mutualPairId == nil
+    }
+}
+
+// MARK: - Mutual Match Suggestion
+
+/// A suggested mutual match between two connections
+struct MutualMatchSuggestion: Identifiable, Codable {
+    let id: UUID
+    let requesterConnectionId: UUID
+    let suggestedConnectionId: UUID
+    var compatibilityScore: Int
+    var status: MutualMatchStatus
+    let createdAt: Date
+    var respondedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case requesterConnectionId = "requester_connection_id"
+        case suggestedConnectionId = "suggested_connection_id"
+        case compatibilityScore = "compatibility_score"
+        case status
+        case createdAt = "created_at"
+        case respondedAt = "responded_at"
+    }
+}
+
+/// Status of a mutual match suggestion
+enum MutualMatchStatus: String, Codable {
+    case pending = "pending"
+    case accepted = "accepted"
+    case rejected = "rejected"
+    case expired = "expired"
+}
+
+// MARK: - Mutual Pair Result
+
+/// Result of accepting a mutual match - contains both linked connections
+struct MutualPair {
+    let pairId: UUID
+    let connectionA: Connection      // First connection (A helps B)
+    let connectionB: Connection      // Second connection (B helps A)
+
+    /// Get the connection where the given user is the initiator
+    func myConnection(userId: UUID) -> Connection? {
+        if connectionA.initiatorId == userId {
+            return connectionA
+        } else if connectionB.initiatorId == userId {
+            return connectionB
+        }
+        return nil
+    }
+
+    /// Get the partner's connection
+    func partnerConnection(userId: UUID) -> Connection? {
+        if connectionA.initiatorId == userId {
+            return connectionB
+        } else if connectionB.initiatorId == userId {
+            return connectionA
+        }
+        return nil
     }
 }
