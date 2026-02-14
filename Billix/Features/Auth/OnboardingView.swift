@@ -9,6 +9,10 @@ import SwiftUI
 import PhotosUI
 
 struct OnboardingView: View {
+    // Optional completion handler - called when onboarding finishes successfully
+    // Used by EnrollmentFlowView to dismiss the fullScreenCover
+    var onComplete: (() -> Void)? = nil
+
     @StateObject private var viewModel = OnboardingViewModel()
     @State private var showCamera = false
 
@@ -53,16 +57,6 @@ struct OnboardingView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage ?? "An error occurred")
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Sign Out") {
-                    Task {
-                        try? await AuthService.shared.signOut()
-                    }
-                }
-                .foregroundColor(.white.opacity(0.8))
-            }
         }
         .navigationBarBackButtonHidden(true)
         .sheet(isPresented: $showCamera) {
@@ -515,7 +509,20 @@ struct OnboardingView: View {
 
             // Continue/Finish button
             Button {
-                viewModel.nextStep()
+                if viewModel.currentStep == viewModel.totalSteps {
+                    // Final step - complete onboarding and call onComplete
+                    Task {
+                        await viewModel.completeOnboarding()
+                        // If no error, call the completion handler
+                        if !viewModel.showError {
+                            // Brief delay to allow needsOnboarding state to propagate to RootView
+                            try? await Task.sleep(nanoseconds: 150_000_000)  // 0.15 seconds
+                            onComplete?()
+                        }
+                    }
+                } else {
+                    viewModel.nextStep()
+                }
             } label: {
                 HStack(spacing: 8) {
                     if viewModel.isLoading {
