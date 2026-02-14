@@ -34,6 +34,7 @@ enum AppNotificationType: String, CaseIterable {
     case connectionComplete = "connection_complete"
     case connectionCancelled = "connection_cancelled"
     case tierAdvancement = "tier_advancement"
+    case mutualSwapReady = "mutual_swap_ready"
 
     // Other notification types (future extensibility)
     case billDueSoon = "bill_due_soon"
@@ -58,6 +59,7 @@ enum AppNotificationType: String, CaseIterable {
         case .connectionComplete: return "Connection Complete!"
         case .connectionCancelled: return "Connection Cancelled"
         case .tierAdvancement: return "Tier Upgrade!"
+        case .mutualSwapReady: return "Mutual Swap Ready!"
         case .billDueSoon: return "Bill Due Soon"
         case .savingsFound: return "Savings Found"
         case .achievementUnlocked: return "Achievement Unlocked!"
@@ -82,6 +84,7 @@ enum AppNotificationType: String, CaseIterable {
         case .connectionComplete: return "star.fill"
         case .connectionCancelled: return "xmark.circle.fill"
         case .tierAdvancement: return "trophy.fill"
+        case .mutualSwapReady: return "arrow.left.arrow.right.circle.fill"
         case .billDueSoon: return "bolt.fill"
         case .savingsFound: return "arrow.down.circle.fill"
         case .achievementUnlocked: return "star.fill"
@@ -106,6 +109,7 @@ enum AppNotificationType: String, CaseIterable {
         case .connectionComplete: return Color(hex: "#E8B54D")
         case .connectionCancelled: return Color(hex: "#C45C5C")
         case .tierAdvancement: return Color(hex: "#E8B54D")
+        case .mutualSwapReady: return Color(hex: "#5B8A6B")
         case .billDueSoon: return Color(hex: "#E8A54B")
         case .savingsFound: return Color(hex: "#4CAF7A")
         case .achievementUnlocked: return Color(hex: "#5BA4D4")
@@ -633,6 +637,19 @@ class NotificationService: NSObject, ObservableObject {
         } catch {
             print("Failed to send tier advancement notification: \(error)")
         }
+    }
+
+    /// Notify both users when mutual swap is ready (both terms accepted)
+    func notifyMutualSwapReady(pairId: UUID) async {
+        let message = "Both terms accepted! Your mutual swap is ready to proceed."
+
+        addNotification(type: .mutualSwapReady, subtitle: message, swapId: pairId)
+
+        await sendConnectionLocalNotification(
+            type: .mutualSwapReady,
+            message: message,
+            connectionId: pairId
+        )
     }
 
     /// Send a local notification for Bill Connection events

@@ -146,7 +146,8 @@ class ConnectionService: ObservableObject {
         return connection
     }
 
-    /// Accept proposed terms (initiator accepts, moves to executing)
+    /// Accept proposed terms (initiator accepts)
+    /// For mutual swaps: Both parties must accept before moving to executing phase
     func acceptTerms(connectionId: UUID, termsId: UUID) async throws -> Connection {
         guard let userId = currentUserId else {
             throw ConnectionError.notAuthenticated
@@ -163,19 +164,6 @@ class ConnectionService: ObservableObject {
         // Accept terms via TermsService
         try await TermsService.shared.acceptTerms(termsId: termsId)
 
-        // Move to executing phase
-        try await supabase
-            .from("connections")
-            .update([
-                "status": ConnectionStatus.executing.rawValue,
-                "phase": "3"
-            ])
-            .eq("id", value: connectionId.uuidString)
-            .execute()
-
-        // Reload
-        connection = try await getConnection(id: connectionId)
-
         // Log event
         try await ConnectionEventService.shared.logEvent(
             connectionId: connectionId,
@@ -183,7 +171,79 @@ class ConnectionService: ObservableObject {
             payload: .terms(termsId: termsId)
         )
 
+        // Check if this is a mutual pair
+        if let pairId = connection.mutualPairId {
+            // Check if partner's terms are also accepted
+            let partnerAccepted = try await isPairedTermsAccepted(for: connection)
+
+            if partnerAccepted {
+                // BOTH have accepted - move BOTH connections to executing phase
+                try await moveMutualPairToExecuting(pairId: pairId)
+
+                // Notify both parties that mutual swap is ready to proceed
+                await NotificationService.shared.notifyMutualSwapReady(pairId: pairId)
+            }
+            // If partner hasn't accepted yet, connection stays in handshake
+            // UI will show "Waiting for partner to accept terms..."
+        } else {
+            // One-way connection - proceed normally to executing
+            try await supabase
+                .from("connections")
+                .update([
+                    "status": ConnectionStatus.executing.rawValue,
+                    "phase": "3"
+                ])
+                .eq("id", value: connectionId.uuidString)
+                .execute()
+        }
+
+        // Reload
+        connection = try await getConnection(id: connectionId)
+
         return connection
+    }
+
+    // MARK: - Mutual Pair Helpers
+
+    /// Check if the paired mutual connection's terms are accepted
+    private func isPairedTermsAccepted(for connection: Connection) async throws -> Bool {
+        guard let pairId = connection.mutualPairId else { return true } // Not a mutual pair
+
+        // Find the paired connection
+        let pairedConnections: [Connection] = try await supabase
+            .from("connections")
+            .select()
+            .eq("mutual_pair_id", value: pairId.uuidString)
+            .neq("id", value: connection.id.uuidString)
+            .execute()
+            .value
+
+        guard let pairedConnection = pairedConnections.first else { return true }
+
+        // Get the paired connection's latest terms
+        let pairedTerms = try await TermsService.shared.getCurrentTerms(for: pairedConnection.id)
+
+        return pairedTerms?.status == .accepted
+    }
+
+    /// Check partner's terms acceptance status (public method for UI)
+    func getPartnerTermsStatus(for connection: Connection) async throws -> Bool {
+        return try await isPairedTermsAccepted(for: connection)
+    }
+
+    /// Move both connections in a mutual pair to executing phase simultaneously
+    private func moveMutualPairToExecuting(pairId: UUID) async throws {
+        let now = ISO8601DateFormatter().string(from: Date())
+
+        try await supabase
+            .from("connections")
+            .update([
+                "status": ConnectionStatus.executing.rawValue,
+                "phase": "3",
+                "updated_at": now
+            ])
+            .eq("mutual_pair_id", value: pairId.uuidString)
+            .execute()
     }
 
     // MARK: - Phase 3: EXTERNAL EXECUTION - Pay via Utility Portal
