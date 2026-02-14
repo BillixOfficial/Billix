@@ -2,117 +2,78 @@
 //  UploadHubView.swift
 //  Billix
 //
-//  Created by Claude Code on 11/24/25.
-//  Redesigned with engaging, modern design
+//  Redesigned to match Home page styling
 //
 
 import SwiftUI
 import SwiftData
 
-// MARK: - Theme (Consistent with HomeView)
-
-private enum Theme {
-    static let background = Color(hex: "#F7F9F8")
-    static let cardBackground = Color.white
-    static let primaryText = Color(hex: "#2D3B35")
-    static let secondaryText = Color(hex: "#8B9A94")
-    static let tertiaryText = Color(hex: "#A8B5AE")
-    static let accent = Color(hex: "#5B8A6B")
-    static let accentLight = Color(hex: "#5B8A6B").opacity(0.08)
-    static let border = Color(hex: "#E5EAE7")
-    static let divider = Color(hex: "#F0F3F1")
-    static let info = Color(hex: "#5BA4D4")
-    static let warning = Color(hex: "#E8A54B")
-    static let warmGradientStart = Color(hex: "#FEF3E2")
-    static let warmGradientEnd = Color(hex: "#FDE9D0")
-    static let coolGradientStart = Color(hex: "#E8F4FD")
-    static let coolGradientEnd = Color(hex: "#D6ECFA")
-
-    static let horizontalPadding: CGFloat = 20
-    static let cardPadding: CGFloat = 16
-    static let cornerRadius: CGFloat = 20
-    static let shadowColor = Color.black.opacity(0.06)
-    static let shadowRadius: CGFloat = 12
-}
-
-/// Upload Hub with clean, modern design
+/// Upload Hub matching Home page design patterns
 struct UploadHubView: View {
 
     @StateObject private var viewModel = UploadViewModel()
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \StoredBill.uploadDate, order: .reverse) private var storedBills: [StoredBill]
-    @State private var fullAnalysisTapped = false
-    @State private var showFullAnalysisInfo = false
     @State private var showQuickAddInfo = false
-    @State private var infoPulse = false
-    @State private var quickAddInfoPulse = false
+    @State private var showFullAnalysisInfo = false
     @State private var navigateToUploadMethods = false
-
+    @State private var navigateToBillConnection = false
     @State private var refreshTrigger = UUID()
 
-    // Derive recent uploads from SwiftData query (auto-updates on changes)
+    // Derive recent uploads from SwiftData query
     private var recentUploads: [RecentUpload] {
         storedBills.prefix(3).compactMap { $0.toRecentUpload() }
     }
 
     private var numberOfAddCards: Int {
-        let billCount = recentUploads.count
-        return max(0, 4 - billCount)
+        max(0, 4 - recentUploads.count)
     }
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                // Background matching Home screen
-                Theme.background
-                    .ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    // SECTION 1: Header
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 24) {
+                    // Header
                     headerSection
-                        .padding(.horizontal, Theme.horizontalPadding)
+                        .padding(.horizontal, HomeTheme.horizontalPadding)
                         .padding(.top, 12)
-                        .padding(.bottom, 24)
 
-                    // SECTION 2: Quick Add Card (Redesigned)
-                    quickAddCard
-                        .padding(.bottom, 28)
+                    // Quick Add Zone
+                    quickAddZone
 
-                    // SECTION 3: Recent Uploads - Horizontal scroll
-                    inProgressSection
-                        .padding(.bottom, 28)
+                    // Full Analysis Zone
+                    fullAnalysisZone
 
-                    // SECTION 4: Upload for Full Analysis - Single card
-                    fullAnalysisCard
-                        .padding(.bottom, 32)
+                    // Bill Connection Zone (NEW)
+                    billConnectionZone
 
-                    Spacer()
+                    // Recent Uploads Zone
+                    recentUploadsZone
+
+                    Spacer().frame(height: 100)
                 }
+                .padding(.top, 8)
             }
+            .background(HomeTheme.background.ignoresSafeArea())
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $navigateToUploadMethods) {
                 UploadMethodSelectionView(viewModel: viewModel)
             }
+            .navigationDestination(isPresented: $navigateToBillConnection) {
+                BillConnectionView()
+            }
         }
         .onAppear {
             viewModel.modelContext = modelContext
-            // Force refresh when view appears
             refreshTrigger = UUID()
-        }
-        .task(id: refreshTrigger) {
-            // Task runs when refreshTrigger changes, causing view to re-render with latest @Query data
-            // Note: We now use @Query directly, so no need to manually load data
-            // Just triggering this task causes a refresh of the SwiftData query
         }
         .sheet(isPresented: $viewModel.showQuickAddFlow) {
             QuickAddFlowView(
                 onComplete: {
                     viewModel.dismissFlows()
-                    // Trigger refresh to show new upload
                     refreshTrigger = UUID()
                 },
-onSwitchToFullAnalysis: {
-                    // Dismiss Quick Add and navigate to upload method selection after a short delay
+                onSwitchToFullAnalysis: {
                     Task { @MainActor in
                         try? await Task.sleep(nanoseconds: 300_000_000)
                         navigateToUploadMethods = true
@@ -127,7 +88,6 @@ onSwitchToFullAnalysis: {
                 fileName: viewModel.selectedFileName,
                 onComplete: {
                     viewModel.dismissFlows()
-                    // Trigger refresh to show new upload
                     refreshTrigger = UUID()
                 }
             )
@@ -156,7 +116,6 @@ onSwitchToFullAnalysis: {
             }
         }
         .onChange(of: viewModel.selectedUpload) { oldValue, newValue in
-            // Refresh uploads when detail sheet is dismissed
             if oldValue != nil && newValue == nil {
                 refreshTrigger = UUID()
             }
@@ -166,756 +125,477 @@ onSwitchToFullAnalysis: {
     // MARK: - Header Section
 
     private var headerSection: some View {
-        Text("Upload Your Bills")
-            .font(.system(size: 26, weight: .bold))
-            .foregroundColor(Theme.primaryText)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Upload")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(HomeTheme.primaryText)
+
+                Text("Add bills or request support")
+                    .font(.system(size: 14))
+                    .foregroundColor(HomeTheme.secondaryText)
+            }
+
+            Spacer()
+
+            // Upload count badge
+            if !storedBills.isEmpty {
+                HStack(spacing: 4) {
+                    Image(systemName: "doc.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("\(storedBills.count)")
+                        .font(.system(size: 14, weight: .bold))
+                }
+                .foregroundColor(HomeTheme.accent)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(HomeTheme.accentLight)
+                .cornerRadius(20)
+            }
+        }
     }
 
-    // MARK: - Quick Add Card (Clean White Card Design)
+    // MARK: - Quick Add Zone
 
-    private var quickAddCard: some View {
-        VStack(spacing: 8) {
-            // Icon and text - horizontal layout
-            HStack(spacing: 14) {
-                // Green lightning icon in circle (left side)
-                ZStack {
-                    Circle()
-                        .fill(Color(hex: "#E8F5E9"))
-                        .frame(width: 48, height: 48)
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(Color(hex: "#5B8A6B"))
-                }
+    private var quickAddZone: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Section header
+            HStack(spacing: 6) {
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(HomeTheme.warning)
 
-                // Title and subtitle (left-aligned)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Quick Add")
-                        .font(.system(size: 19, weight: .bold))
-                        .foregroundColor(Theme.primaryText)
-
-                    Text("Answer 3 Questions")
-                        .font(.system(size: 13, weight: .regular))
-                        .foregroundColor(Theme.secondaryText)
-                }
+                Text("QUICK ADD")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(HomeTheme.secondaryText)
+                    .tracking(0.5)
 
                 Spacer()
 
-                // Info button
                 Button {
                     showQuickAddInfo.toggle()
                 } label: {
                     Image(systemName: "info.circle")
-                        .font(.system(size: 18))
-                        .foregroundColor(Theme.secondaryText.opacity(0.7))
+                        .font(.system(size: 14))
+                        .foregroundColor(HomeTheme.secondaryText.opacity(0.6))
                 }
                 .popover(isPresented: $showQuickAddInfo, arrowEdge: .top) {
                     QuickAddInfoPopover()
                         .presentationCompactAdaptation(.popover)
                 }
             }
+            .padding(.horizontal, HomeTheme.horizontalPadding)
 
-            // Full-width button
+            // Card
             Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                    viewModel.startQuickAdd()
-                }
-                let generator = UIImpactFeedbackGenerator(style: .medium)
-                generator.impactOccurred()
+                haptic(.medium)
+                viewModel.startQuickAdd()
             } label: {
-                HStack(spacing: 8) {
-                    Text("Start Quick Add")
-                        .font(.system(size: 16, weight: .semibold))
-                    Image(systemName: "arrow.right")
+                HStack(spacing: 14) {
+                    // Icon
+                    ZStack {
+                        Circle()
+                            .fill(HomeTheme.warning.opacity(0.12))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(HomeTheme.warning)
+                    }
+
+                    // Text
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Answer 3 Questions")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(HomeTheme.primaryText)
+
+                        Text("30 seconds • No upload needed")
+                            .font(.system(size: 13))
+                            .foregroundColor(HomeTheme.secondaryText)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(HomeTheme.secondaryText)
                 }
-                .frame(maxWidth: .infinity)
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#5B8A6B"))
-                )
+                .padding(16)
+                .background(Color.white)
+                .cornerRadius(16)
+                .shadow(color: HomeTheme.shadowColor, radius: HomeTheme.shadowRadius, x: 0, y: 2)
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.98))
+            .padding(.horizontal, HomeTheme.horizontalPadding)
         }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
-        )
-        .padding(.horizontal, 20)
     }
 
-    // MARK: - In Progress Section (Horizontal scroll)
+    // MARK: - Full Analysis Zone
 
-    private var inProgressSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                // Clipboard icon
-                Image(systemName: "doc.on.clipboard")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(hex: "#8B9A94"))
+    private var fullAnalysisZone: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Section header
+            HStack(spacing: 6) {
+                Image(systemName: "doc.text.magnifyingglass")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(HomeTheme.accent)
 
-                Text("RECENT UPLOADS")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(Color(hex: "#8B9A94"))
+                Text("FULL ANALYSIS")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(HomeTheme.secondaryText)
                     .tracking(0.5)
 
                 Spacer()
-
-                // View All button
-                if !recentUploads.isEmpty {
-                    NavigationLink(destination: AllUploadsView()) {
-                        HStack(spacing: 4) {
-                            Text("View All")
-                                .font(.system(size: 14, weight: .medium))
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundColor(Theme.info)
-                    }
-                }
-            }
-            .padding(.horizontal, Theme.horizontalPadding)
-
-            if recentUploads.isEmpty {
-                // Show empty vault card when no uploads
-                EmptyUploadCard()
-                    .padding(.horizontal, 20)
-            } else {
-                // Show uploaded bills and add cards in horizontal scroll
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        // Show bill cards first
-                        ForEach(recentUploads) { upload in
-                            Button {
-                                viewModel.selectedUpload = upload
-                            } label: {
-                                CompactBillCard(upload: upload)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-
-                        // Show add cards to fill up to 4 total
-                        ForEach(0..<numberOfAddCards, id: \.self) { _ in
-                            NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
-                                AddBillCard()
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                }
-            }
-        }
-    }
-
-    // MARK: - Full Analysis Card (Clean White Card Design)
-
-    private var fullAnalysisCard: some View {
-        VStack(spacing: 8) {
-            // Magnifying glass icon with triple circle background
-            ZStack {
-                // Outer largest light circle
-                Circle()
-                    .fill(Color(hex: "#E8F5E9").opacity(0.25))
-                    .frame(width: 80, height: 80)
-
-                // Middle circle
-                Circle()
-                    .fill(Color(hex: "#E8F5E9").opacity(0.4))
-                    .frame(width: 60, height: 60)
-
-                // Inner green circle
-                Circle()
-                    .fill(Color(hex: "#E8F5E9"))
-                    .frame(width: 45, height: 45)
-
-                Image(systemName: "doc.text.magnifyingglass")
-                    .font(.system(size: 28, weight: .regular))
-                    .foregroundColor(Color(hex: "#6B7280"))
-            }
-
-            // Title with info button
-            HStack(spacing: 8) {
-                Text("Analyze a New Bill")
-                    .font(.system(size: 19, weight: .bold))
-                    .foregroundColor(Theme.primaryText)
 
                 Button {
                     showFullAnalysisInfo.toggle()
                 } label: {
                     Image(systemName: "info.circle")
-                        .font(.system(size: 16))
-                        .foregroundColor(Theme.secondaryText.opacity(0.7))
+                        .font(.system(size: 14))
+                        .foregroundColor(HomeTheme.secondaryText.opacity(0.6))
                 }
                 .popover(isPresented: $showFullAnalysisInfo, arrowEdge: .top) {
                     FullAnalysisInfoPopover()
                         .presentationCompactAdaptation(.popover)
                 }
             }
+            .padding(.horizontal, HomeTheme.horizontalPadding)
 
-            // Description - full text, no truncation
-            Text("Upload a bill to find savings, track expenses, and get insights.")
-                .font(.system(size: 14, weight: .regular))
-                .foregroundColor(Theme.secondaryText)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 12)
-
-            // Inline pills with individual colors
-            HStack(spacing: 6) {
-                ColoredPillTag(text: "Line Items", backgroundColor: Color(hex: "#E9D5FF"))
-                ColoredPillTag(text: "Surprises", backgroundColor: Color(hex: "#DBEAFE"))
-                ColoredPillTag(text: "Rate compare", backgroundColor: Color(hex: "#FED7AA"))
-                ColoredPillTag(text: "Savings", backgroundColor: Color(hex: "#FED7AA"))
-            }
-
-            // Full-width button
+            // Card
             NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
-                HStack(spacing: 8) {
-                    Text("Start Analysis")
-                        .font(.system(size: 16, weight: .semibold))
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .frame(maxWidth: .infinity)
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "#5B8A6B"))
-                )
-            }
-            .buttonStyle(ScaleButtonStyle(scale: 0.98))
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
-        )
-        .padding(.horizontal, 20)
-    }
-
-}
-
-// MARK: - Feature Pill
-
-struct FeaturePill: View {
-    let icon: String
-    let text: String
-
-    private let infoColor = Color(hex: "#5BA4D4")
-    private let primaryText = Color(hex: "#2D3B35")
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundColor(infoColor)
-
-            Text(text)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(primaryText)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(Color.white.opacity(0.7))
-        .cornerRadius(20)
-    }
-}
-
-// MARK: - Upload Method Row
-
-struct UploadMethodRow: View {
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let subtitle: String
-    let action: () -> Void
-
-    private let primaryText = Color(hex: "#2D3B35")
-    private let secondaryText = Color(hex: "#8B9A94")
-    private let borderColor = Color(hex: "#E5EAE7")
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 14) {
-                // Icon with colored background
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(iconColor.opacity(0.12))
-                        .frame(width: 44, height: 44)
-
-                    Image(systemName: icon)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(iconColor)
-                }
-
-                // Text content
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(primaryText)
-
-                    Text(subtitle)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(secondaryText)
-                }
-
-                Spacer()
-
-                // Chevron arrow
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(secondaryText)
-            }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(borderColor, lineWidth: 1)
-            )
-        }
-        .buttonStyle(ScaleButtonStyle(scale: 0.98))
-    }
-}
-
-// MARK: - Recent Upload Card (Horizontal scroll card)
-
-struct RecentUploadCard: View {
-    let upload: RecentUpload
-
-    private let accentColor = Color(hex: "#5B8A6B")
-    private let primaryText = Color(hex: "#2D3B35")
-    private let secondaryText = Color(hex: "#8B9A94")
-    private let warningColor = Color(hex: "#E8A54B")
-    private let borderColor = Color(hex: "#E5EAE7")
-
-    var body: some View {
-        ZStack {
-            // White card background
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
-
-            // Subtle top accent bar
-            VStack {
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(
-                        LinearGradient(
-                            colors: [sourceAccentColor.opacity(0.15), sourceAccentColor.opacity(0.05)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(height: 50)
-
-                Spacer()
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-
-            VStack(alignment: .leading, spacing: 8) {
-                // Category/source label with Quick Add badge
-                HStack(spacing: 5) {
-                    if upload.source == .quickAdd {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 9, weight: .semibold))
-                            .foregroundColor(warningColor)
+                HStack(spacing: 14) {
+                    // Icon
+                    ZStack {
+                        Circle()
+                            .fill(HomeTheme.accent.opacity(0.12))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "doc.text.magnifyingglass")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(HomeTheme.accent)
                     }
-                    Text(upload.source.displayName)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(sourceAccentColor)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(
-                    Capsule()
-                        .fill(Color.white)
-                        .shadow(color: sourceAccentColor.opacity(0.15), radius: 4, x: 0, y: 2)
-                )
 
-                // Provider name
-                Text(upload.provider)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(primaryText)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
+                    // Text
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Upload & Analyze Bill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(HomeTheme.primaryText)
 
-                Spacer()
-
-                // Amount and status
-                HStack {
-                    Text(upload.formattedAmount)
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundColor(primaryText)
+                        Text("Line items • Savings • Insights")
+                            .font(.system(size: 13))
+                            .foregroundColor(HomeTheme.secondaryText)
+                    }
 
                     Spacer()
 
-                    // Status indicator with background
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(HomeTheme.secondaryText)
+                }
+                .padding(16)
+                .background(Color.white)
+                .cornerRadius(16)
+                .shadow(color: HomeTheme.shadowColor, radius: HomeTheme.shadowRadius, x: 0, y: 2)
+            }
+            .buttonStyle(ScaleButtonStyle(scale: 0.98))
+            .padding(.horizontal, HomeTheme.horizontalPadding)
+        }
+    }
+
+    // MARK: - Bill Connection Zone (NEW)
+
+    private var billConnectionZone: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Section header
+            HStack(spacing: 6) {
+                Image(systemName: "person.2.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(HomeTheme.purple)
+
+                Text("BILL CONNECTION")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(HomeTheme.secondaryText)
+                    .tracking(0.5)
+
+                Spacer()
+
+                // "New" badge
+                Text("NEW")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(HomeTheme.purple)
+                    .cornerRadius(4)
+            }
+            .padding(.horizontal, HomeTheme.horizontalPadding)
+
+            // Card
+            NavigationLink(destination: BillConnectionView()) {
+                HStack(spacing: 14) {
+                    // Icon
                     ZStack {
                         Circle()
-                            .fill(statusColor(for: upload.status).opacity(0.12))
-                            .frame(width: 26, height: 26)
-
-                        Image(systemName: upload.status.icon)
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(statusColor(for: upload.status))
+                            .fill(HomeTheme.purple.opacity(0.12))
+                            .frame(width: 48, height: 48)
+                        Image(systemName: "person.2.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(HomeTheme.purple)
                     }
-                }
-            }
-            .padding(14)
-        }
-        .frame(width: 155, height: 130)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
-    }
 
-    private var sourceAccentColor: Color {
-        upload.source == .quickAdd ? warningColor : accentColor
-    }
+                    // Text
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Request Bill Support")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(HomeTheme.primaryText)
 
-    private func statusColor(for status: UploadStatus) -> Color {
-        switch status {
-        case .processing: return .orange
-        case .analyzed: return accentColor
-        case .needsConfirmation: return warningColor
-        case .failed: return .red
-        }
-    }
-}
-
-// MARK: - Vault Icon Card (Scrollable card with just vault icon)
-
-struct VaultIconCard: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
-
-            Image("VaultEmpty")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 80, height: 80)
-        }
-        .frame(width: 155, height: 130)
-    }
-}
-
-// MARK: - Compact Bill Card (Smaller card for container view)
-
-struct CompactBillCard: View {
-    let upload: RecentUpload
-
-    private var primaryText: Color { Color(hex: "#2D3B35") }
-    private var warningColor: Color { Color(hex: "#F59E0B") }
-
-    private var sourceAccentColor: Color {
-        upload.source == .quickAdd ? Color(hex: "#F59E0B") : Color(hex: "#3D8B7C")
-    }
-
-    var body: some View {
-        ZStack {
-            // White card base
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white)
-
-            // Top accent bar (smaller)
-            VStack {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(
-                        LinearGradient(
-                            colors: [sourceAccentColor.opacity(0.15), sourceAccentColor.opacity(0.05)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(height: 30)
-                Spacer()
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-
-            VStack(alignment: .leading, spacing: 6) {
-                // Category badge (smaller)
-                HStack(spacing: 4) {
-                    if upload.source == .quickAdd {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 8, weight: .semibold))
-                            .foregroundColor(warningColor)
+                        Text("Connect with supporters in your area")
+                            .font(.system(size: 13))
+                            .foregroundColor(HomeTheme.secondaryText)
                     }
-                    Text(upload.source.displayName)
-                        .font(.system(size: 9, weight: .semibold))
-                        .foregroundColor(sourceAccentColor)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(Color.white)
-                        .shadow(color: sourceAccentColor.opacity(0.1), radius: 2, x: 0, y: 1)
-                )
 
-                // Provider name (compact)
-                Text(upload.provider)
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(HomeTheme.secondaryText)
+                }
+                .padding(16)
+                .background(Color.white)
+                .cornerRadius(16)
+                .shadow(color: HomeTheme.shadowColor, radius: HomeTheme.shadowRadius, x: 0, y: 2)
+            }
+            .buttonStyle(ScaleButtonStyle(scale: 0.98))
+            .padding(.horizontal, HomeTheme.horizontalPadding)
+        }
+    }
+
+    // MARK: - Recent Uploads Zone
+
+    private var recentUploadsZone: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Section header
+            HStack(spacing: 6) {
+                Image(systemName: "doc.on.clipboard")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(HomeTheme.info)
+
+                Text("RECENT UPLOADS")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(primaryText)
-                    .lineLimit(1)
+                    .foregroundColor(HomeTheme.secondaryText)
+                    .tracking(0.5)
 
                 Spacer()
 
-                // Amount only (no status icon to save space)
-                Text(upload.formattedAmount)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundColor(primaryText)
+                if !recentUploads.isEmpty {
+                    NavigationLink(destination: AllUploadsView()) {
+                        HStack(spacing: 4) {
+                            Text("View All")
+                                .font(.system(size: 13, weight: .medium))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundColor(HomeTheme.info)
+                    }
+                }
             }
-            .padding(10)
+            .padding(.horizontal, HomeTheme.horizontalPadding)
+
+            if recentUploads.isEmpty {
+                // Empty state
+                emptyUploadsCard
+                    .padding(.horizontal, HomeTheme.horizontalPadding)
+            } else {
+                // Horizontal scroll of uploads
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(recentUploads) { upload in
+                            Button {
+                                viewModel.selectedUpload = upload
+                            } label: {
+                                UploadCard(upload: upload)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+
+                        // Add more cards
+                        ForEach(0..<numberOfAddCards, id: \.self) { _ in
+                            NavigationLink(destination: UploadMethodSelectionView(viewModel: viewModel)) {
+                                AddUploadCard()
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .padding(.horizontal, HomeTheme.horizontalPadding)
+                }
+            }
         }
-        .frame(width: 115, height: 105)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
-}
 
-// MARK: - Empty Upload Card (White Card Container)
+    // MARK: - Empty Uploads Card
 
-struct EmptyUploadCard: View {
-    private let primaryText = Color(hex: "#2D3B35")
-    private let secondaryText = Color(hex: "#8B9A94")
-
-    var body: some View {
-        HStack(spacing: 14) {
-            // VaultEmpty PNG image - scaledToFit with fixed frame
+    private var emptyUploadsCard: some View {
+        HStack(spacing: 16) {
             Image("VaultEmpty")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 90, height: 90)
+                .frame(width: 70, height: 70)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Your vault is empty.")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(primaryText)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("No bills yet")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(HomeTheme.primaryText)
 
-                Text("Analyze a Bill to start tracking.")
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(secondaryText)
+                Text("Upload a bill to start tracking your expenses")
+                    .font(.system(size: 13))
+                    .foregroundColor(HomeTheme.secondaryText)
+                    .lineLimit(2)
             }
 
             Spacer()
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
-        )
-        .frame(maxWidth: .infinity)
+        .padding(16)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: HomeTheme.shadowColor, radius: HomeTheme.shadowRadius, x: 0, y: 2)
     }
 }
 
-// MARK: - Add Bill Card (Dashed Border Placeholder)
+// MARK: - Upload Card
 
-struct AddBillCard: View {
-    private let accentColor = Color(hex: "#5B8A6B") // Theme.accent
+struct UploadCard: View {
+    let upload: RecentUpload
+
+    private var accentColor: Color {
+        upload.source == .quickAdd ? HomeTheme.warning : HomeTheme.accent
+    }
 
     var body: some View {
-        ZStack {
-            // Dashed border background
-            RoundedRectangle(cornerRadius: 14)
-                .strokeBorder(
-                    accentColor.opacity(0.4),
-                    style: StrokeStyle(lineWidth: 2, dash: [8, 4])
-                )
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(accentColor.opacity(0.03))
-                )
-
-            // Plus icon centered
-            VStack(spacing: 6) {
-                // Circular background with plus icon
-                ZStack {
-                    Circle()
-                        .fill(accentColor.opacity(0.12))
-                        .frame(width: 36, height: 36)
-
-                    Image(systemName: "plus")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(accentColor)
+        VStack(alignment: .leading, spacing: 8) {
+            // Source badge
+            HStack(spacing: 4) {
+                if upload.source == .quickAdd {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 8, weight: .semibold))
                 }
-
-                // "Add Bill" text
-                Text("Add Bill")
+                Text(upload.source.displayName)
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(accentColor.opacity(0.8))
             }
-        }
-        .frame(width: 115, height: 105)
-    }
-}
+            .foregroundColor(accentColor)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(accentColor.opacity(0.12))
+            .cornerRadius(6)
 
-// MARK: - Feature Checkpoint (small checkmark + text)
+            // Provider
+            Text(upload.provider)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(HomeTheme.primaryText)
+                .lineLimit(1)
 
-struct FeatureCheckpoint: View {
-    let text: String
+            Spacer()
 
-    private let accentColor = Color(hex: "#5B8A6B")
-    private let secondaryText = Color(hex: "#8B9A94")
-
-    var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "checkmark")
-                .font(.system(size: 9, weight: .bold))
-                .foregroundColor(accentColor)
-
-            Text(text)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(secondaryText)
-        }
-    }
-}
-
-// MARK: - Full Analysis Info Popover
-
-struct FullAnalysisInfoPopover: View {
-    private let primaryText = Color(hex: "#2D3B35")
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Header
-            Text("What You'll Get")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundColor(primaryText)
-
-            // Compact features list
-            VStack(alignment: .leading, spacing: 6) {
-                InfoFeatureRow(icon: "list.bullet.rectangle.portrait", text: "Line-by-line breakdown")
-                InfoFeatureRow(icon: "map", text: "Area rate comparison")
-                InfoFeatureRow(icon: "dollarsign.circle", text: "Savings opportunities")
-                InfoFeatureRow(icon: "chart.line.uptrend.xyaxis", text: "Usage insights")
-            }
+            // Amount
+            Text(upload.formattedAmount)
+                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .foregroundColor(HomeTheme.primaryText)
         }
         .padding(12)
+        .frame(width: 120, height: 110)
+        .background(Color.white)
+        .cornerRadius(14)
+        .shadow(color: HomeTheme.shadowColor, radius: 6, x: 0, y: 2)
+    }
+}
+
+// MARK: - Add Upload Card
+
+struct AddUploadCard: View {
+    var body: some View {
+        VStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .fill(HomeTheme.accent.opacity(0.12))
+                    .frame(width: 36, height: 36)
+
+                Image(systemName: "plus")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(HomeTheme.accent)
+            }
+
+            Text("Add Bill")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(HomeTheme.accent)
+        }
+        .frame(width: 120, height: 110)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(HomeTheme.accent.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                .background(HomeTheme.accent.opacity(0.03).cornerRadius(14))
+        )
+    }
+}
+
+// MARK: - Info Popovers
+
+struct QuickAddInfoPopover: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Quick Add")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(HomeTheme.primaryText)
+
+            VStack(alignment: .leading, spacing: 6) {
+                UploadInfoRow(icon: "bolt.fill", text: "Just 30 seconds", color: HomeTheme.warning)
+                UploadInfoRow(icon: "photo.badge.arrow.down.fill", text: "No upload needed", color: HomeTheme.info)
+                UploadInfoRow(icon: "list.number", text: "3 simple questions", color: HomeTheme.accent)
+            }
+
+            Text("Great for quick rate comparison")
+                .font(.system(size: 11))
+                .foregroundColor(HomeTheme.secondaryText)
+                .padding(.top, 4)
+        }
+        .padding(14)
         .frame(width: 200)
         .background(Color.white)
     }
 }
 
-struct QuickAddInfoPopover: View {
-    private let primaryText = Color(hex: "#2D3B35")
-    private let secondaryText = Color(hex: "#8B9A94")
-
+struct FullAnalysisInfoPopover: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Header
-            Text("About Quick Add")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundColor(primaryText)
+            Text("Full Analysis")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(HomeTheme.primaryText)
 
-            // Structured features list
             VStack(alignment: .leading, spacing: 6) {
-                InfoFeatureRow(icon: "bolt.fill", text: "Just 30 seconds")
-                InfoFeatureRow(icon: "photo.badge.arrow.down.fill", text: "No upload needed")
-                InfoFeatureRow(icon: "list.number", text: "3 simple questions")
-                InfoFeatureRow(icon: "chart.bar.fill", text: "Rate comparison only")
+                UploadInfoRow(icon: "list.bullet.rectangle.portrait", text: "Line-by-line breakdown", color: HomeTheme.accent)
+                UploadInfoRow(icon: "map", text: "Area rate comparison", color: HomeTheme.info)
+                UploadInfoRow(icon: "dollarsign.circle", text: "Savings opportunities", color: HomeTheme.success)
+                UploadInfoRow(icon: "chart.line.uptrend.xyaxis", text: "Usage insights", color: HomeTheme.purple)
             }
-
-            // Clarification note
-            Text("Note: For full analysis, use Full Analysis option")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(secondaryText)
-                .padding(.top, 4)
         }
-        .padding(12)
+        .padding(14)
         .frame(width: 210)
         .background(Color.white)
     }
 }
 
-struct InfoFeatureRow: View {
+struct UploadInfoRow: View {
     let icon: String
     let text: String
-
-    private let infoColor = Color(hex: "#5BA4D4")
-    private let primaryText = Color(hex: "#2D3B35")
+    let color: Color
 
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(infoColor)
+                .foregroundColor(color)
                 .frame(width: 16)
 
             Text(text)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(primaryText)
+                .foregroundColor(HomeTheme.primaryText)
         }
-    }
-}
-
-// MARK: - Floating Label Component
-
-struct FloatingLabel: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundColor(Color(hex: "#5BA4D4"))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(Color.white.opacity(0.9))
-                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
-            )
-    }
-}
-
-// MARK: - Pill Tag Component
-
-struct PillTag: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.system(size: 12, weight: .medium))
-            .foregroundColor(Color(hex: "#6B7280"))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(Color(hex: "#F3F4F6"))
-            )
-    }
-}
-
-// MARK: - Colored Pill Tag Component
-
-struct ColoredPillTag: View {
-    let text: String
-    let backgroundColor: Color
-
-    var body: some View {
-        Text(text)
-            .font(.system(size: 10, weight: .semibold))
-            .foregroundColor(Color(hex: "#6B7280"))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(
-                Capsule()
-                    .fill(backgroundColor)
-            )
     }
 }
 
