@@ -62,17 +62,15 @@ struct RewardsHubView: View {
                         .opacity(appeared ? 1 : 0)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: appeared)
 
-                    // Tab Content
-                    TabView(selection: $selectedTab) {
-                        // Earn Points Tab
-                        EarnPointsTabView(viewModel: viewModel, tasksViewModel: tasksViewModel)
-                            .tag(RewardsTab.earn)
-
-                        // Marketplace Tab
-                        MarketplaceTabView(viewModel: viewModel)
-                            .tag(RewardsTab.shop)
+                    // Tab Content (no swipe — use tab buttons only)
+                    Group {
+                        switch selectedTab {
+                        case .earn:
+                            EarnPointsTabView(viewModel: viewModel, tasksViewModel: tasksViewModel)
+                        case .shop:
+                            MarketplaceTabView(viewModel: viewModel)
+                        }
                     }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
                     .animation(.easeInOut(duration: 0.3), value: selectedTab)
                 }
             }
@@ -297,12 +295,16 @@ struct TabSelector: View {
 struct EarnPointsTabView: View {
     @ObservedObject var viewModel: RewardsViewModel
     @ObservedObject var tasksViewModel: TasksViewModel
-    @State private var appeared = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
-                // Daily Game Hero Card
+                // 1. Tier Progress Ring Hero Card
+                ProgressRingHeroCard(viewModel: viewModel)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+
+                // 2. Price Guessr (compact)
                 DailyGameHeroCard(
                     game: viewModel.dailyGame,
                     gamesPlayedToday: viewModel.gamesPlayedToday,
@@ -311,45 +313,93 @@ struct EarnPointsTabView: View {
                     }
                 )
                 .padding(.horizontal, 20)
-                .padding(.top, 24)
-                .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : 20)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appeared)
 
-                // Daily Tasks Section
+                // 3. Daily Tasks Section (carousel)
                 DailyTasksSection(tasksViewModel: tasksViewModel, rewardsViewModel: viewModel)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.25), value: appeared)
+                    .padding(.top, 4)
 
-                // Weekly Tasks Section
+                // 4. Weekly Tasks Section (unchanged)
                 WeeklyTasksSection(tasksViewModel: tasksViewModel)
                     .padding(.horizontal, 20)
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: appeared)
 
-                // Leaderboard Teaser
+                // 5. Leaderboard Teaser (unchanged)
                 LeaderboardTeaser(
                     topSavers: viewModel.topSavers,
                     currentUser: viewModel.currentUserRank,
                     onSeeAll: { viewModel.showFullLeaderboard = true }
                 )
                 .padding(.horizontal, 20)
-                .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : 20)
-                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.35), value: appeared)
 
                 Spacer(minLength: 100)
             }
         }
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                appeared = true
-            }
+    }
+}
+
+// MARK: - Progress Ring Hero Card
+
+struct ProgressRingHeroCard: View {
+    @ObservedObject var viewModel: RewardsViewModel
+
+    private var nextTierThreshold: Int {
+        if let next = viewModel.currentTier.nextTier {
+            return next.pointsRange.lowerBound
         }
+        return viewModel.currentTier.pointsRange.lowerBound
+    }
+
+    private var tierGradientColors: [Color] {
+        let base = viewModel.currentTier.color
+        return [base, base.opacity(0.6)]
+    }
+
+    var body: some View {
+        ZStack {
+            // Background card
+            RoundedRectangle(cornerRadius: 24)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.billixMoneyGreen.opacity(0.08),
+                            Color.billixMediumGreen.opacity(0.05)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(Color.billixBorderGreen.opacity(0.3), lineWidth: 1)
+
+            VStack(spacing: 10) {
+                // Ring with pig
+                ZStack {
+                    CircularProgressRing(
+                        progress: viewModel.tierProgress,
+                        colors: tierGradientColors,
+                        lineWidth: 10
+                    )
+                    .frame(width: 100, height: 100)
+
+                    Image("pig_loading")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 52, height: 52)
+                }
+
+                // Points label
+                Text("\(viewModel.points.lifetimeEarned.formatted()) / \(nextTierThreshold.formatted()) pts")
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+
+                // Tier name
+                Text(viewModel.currentTier.rawValue)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundColor(viewModel.currentTier.color)
+            }
+            .padding(.vertical, 12)
+        }
+        .frame(height: 200)
     }
 }
 
@@ -389,252 +439,209 @@ struct MarketplaceTabView: View {
     }
 }
 
-// MARK: - Daily Game Hero Card
+// MARK: - Daily Game Hero Card (Compact Row)
 
 struct DailyGameHeroCard: View {
     let game: DailyGame?
     let gamesPlayedToday: Int
     let onPlay: () -> Void
 
-    // Read tab active state from environment
-    @Environment(\.isRewardsTabActive) private var isTabActive
-
-    @State private var isAnimating = false
-    @State private var shimmerOffset: CGFloat = -200
-    @State private var badgePulse = false
-    @State private var isPressed = false
-    @State private var tickerOffset: CGFloat = 0
-    @State private var viewIsVisible = false
-
-    // Mock streak data (TODO: Connect to actual streak tracking)
-    private let streakDays = 4
-    private let maxPlaysPerDay = 3
-
-    var playsRemaining: Int {
-        max(0, maxPlaysPerDay - gamesPlayedToday)
-    }
+    // Debug tuning — long-press card to open
+    @State private var showDebug = false
+    @State private var cardHeight: CGFloat = 80
+    @State private var cornerRadius: CGFloat = 20
+    @State private var titleSize: CGFloat = 26.2
+    @State private var btnFontSize: CGFloat = 13
+    @State private var btnPadH: CGFloat = 14
+    @State private var btnPadV: CGFloat = 9
+    @State private var imgScale: CGFloat = 1.2
+    @State private var imgOffsetX: CGFloat = 0
+    @State private var imgOffsetY: CGFloat = 0
 
     var body: some View {
         ZStack {
-            // Sage green gradient background - deeper to lighter
-            RoundedRectangle(cornerRadius: 24)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(hex: "#5A8F63"), Color(hex: "#8BBF8E"), Color(hex: "#D4EDCF")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+            // Hero card background image
+            Image("HeroCard_MONEY")
+                .resizable()
+                .scaledToFill()
+                .scaleEffect(imgScale)
+                .offset(x: imgOffsetX, y: imgOffsetY)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
 
-            // Floating particles (subtle ambiance)
-            FloatingParticlesBackground(
-                particleCount: 7,
-                colors: [.white.opacity(0.6), Color.billixMoneyGreen.opacity(0.3)]
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 24))
+            HStack(spacing: 12) {
+                // Title
+                Text("Price Guessr")
+                    .font(.system(size: titleSize, weight: .bold))
+                    .foregroundColor(.billixDarkGreen)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                    .layoutPriority(1)
 
-            // Decorative pattern overlay
-            GeometryReader { geometry in
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.white.opacity(0.4), .clear],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 110
+                Spacer(minLength: 0)
+
+                // Play Now button
+                Button(action: {
+                    let generator = UIImpactFeedbackGenerator(style: .medium)
+                    generator.impactOccurred()
+                    onPlay()
+                }) {
+                    Text("Play Now")
+                        .font(.system(size: btnFontSize, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                        .fixedSize()
+                        .padding(.horizontal, btnPadH)
+                        .padding(.vertical, btnPadV)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(hex: "#F0A830"), Color(hex: "#E89520")],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
                         )
-                    )
-                    .frame(width: 220, height: 220)
-                    .offset(x: geometry.size.width - 90, y: -70)
-
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.billixMoneyGreen.opacity(0.20), .clear],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 85
-                        )
-                    )
-                    .frame(width: 170, height: 170)
-                    .offset(x: -50, y: geometry.size.height - 60)
-            }
-
-            // Subtle shimmer
-            RoundedRectangle(cornerRadius: 24)
-                .fill(
-                    LinearGradient(
-                        colors: [.clear, .white.opacity(0.1), .clear],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .offset(x: shimmerOffset)
-
-            VStack(spacing: 16) {
-                HStack(spacing: 0) {
-                    PriceGuessrIcon()
-                        .frame(width: 168, height: 168)
-                        .offset(x: -30)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(alignment: .bottom, spacing: 3) {
-                            Text("Price Guessr")
-                                .font(.system(size: 30, weight: .bold))
-                                .foregroundColor(.white)
-
-                            PriceTag()
-                                .scaleEffect(0.95)
-                        }
-
-                        HStack(spacing: 6) {
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 16))
-                                .foregroundColor(Color(hex: "#F0A830"))
-
-                            Text("Test your price knowledge")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.9))
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .offset(x: -22)
-
-                    Spacer(minLength: 0)
+                        .shadow(color: Color(hex: "#F0A830").opacity(0.4), radius: 6, x: 0, y: 3)
                 }
-
-                Spacer()
+                .buttonStyle(FABButtonStyle())
+                .accessibilityLabel("Play today's Price Guessr challenge")
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 20)
-
-            // Play Button
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-
-                    Button(action: {
-                        let generator = UIImpactFeedbackGenerator(style: .medium)
-                        generator.impactOccurred()
-                        onPlay()
-                    }) {
-                        Text("PLAY NOW")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 12)
-                            .background(
-                                ZStack {
-                                    Capsule()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [Color(hex: "#F0A830"), Color(hex: "#E89520")],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-
-                                    Capsule()
-                                        .stroke(Color(hex: "#F0A830").opacity(0.5), lineWidth: 2)
-                                        .blur(radius: 4)
-                                        .scaleEffect(badgePulse ? 1.05 : 1.0)
-                                }
-                            )
-                            .shadow(color: Color(hex: "#F0A830").opacity(0.4), radius: 10, x: 0, y: 4)
-                    }
-                    .buttonStyle(FABButtonStyle())
-                    .accessibilityLabel("Play today's Price Guessr challenge")
-                    .accessibilityHint("Double tap to start guessing prices")
-
-                    Spacer()
-                }
-            }
-            .padding(16)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
-        .frame(height: 200)
-        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+        .frame(height: cardHeight)
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Daily Price Guessr game. Guess prices around the world. Test your price knowledge.")
-        .task(id: isTabActive) {
-            // Only run animations when tab is active
-            guard isTabActive else {
-                PerformanceMonitor.shared.viewDisappeared("DailyGameHeroCard (tab inactive)")
-                viewIsVisible = false
-                isAnimating = false
-                badgePulse = false
-                shimmerOffset = -200
-                return
-            }
-
-            // Task-based animations that auto-cancel when view disappears or tab changes
-            PerformanceMonitor.shared.viewAppeared("DailyGameHeroCard")
-            viewIsVisible = true
-
-            // Use withTaskGroup for proper structured concurrency - all child tasks are cancelled when parent is cancelled
-            await withTaskGroup(of: Void.self) { group in
-                // Pulse animation task
-                group.addTask { @MainActor in
-                    PerformanceMonitor.shared.animationStarted("pulse", in: "DailyGameHeroCard")
-                    defer { PerformanceMonitor.shared.animationStopped("pulse", in: "DailyGameHeroCard") }
-                    while !Task.isCancelled {
-                        withAnimation(.easeInOut(duration: 2.0)) {
-                            isAnimating.toggle()
-                        }
-                        try? await Task.sleep(nanoseconds: 2_000_000_000)
-                    }
-                }
-
-                // Badge pulse animation task
-                group.addTask { @MainActor in
-                    PerformanceMonitor.shared.animationStarted("badgePulse", in: "DailyGameHeroCard")
-                    defer { PerformanceMonitor.shared.animationStopped("badgePulse", in: "DailyGameHeroCard") }
-                    while !Task.isCancelled {
-                        withAnimation(.easeInOut(duration: 1.2)) {
-                            badgePulse.toggle()
-                        }
-                        try? await Task.sleep(nanoseconds: 1_200_000_000)
-                    }
-                }
-
-                // Shimmer animation task
-                group.addTask { @MainActor in
-                    PerformanceMonitor.shared.animationStarted("shimmer", in: "DailyGameHeroCard")
-                    defer { PerformanceMonitor.shared.animationStopped("shimmer", in: "DailyGameHeroCard") }
-                    while !Task.isCancelled {
-                        shimmerOffset = -200
-                        withAnimation(.linear(duration: 2.5)) {
-                            shimmerOffset = 400
-                        }
-                        try? await Task.sleep(nanoseconds: 2_500_000_000)
-                    }
-                }
+        .accessibilityLabel("Daily Price Guessr game")
+        .onLongPressGesture(minimumDuration: 0.5) {
+            let g = UIImpactFeedbackGenerator(style: .heavy)
+            g.impactOccurred()
+            showDebug = true
+        }
+        .safeAreaInset(edge: .bottom) {
+            if showDebug {
+                HeroCardDebugPanel(
+                    showDebug: $showDebug,
+                    cardHeight: $cardHeight,
+                    cornerRadius: $cornerRadius,
+                    titleSize: $titleSize,
+                    btnFontSize: $btnFontSize,
+                    btnPadH: $btnPadH,
+                    btnPadV: $btnPadV,
+                    imgScale: $imgScale,
+                    imgOffsetX: $imgOffsetX,
+                    imgOffsetY: $imgOffsetY
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showDebug)
+    }
+}
+
+// MARK: - Hero Card Debug Panel
+
+private struct HeroCardDebugPanel: View {
+    @Binding var showDebug: Bool
+    @Binding var cardHeight: CGFloat
+    @Binding var cornerRadius: CGFloat
+    @Binding var titleSize: CGFloat
+    @Binding var btnFontSize: CGFloat
+    @Binding var btnPadH: CGFloat
+    @Binding var btnPadV: CGFloat
+    @Binding var imgScale: CGFloat
+    @Binding var imgOffsetX: CGFloat
+    @Binding var imgOffsetY: CGFloat
+    @State private var copied = false
+
+    private var valuesString: String {
+        "height: \(fmt(cardHeight)), radius: \(fmt(cornerRadius)), title: \(fmt(titleSize)), btnFont: \(fmt(btnFontSize)), btnPadH: \(fmt(btnPadH)), btnPadV: \(fmt(btnPadV)), imgScale: \(fmt(imgScale)), imgOffX: \(fmt(imgOffsetX)), imgOffY: \(fmt(imgOffsetY))"
     }
 
-    // Helper function to get flag emoji for location
-    private func getFlagEmoji(for location: String) -> String {
-        // Simple mapping for common locations
-        let flagMap: [String: String] = [
-            "Manhattan, NY": "🇺🇸",
-            "Tokyo": "🇯🇵",
-            "London": "🇬🇧",
-            "Paris": "🇫🇷",
-            "Sydney": "🇦🇺",
-            "Toronto": "🇨🇦",
-            "Berlin": "🇩🇪",
-            "Mumbai": "🇮🇳"
-        ]
+    private func fmt(_ v: CGFloat) -> String { String(format: "%.1f", v) }
 
-        // Try to find exact match or partial match
-        for (key, flag) in flagMap {
-            if location.contains(key) || key.contains(location) {
-                return flag
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Hero Card Debug")
+                    .font(.system(size: 15, weight: .bold))
+                Spacer()
+                Button("Done") { showDebug = false }
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.blue)
             }
-        }
+            .padding(.horizontal, 20)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
 
-        return "🌎" // Default globe emoji
+            VStack(spacing: 8) {
+                sliderRow("Height", color: .blue, value: $cardHeight, range: 50...200, step: 2)
+                sliderRow("Radius", color: .purple, value: $cornerRadius, range: 0...40, step: 1)
+                sliderRow("Title", color: .green, value: $titleSize, range: 14...40, step: 0.2)
+                sliderRow("BtnFont", color: .orange, value: $btnFontSize, range: 8...20, step: 0.5)
+                sliderRow("BtnPadH", color: .cyan, value: $btnPadH, range: 4...30, step: 1)
+                sliderRow("BtnPadV", color: .red, value: $btnPadV, range: 4...20, step: 1)
+                sliderRow("ImgScale", color: .mint, value: $imgScale, range: 0.5...3.0, step: 0.05)
+                sliderRow("ImgOffX", color: .indigo, value: $imgOffsetX, range: -100...100, step: 2)
+                sliderRow("ImgOffY", color: .pink, value: $imgOffsetY, range: -100...100, step: 2)
+            }
+            .padding(.horizontal, 20)
+
+            HStack(spacing: 12) {
+                Button {
+                    cardHeight = 80; cornerRadius = 20; titleSize = 26.2
+                    btnFontSize = 13; btnPadH = 14; btnPadV = 9
+                    imgScale = 1.2; imgOffsetX = 0; imgOffsetY = 0
+                } label: {
+                    Label("Reset", systemImage: "arrow.counterclockwise")
+                        .font(.system(size: 13, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(10)
+                }
+
+                Button {
+                    UIPasteboard.general.string = valuesString
+                    copied = true
+                    let g = UINotificationFeedbackGenerator()
+                    g.notificationOccurred(.success)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { copied = false }
+                } label: {
+                    Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(copied ? Color.green : Color.blue)
+                        .cornerRadius(10)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
+            .padding(.bottom, 16)
+        }
+        .frame(maxHeight: 280)
+        .background(.ultraThinMaterial)
+    }
+
+    private func sliderRow(_ label: String, color: Color, value: Binding<CGFloat>, range: ClosedRange<CGFloat>, step: CGFloat) -> some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.secondary)
+                .frame(width: 52, alignment: .leading)
+            Slider(value: value, in: range, step: step)
+                .tint(color)
+            Text(fmt(value.wrappedValue))
+                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                .foregroundColor(color)
+                .frame(width: 40, alignment: .trailing)
+        }
+        .frame(height: 28)
     }
 }
 
@@ -655,9 +662,33 @@ struct DailyTasksSection: View {
     @ObservedObject var rewardsViewModel: RewardsViewModel
     @State private var showQuickTasks = false
     @State private var currentTime = Date()
+    @State private var currentCardID: Int? = 1  // Start at index 1 (Check In)
 
     // Read tab active state from environment to pause timer when tab is hidden
     @Environment(\.isRewardsTabActive) private var isTabActive
+
+    // Debug tuning state — long-press "Daily Tasks" header to open
+    @State private var showDebug = false
+    @State private var cardHeight: CGFloat = 153
+    @State private var cardWidthPercent: CGFloat = 0.4
+    @State private var cardPadding: CGFloat = 24
+    @State private var iconSize: CGFloat = 42.1
+    @State private var elevation: CGFloat = 0
+    @State private var frameExtra: CGFloat = 0
+    @State private var titleSize: CGFloat = 14.9
+    @State private var pointsSize: CGFloat = 12.5
+    @State private var claimSize: CGFloat = 13.7
+    @State private var vSpacing: CGFloat = 5.7
+    @State private var claimPadH: CGFloat = 18
+    @State private var claimPadV: CGFloat = 8.8
+
+    // Card dimensions for peek-on-both-sides carousel
+    private let screenWidth = UIScreen.main.bounds.width
+    private var dailyCardWidthPercent: CGFloat { cardWidthPercent }
+    private var dailyCardWidth: CGFloat { screenWidth * cardWidthPercent }
+    private var dailyCardHeight: CGFloat { cardHeight }
+    private var dailyCardSpacing: CGFloat { screenWidth * 0.03 }
+
 
     // Calculate time until midnight
     private var timeUntilReset: String {
@@ -693,9 +724,54 @@ struct DailyTasksSection: View {
         }
     }
 
+    // Build the carousel card data
+    private var carouselCards: [DailyCarouselCard] {
+        var cards: [DailyCarouselCard] = []
+
+        // Card 0: Quick Earnings (left)
+        cards.append(DailyCarouselCard(
+            index: 0,
+            icon: "bolt.fill",
+            title: "Quick Earnings",
+            points: 0,
+            isCompleted: false,
+            canClaim: false,
+            ctaText: "View All",
+            cardType: .quickEarnings
+        ))
+
+        // Card 1: Check In Today (center, default)
+        let checkInTask = tasksViewModel.dailyTasks.first { $0.taskType == .checkIn }
+        cards.append(DailyCarouselCard(
+            index: 1,
+            icon: checkInTask?.isClaimed == true ? "calendar.badge.checkmark" : "calendar",
+            title: "Check In Today",
+            points: checkInTask?.points ?? 10,
+            isCompleted: checkInTask?.isClaimed ?? false,
+            canClaim: checkInTask?.canClaim ?? false,
+            ctaText: checkInTask?.ctaText ?? "Check In",
+            cardType: .checkIn
+        ))
+
+        // Card 2: Upload a Bill (right)
+        let uploadTask = tasksViewModel.dailyTasks.first { $0.taskType == .billUpload }
+        cards.append(DailyCarouselCard(
+            index: 2,
+            icon: "doc.badge.plus",
+            title: "Upload a Bill",
+            points: uploadTask?.points ?? 25,
+            isCompleted: uploadTask?.isClaimed ?? false,
+            canClaim: uploadTask?.canClaim ?? false,
+            ctaText: uploadTask?.ctaText ?? "Upload",
+            cardType: .upload
+        ))
+
+        return cards
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Header
+        VStack(alignment: .leading, spacing: 12) {
+            // Header — long-press to open debug controls
             HStack {
                 Text("Daily Tasks")
                     .font(.system(size: 20, weight: .bold))
@@ -707,34 +783,51 @@ struct DailyTasksSection: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.billixMediumGreen)
             }
+            .padding(.horizontal, 20)
+            .onLongPressGesture(minimumDuration: 0.5) {
+                let g = UIImpactFeedbackGenerator(style: .heavy)
+                g.impactOccurred()
+                showDebug = true
+            }
 
-            // Tasks
+            // Carousel - ScrollView + GeometryReader for peek-on-both-sides
             if tasksViewModel.isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .frame(height: 140)
             } else {
-                VStack(spacing: 12) {
-                    // Show only daily tasks (check-in and bill upload)
-                    ForEach(tasksViewModel.dailyTasks.filter { $0.taskType == .checkIn || $0.taskType == .billUpload }) { task in
-                        DailyTaskCardView(task: task, viewModel: tasksViewModel, rewardsViewModel: rewardsViewModel)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: dailyCardSpacing) {
+                        ForEach(Array(carouselCards.enumerated()), id: \.offset) { index, card in
+                            DailyTaskCarouselCardView(
+                                card: card,
+                                onAction: { handleCardAction(card) },
+                                cardPadding: cardPadding,
+                                iconSize: iconSize,
+                                titleSize: titleSize,
+                                pointsSize: pointsSize,
+                                claimSize: claimSize,
+                                vSpacing: vSpacing,
+                                claimPadH: claimPadH,
+                                claimPadV: claimPadV
+                            )
+                            .containerRelativeFrame(.horizontal)
+                            .id(index)
+                            .visualEffect { content, proxy in
+                                content
+                                    .offset(y: dailyCardElevation(for: proxy))
+                                    .opacity(dailyCardOpacity(for: proxy))
+                            }
+                        }
                     }
-
-                    // Quick Earnings portal card
-                    TaskCard(task: RewardTask(
-                        id: UUID(),
-                        title: "Quick Earnings",
-                        points: 0,
-                        icon: "bolt.fill",
-                        isCompleted: false,
-                        type: .daily,
-                        isPortal: true,
-                        buttonText: nil,
-                        canClaim: false
-                    )) {
-                        showQuickTasks = true
-                    }
+                    .scrollTargetLayout()
                 }
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $currentCardID)
+                .safeAreaPadding(.horizontal, (screenWidth - 40 - dailyCardWidth) / 2)
+                .scrollClipDisabled()
+                .padding(.horizontal, 20)
+                .frame(height: dailyCardHeight + frameExtra + 24)
             }
         }
         .onAppear {
@@ -765,6 +858,311 @@ struct DailyTasksSection: View {
         .sheet(isPresented: $showQuickTasks) {
             QuickTasksScreen()
         }
+        .safeAreaInset(edge: .bottom) {
+            if showDebug {
+                DailyTasksInlineDebugPanel(
+                    showDebug: $showDebug,
+                    cardHeight: $cardHeight,
+                    cardWidthPercent: $cardWidthPercent,
+                    cardPadding: $cardPadding,
+                    iconSize: $iconSize,
+                    elevation: $elevation,
+                    frameExtra: $frameExtra,
+                    titleSize: $titleSize,
+                    pointsSize: $pointsSize,
+                    claimSize: $claimSize,
+                    vSpacing: $vSpacing,
+                    claimPadH: $claimPadH,
+                    claimPadV: $claimPadV
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showDebug)
+    }
+
+    private func dailyCardElevation(for proxy: GeometryProxy) -> CGFloat {
+        let cardCenterX = proxy.frame(in: .scrollView).midX
+        let viewportCenterX = proxy.bounds(of: .scrollView)?.midX ?? 0
+        let distance = abs(cardCenterX - viewportCenterX)
+        let normalized = min(distance / dailyCardWidth, 1.0)
+        let eased = 1 - pow(1 - normalized, 2)
+        return -elevation * (1 - eased)
+    }
+
+    private func dailyCardOpacity(for proxy: GeometryProxy) -> CGFloat {
+        let cardCenterX = proxy.frame(in: .scrollView).midX
+        let viewportCenterX = proxy.bounds(of: .scrollView)?.midX ?? 0
+        let distance = abs(cardCenterX - viewportCenterX)
+        let normalized = min(distance / dailyCardWidth, 1.0)
+        return 1.0 - (normalized * 0.4)  // 1.0 center → 0.6 edges
+    }
+
+    private func handleCardAction(_ card: DailyCarouselCard) {
+        switch card.cardType {
+        case .checkIn:
+            Task {
+                await tasksViewModel.performCheckIn()
+                await rewardsViewModel.loadRewardsData()
+            }
+        case .upload:
+            if card.canClaim {
+                let uploadTask = tasksViewModel.dailyTasks.first { $0.taskType == .billUpload }
+                if let task = uploadTask {
+                    Task {
+                        await tasksViewModel.claimTask(task)
+                        await rewardsViewModel.loadRewardsData()
+                    }
+                }
+            } else {
+                NotificationCenter.default.post(name: NSNotification.Name("NavigateToUpload"), object: nil)
+            }
+        case .quickEarnings:
+            showQuickTasks = true
+        }
+    }
+}
+
+// MARK: - Daily Tasks Inline Debug Panel
+
+private struct DailyTasksInlineDebugPanel: View {
+    @Binding var showDebug: Bool
+    @Binding var cardHeight: CGFloat
+    @Binding var cardWidthPercent: CGFloat
+    @Binding var cardPadding: CGFloat
+    @Binding var iconSize: CGFloat
+    @Binding var elevation: CGFloat
+    @Binding var frameExtra: CGFloat
+    @Binding var titleSize: CGFloat
+    @Binding var pointsSize: CGFloat
+    @Binding var claimSize: CGFloat
+    @Binding var vSpacing: CGFloat
+    @Binding var claimPadH: CGFloat
+    @Binding var claimPadV: CGFloat
+    @State private var copied = false
+
+    private var valuesString: String {
+        "cardHeight: \(fmt(cardHeight)), widthPct: \(fmt(cardWidthPercent)), padding: \(fmt(cardPadding)), iconSize: \(fmt(iconSize)), elevation: \(fmt(elevation)), frameExtra: \(fmt(frameExtra)), titleSize: \(fmt(titleSize)), pointsSize: \(fmt(pointsSize)), claimSize: \(fmt(claimSize)), vSpacing: \(fmt(vSpacing)), claimPadH: \(fmt(claimPadH)), claimPadV: \(fmt(claimPadV))"
+    }
+
+    private func fmt(_ v: CGFloat) -> String { String(format: "%.1f", v) }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("Debug Controls")
+                    .font(.system(size: 15, weight: .bold))
+                Spacer()
+                Button("Done") {
+                    showDebug = false
+                }
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(.blue)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
+            // Sliders
+            VStack(spacing: 8) {
+                sliderRow("Height", color: .blue, value: $cardHeight, range: 80...250, step: 5)
+                sliderRow("Width %", color: .purple, value: $cardWidthPercent, range: 0.4...0.9, step: 0.02)
+                sliderRow("Padding", color: .cyan, value: $cardPadding, range: 4...24, step: 1)
+                sliderRow("Icon", color: .green, value: $iconSize, range: 20...60, step: 2)
+                sliderRow("Title", color: .mint, value: $titleSize, range: 8...24, step: 0.5)
+                sliderRow("Points", color: .teal, value: $pointsSize, range: 8...20, step: 0.5)
+                sliderRow("Claim", color: .indigo, value: $claimSize, range: 8...20, step: 0.5)
+                sliderRow("Spacing", color: .pink, value: $vSpacing, range: 0...20, step: 1)
+                sliderRow("ClmPdH", color: .brown, value: $claimPadH, range: 4...40, step: 1)
+                sliderRow("ClmPdV", color: .yellow, value: $claimPadV, range: 2...20, step: 1)
+                sliderRow("Elevtn", color: .orange, value: $elevation, range: 0...40, step: 2)
+                sliderRow("Frame+", color: .red, value: $frameExtra, range: 0...60, step: 2)
+            }
+            .padding(.horizontal, 20)
+
+            // Actions
+            HStack(spacing: 12) {
+                Button {
+                    cardHeight = 153; cardWidthPercent = 0.4; cardPadding = 24
+                    iconSize = 42.1; elevation = 0; frameExtra = 0
+                    titleSize = 14.9; pointsSize = 12.5; claimSize = 13.7
+                    vSpacing = 5.7; claimPadH = 18; claimPadV = 8.8
+                } label: {
+                    Label("Reset", systemImage: "arrow.counterclockwise")
+                        .font(.system(size: 13, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(10)
+                }
+
+                Button {
+                    UIPasteboard.general.string = valuesString
+                    copied = true
+                    let g = UINotificationFeedbackGenerator()
+                    g.notificationOccurred(.success)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { copied = false }
+                } label: {
+                    Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(copied ? Color.green : Color.blue)
+                        .cornerRadius(10)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
+            .padding(.bottom, 16)
+        }
+        .frame(maxHeight: 460)
+        .background(.ultraThinMaterial)
+    }
+
+    private func sliderRow(_ label: String, color: Color, value: Binding<CGFloat>, range: ClosedRange<CGFloat>, step: CGFloat) -> some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.secondary)
+                .frame(width: 52, alignment: .leading)
+            Slider(value: value, in: range, step: step)
+                .tint(color)
+            Text(fmt(value.wrappedValue))
+                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                .foregroundColor(color)
+                .frame(width: 40, alignment: .trailing)
+        }
+        .frame(height: 28)
+    }
+}
+
+// MARK: - Daily Carousel Card Model
+
+struct DailyCarouselCard: Identifiable {
+    let index: Int
+    let icon: String
+    let title: String
+    let points: Int
+    let isCompleted: Bool
+    let canClaim: Bool
+    let ctaText: String
+    let cardType: DailyCardType
+
+    var id: Int { index }
+
+    enum DailyCardType {
+        case upload
+        case checkIn
+        case quickEarnings
+    }
+}
+
+// MARK: - Daily Task Carousel Card View
+
+struct DailyTaskCarouselCardView: View {
+    let card: DailyCarouselCard
+    let onAction: () -> Void
+    var cardPadding: CGFloat = 14
+    var iconSize: CGFloat = 40
+    var titleSize: CGFloat = 14
+    var pointsSize: CGFloat = 12
+    var claimSize: CGFloat = 13
+    var vSpacing: CGFloat = 8
+    var claimPadH: CGFloat = 18
+    var claimPadV: CGFloat = 8
+
+    var body: some View {
+        VStack(spacing: vSpacing) {
+            // Title
+            Text(card.title)
+                .font(.system(size: titleSize, weight: .bold))
+                .foregroundColor(.billixDarkGreen)
+                .multilineTextAlignment(.center)
+                .lineLimit(1)
+
+            // Points or subtitle
+            if card.cardType == .quickEarnings {
+                Text("Bonus mini-tasks")
+                    .font(.system(size: pointsSize, weight: .medium))
+                    .foregroundColor(.billixMediumGreen)
+            } else {
+                HStack(spacing: 3) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: pointsSize - 2))
+                        .foregroundColor(.billixArcadeGold)
+                    Text("+\(card.points) pts")
+                        .font(.system(size: pointsSize, weight: .semibold))
+                        .foregroundColor(.billixMediumGreen)
+                }
+            }
+
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(
+                        (card.cardType == .quickEarnings ? Color.billixArcadeGold : Color.billixMoneyGreen)
+                            .opacity(0.15)
+                    )
+                    .frame(width: iconSize, height: iconSize)
+
+                Image(systemName: card.icon)
+                    .font(.system(size: iconSize * 0.45, weight: .semibold))
+                    .foregroundColor(card.cardType == .quickEarnings ? .billixArcadeGold : .billixMoneyGreen)
+            }
+
+            Spacer(minLength: 0)
+
+            // Action button
+            if card.isCompleted {
+                HStack(spacing: 3) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: claimSize - 1))
+                    Text("Done")
+                        .font(.system(size: claimSize - 1, weight: .semibold))
+                }
+                .foregroundColor(.billixMoneyGreen)
+                .padding(.horizontal, claimPadH)
+                .padding(.vertical, claimPadV)
+                .background(
+                    Capsule()
+                        .fill(Color.billixMoneyGreen.opacity(0.15))
+                )
+            } else {
+                Button(action: onAction) {
+                    Text(card.canClaim ? "Claim" : card.ctaText)
+                        .font(.system(size: claimSize, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, claimPadH)
+                        .padding(.vertical, claimPadV)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    card.canClaim ?
+                                    LinearGradient(
+                                        colors: [.billixGoldenAmber, .billixPrizeOrange],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    ) :
+                                    LinearGradient(
+                                        colors: [.billixMoneyGreen, .billixMediumGreen],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                }
+                .buttonStyle(ScaleButtonStyle(scale: 0.95))
+            }
+        }
+        .padding(cardPadding)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 4)
+        )
     }
 }
 

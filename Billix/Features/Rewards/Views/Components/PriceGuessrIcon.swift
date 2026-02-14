@@ -9,6 +9,16 @@
 import SwiftUI
 import SceneKit
 
+// DEBUG CONTROLS PATTERN:
+// To re-enable debug controls for any SceneKit/3D element, use a .sheet approach:
+//   1. Add @State var showDebugSheet = false
+//   2. Add .onLongPressGesture(minimumDuration: 0.5) { showDebugSheet = true }
+//   3. Present a .sheet with sliders bound to the values you want to tune
+//   4. Use .presentationDetents([.height(380)]) so it doesn't cover the element
+//   5. Include a "Copy Values" button that writes to UIPasteboard.general.string
+//   6. Once tuned, hardcode the values and remove the debug code
+// Tuned values for Animated3DDollarSign: offsetX: -0.01, offsetY: 0.00, scale: 1.01
+
 struct PriceGuessrIcon: View {
     @State private var isAnimating = false
     @State private var tagOffset: CGFloat = 0
@@ -31,7 +41,7 @@ struct PriceGuessrIcon: View {
             }
 
             // 3D Spinning Dollar Sign
-            Animated3DDollarSign(offsetX: 0.25, offsetY: -0.10, scale: 1.40)
+            Animated3DDollarSign(offsetX: -0.01, offsetY: 0.00, scale: 1.01)
                 .frame(width: 168, height: 168)
                 .offset(y: isAnimating ? -4 : 4)
         }

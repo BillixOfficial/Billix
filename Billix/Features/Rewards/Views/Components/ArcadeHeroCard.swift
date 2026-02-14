@@ -15,274 +15,76 @@ struct ArcadeHeroCard: View {
     let timeRemaining: String
     let onPlay: () -> Void
 
-    @State private var isPulsing = false
-    @State private var showGameInfo = false
-
     var body: some View {
-        ZStack {
-            // Background with gradient and decorative elements
-            backgroundLayer
-
-            // Content
-            VStack(alignment: .leading, spacing: 0) {
-                // Top: Badge
-                HStack {
-                    rewardBadge
-
-                    Spacer()
-                }
-                .padding(.bottom, 16)
-
-                // Large Title
-                Text("Daily Price\nGuessr")
-                    .font(.system(size: 36, weight: .bold))
-                    .foregroundColor(.white)
-                    .lineSpacing(2)
-                    .padding(.bottom, 8)
-
-                // Subtitle
-                if let game = game {
-                    Text("Can you guess the price of\n**\(game.subject)**?")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
-                        .lineLimit(2)
-                } else {
-                    Text("Can you guess the price of\n**[Today's Item]**?")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
-                        .lineLimit(2)
-                }
-
-                Spacer()
-
-                // Bottom: Action area
-                HStack {
-                    if hasPlayedToday, let result = result {
-                        // Played state - show result
-                        playedStateView(result: result)
-                    } else {
-                        // Unplayed state - show CTA
-                        playButton
-                    }
-                }
-            }
-            .padding(20)
-        }
-        .frame(height: 200)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: .billixGamePurple.opacity(0.3), radius: 20, x: 0, y: 10)
-        .onAppear {
-            if !hasPlayedToday {
-                isPulsing = true
-            }
-        }
-    }
-
-    // MARK: - Background Layer
-
-    private var backgroundLayer: some View {
-        ZStack {
-            // Main gradient - darker navy/purple
-            LinearGradient(
-                colors: [
-                    Color(hex: "#1e3d40"),
-                    Color(hex: "#2d5a5e"),
-                    Color(hex: "#3a6e6e")
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-
-            // Decorative elements on the right
-            GeometryReader { geometry in
-                // Bar chart visualization
-                HStack(alignment: .bottom, spacing: 4) {
-                    BarColumn(height: 30, colors: [Color(hex: "#3b82f6"), Color(hex: "#60a5fa")])
-                    BarColumn(height: 45, colors: [Color(hex: "#8b5cf6"), Color(hex: "#a78bfa")])
-                    BarColumn(height: 25, colors: [Color(hex: "#ec4899"), Color(hex: "#f472b6")])
-                    BarColumn(height: 50, colors: [Color(hex: "#3b82f6"), Color(hex: "#60a5fa")])
-                    BarColumn(height: 35, colors: [Color(hex: "#8b5cf6"), Color(hex: "#a78bfa")])
-                }
-                .frame(width: 120, height: 60)
-                .opacity(0.6)
-                .offset(x: geometry.size.width - 150, y: geometry.size.height / 2 - 30)
-
-                // Trending arrow
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color(hex: "#3b82f6").opacity(0.7))
-                    .offset(x: geometry.size.width - 40, y: geometry.size.height / 2 - 50)
-            }
-
-            // Floating coins
-            GeometryReader { geometry in
-                ForEach(0..<6, id: \.self) { index in
-                    CoinView()
-                        .offset(
-                            x: coinPositions[index].x * geometry.size.width,
-                            y: coinPositions[index].y * geometry.size.height
-                        )
-                }
-            }
-
-            // Price tag icons
-            GeometryReader { geometry in
-                PriceTagIcon(rotation: -15)
-                    .offset(x: geometry.size.width - 60, y: 20)
-
-                PriceTagIcon(rotation: 10)
-                    .offset(x: geometry.size.width - 100, y: geometry.size.height - 50)
-            }
-        }
-    }
-
-    // Coin positions (percentage of width/height)
-    private let coinPositions: [(x: CGFloat, y: CGFloat)] = [
-        (0.15, 0.1),
-        (0.75, 0.05),
-        (0.85, 0.3),
-        (0.2, 0.7),
-        (0.65, 0.75),
-        (0.9, 0.85)
-    ]
-
-    // MARK: - Category Illustration
-
-    private var categoryIllustration: some View {
-        ZStack {
-            // Glowing backdrop
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color.white.opacity(0.15), Color.clear],
-                        center: .center,
-                        startRadius: 20,
-                        endRadius: 60
-                    )
-                )
-                .frame(width: 120, height: 120)
-
-            // Main illustration based on category
-            if let game = game {
-                switch game.category {
-                case .grocery:
-                    GroceryIllustration()
-                case .rent:
-                    RentIllustration()
-                case .utility:
-                    UtilityIllustration()
-                case .subscription:
-                    SubscriptionIllustration()
-                case .gas:
-                    GasIllustration()
-                }
-            } else {
-                // Default illustration
-                Image(systemName: "questionmark.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(.white.opacity(0.3))
-            }
-        }
-    }
-
-    // MARK: - Reward Badge
-
-    private var rewardBadge: some View {
-        Text("WIN UP TO 200 PTS")
-            .font(.system(size: 11, weight: .bold))
-            .foregroundColor(Color(hex: "#1e3d40"))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(Color.billixArcadeGold)
-            )
-    }
-
-    // MARK: - Play Button
-
-    private var playButton: some View {
         Button(action: {
             let generator = UIImpactFeedbackGenerator(style: .medium)
             generator.impactOccurred()
             onPlay()
         }) {
-            HStack(spacing: 6) {
-                Text("PLAY NOW")
-                    .font(.system(size: 15, weight: .bold))
-
-                Image(systemName: "play.fill")
-                    .font(.system(size: 12))
-            }
-            .foregroundColor(.white)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 14)
-            .background(
-                Capsule()
+            ZStack {
+                // Background gradient
+                RoundedRectangle(cornerRadius: 16)
                     .fill(
                         LinearGradient(
-                            colors: [Color(hex: "#3b82f6"), Color(hex: "#2563eb")],
+                            colors: [Color(hex: "#1e3d40"), Color(hex: "#2d5a5e"), Color(hex: "#3a6e6e")],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
-            )
-            .shadow(color: Color(hex: "#3b82f6").opacity(0.5), radius: 12, y: 6)
-        }
-        .buttonStyle(ScaleButtonStyle(scale: 0.95))
-    }
 
-    // MARK: - Played State
+                HStack(spacing: 12) {
+                    // Left: 3D dollar sign icon (compact)
+                    Animated3DDollarSign(offsetX: -0.01, offsetY: 0.00, scale: 1.01)
+                        .frame(width: 52, height: 52)
 
-    private func playedStateView(result: GameResult) -> some View {
-        HStack {
-            // Score display
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text("Score:")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.white.opacity(0.8))
+                    // Center: Title + subtitle
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Price Guessr")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
 
-                    Text("\(result.accuracyPercentage)/100")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        if hasPlayedToday, let result = result {
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.billixArcadeGold)
+                                Text("+\(result.pointsEarned) pts earned")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                        } else {
+                            Text("Test your price knowledge")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                    }
+
+                    Spacer()
+
+                    // Right: Play button
+                    Text(hasPlayedToday ? "PLAY" : "PLAY NOW")
+                        .font(.system(size: 13, weight: .bold))
                         .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(hex: "#F0A830"), Color(hex: "#E89520")],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                        .shadow(color: Color(hex: "#F0A830").opacity(0.4), radius: 6, y: 3)
                 }
-
-                HStack(spacing: 4) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(.billixArcadeGold)
-
-                    Text("+\(result.pointsEarned) pts")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.billixArcadeGold)
-                }
-            }
-
-            Spacer()
-
-            // Countdown
-            VStack(alignment: .trailing, spacing: 4) {
-                Text("Next game in")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
-
-                HStack(spacing: 4) {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: 12))
-
-                    Text(timeRemaining)
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(Color.white.opacity(0.2))
-                )
+                .padding(.horizontal, 16)
             }
         }
+        .buttonStyle(ScaleButtonStyle(scale: 0.97))
+        .frame(height: 80)
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
     }
 }
 
