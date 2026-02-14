@@ -197,8 +197,9 @@ struct LoginView: View {
         } message: {
             Text(errorMessage ?? "An error occurred")
         }
-        .sheet(isPresented: $showEnrollmentSheet) {
-            EnrollmentMethodView()
+        // Use fullScreenCover for enrollment - contains NavigationStack with onboarding
+        .fullScreenCover(isPresented: $showEnrollmentSheet) {
+            EnrollmentFlowView()
                 .environmentObject(authService)
         }
         .sheet(isPresented: $showForgotPassword) {
@@ -451,124 +452,150 @@ struct QuickLinkButton: View {
     }
 }
 
-// MARK: - Enrollment Method View (Sign Up Options)
+// MARK: - Enrollment Flow View (Container with NavigationStack)
+// This view manages the entire enrollment flow: method selection → sign up → onboarding
+// Using NavigationStack instead of nested sheets for reliable navigation
 
-struct EnrollmentMethodView: View {
+struct EnrollmentFlowView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authService: AuthService
-    @State private var showEmailSignUp = false
+    @State private var path = NavigationPath()
+
+    enum Destination: Hashable {
+        case emailSignUp
+        case onboarding
+    }
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            EnrollmentMethodContent(path: $path, onDismiss: { dismiss() })
+                .navigationDestination(for: Destination.self) { destination in
+                    switch destination {
+                    case .emailSignUp:
+                        EmailSignUpContent(path: $path)
+                    case .onboarding:
+                        OnboardingView(onComplete: { dismiss() })
+                            .navigationBarBackButtonHidden(true)
+                    }
+                }
+        }
+        .environmentObject(authService)
+    }
+}
+
+// MARK: - Enrollment Method Content (Choose sign-up method)
+
+struct EnrollmentMethodContent: View {
+    @EnvironmentObject var authService: AuthService
+    @Binding var path: NavigationPath
+    var onDismiss: () -> Void
+
     @State private var isGoogleLoading = false
     @State private var isAppleLoading = false
     @State private var errorMessage: String?
     @State private var showError = false
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color(hex: "#6B9B7A")
-                    .ignoresSafeArea()
+        ZStack {
+            Color(hex: "#6B9B7A")
+                .ignoresSafeArea()
 
-                VStack(spacing: 32) {
-                    Spacer()
-                        .frame(height: 40)
+            VStack(spacing: 32) {
+                Spacer()
+                    .frame(height: 40)
 
-                    // Header
-                    VStack(spacing: 12) {
-                        Image(systemName: "person.badge.plus")
-                            .font(.system(size: 60))
-                            .foregroundColor(.white)
+                // Header
+                VStack(spacing: 12) {
+                    Image(systemName: "person.badge.plus")
+                        .font(.system(size: 60))
+                        .foregroundColor(.white)
 
-                        Text("Create Your Account")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.white)
+                    Text("Create Your Account")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(.white)
 
-                        Text("Choose how you'd like to sign up")
-                            .font(.system(size: 18))
-                            .foregroundColor(.white.opacity(0.9))
+                    Text("Choose how you'd like to sign up")
+                        .font(.system(size: 18))
+                        .foregroundColor(.white.opacity(0.9))
+                }
+
+                Spacer()
+                    .frame(height: 20)
+
+                // Sign up options
+                VStack(spacing: 16) {
+                    // Sign up with Apple
+                    SignInWithAppleButton(.signUp) { request in
+                        request.requestedScopes = [.fullName, .email]
+                    } onCompletion: { result in
+                        handleAppleSignUp(result)
                     }
+                    .signInWithAppleButtonStyle(.white)
+                    .frame(height: 56)
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    .disabled(isAppleLoading || isGoogleLoading)
 
-                    Spacer()
-                        .frame(height: 20)
-
-                    // Sign up options
-                    VStack(spacing: 16) {
-                        // Sign up with Apple
-                        SignInWithAppleButton(.signUp) { request in
-                            request.requestedScopes = [.fullName, .email]
-                        } onCompletion: { result in
-                            handleAppleSignUp(result)
+                    // Sign up with Google
+                    Button(action: handleGoogleSignUp) {
+                        HStack(spacing: 10) {
+                            if isGoogleLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#5A6B64")))
+                            } else {
+                                GoogleColoredG()
+                                    .frame(width: 18, height: 18)
+                            }
+                            Text("Sign up with Google")
+                                .font(.system(size: 19, weight: .semibold))
+                                .foregroundColor(Color(hex: "#1F1F1F"))
                         }
-                        .signInWithAppleButtonStyle(.white)
+                        .frame(maxWidth: .infinity)
                         .frame(height: 56)
+                        .background(Color.white)
                         .cornerRadius(14)
-                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        .disabled(isAppleLoading || isGoogleLoading)
-
-                        // Sign up with Google
-                        Button(action: handleGoogleSignUp) {
-                            HStack(spacing: 10) {
-                                if isGoogleLoading {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#5A6B64")))
-                                } else {
-                                    GoogleColoredG()
-                                        .frame(width: 18, height: 18)
-                                }
-                                Text("Sign up with Google")
-                                    .font(.system(size: 19, weight: .semibold))
-                                    .foregroundColor(Color(hex: "#1F1F1F"))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(Color.white)
-                            .cornerRadius(14)
-                        }
-                        .buttonStyle(ScaleButtonStyle())
-                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        .disabled(isAppleLoading || isGoogleLoading)
-
-                        // Sign up with Email
-                        Button(action: { showEmailSignUp = true }) {
-                            HStack(spacing: 12) {
-                                Image(systemName: "envelope.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(Color(hex: "#3D6B4F"))
-                                Text("Sign up with Email")
-                                    .font(.system(size: 19, weight: .semibold))
-                                    .foregroundColor(Color(hex: "#3D6B4F"))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(Color.white)
-                            .cornerRadius(14)
-                        }
-                        .buttonStyle(ScaleButtonStyle())
-                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        .disabled(isAppleLoading || isGoogleLoading)
                     }
-                    .padding(.horizontal, 28)
+                    .buttonStyle(ScaleButtonStyle())
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    .disabled(isAppleLoading || isGoogleLoading)
 
-                    Spacer()
+                    // Sign up with Email - navigates to EmailSignUpContent
+                    Button(action: { path.append(EnrollmentFlowView.Destination.emailSignUp) }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "envelope.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(Color(hex: "#3D6B4F"))
+                            Text("Sign up with Email")
+                                .font(.system(size: 19, weight: .semibold))
+                                .foregroundColor(Color(hex: "#3D6B4F"))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(Color.white)
+                        .cornerRadius(14)
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    .disabled(isAppleLoading || isGoogleLoading)
                 }
+                .padding(.horizontal, 28)
+
+                Spacer()
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(.white)
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    onDismiss()
                 }
+                .foregroundColor(.white)
             }
         }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(errorMessage ?? "An error occurred")
-        }
-        .sheet(isPresented: $showEmailSignUp) {
-            EmailSignUpView()
-                .environmentObject(authService)
         }
     }
 
@@ -587,7 +614,8 @@ struct EnrollmentMethodView: View {
                     try await authService.signInWithApple(credential: credential)
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
-                    dismiss()
+                    // Navigate to onboarding after Apple sign-up
+                    path.append(EnrollmentFlowView.Destination.onboarding)
                 } catch {
                     showErrorMessage(error.localizedDescription)
                     let generator = UINotificationFeedbackGenerator()
@@ -611,7 +639,8 @@ struct EnrollmentMethodView: View {
                 try await authService.signInWithGoogle()
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
-                dismiss()
+                // Navigate to onboarding after Google sign-up
+                path.append(EnrollmentFlowView.Destination.onboarding)
             } catch {
                 showErrorMessage(error.localizedDescription)
                 let generator = UINotificationFeedbackGenerator()
@@ -627,11 +656,20 @@ struct EnrollmentMethodView: View {
     }
 }
 
-// MARK: - Email Sign Up View
+// MARK: - Legacy EnrollmentMethodView (kept for compatibility)
+// This is a wrapper that uses the new EnrollmentFlowView
+struct EnrollmentMethodView: View {
+    var body: some View {
+        EnrollmentFlowView()
+    }
+}
 
-struct EmailSignUpView: View {
-    @Environment(\.dismiss) var dismiss
+// MARK: - Email Sign Up Content (for NavigationStack flow)
+
+struct EmailSignUpContent: View {
     @EnvironmentObject var authService: AuthService
+    @Binding var path: NavigationPath
+
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
@@ -642,6 +680,245 @@ struct EmailSignUpView: View {
     @FocusState private var focusedField: EmailSignUpField?
 
     enum EmailSignUpField {
+        case email, password, confirmPassword
+    }
+
+    var body: some View {
+        ZStack {
+            Color(hex: "#6B9B7A")
+                .ignoresSafeArea()
+                .onTapGesture {
+                    focusedField = nil
+                }
+
+            VStack(spacing: 24) {
+                Spacer()
+                    .frame(height: 40)
+
+                // Header
+                VStack(spacing: 12) {
+                    Image(systemName: "envelope.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.white)
+
+                    Text("Sign Up with Email")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                }
+
+                Spacer()
+                    .frame(height: 20)
+
+                // Form
+                VStack(spacing: 16) {
+                    // Email
+                    ZStack(alignment: .leading) {
+                        if email.isEmpty {
+                            Text("Email")
+                                .font(.system(size: 17))
+                                .foregroundColor(Color(hex: "#9CA3AF"))
+                                .padding(.leading, 18)
+                        }
+                        TextField("", text: $email)
+                            .focused($focusedField, equals: .email)
+                            .keyboardType(.emailAddress)
+                            .textContentType(.emailAddress)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                            .font(.system(size: 17))
+                            .foregroundStyle(Color(hex: "#2D3B35"))
+                            .tint(Color(hex: "#3D6B4F"))
+                            .padding(18)
+                    }
+                    .background(Color.white)
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
+
+                    // Password
+                    ZStack(alignment: .leading) {
+                        if password.isEmpty {
+                            Text("Password")
+                                .font(.system(size: 17))
+                                .foregroundColor(Color(hex: "#9CA3AF"))
+                                .padding(.leading, 18)
+                        }
+                        HStack {
+                            if isSecured {
+                                SecureField("", text: $password)
+                                    .focused($focusedField, equals: .password)
+                                    .textContentType(.newPassword)
+                                    .font(.system(size: 17))
+                                    .foregroundStyle(Color(hex: "#2D3B35"))
+                                    .tint(Color(hex: "#3D6B4F"))
+                            } else {
+                                TextField("", text: $password)
+                                    .focused($focusedField, equals: .password)
+                                    .textContentType(.newPassword)
+                                    .autocapitalization(.none)
+                                    .disableAutocorrection(true)
+                                    .font(.system(size: 17))
+                                    .foregroundStyle(Color(hex: "#2D3B35"))
+                                    .tint(Color(hex: "#3D6B4F"))
+                            }
+
+                            Button(action: { isSecured.toggle() }) {
+                                Image(systemName: isSecured ? "eye.slash" : "eye")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color(hex: "#9CA3AF"))
+                            }
+                        }
+                        .padding(18)
+                    }
+                    .background(Color.white)
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
+
+                    // Confirm Password
+                    ZStack(alignment: .leading) {
+                        if confirmPassword.isEmpty {
+                            Text("Confirm Password")
+                                .font(.system(size: 17))
+                                .foregroundColor(Color(hex: "#9CA3AF"))
+                                .padding(.leading, 18)
+                        }
+                        HStack {
+                            if isSecured {
+                                SecureField("", text: $confirmPassword)
+                                    .focused($focusedField, equals: .confirmPassword)
+                                    .textContentType(.newPassword)
+                                    .font(.system(size: 17))
+                                    .foregroundStyle(Color(hex: "#2D3B35"))
+                                    .tint(Color(hex: "#3D6B4F"))
+                            } else {
+                                TextField("", text: $confirmPassword)
+                                    .focused($focusedField, equals: .confirmPassword)
+                                    .textContentType(.newPassword)
+                                    .autocapitalization(.none)
+                                    .disableAutocorrection(true)
+                                    .font(.system(size: 17))
+                                    .foregroundStyle(Color(hex: "#2D3B35"))
+                                    .tint(Color(hex: "#3D6B4F"))
+                            }
+                        }
+                        .padding(18)
+                    }
+                    .background(Color.white)
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
+
+                    // Create Account Button
+                    Button(action: handleSignUp) {
+                        HStack(spacing: 8) {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "#3D6B4F")))
+                            }
+                            Text("Create Account")
+                                .font(.system(size: 18, weight: .semibold))
+                        }
+                        .foregroundColor(Color(hex: "#3D6B4F"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(Color.white)
+                        .cornerRadius(14)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    }
+                    .buttonStyle(ScaleButtonStyle())
+                    .padding(.top, 8)
+                    .disabled(isLoading)
+                    .opacity(isLoading ? 0.7 : 1)
+                }
+                .padding(.horizontal, 28)
+
+                Spacer()
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Back") {
+                    path.removeLast()
+                }
+                .foregroundColor(.white)
+            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "An error occurred")
+        }
+    }
+
+    private func handleSignUp() {
+        focusedField = nil
+
+        guard !email.isEmpty else {
+            showErrorMessage("Please enter your email")
+            return
+        }
+
+        guard email.contains("@") && email.contains(".") else {
+            showErrorMessage("Please enter a valid email address")
+            return
+        }
+
+        guard !password.isEmpty else {
+            showErrorMessage("Please enter a password")
+            return
+        }
+
+        guard password.count >= 6 else {
+            showErrorMessage("Password must be at least 6 characters")
+            return
+        }
+
+        guard password == confirmPassword else {
+            showErrorMessage("Passwords do not match")
+            return
+        }
+
+        isLoading = true
+
+        Task {
+            do {
+                _ = try await authService.signUp(email: email, password: password)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+                // Navigate directly to onboarding - no sheet dismissal needed!
+                path.append(EnrollmentFlowView.Destination.onboarding)
+            } catch {
+                showErrorMessage(error.localizedDescription)
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+            }
+            isLoading = false
+        }
+    }
+
+    private func showErrorMessage(_ message: String) {
+        errorMessage = message
+        showError = true
+    }
+}
+
+// MARK: - Legacy Email Sign Up View (kept for compatibility)
+
+struct EmailSignUpView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var authService: AuthService
+    var onSignUpSuccess: (() -> Void)? = nil
+
+    @State private var email = ""
+    @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var isSecured = true
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var showError = false
+    @FocusState private var focusedField: EmailSignUpFieldLegacy?
+
+    enum EmailSignUpFieldLegacy {
         case email, password, confirmPassword
     }
 
@@ -849,6 +1126,7 @@ struct EmailSignUpView: View {
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
                 dismiss()
+                onSignUpSuccess?()  // Dismiss parent EnrollmentMethodView sheet
             } catch {
                 showErrorMessage(error.localizedDescription)
                 let generator = UINotificationFeedbackGenerator()

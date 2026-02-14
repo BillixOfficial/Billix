@@ -112,18 +112,10 @@ class AuthService: ObservableObject {
         let userId = session.user.id
 
         do {
-            // First verify the user actually exists (handles case where user was deleted but session cached)
-            let userExists = await verifyUserExists(userId: userId)
-
-            if !userExists {
-                // User was deleted but session is cached - sign out
-                try? await supabase.auth.signOut()
-                self.currentUser = nil
-                self.isAuthenticated = false
-                self.needsOnboarding = false
-                self.isLoading = false
-                return
-            }
+            // REMOVED: verifyUserExists() check
+            // The check was causing issues during sign-up because supabase.auth.user()
+            // could fail due to timing, triggering an unwanted sign-out.
+            // We already have a valid session, so we trust it.
 
             // Check if user has completed onboarding (has vault record)
             let vaultExists = await checkVaultExists(userId: userId)
@@ -318,12 +310,10 @@ class AuthService: ObservableObject {
     }
 
     /// Sign up with email and password
-    /// Sets awaitingEmailVerification if confirmation is required
+    /// With the new navigation architecture (EnrollmentFlowView), the UI handles navigation directly.
+    /// The auth state listener will handle session state in the background.
     @discardableResult
     func signUp(email: String, password: String) async throws -> Bool {
-        isLoading = true
-        defer { isLoading = false }
-
         guard !email.isEmpty, !password.isEmpty else {
             throw AuthError.invalidCredentials
         }
@@ -338,21 +328,21 @@ class AuthService: ObservableObject {
                 password: password
             )
 
-            if let session = response.session {
-                await handleSession(session)
+            if response.session != nil {
+                // Session returned - user is authenticated
+                // Auth state listener will update isAuthenticated in background
                 return false // No email confirmation needed
             } else {
-                // If no session returned, attempt automatic sign-in
-                // (works when email confirmation is disabled in Supabase)
+                // No session - try automatic sign-in (for when email confirmation is disabled)
                 do {
-                    let signInSession = try await supabase.auth.signIn(
+                    _ = try await supabase.auth.signIn(
                         email: email,
                         password: password
                     )
-                    await handleSession(signInSession)
+                    // Sign-in succeeded - user is authenticated
                     return false
                 } catch {
-                    // Email confirmation truly required - show verification screen
+                    // Email confirmation truly required
                     self.pendingVerificationEmail = email
                     self.pendingVerificationPassword = password
                     self.awaitingEmailVerification = true
@@ -491,7 +481,7 @@ class AuthService: ObservableObject {
 
             try await supabase
                 .from("profiles")
-                .insert(profileData)
+                .upsert(profileData)
                 .execute()
 
             // Create user vault record for legacy compatibility
@@ -504,7 +494,7 @@ class AuthService: ObservableObject {
 
             try await supabase
                 .from("user_vault")
-                .insert(vaultInsert)
+                .upsert(vaultInsert)
                 .execute()
 
             // Fetch the created user data
