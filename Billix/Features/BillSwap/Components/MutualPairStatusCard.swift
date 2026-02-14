@@ -14,6 +14,7 @@ struct MutualPairStatusCard: View {
 
     @State private var pairedConnection: Connection?
     @State private var pairedBill: SupportBill?
+    @State private var pairedTermsAccepted: Bool = false
     @State private var isLoading = true
     @State private var showPartnerDetail = false
 
@@ -79,6 +80,21 @@ struct MutualPairStatusCard: View {
                                 .frame(width: 60)
                         }
                     }
+                }
+
+                // Partner terms acceptance status (for handshake phase)
+                if paired.status == .handshake {
+                    HStack(spacing: 8) {
+                        Image(systemName: pairedTermsAccepted ? "checkmark.circle.fill" : "clock.fill")
+                            .foregroundStyle(pairedTermsAccepted ? Color.billixMoneyGreen : Color.billixGoldenAmber)
+
+                        Text(pairedTermsAccepted ? "Terms Accepted" : "Awaiting Terms Acceptance")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(pairedTermsAccepted ? Color.billixMoneyGreen : .secondary)
+                    }
+                    .padding(10)
+                    .background(pairedTermsAccepted ? Color.billixMoneyGreen.opacity(0.1) : Color.billixGoldenAmber.opacity(0.1))
+                    .cornerRadius(8)
                 }
 
                 // Warning if partner connection has issues
@@ -147,8 +163,13 @@ struct MutualPairStatusCard: View {
         do {
             pairedConnection = try await MutualMatchService.shared.getPairedConnection(for: currentConnectionId)
 
-            if let billId = pairedConnection?.billId {
-                pairedBill = try await ConnectionService.shared.getBill(id: billId)
+            if let paired = pairedConnection {
+                pairedBill = try await ConnectionService.shared.getBill(id: paired.billId)
+
+                // Load partner's terms status
+                if let terms = try await TermsService.shared.getCurrentTerms(for: paired.id) {
+                    pairedTermsAccepted = terms.status == .accepted
+                }
             }
         } catch {
             print("Failed to load paired connection: \(error)")

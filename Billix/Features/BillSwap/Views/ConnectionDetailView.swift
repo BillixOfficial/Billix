@@ -561,6 +561,37 @@ struct HandshakePhaseContent: View {
             if let terms = viewModel.terms {
                 // Show terms status
                 TermsCard(terms: terms, viewModel: viewModel)
+
+                // For mutual swaps: Show waiting state when terms accepted but partner hasn't accepted
+                if terms.status == .accepted && connection.mutualPairId != nil && !viewModel.partnerTermsAccepted {
+                    MutualSwapWaitingCard()
+                }
+
+                // Allow supporter to propose new terms if previous were rejected
+                if terms.status == .rejected && viewModel.isSupporter {
+                    Button {
+                        showTermsProposal = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "arrow.counterclockwise.circle.fill")
+                                .font(.system(size: 18))
+                            Text("Propose New Terms")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.billixDarkTeal, Color.billixDarkTeal.opacity(0.85)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .shadow(color: Color.billixDarkTeal.opacity(0.3), radius: 8, x: 0, y: 4)
+                    }
+                }
             } else if viewModel.isSupporter {
                 // Supporter needs to propose terms
                 InfoCard(
@@ -1296,6 +1327,41 @@ struct InfoCard: View {
     }
 }
 
+// MARK: - Mutual Swap Waiting Card
+
+/// Displayed when terms are accepted but partner hasn't accepted yet
+struct MutualSwapWaitingCard: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            // Animated spinner
+            ProgressView()
+                .scaleEffect(0.9)
+                .tint(Color.billixGoldenAmber)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Waiting for Partner")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Color.billixDarkTeal)
+
+                Text("Your terms are accepted. Both parties must accept before payment can proceed.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .lineSpacing(2)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity)
+        .background(Color.billixGoldenAmber.opacity(0.1))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.billixGoldenAmber.opacity(0.3), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+}
+
 // MARK: - Action Buttons View
 
 struct ActionButtonsView: View {
@@ -1307,12 +1373,27 @@ struct ActionButtonsView: View {
     @Binding var showTermsProposal: Bool
     @Binding var showExternalPayment: Bool
 
+    @State private var showChatSheet = false
+    @State private var chatPartner: ChatParticipant?
+
     var body: some View {
         VStack(spacing: 12) {
             // Chat/Message button (if implemented)
             if connection.isActive && connection.supporterId != nil {
                 Button {
-                    // Open chat/messages
+                    // Determine partner ID based on current user's role
+                    if let userId = AuthService.shared.currentUser?.id {
+                        let partnerId: UUID
+                        if connection.initiatorId == userId {
+                            // We're the requester, partner is the supporter
+                            partnerId = connection.supporterId!
+                        } else {
+                            // We're the supporter, partner is the initiator
+                            partnerId = connection.initiatorId
+                        }
+                        chatPartner = ChatParticipant(userId: partnerId, handle: nil, displayName: nil)
+                        showChatSheet = true
+                    }
                 } label: {
                     HStack(spacing: 10) {
                         ZStack {
@@ -1344,6 +1425,20 @@ struct ActionButtonsView: View {
             }
         }
         .padding(.horizontal)
+        .sheet(isPresented: $showChatSheet) {
+            if let partner = chatPartner {
+                NavigationStack {
+                    NewChatConversationView(otherUser: partner)
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button("Close") {
+                                    showChatSheet = false
+                                }
+                            }
+                        }
+                }
+            }
+        }
     }
 }
 
@@ -1499,6 +1594,7 @@ class ConnectionDetailViewModel: ObservableObject {
     @Published var terms: ConnectionTerms?
     @Published var isLoading = false
     @Published var error: Error?
+    @Published var partnerTermsAccepted: Bool = false
 
     private var currentUserId: UUID? {
         AuthService.shared.currentUser?.id
@@ -1535,6 +1631,11 @@ class ConnectionDetailViewModel: ObservableObject {
             // Load terms if in handshake or later
             if connection.phase >= 2 {
                 terms = try await TermsService.shared.getCurrentTerms(for: connection.id)
+            }
+
+            // Load partner terms status for mutual swaps
+            if connection.mutualPairId != nil {
+                partnerTermsAccepted = try await ConnectionService.shared.getPartnerTermsStatus(for: connection)
             }
         } catch {
             self.error = error
