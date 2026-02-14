@@ -346,28 +346,30 @@ struct ProgressRingHeroCard: View {
         return viewModel.currentTier.pointsRange.lowerBound
     }
 
-    private var tierGradientColors: [Color] {
-        let base = viewModel.currentTier.color
-        return [base, base.opacity(0.6)]
+    private var tierStartPoints: Int {
+        viewModel.currentTier.pointsRange.lowerBound
+    }
+
+    private var milestones: [GaugeMilestone] {
+        switch viewModel.currentTier {
+        case .bronze: return SpeedometerGauge.bronzeMilestones()
+        case .silver: return SpeedometerGauge.silverMilestones()
+        case .gold: return SpeedometerGauge.goldMilestones()
+        case .platinum: return SpeedometerGauge.platinumMilestones()
+        }
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top: Tier Progress Ring
-            VStack(spacing: 10) {
-                ZStack {
-                    CircularProgressRing(
-                        progress: viewModel.tierProgress,
-                        colors: tierGradientColors,
-                        lineWidth: 10
-                    )
-                    .frame(width: 100, height: 100)
-
-                    Image("pig_loading")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 52, height: 52)
-                }
+            // Top: Speedometer Gauge (includes pig_loading inside)
+            VStack(spacing: 6) {
+                SpeedometerGauge(
+                    progress: viewModel.tierProgress,
+                    currentPoints: viewModel.points.lifetimeEarned,
+                    maxPoints: nextTierThreshold,
+                    tierColor: viewModel.currentTier.color,
+                    milestones: milestones
+                )
 
                 Text("\(viewModel.points.lifetimeEarned.formatted()) / \(nextTierThreshold.formatted()) pts")
                     .font(.system(size: 15, weight: .bold, design: .rounded))
@@ -377,7 +379,7 @@ struct ProgressRingHeroCard: View {
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundColor(viewModel.currentTier.color)
             }
-            .padding(.vertical, 16)
+            .padding(.vertical, 8)
             .frame(maxWidth: .infinity)
 
             // Bottom: Price Guessr row
