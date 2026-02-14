@@ -299,20 +299,15 @@ struct EarnPointsTabView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
-                // 1. Tier Progress Ring Hero Card
-                ProgressRingHeroCard(viewModel: viewModel)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 24)
-
-                // 2. Price Guessr (compact)
-                DailyGameHeroCard(
+                // 1. Tier Progress Ring + Price Guessr combined card
+                ProgressRingHeroCard(
+                    viewModel: viewModel,
                     game: viewModel.dailyGame,
                     gamesPlayedToday: viewModel.gamesPlayedToday,
-                    onPlay: {
-                        viewModel.playDailyGame()
-                    }
+                    onPlay: { viewModel.playDailyGame() }
                 )
-                .padding(.horizontal, 20)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
 
                 // 3. Daily Tasks Section (carousel)
                 DailyTasksSection(tasksViewModel: tasksViewModel, rewardsViewModel: viewModel)
@@ -340,6 +335,9 @@ struct EarnPointsTabView: View {
 
 struct ProgressRingHeroCard: View {
     @ObservedObject var viewModel: RewardsViewModel
+    var game: DailyGame?
+    var gamesPlayedToday: Int = 0
+    var onPlay: (() -> Void)?
 
     private var nextTierThreshold: Int {
         if let next = viewModel.currentTier.nextTier {
@@ -354,25 +352,9 @@ struct ProgressRingHeroCard: View {
     }
 
     var body: some View {
-        ZStack {
-            // Background card
-            RoundedRectangle(cornerRadius: 24)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.billixMoneyGreen.opacity(0.08),
-                            Color.billixMediumGreen.opacity(0.05)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(Color.billixBorderGreen.opacity(0.3), lineWidth: 1)
-
+        VStack(spacing: 0) {
+            // Top: Tier Progress Ring
             VStack(spacing: 10) {
-                // Ring with pig
                 ZStack {
                     CircularProgressRing(
                         progress: viewModel.tierProgress,
@@ -387,19 +369,91 @@ struct ProgressRingHeroCard: View {
                         .frame(width: 52, height: 52)
                 }
 
-                // Points label
                 Text("\(viewModel.points.lifetimeEarned.formatted()) / \(nextTierThreshold.formatted()) pts")
                     .font(.system(size: 15, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
 
-                // Tier name
                 Text(viewModel.currentTier.rawValue)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundColor(viewModel.currentTier.color)
             }
-            .padding(.vertical, 12)
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity)
+
+            // Bottom: Price Guessr row
+            ZStack {
+                Image("HeroCard_MONEY")
+                    .resizable()
+                    .scaledToFill()
+                    .scaleEffect(1.2)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
+
+                HStack(spacing: 12) {
+                    Text("Price Guessr")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(.billixDarkGreen)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                        .layoutPriority(1)
+
+                    Spacer(minLength: 0)
+
+                    Button(action: {
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.impactOccurred()
+                        onPlay?()
+                    }) {
+                        Text("Play Now")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                            .fixedSize()
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 9)
+                            .background(
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color(hex: "#F0A830"), Color(hex: "#E89520")],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                            )
+                            .shadow(color: Color(hex: "#F0A830").opacity(0.4), radius: 6, x: 0, y: 3)
+                    }
+                    .buttonStyle(FABButtonStyle())
+                    .accessibilityLabel("Play today's Price Guessr challenge")
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .frame(height: 80)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.billixBorderGreen.opacity(0.4), lineWidth: 1)
+            )
+            .padding(.horizontal, 12)
+            .padding(.bottom, 12)
         }
-        .frame(height: 200)
+        .background(
+            LinearGradient(
+                colors: [
+                    Color.billixMoneyGreen.opacity(0.08),
+                    Color.billixMediumGreen.opacity(0.05)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(Color.billixBorderGreen.opacity(0.3), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
     }
 }
 
