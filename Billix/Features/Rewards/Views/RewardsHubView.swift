@@ -299,15 +299,18 @@ struct EarnPointsTabView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 20) {
-                // 1. Tier Progress Ring + Price Guessr combined card
-                ProgressRingHeroCard(
-                    viewModel: viewModel,
+                // 1. Tier Progress Ring card
+                ProgressRingHeroCard(viewModel: viewModel)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+
+                // 2. Price Guessr card (separate)
+                DailyGameHeroCard(
                     game: viewModel.dailyGame,
                     gamesPlayedToday: viewModel.gamesPlayedToday,
                     onPlay: { viewModel.playDailyGame() }
                 )
                     .padding(.horizontal, 20)
-                    .padding(.top, 24)
 
                 // 3. Daily Tasks Section (carousel)
                 DailyTasksSection(tasksViewModel: tasksViewModel, rewardsViewModel: viewModel)
@@ -335,9 +338,6 @@ struct EarnPointsTabView: View {
 
 struct ProgressRingHeroCard: View {
     @ObservedObject var viewModel: RewardsViewModel
-    var game: DailyGame?
-    var gamesPlayedToday: Int = 0
-    var onPlay: (() -> Void)?
 
     private var nextTierThreshold: Int {
         if let next = viewModel.currentTier.nextTier {
@@ -370,92 +370,35 @@ struct ProgressRingHeroCard: View {
                     tierColor: viewModel.currentTier.color,
                     milestones: milestones
                 )
+                .scaleEffect(1.18)
+                .offset(y: 25)
 
-                Text("\(viewModel.points.lifetimeEarned.formatted()) / \(nextTierThreshold.formatted()) pts")
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
-                    .foregroundColor(.primary)
+                VStack(spacing: 4) {
+                    Text("\(viewModel.points.lifetimeEarned.formatted()) / \(nextTierThreshold.formatted()) pts")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(.primary)
 
-                Text(viewModel.currentTier.rawValue)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundColor(viewModel.currentTier.color)
+                    Text(viewModel.currentTier.rawValue)
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundColor(viewModel.currentTier.color)
+                }
+                .offset(y: 13.3)
             }
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity)
-
-            // Bottom: Price Guessr row
-            ZStack {
-                Image("HeroCard_MONEY")
-                    .resizable()
-                    .scaledToFill()
-                    .scaleEffect(1.2)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
-
-                HStack(spacing: 12) {
-                    Text("Price Guessr")
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundColor(.billixDarkGreen)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
-                        .layoutPriority(1)
-
-                    Spacer(minLength: 0)
-
-                    Button(action: {
-                        let generator = UIImpactFeedbackGenerator(style: .medium)
-                        generator.impactOccurred()
-                        onPlay?()
-                    }) {
-                        Text("Play Now")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-                            .fixedSize()
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 9)
-                            .background(
-                                Capsule()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color(hex: "#F0A830"), Color(hex: "#E89520")],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                            )
-                            .shadow(color: Color(hex: "#F0A830").opacity(0.4), radius: 6, x: 0, y: 3)
-                    }
-                    .buttonStyle(FABButtonStyle())
-                    .accessibilityLabel("Play today's Price Guessr challenge")
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-            }
-            .frame(height: 80)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.billixBorderGreen.opacity(0.4), lineWidth: 1)
-            )
-            .padding(.horizontal, 12)
-            .padding(.bottom, 12)
         }
+        .frame(height: 292.4)
+        .frame(maxWidth: .infinity)
+        .scaleEffect(0.9)
         .background(
-            LinearGradient(
-                colors: [
-                    Color.billixMoneyGreen.opacity(0.08),
-                    Color.billixMediumGreen.opacity(0.05)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(
             RoundedRectangle(cornerRadius: 24)
                 .stroke(Color.billixBorderGreen.opacity(0.3), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
     }
 }
 
@@ -502,33 +445,20 @@ struct DailyGameHeroCard: View {
     let gamesPlayedToday: Int
     let onPlay: () -> Void
 
-    // Debug tuning — long-press card to open
-    @State private var showDebug = false
-    @State private var cardHeight: CGFloat = 80
-    @State private var cornerRadius: CGFloat = 20
-    @State private var titleSize: CGFloat = 26.2
-    @State private var btnFontSize: CGFloat = 13
-    @State private var btnPadH: CGFloat = 14
-    @State private var btnPadV: CGFloat = 9
-    @State private var imgScale: CGFloat = 1.2
-    @State private var imgOffsetX: CGFloat = 0
-    @State private var imgOffsetY: CGFloat = 0
-
     var body: some View {
         ZStack {
             // Hero card background image
             Image("HeroCard_MONEY")
                 .resizable()
                 .scaledToFill()
-                .scaleEffect(imgScale)
-                .offset(x: imgOffsetX, y: imgOffsetY)
+                .scaleEffect(1.2)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
 
             HStack(spacing: 12) {
                 // Title
                 Text("Price Guessr")
-                    .font(.system(size: titleSize, weight: .bold))
+                    .font(.system(size: 26.2, weight: .bold))
                     .foregroundColor(.billixDarkGreen)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
@@ -543,12 +473,12 @@ struct DailyGameHeroCard: View {
                     onPlay()
                 }) {
                     Text("Play Now")
-                        .font(.system(size: btnFontSize, weight: .bold))
+                        .font(.system(size: 13, weight: .bold))
                         .foregroundColor(.white)
                         .lineLimit(1)
                         .fixedSize()
-                        .padding(.horizontal, btnPadH)
-                        .padding(.vertical, btnPadV)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 9)
                         .background(
                             Capsule()
                                 .fill(
@@ -567,137 +497,11 @@ struct DailyGameHeroCard: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
         }
-        .frame(height: cardHeight)
-        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .frame(height: 80)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Daily Price Guessr game")
-        .onLongPressGesture(minimumDuration: 0.5) {
-            let g = UIImpactFeedbackGenerator(style: .heavy)
-            g.impactOccurred()
-            showDebug = true
-        }
-        .safeAreaInset(edge: .bottom) {
-            if showDebug {
-                HeroCardDebugPanel(
-                    showDebug: $showDebug,
-                    cardHeight: $cardHeight,
-                    cornerRadius: $cornerRadius,
-                    titleSize: $titleSize,
-                    btnFontSize: $btnFontSize,
-                    btnPadH: $btnPadH,
-                    btnPadV: $btnPadV,
-                    imgScale: $imgScale,
-                    imgOffsetX: $imgOffsetX,
-                    imgOffsetY: $imgOffsetY
-                )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showDebug)
-    }
-}
-
-// MARK: - Hero Card Debug Panel
-
-private struct HeroCardDebugPanel: View {
-    @Binding var showDebug: Bool
-    @Binding var cardHeight: CGFloat
-    @Binding var cornerRadius: CGFloat
-    @Binding var titleSize: CGFloat
-    @Binding var btnFontSize: CGFloat
-    @Binding var btnPadH: CGFloat
-    @Binding var btnPadV: CGFloat
-    @Binding var imgScale: CGFloat
-    @Binding var imgOffsetX: CGFloat
-    @Binding var imgOffsetY: CGFloat
-    @State private var copied = false
-
-    private var valuesString: String {
-        "height: \(fmt(cardHeight)), radius: \(fmt(cornerRadius)), title: \(fmt(titleSize)), btnFont: \(fmt(btnFontSize)), btnPadH: \(fmt(btnPadH)), btnPadV: \(fmt(btnPadV)), imgScale: \(fmt(imgScale)), imgOffX: \(fmt(imgOffsetX)), imgOffY: \(fmt(imgOffsetY))"
-    }
-
-    private func fmt(_ v: CGFloat) -> String { String(format: "%.1f", v) }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("Hero Card Debug")
-                    .font(.system(size: 15, weight: .bold))
-                Spacer()
-                Button("Done") { showDebug = false }
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.blue)
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 14)
-            .padding(.bottom, 10)
-
-            VStack(spacing: 8) {
-                sliderRow("Height", color: .blue, value: $cardHeight, range: 50...200, step: 2)
-                sliderRow("Radius", color: .purple, value: $cornerRadius, range: 0...40, step: 1)
-                sliderRow("Title", color: .green, value: $titleSize, range: 14...40, step: 0.2)
-                sliderRow("BtnFont", color: .orange, value: $btnFontSize, range: 8...20, step: 0.5)
-                sliderRow("BtnPadH", color: .cyan, value: $btnPadH, range: 4...30, step: 1)
-                sliderRow("BtnPadV", color: .red, value: $btnPadV, range: 4...20, step: 1)
-                sliderRow("ImgScale", color: .mint, value: $imgScale, range: 0.5...3.0, step: 0.05)
-                sliderRow("ImgOffX", color: .indigo, value: $imgOffsetX, range: -100...100, step: 2)
-                sliderRow("ImgOffY", color: .pink, value: $imgOffsetY, range: -100...100, step: 2)
-            }
-            .padding(.horizontal, 20)
-
-            HStack(spacing: 12) {
-                Button {
-                    cardHeight = 80; cornerRadius = 20; titleSize = 26.2
-                    btnFontSize = 13; btnPadH = 14; btnPadV = 9
-                    imgScale = 1.2; imgOffsetX = 0; imgOffsetY = 0
-                } label: {
-                    Label("Reset", systemImage: "arrow.counterclockwise")
-                        .font(.system(size: 13, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(Color(.systemGray5))
-                        .cornerRadius(10)
-                }
-
-                Button {
-                    UIPasteboard.general.string = valuesString
-                    copied = true
-                    let g = UINotificationFeedbackGenerator()
-                    g.notificationOccurred(.success)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { copied = false }
-                } label: {
-                    Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(copied ? Color.green : Color.blue)
-                        .cornerRadius(10)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
-            .padding(.bottom, 16)
-        }
-        .frame(maxHeight: 280)
-        .background(.ultraThinMaterial)
-    }
-
-    private func sliderRow(_ label: String, color: Color, value: Binding<CGFloat>, range: ClosedRange<CGFloat>, step: CGFloat) -> some View {
-        HStack(spacing: 8) {
-            Text(label)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.secondary)
-                .frame(width: 52, alignment: .leading)
-            Slider(value: value, in: range, step: step)
-                .tint(color)
-            Text(fmt(value.wrappedValue))
-                .font(.system(size: 13, weight: .bold, design: .monospaced))
-                .foregroundColor(color)
-                .frame(width: 40, alignment: .trailing)
-        }
-        .frame(height: 28)
     }
 }
 

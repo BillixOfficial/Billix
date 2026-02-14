@@ -65,6 +65,11 @@ struct SpeedometerGauge: View {
     let tierColor: Color
     let milestones: [GaugeMilestone]
 
+    // Baked per-badge position overrides
+    private static let badgeDistOverrides: [Int: CGFloat] = [1: 41.9, 3: 39.7, 4: 41.7]
+    private static let badgeExtraOffX: [Int: CGFloat] = [1: -9.9, 2: -10.6, 4: 10.8]
+    private static let badgeExtraOffY: [Int: CGFloat] = [3: 6.7]
+
     @State private var animatedProgress: Double = 0
 
     // Arc geometry — 270° horseshoe, gap at bottom
@@ -136,27 +141,24 @@ struct SpeedometerGauge: View {
                     .offset(x: labelPos.x, y: labelPos.y)
             }
 
-            // 4. Triangle marker at progress tip
-            let progressAngle = startAngle + totalSweep * animatedProgress
-            let markerPos = pointOnCircle(angle: progressAngle, radius: gaugeRadius + 2)
-            GaugeTriangleMarker()
-                .fill(tierColor)
-                .frame(width: 10, height: 8)
-                .rotationEffect(.degrees(progressAngle + 90))
-                .offset(x: markerPos.x, y: markerPos.y)
-                .animation(.spring(response: 1.2, dampingFraction: 0.7), value: animatedProgress)
-
             // 5. Coin milestone badges (outside the arc)
-            ForEach(Array(milestones.enumerated()), id: \.offset) { _, milestone in
+            ForEach(Array(milestones.enumerated()), id: \.offset) { idx, milestone in
                 if milestone.coinReward > 0 {
                     let fraction = Double(milestone.points) / Double(maxPoints)
                     let clampedFraction = min(max(fraction, 0), 1)
                     let angle = startAngle + totalSweep * clampedFraction
-                    let badgeRadius = gaugeRadius + 40
+                    let dist = Self.badgeDistOverrides[idx] ?? 38.8
+                    let badgeRadius = gaugeRadius + dist
                     let badgePos = pointOnCircle(angle: angle, radius: badgeRadius)
+                    let extraX = Self.badgeExtraOffX[idx] ?? 0
+                    let extraY = Self.badgeExtraOffY[idx] ?? 0
 
-                    CoinBadge(reward: milestone.coinReward)
-                        .offset(x: badgePos.x, y: badgePos.y)
+                    CoinCallout(
+                        reward: milestone.coinReward,
+                        angleOnArc: angle,
+                        milestoneIndex: idx
+                    )
+                    .offset(x: badgePos.x + extraX, y: badgePos.y + extraY)
                 }
             }
 
@@ -327,41 +329,102 @@ private struct MilestoneTicksShape: Shape {
     }
 }
 
-// MARK: - Triangle Marker
+// MARK: - Bubble Tail Shape
 
-private struct GaugeTriangleMarker: Shape {
+private struct BubbleTail: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        // Triangle pointing downward (tip at bottom-center)
+        path.move(to: CGPoint(x: rect.midX - rect.width / 2, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX + rect.width / 2, y: rect.minY))
         path.closeSubpath()
         return path
     }
 }
 
-// MARK: - Coin Badge
+// MARK: - Coin Callout (Speech-Bubble Style)
 
-private struct CoinBadge: View {
+private struct CoinCallout: View {
     let reward: Int
+    let angleOnArc: Double
+    var milestoneIndex: Int = 0
+
+    // Baked-in tuned values
+    private let coinSz: CGFloat = 18
+    private let padH: CGFloat = 6.9
+    private let padV: CGFloat = 4.5
+    private let txtSz: CGFloat = 13
+    private let tW: CGFloat = 13.9
+    private let tH: CGFloat = 8.3
+    private let eA: CGFloat = 24
+    private let eB: CGFloat = 6.4
+
+    // Per-badge tail adjustments (keyed by milestone index)
+    private static let tailOffXAdj: [Int: CGFloat] = [1: 12.7, 2: 17.5, 3: 1.3, 4: -20.7]
+    private static let tailOffYAdj: [Int: CGFloat] = [1: -1.8, 3: 8.6]
+    private static let tailRotAdj: [Int: CGFloat] = [1: -129.2, 2: 127.3, 3: -111, 4: -134.7]
+
+    private var towardCenterRad: Double {
+        (angleOnArc + 180) * .pi / 180
+    }
+
+    private var tailRotation: Double {
+        let base = angleOnArc + 90
+        let adj = Self.tailRotAdj[milestoneIndex] ?? 0
+        return base + Double(adj)
+    }
+
+    private var tailOffset: CGPoint {
+        let dx = CGFloat(cos(towardCenterRad))
+        let dy = CGFloat(sin(towardCenterRad))
+        let denom = sqrt((dx * dx) / (eA * eA) + (dy * dy) / (eB * eB))
+        guard denom > 0 else { return .zero }
+        let baseX = dx / denom
+        let baseY = dy / denom
+        let adjX = Self.tailOffXAdj[milestoneIndex] ?? 0
+        let adjY = Self.tailOffYAdj[milestoneIndex] ?? 0
+        return CGPoint(x: baseX + adjX, y: baseY + adjY)
+    }
 
     var body: some View {
         ZStack {
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [Color(hex: "#FFD700"), Color(hex: "#F0A830")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#FFD700"), Color(hex: "#F0A830")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
-                )
-                .frame(width: 22, height: 22)
-                .shadow(color: Color(hex: "#F0A830").opacity(0.4), radius: 2, x: 0, y: 1)
+                    .frame(width: coinSz, height: coinSz)
+                    .overlay(
+                        Circle()
+                            .stroke(Color(hex: "#E8A800").opacity(0.5), lineWidth: 1)
+                    )
+                    .overlay(
+                        Text("C")
+                            .font(.system(size: coinSz * 0.45, weight: .heavy, design: .rounded))
+                            .foregroundColor(.white)
+                    )
 
-            Text("\(reward)")
-                .font(.system(size: 9, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                Text("\(reward)+")
+                    .font(.system(size: txtSz, weight: .bold, design: .rounded))
+                    .foregroundColor(Color(hex: "#444444"))
+            }
+            .padding(.horizontal, padH)
+            .padding(.vertical, padV)
+            .background(Capsule().fill(Color.white))
+
+            BubbleTail()
+                .fill(Color.white)
+                .frame(width: tW, height: tH)
+                .rotationEffect(.degrees(tailRotation))
+                .offset(x: tailOffset.x, y: tailOffset.y)
         }
+        .compositingGroup()
+        .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
     }
 }
 
@@ -371,11 +434,11 @@ extension SpeedometerGauge {
     static func bronzeMilestones() -> [GaugeMilestone] {
         [
             GaugeMilestone(points: 0, coinReward: 0),
-            GaugeMilestone(points: 1000, coinReward: 6),
-            GaugeMilestone(points: 2000, coinReward: 6),
-            GaugeMilestone(points: 4000, coinReward: 10),
-            GaugeMilestone(points: 6000, coinReward: 10),
-            GaugeMilestone(points: 8000, coinReward: 25),
+            GaugeMilestone(points: 1000, coinReward: 50),
+            GaugeMilestone(points: 2000, coinReward: 75),
+            GaugeMilestone(points: 4000, coinReward: 150),
+            GaugeMilestone(points: 6000, coinReward: 250),
+            GaugeMilestone(points: 8000, coinReward: 0),
         ]
     }
 
