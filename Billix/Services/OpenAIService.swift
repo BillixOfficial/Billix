@@ -8,6 +8,7 @@
 
 import Foundation
 import Supabase
+import SwiftUI
 
 // MARK: - Request/Response Models
 
@@ -50,6 +51,7 @@ struct AIContentResponse: Codable {
     let data: AIData?
     let error: String?
     let estimates: [UpcomingEstimate]?
+    let providers: [LocalUtilityProvider]?
 
     struct AIData: Codable {
         var averages: [BillAverage]?
@@ -87,6 +89,7 @@ class OpenAIService: ObservableObject {
     private var dailyBriefCache: (brief: String, timestamp: Date)?
     private var nationalAveragesCache: [String: (averages: [BillAverage], timestamp: Date)] = [:]
     private var upcomingEstimatesCache: [String: (estimates: [UpcomingEstimate], timestamp: Date)] = [:]
+    private var localProvidersCache: [String: (providers: [LocalUtilityProvider], timestamp: Date)] = [:]
 
     private let cacheTimeout: TimeInterval = 3600 // 1 hour
 
@@ -367,6 +370,7 @@ class OpenAIService: ObservableObject {
         dailyBriefCache = nil
         nationalAveragesCache.removeAll()
         upcomingEstimatesCache.removeAll()
+        localProvidersCache.removeAll()
     }
 
     // MARK: - Local Deals
@@ -409,6 +413,62 @@ class OpenAIService: ObservableObject {
             )
         ]
     }
+
+    // MARK: - Local Utility Providers
+
+    /// Get local utility providers for a specific area
+    /// Returns providers based on the user's location (zip code, city, state)
+    func getLocalProviders(zipCode: String, city: String, state: String) async throws -> [LocalUtilityProvider] {
+        // Check cache
+        if let cached = localProvidersCache[zipCode],
+           Date().timeIntervalSince(cached.timestamp) < cacheTimeout {
+            return cached.providers
+        }
+
+        let request = AIContentRequest(
+            type: "local_providers",
+            context: .init(
+                zipCode: zipCode,
+                city: city,
+                state: state
+            )
+        )
+
+        let response = try await callEdgeFunction(request: request)
+
+        if let providers = response.providers, !providers.isEmpty {
+            localProvidersCache[zipCode] = (providers, Date())
+            return providers
+        }
+
+        // Return fallback providers if API fails
+        return getFallbackProviders(state: state)
+    }
+
+    /// Fallback providers when API is unavailable
+    private func getFallbackProviders(state: String) -> [LocalUtilityProvider] {
+        // Return generic providers based on common utility types
+        [
+            LocalUtilityProvider(
+                name: "Local Electric Company",
+                type: "Electric",
+                icon: "bolt.fill",
+                colorName: "yellow"
+            ),
+            LocalUtilityProvider(
+                name: "Local Water Authority",
+                type: "Water",
+                icon: "drop.fill",
+                colorName: "blue"
+            ),
+            LocalUtilityProvider(
+                name: "Local Gas Company",
+                type: "Natural Gas",
+                icon: "flame.fill",
+                colorName: "orange"
+            )
+        ]
+    }
 }
 
 // MARK: - Local Deal Model
@@ -422,6 +482,31 @@ struct LocalDeal: Identifiable, Codable {
     let icon: String
     let savingsAmount: String?
     let deadline: String?
+}
+
+// MARK: - Local Utility Provider Model
+
+/// A utility provider for a specific location
+struct LocalUtilityProvider: Codable, Identifiable {
+    var id: String { name }
+    let name: String
+    let type: String      // "Electric & Gas", "Water", "Natural Gas", etc.
+    let icon: String      // SF Symbol name
+    let colorName: String // "yellow", "blue", "orange", "green", "purple"
+
+    /// Convert colorName string to SwiftUI Color
+    var color: Color {
+        switch colorName.lowercased() {
+        case "yellow": return .yellow
+        case "blue": return .blue
+        case "orange": return .orange
+        case "green": return .green
+        case "purple": return .purple
+        case "red": return .red
+        case "teal": return .teal
+        default: return .gray
+        }
+    }
 }
 
 // MARK: - OpenAI Errors

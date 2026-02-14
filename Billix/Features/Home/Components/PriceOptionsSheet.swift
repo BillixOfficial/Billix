@@ -17,57 +17,35 @@ struct PriceOptionsSheet: View {
     @State private var showBillConnection = false
     @State private var showRelief = false
     @State private var showNegotiationScript = false
-
-    private var savings: Double {
-        max(0, regionalAverage - targetAmount)
-    }
+    @State private var showExpertBooking = false
 
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
                     // Summary header
-                    VStack(spacing: 12) {
-                        HStack(spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .fill(billType.color.opacity(0.15))
-                                    .frame(width: 56, height: 56)
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(billType.color.opacity(0.15))
+                                .frame(width: 56, height: 56)
 
-                                Image(systemName: billType.icon)
-                                    .font(.system(size: 24))
-                                    .foregroundColor(billType.color)
-                            }
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(billType.displayName)
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(Color(hex: "#2D3B35"))
-
-                                Text("Your target: $\(Int(targetAmount))/mo")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(Color(hex: "#8B9A94"))
-                            }
-
-                            Spacer()
+                            Image(systemName: billType.icon)
+                                .font(.system(size: 24))
+                                .foregroundColor(billType.color)
                         }
 
-                        if savings > 0 {
-                            HStack(spacing: 8) {
-                                Image(systemName: "arrow.down.circle.fill")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(Color(hex: "#4CAF7A"))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(billType.displayName)
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(Color(hex: "#2D3B35"))
 
-                                Text("Potential savings: $\(Int(savings))/mo")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color(hex: "#4CAF7A"))
-
-                                Spacer()
-                            }
-                            .padding(14)
-                            .background(Color(hex: "#4CAF7A").opacity(0.1))
-                            .cornerRadius(12)
+                            Text("Your target: $\(Int(targetAmount))/mo")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color(hex: "#8B9A94"))
                         }
+
+                        Spacer()
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
@@ -98,17 +76,6 @@ struct PriceOptionsSheet: View {
                         .padding(.horizontal, 20)
                     }
 
-                    // Disclaimer
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle")
-                            .font(.system(size: 12))
-                        Text("Savings estimates based on regional data and may vary")
-                            .font(.system(size: 11))
-                    }
-                    .foregroundColor(Color(hex: "#8B9A94").opacity(0.7))
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-
                     Spacer().frame(height: 40)
                 }
             }
@@ -134,6 +101,9 @@ struct PriceOptionsSheet: View {
         .sheet(isPresented: $showNegotiationScript) {
             NegotiationScriptSheet(billType: billType, targetAmount: targetAmount)
         }
+        .sheet(isPresented: $showExpertBooking) {
+            ExpertBookingSheet(billType: billType, targetAmount: targetAmount)
+        }
     }
 
     private func handleOptionTap(_ option: PriceOption) {
@@ -155,6 +125,8 @@ struct PriceOptionsSheet: View {
             showNegotiationScript = true
         case .openRelief:
             showRelief = true
+        case .bookExpert:
+            showExpertBooking = true
         }
     }
 }
@@ -191,17 +163,9 @@ private struct OptionRow: View {
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 4) {
-                    if let savings = option.potentialSavings {
-                        Text("-$\(Int(savings))/mo")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(Color(hex: "#4CAF7A"))
-                    }
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "#8B9A94").opacity(0.5))
-                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "#8B9A94").opacity(0.5))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
@@ -367,15 +331,309 @@ private struct NegotiationTipRow: View {
     }
 }
 
+// MARK: - Expert Booking Sheet
+
+struct ExpertBookingSheet: View {
+    let billType: PriceBillType
+    let targetAmount: Double
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var phoneNumber = ""
+    @State private var selectedDate = Date()
+    @State private var selectedTimeSlot: TimeSlot = .morning
+    @State private var isSubmitting = false
+    @State private var showSuccess = false
+    @State private var errorMessage: String?
+
+    enum TimeSlot: String, CaseIterable {
+        case morning = "Morning (9am - 12pm)"
+        case afternoon = "Afternoon (12pm - 5pm)"
+        case evening = "Evening (5pm - 8pm)"
+
+        var displayName: String { rawValue }
+    }
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.billixPurple.opacity(0.15))
+                                .frame(width: 72, height: 72)
+
+                            Image(systemName: "person.fill.questionmark")
+                                .font(.system(size: 32))
+                                .foregroundColor(Color.billixPurple)
+                        }
+
+                        Text("Talk to a Billix Expert")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(Color(hex: "#2D3B35"))
+
+                        Text("Schedule a call with a real person who will walk you through your options step by step.")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "#8B9A94"))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    .padding(.top, 8)
+
+                    // Bill context
+                    HStack(spacing: 12) {
+                        Image(systemName: billType.icon)
+                            .font(.system(size: 18))
+                            .foregroundColor(billType.color)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Discussing: \(billType.displayName)")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(Color(hex: "#2D3B35"))
+
+                            Text("Your target: $\(Int(targetAmount))/mo")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color(hex: "#8B9A94"))
+                        }
+
+                        Spacer()
+                    }
+                    .padding(14)
+                    .background(Color(hex: "#F7F9F8"))
+                    .cornerRadius(12)
+                    .padding(.horizontal, 20)
+
+                    // Form fields
+                    VStack(spacing: 20) {
+                        // Phone number
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Your phone number")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(hex: "#5D6D66"))
+
+                            TextField("(555) 123-4567", text: $phoneNumber)
+                                .keyboardType(.phonePad)
+                                .textContentType(.telephoneNumber)
+                                .padding(14)
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color(hex: "#E0E5E3"), lineWidth: 1)
+                                )
+                        }
+
+                        // Date picker
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Preferred date")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(hex: "#5D6D66"))
+
+                            DatePicker(
+                                "",
+                                selection: $selectedDate,
+                                in: Date()...,
+                                displayedComponents: .date
+                            )
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                            .padding(10)
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(hex: "#E0E5E3"), lineWidth: 1)
+                            )
+                        }
+
+                        // Time slot
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Preferred time")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Color(hex: "#5D6D66"))
+
+                            ForEach(TimeSlot.allCases, id: \.self) { slot in
+                                Button {
+                                    haptic()
+                                    selectedTimeSlot = slot
+                                } label: {
+                                    HStack {
+                                        Text(slot.displayName)
+                                            .font(.system(size: 14))
+                                            .foregroundColor(Color(hex: "#2D3B35"))
+
+                                        Spacer()
+
+                                        Image(systemName: selectedTimeSlot == slot ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(selectedTimeSlot == slot ? Color.billixPurple : Color(hex: "#C5CCC9"))
+                                    }
+                                    .padding(14)
+                                    .background(selectedTimeSlot == slot ? Color.billixPurple.opacity(0.08) : Color.white)
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(selectedTimeSlot == slot ? Color.billixPurple.opacity(0.3) : Color(hex: "#E0E5E3"), lineWidth: 1)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+
+                    // Error message
+                    if let error = errorMessage {
+                        Text(error)
+                            .font(.system(size: 13))
+                            .foregroundColor(.red)
+                            .padding(.horizontal, 20)
+                    }
+
+                    // Submit button
+                    Button {
+                        Task {
+                            await submitBooking()
+                        }
+                    } label: {
+                        HStack {
+                            if isSubmitting {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Text("Schedule Call")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(16)
+                        .background(phoneNumber.count >= 10 ? Color.billixPurple : Color.gray.opacity(0.3))
+                        .foregroundColor(.white)
+                        .cornerRadius(14)
+                    }
+                    .disabled(phoneNumber.count < 10 || isSubmitting)
+                    .padding(.horizontal, 20)
+
+                    // Note
+                    Text("A Billix expert will call you at your scheduled time. No AI, just real personalized help.")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: "#8B9A94"))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 30)
+
+                    Spacer().frame(height: 30)
+                }
+            }
+            .background(Color(hex: "#F7F9F8"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(Color(hex: "#5B8A6B"))
+                }
+            }
+            .alert("Call Scheduled!", isPresented: $showSuccess) {
+                Button("OK") {
+                    dismiss()
+                }
+            } message: {
+                Text("A Billix expert will call you at your scheduled time. We look forward to helping you save!")
+            }
+        }
+    }
+
+    private func submitBooking() async {
+        guard phoneNumber.count >= 10 else {
+            errorMessage = "Please enter a valid phone number"
+            return
+        }
+
+        isSubmitting = true
+        errorMessage = nil
+
+        do {
+            // Get user info
+            let session = try await SupabaseService.shared.client.auth.session
+            let userId = session.user.id.uuidString
+            let userEmail = session.user.email
+
+            // Format date
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let dateString = dateFormatter.string(from: selectedDate)
+
+            // Save to Supabase
+            struct ExpertCallRequest: Encodable {
+                let user_id: String
+                let user_email: String?
+                let phone_number: String
+                let bill_type: String
+                let target_amount: Double
+                let preferred_date: String
+                let preferred_time_slot: String
+                let status: String
+            }
+
+            let request = ExpertCallRequest(
+                user_id: userId,
+                user_email: userEmail,
+                phone_number: phoneNumber,
+                bill_type: billType.rawValue,
+                target_amount: targetAmount,
+                preferred_date: dateString,
+                preferred_time_slot: selectedTimeSlot.rawValue,
+                status: "pending"
+            )
+
+            try await SupabaseService.shared.client
+                .from("expert_call_requests")
+                .insert(request)
+                .execute()
+
+            // Send notification to Billix team
+            struct NotifyRequest: Encodable {
+                let phoneNumber: String
+                let billType: String
+                let targetAmount: Double
+                let preferredDate: String
+                let preferredTimeSlot: String
+                let userEmail: String?
+            }
+
+            let notifyRequest = NotifyRequest(
+                phoneNumber: phoneNumber,
+                billType: billType.displayName,
+                targetAmount: targetAmount,
+                preferredDate: dateString,
+                preferredTimeSlot: selectedTimeSlot.rawValue,
+                userEmail: userEmail
+            )
+
+            try? await SupabaseService.shared.client.functions
+                .invoke("notify-expert-call", options: .init(body: notifyRequest))
+
+            isSubmitting = false
+            showSuccess = true
+
+        } catch {
+            print("❌ Failed to submit expert call request: \(error)")
+            errorMessage = "Unable to schedule call. Please try again."
+            isSubmitting = false
+        }
+    }
+}
+
 #Preview {
     PriceOptionsSheet(
         billType: PriceBillType.electric,
         targetAmount: 100,
         regionalAverage: 153,
         options: [
-            PriceOption(type: .betterRate, title: "2 better rates found in your area", subtitle: "Compare plans from local providers", potentialSavings: 20, action: .viewRates),
-            PriceOption(type: .billConnection, title: "3 Bill Connection matches available", subtitle: "Get help from your community", potentialSavings: 15, action: .openBillConnection),
-            PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "Call your provider with proven tactics", potentialSavings: 12, action: .showNegotiationScript)
+            PriceOption(type: .betterRate, title: "Better rates in your area", subtitle: "Compare plans and potentially save", action: .viewRates),
+            PriceOption(type: .billConnection, title: "Bill Connection matches", subtitle: "Community members who can help", action: .openBillConnection),
+            PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "Proven tactics that work", action: .showNegotiationScript),
+            PriceOption(type: .expertCall, title: "Talk to a Billix Expert", subtitle: "Real human, step-by-step guidance", action: .bookExpert)
         ]
     )
 }

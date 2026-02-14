@@ -238,7 +238,6 @@ struct PriceOption: Identifiable {
     let type: PriceOptionType
     let title: String
     let subtitle: String
-    let potentialSavings: Double?
     let action: PriceOptionAction
 }
 
@@ -247,6 +246,7 @@ enum PriceOptionType {
     case billConnection
     case negotiation
     case relief
+    case expertCall
 
     var icon: String {
         switch self {
@@ -254,6 +254,7 @@ enum PriceOptionType {
         case .billConnection: return "person.2.fill"
         case .negotiation: return "text.bubble.fill"
         case .relief: return "heart.circle.fill"
+        case .expertCall: return "phone.fill"
         }
     }
 
@@ -263,6 +264,7 @@ enum PriceOptionType {
         case .billConnection: return Color.billixDarkTeal
         case .negotiation: return Color(hex: "#5BA4D4")
         case .relief: return Color(hex: "#E07A6B")
+        case .expertCall: return Color.billixPurple
         }
     }
 }
@@ -272,6 +274,7 @@ enum PriceOptionAction {
     case openBillConnection
     case showNegotiationScript
     case openRelief
+    case bookExpert
 }
 
 // MARK: - Price Target Service
@@ -383,25 +386,20 @@ class PriceTargetService: ObservableObject {
     func getOptions(for billType: PriceBillType, targetAmount: Double, state: String) -> [PriceOption] {
         var options: [PriceOption] = []
         let regionalAvg = getRegionalAverage(for: billType, state: state)
-        let gap = regionalAvg - targetAmount
 
         // Better rates option
-        let ratesCount = Int.random(in: 1...4)
         options.append(PriceOption(
             type: .betterRate,
-            title: "\(ratesCount) better rate\(ratesCount == 1 ? "" : "s") found in your area",
-            subtitle: "Compare plans from local providers",
-            potentialSavings: gap > 0 ? min(gap * 0.4, 30) : nil,
+            title: "Better rates in your area",
+            subtitle: "Compare plans and potentially save",
             action: .viewRates
         ))
 
         // Bill Connection option
-        let connectionCount = Int.random(in: 2...6)
         options.append(PriceOption(
             type: .billConnection,
-            title: "\(connectionCount) Bill Connection matches available",
-            subtitle: "Get help from your community",
-            potentialSavings: gap > 0 ? min(gap * 0.3, 25) : nil,
+            title: "Bill Connection matches",
+            subtitle: "Community members who can help",
             action: .openBillConnection
         ))
 
@@ -409,8 +407,7 @@ class PriceTargetService: ObservableObject {
         options.append(PriceOption(
             type: .negotiation,
             title: "Negotiation scripts ready",
-            subtitle: "Call your provider with proven tactics",
-            potentialSavings: gap > 0 ? min(gap * 0.25, 20) : nil,
+            subtitle: "Proven tactics that work",
             action: .showNegotiationScript
         ))
 
@@ -420,10 +417,17 @@ class PriceTargetService: ObservableObject {
                 type: .relief,
                 title: "Relief programs available",
                 subtitle: "You may qualify for assistance",
-                potentialSavings: nil,
                 action: .openRelief
             ))
         }
+
+        // Expert call option - always available
+        options.append(PriceOption(
+            type: .expertCall,
+            title: "Talk to a Billix Expert",
+            subtitle: "Real human, step-by-step guidance",
+            action: .bookExpert
+        ))
 
         return options
     }
