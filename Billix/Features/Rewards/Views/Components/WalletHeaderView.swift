@@ -15,6 +15,7 @@ struct WalletHeaderView: View {
     let tierProgress: Double  // 0.0 to 1.0 progress to next tier
     let streakCount: Int  // Real check-in streak from TasksViewModel
     let weeklyCheckIns: [Bool]  // Actual check-in days (Mon-Sun)
+    var hidePointsHeader: Bool = false
 
     @State private var animatedPoints: Int = 0
     @State private var showShimmer = false
@@ -29,6 +30,7 @@ struct WalletHeaderView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if !hidePointsHeader {
             HStack(spacing: 16) {
                 // Points Icon with Tier Ring (Tappable)
                 Button(action: {
@@ -93,6 +95,7 @@ struct WalletHeaderView: View {
             .padding(.horizontal, 20)
             .padding(.top, 12)
             .padding(.bottom, 12)
+            } // end hidePointsHeader
 
             // Streak & Stats Carousel
             StreakStatsCarousel(
@@ -292,8 +295,13 @@ struct StreakStatsCarousel: View {
                 generator.impactOccurred()
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.billixMoneyGreen)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.billixMoneyGreen.opacity(0.08))
+                    )
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.9))
 
@@ -320,12 +328,17 @@ struct StreakStatsCarousel: View {
                 generator.impactOccurred()
             } label: {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.billixMoneyGreen)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.billixMoneyGreen.opacity(0.08))
+                    )
             }
             .buttonStyle(ScaleButtonStyle(scale: 0.9))
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 12)
         .onAppear {
             PerformanceMonitor.shared.viewAppeared("StreakStatsCarousel")
         }
@@ -464,13 +477,21 @@ struct WeeklyProgressSlide: View {
                 // Days row - uses pre-computed checkmarkStates for performance
                 HStack(spacing: 4) {
                     ForEach(Array(days.enumerated()), id: \.offset) { index, day in
+                        let isToday = index == todayWeekdayIndex
                         VStack(spacing: 2) {
                             Text(day)
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundColor(.billixMediumGreen)
+                                .font(.system(size: 9, weight: isToday ? .bold : .semibold))
+                                .foregroundColor(isToday ? .billixDarkGreen : .billixMediumGreen)
                                 .frame(width: 24)
 
                             ZStack {
+                                // Today glow ring
+                                if isToday {
+                                    Circle()
+                                        .stroke(Color.billixArcadeGold.opacity(0.4), lineWidth: 2)
+                                        .frame(width: 26, height: 26)
+                                }
+
                                 Circle()
                                     .fill(checkmarkStates[index] ? Color.billixArcadeGold : Color.gray.opacity(0.3))
                                     .frame(width: 20, height: 20)
@@ -486,6 +507,11 @@ struct WeeklyProgressSlide: View {
                                         .animation(.spring(response: 0.5, dampingFraction: 0.6).delay(Double(index) * 0.08), value: animatedChecks[index])
                                 }
                             }
+
+                            // Today dot indicator
+                            Circle()
+                                .fill(isToday ? Color.billixArcadeGold : Color.clear)
+                                .frame(width: 4, height: 4)
                         }
                     }
                 }

@@ -64,6 +64,7 @@ struct SpeedometerGauge: View {
     let maxPoints: Int
     let tierColor: Color
     let milestones: [GaugeMilestone]
+    var onPigTapped: (() -> Void)? = nil
 
     // Baked per-badge position overrides
     private static let badgeDistOverrides: [Int: CGFloat] = [1: 41.9, 3: 39.7, 4: 41.7]
@@ -162,12 +163,18 @@ struct SpeedometerGauge: View {
                 }
             }
 
-            // 6. Mascot (pig_loading) centered
+            // 6. Mascot (pig_loading) centered — tappable
             Image("pig_loading")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 60, height: 60)
                 .offset(y: -4)
+                .onTapGesture {
+                    if let action = onPigTapped {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        action()
+                    }
+                }
         }
         .frame(width: 240, height: 220)
         .onAppear {

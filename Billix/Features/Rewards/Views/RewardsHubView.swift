@@ -43,14 +43,15 @@ struct RewardsHubView: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Wallet Header (Sticky)
+                    // Wallet Header (streak carousel only — points shown in gauge card)
                     WalletHeaderView(
                         points: viewModel.displayedBalance,
                         cashEquivalent: viewModel.points.cashEquivalent,
                         currentTier: viewModel.currentTier,
                         tierProgress: viewModel.tierProgress,
                         streakCount: tasksViewModel.currentStreak,
-                        weeklyCheckIns: tasksViewModel.weeklyCheckIns
+                        weeklyCheckIns: tasksViewModel.weeklyCheckIns,
+                        hidePointsHeader: true
                     )
                     .opacity(appeared ? 1 : 0)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appeared)
@@ -338,6 +339,7 @@ struct EarnPointsTabView: View {
 
 struct ProgressRingHeroCard: View {
     @ObservedObject var viewModel: RewardsViewModel
+    @State private var showHowItWorks = false
 
     private var nextTierThreshold: Int {
         if let next = viewModel.currentTier.nextTier {
@@ -368,7 +370,8 @@ struct ProgressRingHeroCard: View {
                     currentPoints: viewModel.points.lifetimeEarned,
                     maxPoints: nextTierThreshold,
                     tierColor: viewModel.currentTier.color,
-                    milestones: milestones
+                    milestones: milestones,
+                    onPigTapped: { showHowItWorks = true }
                 )
                 .scaleEffect(1.18)
                 .offset(y: 25)
@@ -399,6 +402,12 @@ struct ProgressRingHeroCard: View {
             RoundedRectangle(cornerRadius: 24)
                 .stroke(Color.billixBorderGreen.opacity(0.3), lineWidth: 1)
         )
+        .sheet(isPresented: $showHowItWorks) {
+            RewardsHowItWorksSheet()
+                .presentationDetents([.large])
+                .presentationBackground(Color(hex: "#F5F7F6"))
+                .presentationDragIndicator(.visible)
+        }
     }
 }
 
@@ -456,46 +465,48 @@ struct DailyGameHeroCard: View {
                 .contentShape(Rectangle())
 
             HStack(spacing: 12) {
-                // Title
-                Text("Price Guessr")
-                    .font(.system(size: 26.2, weight: .bold))
-                    .foregroundColor(.billixDarkGreen)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-                    .layoutPriority(1)
+                // 3D Dollar Sign
+                Animated3DDollarSign(offsetX: -0.01, offsetY: 0.00, scale: 1.01)
+                    .frame(width: 56, height: 56)
+
+                // Title + Play button stacked
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Price Guessr")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.billixDarkGreen)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+
+                    Button(action: {
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.impactOccurred()
+                        onPlay()
+                    }) {
+                        Text("Play Now")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color(hex: "#F0A830"), Color(hex: "#E89520")],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                            )
+                            .shadow(color: Color(hex: "#F0A830").opacity(0.4), radius: 6, x: 0, y: 3)
+                    }
+                    .buttonStyle(FABButtonStyle())
+                    .accessibilityLabel("Play today's Price Guessr challenge")
+                }
 
                 Spacer(minLength: 0)
-
-                // Play Now button
-                Button(action: {
-                    let generator = UIImpactFeedbackGenerator(style: .medium)
-                    generator.impactOccurred()
-                    onPlay()
-                }) {
-                    Text("Play Now")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
-                        .fixedSize()
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 9)
-                        .background(
-                            Capsule()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color(hex: "#F0A830"), Color(hex: "#E89520")],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                        )
-                        .shadow(color: Color(hex: "#F0A830").opacity(0.4), radius: 6, x: 0, y: 3)
-                }
-                .buttonStyle(FABButtonStyle())
-                .accessibilityLabel("Play today's Price Guessr challenge")
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 10)
         }
         .frame(height: 80)
         .clipShape(RoundedRectangle(cornerRadius: 20))
