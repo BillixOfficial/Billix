@@ -205,6 +205,8 @@ struct UtilityInsightZone: View {
 // MARK: - Learn to Lower Zone
 
 struct LearnToLowerZone: View {
+    let onLearnMore: () -> Void
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -223,7 +225,7 @@ struct LearnToLowerZone: View {
                 .lineLimit(3)
 
             Button {
-                // Learn more
+                onLearnMore()
             } label: {
                 Text("Learn how →")
                     .font(.system(size: 12, weight: .medium))
