@@ -79,6 +79,9 @@ struct HomeView: View {
     // First-time setup questions
     @State private var showSetupQuestions = false
 
+    // Bill Coach sheet
+    @State private var showBillCoach = false
+
     // Computed properties for user data
     private var userName: String {
         // Get first name only from display name
@@ -172,7 +175,9 @@ struct HomeView: View {
 
                 // Education (Contextual - rotates)
                 if showLearnToLower {
-                    LearnToLowerZone()
+                    LearnToLowerZone(onLearnMore: {
+                        showBillCoach = true
+                    })
                 }
 
                 // Invite & Earn (Referral System)
@@ -209,6 +214,9 @@ struct HomeView: View {
             }
         .fullScreenCover(isPresented: $showSetupQuestions) {
             HomeSetupQuestionsView()
+        }
+        .sheet(isPresented: $showBillCoach) {
+            BillCoachFlowView(topic: .reduceElectric)
         }
         .background(Theme.background.ignoresSafeArea())
     }
