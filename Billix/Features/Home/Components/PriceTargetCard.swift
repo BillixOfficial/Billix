@@ -109,7 +109,7 @@ struct PriceTargetCard: View {
                     .foregroundColor(Color(hex: "#8B9A94"))
 
                 VStack(spacing: 8) {
-                    ForEach(options.prefix(3)) { option in
+                    ForEach(Array(options.prefix(3))) { option in
                         HStack(spacing: 10) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 14))
@@ -120,12 +120,6 @@ struct PriceTargetCard: View {
                                 .foregroundColor(Color(hex: "#2D3B35"))
 
                             Spacer()
-
-                            if let potentialSavings = option.potentialSavings {
-                                Text("-$\(Int(potentialSavings))")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(Color(hex: "#4CAF7A"))
-                            }
                         }
                     }
                 }
@@ -160,9 +154,9 @@ struct PriceTargetCard: View {
         target: PriceTarget(billType: PriceBillType.electric, targetAmount: 100),
         regionalAverage: 153,
         options: [
-            PriceOption(type: .betterRate, title: "2 better rates found in your area", subtitle: "", potentialSavings: 20, action: .viewRates),
-            PriceOption(type: .billConnection, title: "3 Bill Connection matches available", subtitle: "", potentialSavings: 15, action: .openBillConnection),
-            PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "", potentialSavings: 12, action: .showNegotiationScript)
+            PriceOption(type: .betterRate, title: "Better rates in your area", subtitle: "Compare plans and potentially save", action: .viewRates),
+            PriceOption(type: .billConnection, title: "Bill Connection matches", subtitle: "Community members who can help", action: .openBillConnection),
+            PriceOption(type: .negotiation, title: "Negotiation scripts ready", subtitle: "Proven tactics that work", action: .showNegotiationScript)
         ],
         onEdit: {},
         onViewOptions: {},
