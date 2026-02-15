@@ -315,6 +315,7 @@ struct EarnPointsTabView: View {
 
                 // 3. Daily Tasks Section (carousel)
                 DailyTasksSection(tasksViewModel: tasksViewModel, rewardsViewModel: viewModel)
+                    .padding(.horizontal, 20)
                     .padding(.top, 4)
 
                 // 4. Weekly Tasks Section (unchanged)
@@ -328,6 +329,7 @@ struct EarnPointsTabView: View {
                     onSeeAll: { viewModel.showFullLeaderboard = true }
                 )
                 .padding(.horizontal, 20)
+                .padding(.top, 16)
 
                 Spacer(minLength: 100)
             }
@@ -501,7 +503,7 @@ struct DailyGameHeroCard: View {
     let gamesPlayedToday: Int
     let onPlay: () -> Void
 
-    @State private var shimmerOffset: CGFloat = -40
+    @State private var shimmerOffset: CGFloat = -200
 
     var body: some View {
         ZStack {
@@ -572,20 +574,23 @@ struct DailyGameHeroCard: View {
                                             )
                                         )
 
-                                    // Shimmer sweep
+                                    // Shimmer sweep — unidirectional shine across button
                                     Capsule()
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    .white.opacity(0),
-                                                    .white.opacity(0.35),
-                                                    .white.opacity(0)
+                                                    .clear,
+                                                    .white.opacity(0.15),
+                                                    .white.opacity(0.45),
+                                                    .white.opacity(0.15),
+                                                    .clear
                                                 ],
                                                 startPoint: .leading,
                                                 endPoint: .trailing
                                             )
                                         )
-                                        .frame(width: 40)
+                                        .frame(width: 60)
+                                        .rotationEffect(.degrees(20))
                                         .offset(x: shimmerOffset)
                                 }
                             )
@@ -611,9 +616,9 @@ struct DailyGameHeroCard: View {
         .shadow(color: Color.billixMoneyGreen.opacity(0.12), radius: 12, x: 0, y: 6)
         .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
         .onAppear {
-            shimmerOffset = -40
-            withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
-                shimmerOffset = 40
+            shimmerOffset = -200
+            withAnimation(.linear(duration: 2.0).delay(1.0).repeatForever(autoreverses: false)) {
+                shimmerOffset = 200
             }
         }
         .accessibilityElement(children: .combine)
@@ -786,7 +791,6 @@ struct DailyTasksSection: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.billixMediumGreen)
             }
-            .padding(.horizontal, 20)
             .onLongPressGesture(minimumDuration: 0.5) {
                 let g = UIImpactFeedbackGenerator(style: .heavy)
                 g.impactOccurred()
@@ -829,7 +833,6 @@ struct DailyTasksSection: View {
                 .scrollPosition(id: $currentCardID)
                 .safeAreaPadding(.horizontal, (screenWidth - 40 - dailyCardWidth) / 2)
                 .scrollClipDisabled()
-                .padding(.horizontal, 20)
                 .frame(height: dailyCardHeight + frameExtra + 24)
             }
         }
@@ -1232,9 +1235,17 @@ struct DailyTaskCardView: View {
 struct WeeklyTasksSection: View {
     @ObservedObject var tasksViewModel: TasksViewModel
     @State private var currentTime = Date()
+    @State private var currentCardID: Int? = 1  // Start at index 1 (Upload 5 bills)
 
     // Read tab active state from environment to pause timer when tab is hidden
     @Environment(\.isRewardsTabActive) private var isTabActive
+
+    // Card dimensions — match daily tasks carousel
+    private let screenWidth = UIScreen.main.bounds.width
+    private let cardWidthPercent: CGFloat = 0.4
+    private let cardHeight: CGFloat = 153
+    private var weeklyCardWidth: CGFloat { screenWidth * cardWidthPercent }
+    private var weeklyCardSpacing: CGFloat { screenWidth * 0.03 }
 
     // Calculate time until Sunday midnight EST
     private var timeUntilReset: String {
@@ -1277,8 +1288,26 @@ struct WeeklyTasksSection: View {
         }
     }
 
+    // Build carousel cards from weekly tasks
+    private var carouselCards: [WeeklyCarouselCard] {
+        tasksViewModel.weeklyTasks.enumerated().map { index, task in
+            WeeklyCarouselCard(
+                index: index,
+                icon: task.iconName,
+                title: task.title,
+                points: task.points,
+                isCompleted: task.isClaimed,
+                canClaim: task.canClaim,
+                ctaText: task.ctaText,
+                taskType: task.taskType,
+                currentCount: task.currentCount,
+                requiresCount: task.requiresCount
+            )
+        }
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             // Header
             HStack {
                 Text("Weekly Tasks")
@@ -1292,17 +1321,35 @@ struct WeeklyTasksSection: View {
                     .foregroundColor(.billixMediumGreen)
             }
 
-            // Tasks
+            // Carousel
             if tasksViewModel.isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .frame(height: 140)
             } else {
-                VStack(spacing: 12) {
-                    ForEach(tasksViewModel.weeklyTasks) { task in
-                        WeeklyTaskCardView(task: task, viewModel: tasksViewModel)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: weeklyCardSpacing) {
+                        ForEach(Array(carouselCards.enumerated()), id: \.offset) { index, card in
+                            WeeklyTaskCarouselCardView(
+                                card: card,
+                                onAction: { handleCardAction(card) }
+                            )
+                            .containerRelativeFrame(.horizontal)
+                            .id(index)
+                            .visualEffect { content, proxy in
+                                content
+                                    .offset(y: weeklyCardElevation(for: proxy))
+                                    .opacity(weeklyCardOpacity(for: proxy))
+                            }
+                        }
                     }
+                    .scrollTargetLayout()
                 }
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $currentCardID)
+                .safeAreaPadding(.horizontal, (screenWidth - 40 - weeklyCardWidth) / 2)
+                .scrollClipDisabled()
+                .frame(height: cardHeight + 24)
             }
         }
         .onAppear {
@@ -1331,56 +1378,185 @@ struct WeeklyTasksSection: View {
             PerformanceMonitor.shared.timerStopped("countdownTimer", in: "WeeklyTasksSection")
         }
     }
-}
 
-// MARK: - Weekly Task Card View
-
-struct WeeklyTaskCardView: View {
-    let task: UserTask
-    @ObservedObject var viewModel: TasksViewModel
-
-    // Determine button text based on task state
-    private var buttonText: String {
-        if task.canClaim {
-            return "Claim"
-        } else {
-            // Use task's CTA text from database (e.g., "Upload Bills", "Play Games")
-            return task.ctaText
-        }
+    private func weeklyCardElevation(for proxy: GeometryProxy) -> CGFloat {
+        let cardCenterX = proxy.frame(in: .scrollView).midX
+        let viewportCenterX = proxy.bounds(of: .scrollView)?.midX ?? 0
+        let distance = abs(cardCenterX - viewportCenterX)
+        let normalized = min(distance / weeklyCardWidth, 1.0)
+        let eased = 1 - pow(1 - normalized, 2)
+        return 0 * (1 - eased) // no elevation by default, kept for consistency
     }
 
-    var body: some View {
-        TaskCard(task: RewardTask(
-            id: UUID(),
-            title: task.title,
-            points: task.points,
-            icon: task.iconName,
-            isCompleted: task.isClaimed,
-            type: .weekly,
-            progress: task.currentCount,
-            progressTotal: task.requiresCount > 1 ? task.requiresCount : nil,
-            buttonText: buttonText,
-            canClaim: task.canClaim
-        )) {
-            // Handle task action
-            Task {
-                if task.canClaim {
-                    await viewModel.claimTask(task)
-                } else {
-                    // Navigate based on task type
-                    switch task.taskType {
-                    case .billUpload:
-                        NotificationCenter.default.post(name: NSNotification.Name("NavigateToUpload"), object: nil)
-                    case .game:
-                        NotificationCenter.default.post(name: NSNotification.Name("NavigateToGame"), object: nil)
-                    case .referral:
-                        NotificationCenter.default.post(name: NSNotification.Name("ShowReferralSheet"), object: nil)
-                    default:
-                        break
-                    }
+    private func weeklyCardOpacity(for proxy: GeometryProxy) -> CGFloat {
+        let cardCenterX = proxy.frame(in: .scrollView).midX
+        let viewportCenterX = proxy.bounds(of: .scrollView)?.midX ?? 0
+        let distance = abs(cardCenterX - viewportCenterX)
+        let normalized = min(distance / weeklyCardWidth, 1.0)
+        return 1.0 - (normalized * 0.4)
+    }
+
+    private func handleCardAction(_ card: WeeklyCarouselCard) {
+        Task {
+            if card.canClaim {
+                let weeklyTask = tasksViewModel.weeklyTasks.first { $0.title == card.title }
+                if let task = weeklyTask {
+                    await tasksViewModel.claimTask(task)
+                }
+            } else {
+                switch card.taskType {
+                case .billUpload:
+                    NotificationCenter.default.post(name: NSNotification.Name("NavigateToUpload"), object: nil)
+                case .game:
+                    NotificationCenter.default.post(name: NSNotification.Name("NavigateToGame"), object: nil)
+                case .referral:
+                    NotificationCenter.default.post(name: NSNotification.Name("ShowReferralSheet"), object: nil)
+                case .checkIn:
+                    await tasksViewModel.performCheckIn()
+                default:
+                    break
                 }
             }
         }
+    }
+}
+
+// MARK: - Weekly Carousel Card Model
+
+struct WeeklyCarouselCard: Identifiable {
+    let index: Int
+    let icon: String
+    let title: String
+    let points: Int
+    let isCompleted: Bool
+    let canClaim: Bool
+    let ctaText: String
+    let taskType: TaskType
+    let currentCount: Int
+    let requiresCount: Int
+
+    var id: Int { index }
+
+    var hasProgress: Bool { requiresCount > 1 }
+    var progressText: String { "\(currentCount)/\(requiresCount)" }
+    var progressPercent: CGFloat {
+        guard requiresCount > 1 else { return isCompleted ? 1.0 : 0.0 }
+        return CGFloat(currentCount) / CGFloat(requiresCount)
+    }
+}
+
+// MARK: - Weekly Task Carousel Card View
+
+struct WeeklyTaskCarouselCardView: View {
+    let card: WeeklyCarouselCard
+    let onAction: () -> Void
+
+    var body: some View {
+        VStack(spacing: 5.7) {
+            // Title
+            Text(card.title)
+                .font(.system(size: 14.9, weight: .bold))
+                .foregroundColor(.billixDarkGreen)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
+
+            // Points
+            HStack(spacing: 3) {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 10.5))
+                    .foregroundColor(.billixArcadeGold)
+                Text("+\(card.points) pts")
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundColor(.billixMediumGreen)
+            }
+
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(Color.billixMoneyGreen.opacity(0.15))
+                    .frame(width: 42.1, height: 42.1)
+
+                Image(systemName: card.icon)
+                    .font(.system(size: 42.1 * 0.45, weight: .semibold))
+                    .foregroundColor(.billixMoneyGreen)
+            }
+
+            // Progress bar for multi-step tasks
+            if card.hasProgress {
+                VStack(spacing: 2) {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(Color.billixMoneyGreen.opacity(0.15))
+                                .frame(height: 5)
+                            Capsule()
+                                .fill(Color.billixMoneyGreen)
+                                .frame(width: geo.size.width * card.progressPercent, height: 5)
+                        }
+                    }
+                    .frame(height: 5)
+
+                    Text(card.progressText)
+                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .foregroundColor(.billixMediumGreen)
+                }
+                .padding(.horizontal, 4)
+            }
+
+            Spacer(minLength: 0)
+
+            // Action button
+            if card.isCompleted {
+                HStack(spacing: 3) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 12.7))
+                    Text("Done")
+                        .font(.system(size: 12.7, weight: .semibold))
+                }
+                .foregroundColor(.billixMoneyGreen)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 8.8)
+                .background(
+                    Capsule()
+                        .fill(Color.billixMoneyGreen.opacity(0.15))
+                )
+            } else {
+                Button(action: onAction) {
+                    Text(card.canClaim ? "Claim" : card.ctaText)
+                        .font(.system(size: 13.7, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 8.8)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    card.canClaim ?
+                                    LinearGradient(
+                                        colors: [.billixGoldenAmber, .billixPrizeOrange],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    ) :
+                                    LinearGradient(
+                                        colors: [.billixMoneyGreen, .billixMediumGreen],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                }
+                .buttonStyle(ScaleButtonStyle(scale: 0.95))
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.07), radius: 10, x: 0, y: 4)
+        )
     }
 }
 
