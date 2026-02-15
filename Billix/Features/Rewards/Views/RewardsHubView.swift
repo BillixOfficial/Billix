@@ -342,6 +342,8 @@ struct EarnPointsTabView: View {
 struct ProgressRingHeroCard: View {
     @ObservedObject var viewModel: RewardsViewModel
     @State private var showHowItWorks = false
+    @State private var coinAnimationVisible = false
+    @State private var coinAnimationOffset: CGFloat = 0
 
 
     private var nextTierThreshold: Int {
@@ -356,12 +358,7 @@ struct ProgressRingHeroCard: View {
     }
 
     private var milestones: [GaugeMilestone] {
-        switch viewModel.currentTier {
-        case .bronze: return SpeedometerGauge.bronzeMilestones()
-        case .silver: return SpeedometerGauge.silverMilestones()
-        case .gold: return SpeedometerGauge.goldMilestones()
-        case .platinum: return SpeedometerGauge.platinumMilestones()
-        }
+        viewModel.enrichedMilestones(for: viewModel.currentTier)
     }
 
     var body: some View {
@@ -372,19 +369,39 @@ struct ProgressRingHeroCard: View {
                     progress: viewModel.tierProgress,
                     currentPoints: viewModel.points.lifetimeEarned,
                     maxPoints: nextTierThreshold,
+                    tierStartPoints: tierStartPoints,
                     tierColor: viewModel.currentTier.color,
                     milestones: milestones,
                     onPigTapped: { showHowItWorks = true },
+                    onMilestoneClaimed: { viewModel.claimMilestone($0) },
                     labelFontSize: 13.3,
                     tickScale: 1.0
                 )
                 .offset(y: 48.6)
 
-                // Text section (pts + motivational line)
+                // Text section (dual counters + motivational line)
                 VStack(spacing: 4) {
-                    Text("\(viewModel.points.lifetimeEarned.formatted()) / \(nextTierThreshold.formatted()) pts")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
+                    HStack(spacing: 0) {
+                        Text("Balance: ")
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(.secondary)
+                        Text("\(viewModel.displayedBalance.formatted())")
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .foregroundColor(.primary)
+                            .contentTransition(.numericText())
+                        Text("  |  ")
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(.secondary.opacity(0.5))
+                        Text("Lifetime: ")
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundColor(.secondary)
+                        Text("\(viewModel.displayedLifetime.formatted())")
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .foregroundColor(.primary)
+                            .contentTransition(.numericText())
+                    }
+                    .animation(.easeInOut(duration: 0.3), value: viewModel.displayedBalance)
+                    .animation(.easeInOut(duration: 0.3), value: viewModel.displayedLifetime)
 
                     // "X pts to Silver Tier!" motivational line
                     if let nextTier = viewModel.currentTier.nextTier {
@@ -450,6 +467,50 @@ struct ProgressRingHeroCard: View {
             RoundedRectangle(cornerRadius: 24)
                 .stroke(Color.white.opacity(0.7), lineWidth: 1)
         )
+        .overlay {
+            if coinAnimationVisible, let coins = viewModel.lastCoinClaim {
+                HStack(spacing: 6) {
+                    Image(systemName: "dollarsign.circle.fill")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Color(hex: "#FFD700"))
+                    Text("+\(coins) coins")
+                        .font(.system(size: 18, weight: .heavy, design: .rounded))
+                        .foregroundColor(Color(hex: "#8B6914"))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(hex: "#FFF8E1"), Color(hex: "#FFE082")],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .shadow(color: Color(hex: "#FFB300").opacity(0.4), radius: 12, x: 0, y: 4)
+                )
+                .offset(y: coinAnimationOffset)
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .onChange(of: viewModel.lastCoinClaim) { _, newValue in
+            if newValue != nil {
+                coinAnimationOffset = 0
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                    coinAnimationVisible = true
+                }
+                withAnimation(.easeOut(duration: 1.5).delay(0.3)) {
+                    coinAnimationOffset = -30
+                }
+                withAnimation(.easeIn(duration: 0.4).delay(2.0)) {
+                    coinAnimationVisible = false
+                }
+            } else {
+                coinAnimationVisible = false
+                coinAnimationOffset = 0
+            }
+        }
         .sheet(isPresented: $showHowItWorks) {
             RewardsHowItWorksSheet()
                 .presentationDetents([.large])
@@ -590,7 +651,6 @@ struct DailyGameHeroCard: View {
                                             )
                                         )
                                         .frame(width: 60)
-                                        .rotationEffect(.degrees(20))
                                         .offset(x: shimmerOffset)
                                 }
                             )
@@ -675,26 +735,10 @@ struct DailyTasksSection: View {
     // Read tab active state from environment to pause timer when tab is hidden
     @Environment(\.isRewardsTabActive) private var isTabActive
 
-    // Debug tuning state — long-press "Daily Tasks" header to open
-    @State private var showDebug = false
-    @State private var cardHeight: CGFloat = 153
-    @State private var cardWidthPercent: CGFloat = 0.4
-    @State private var cardPadding: CGFloat = 24
-    @State private var iconSize: CGFloat = 42.1
-    @State private var elevation: CGFloat = 0
-    @State private var frameExtra: CGFloat = 0
-    @State private var titleSize: CGFloat = 14.9
-    @State private var pointsSize: CGFloat = 12.5
-    @State private var claimSize: CGFloat = 13.7
-    @State private var vSpacing: CGFloat = 5.7
-    @State private var claimPadH: CGFloat = 18
-    @State private var claimPadV: CGFloat = 8.8
-
     // Card dimensions for peek-on-both-sides carousel
     private let screenWidth = UIScreen.main.bounds.width
-    private var dailyCardWidthPercent: CGFloat { cardWidthPercent }
-    private var dailyCardWidth: CGFloat { screenWidth * cardWidthPercent }
-    private var dailyCardHeight: CGFloat { cardHeight }
+    private var dailyCardWidth: CGFloat { screenWidth * 0.4 }
+    private var dailyCardHeight: CGFloat { 153 }
     private var dailyCardSpacing: CGFloat { screenWidth * 0.03 }
 
 
@@ -779,7 +823,6 @@ struct DailyTasksSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Header — long-press to open debug controls
             HStack {
                 Text("Daily Tasks")
                     .font(.system(size: 20, weight: .bold))
@@ -790,11 +833,6 @@ struct DailyTasksSection: View {
                 Text("Resets in \(timeUntilReset)")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.billixMediumGreen)
-            }
-            .onLongPressGesture(minimumDuration: 0.5) {
-                let g = UIImpactFeedbackGenerator(style: .heavy)
-                g.impactOccurred()
-                showDebug = true
             }
 
             // Carousel - ScrollView + GeometryReader for peek-on-both-sides
@@ -809,20 +847,19 @@ struct DailyTasksSection: View {
                             DailyTaskCarouselCardView(
                                 card: card,
                                 onAction: { handleCardAction(card) },
-                                cardPadding: cardPadding,
-                                iconSize: iconSize,
-                                titleSize: titleSize,
-                                pointsSize: pointsSize,
-                                claimSize: claimSize,
-                                vSpacing: vSpacing,
-                                claimPadH: claimPadH,
-                                claimPadV: claimPadV
+                                cardPadding: 24,
+                                iconSize: 42.1,
+                                titleSize: 14.9,
+                                pointsSize: 12.5,
+                                claimSize: 13.7,
+                                vSpacing: 5.7,
+                                claimPadH: 18,
+                                claimPadV: 8.8
                             )
                             .containerRelativeFrame(.horizontal)
                             .id(index)
                             .visualEffect { content, proxy in
                                 content
-                                    .offset(y: dailyCardElevation(for: proxy))
                                     .opacity(dailyCardOpacity(for: proxy))
                             }
                         }
@@ -833,7 +870,7 @@ struct DailyTasksSection: View {
                 .scrollPosition(id: $currentCardID)
                 .safeAreaPadding(.horizontal, (screenWidth - 40 - dailyCardWidth) / 2)
                 .scrollClipDisabled()
-                .frame(height: dailyCardHeight + frameExtra + 24)
+                .frame(height: dailyCardHeight + 24)
             }
         }
         .onAppear {
@@ -864,36 +901,6 @@ struct DailyTasksSection: View {
         .sheet(isPresented: $showQuickTasks) {
             QuickTasksScreen()
         }
-        .safeAreaInset(edge: .bottom) {
-            if showDebug {
-                DailyTasksInlineDebugPanel(
-                    showDebug: $showDebug,
-                    cardHeight: $cardHeight,
-                    cardWidthPercent: $cardWidthPercent,
-                    cardPadding: $cardPadding,
-                    iconSize: $iconSize,
-                    elevation: $elevation,
-                    frameExtra: $frameExtra,
-                    titleSize: $titleSize,
-                    pointsSize: $pointsSize,
-                    claimSize: $claimSize,
-                    vSpacing: $vSpacing,
-                    claimPadH: $claimPadH,
-                    claimPadV: $claimPadV
-                )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showDebug)
-    }
-
-    private func dailyCardElevation(for proxy: GeometryProxy) -> CGFloat {
-        let cardCenterX = proxy.frame(in: .scrollView).midX
-        let viewportCenterX = proxy.bounds(of: .scrollView)?.midX ?? 0
-        let distance = abs(cardCenterX - viewportCenterX)
-        let normalized = min(distance / dailyCardWidth, 1.0)
-        let eased = 1 - pow(1 - normalized, 2)
-        return -elevation * (1 - eased)
     }
 
     private func dailyCardOpacity(for proxy: GeometryProxy) -> CGFloat {
@@ -926,121 +933,6 @@ struct DailyTasksSection: View {
         case .quickEarnings:
             showQuickTasks = true
         }
-    }
-}
-
-// MARK: - Daily Tasks Inline Debug Panel
-
-private struct DailyTasksInlineDebugPanel: View {
-    @Binding var showDebug: Bool
-    @Binding var cardHeight: CGFloat
-    @Binding var cardWidthPercent: CGFloat
-    @Binding var cardPadding: CGFloat
-    @Binding var iconSize: CGFloat
-    @Binding var elevation: CGFloat
-    @Binding var frameExtra: CGFloat
-    @Binding var titleSize: CGFloat
-    @Binding var pointsSize: CGFloat
-    @Binding var claimSize: CGFloat
-    @Binding var vSpacing: CGFloat
-    @Binding var claimPadH: CGFloat
-    @Binding var claimPadV: CGFloat
-    @State private var copied = false
-
-    private var valuesString: String {
-        "cardHeight: \(fmt(cardHeight)), widthPct: \(fmt(cardWidthPercent)), padding: \(fmt(cardPadding)), iconSize: \(fmt(iconSize)), elevation: \(fmt(elevation)), frameExtra: \(fmt(frameExtra)), titleSize: \(fmt(titleSize)), pointsSize: \(fmt(pointsSize)), claimSize: \(fmt(claimSize)), vSpacing: \(fmt(vSpacing)), claimPadH: \(fmt(claimPadH)), claimPadV: \(fmt(claimPadV))"
-    }
-
-    private func fmt(_ v: CGFloat) -> String { String(format: "%.1f", v) }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                Text("Debug Controls")
-                    .font(.system(size: 15, weight: .bold))
-                Spacer()
-                Button("Done") {
-                    showDebug = false
-                }
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.blue)
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 14)
-            .padding(.bottom, 10)
-
-            // Sliders
-            VStack(spacing: 8) {
-                sliderRow("Height", color: .blue, value: $cardHeight, range: 80...250, step: 5)
-                sliderRow("Width %", color: .purple, value: $cardWidthPercent, range: 0.4...0.9, step: 0.02)
-                sliderRow("Padding", color: .cyan, value: $cardPadding, range: 4...24, step: 1)
-                sliderRow("Icon", color: .green, value: $iconSize, range: 20...60, step: 2)
-                sliderRow("Title", color: .mint, value: $titleSize, range: 8...24, step: 0.5)
-                sliderRow("Points", color: .teal, value: $pointsSize, range: 8...20, step: 0.5)
-                sliderRow("Claim", color: .indigo, value: $claimSize, range: 8...20, step: 0.5)
-                sliderRow("Spacing", color: .pink, value: $vSpacing, range: 0...20, step: 1)
-                sliderRow("ClmPdH", color: .brown, value: $claimPadH, range: 4...40, step: 1)
-                sliderRow("ClmPdV", color: .yellow, value: $claimPadV, range: 2...20, step: 1)
-                sliderRow("Elevtn", color: .orange, value: $elevation, range: 0...40, step: 2)
-                sliderRow("Frame+", color: .red, value: $frameExtra, range: 0...60, step: 2)
-            }
-            .padding(.horizontal, 20)
-
-            // Actions
-            HStack(spacing: 12) {
-                Button {
-                    cardHeight = 153; cardWidthPercent = 0.4; cardPadding = 24
-                    iconSize = 42.1; elevation = 0; frameExtra = 0
-                    titleSize = 14.9; pointsSize = 12.5; claimSize = 13.7
-                    vSpacing = 5.7; claimPadH = 18; claimPadV = 8.8
-                } label: {
-                    Label("Reset", systemImage: "arrow.counterclockwise")
-                        .font(.system(size: 13, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(Color(.systemGray5))
-                        .cornerRadius(10)
-                }
-
-                Button {
-                    UIPasteboard.general.string = valuesString
-                    copied = true
-                    let g = UINotificationFeedbackGenerator()
-                    g.notificationOccurred(.success)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { copied = false }
-                } label: {
-                    Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(copied ? Color.green : Color.blue)
-                        .cornerRadius(10)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
-            .padding(.bottom, 16)
-        }
-        .frame(maxHeight: 460)
-        .background(.ultraThinMaterial)
-    }
-
-    private func sliderRow(_ label: String, color: Color, value: Binding<CGFloat>, range: ClosedRange<CGFloat>, step: CGFloat) -> some View {
-        HStack(spacing: 8) {
-            Text(label)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.secondary)
-                .frame(width: 52, alignment: .leading)
-            Slider(value: value, in: range, step: step)
-                .tint(color)
-            Text(fmt(value.wrappedValue))
-                .font(.system(size: 13, weight: .bold, design: .monospaced))
-                .foregroundColor(color)
-                .frame(width: 40, alignment: .trailing)
-        }
-        .frame(height: 28)
     }
 }
 

@@ -193,6 +193,70 @@ final class RewardsService: Sendable {
         return []
     }
 
+    // MARK: - Milestone Claims
+
+    /// Fetch which milestones the user has already claimed
+    func getClaimedMilestones(userId: UUID) async throws -> Set<Int> {
+        struct MilestoneClaim: Codable {
+            let milestone_points: Int
+        }
+
+        do {
+            let claims: [MilestoneClaim] = try await client
+                .from("milestone_claims")
+                .select("milestone_points")
+                .eq("user_id", value: userId.uuidString)
+                .execute()
+                .value
+
+            return Set(claims.map { $0.milestone_points })
+        } catch {
+            throw RewardsServiceError.networkError(error)
+        }
+    }
+
+    /// Claim a milestone reward via RPC. Returns the new balance.
+    func claimMilestoneReward(
+        userId: UUID,
+        milestonePoints: Int,
+        coinReward: Int,
+        tier: String
+    ) async throws -> Int {
+        struct ClaimParams: Encodable {
+            let p_user_id: String
+            let p_milestone_points: Int
+            let p_coin_reward: Int
+            let p_tier: String
+        }
+
+        struct ClaimResult: Decodable {
+            let success: Bool
+            let new_balance: Int
+            let error_message: String
+        }
+
+        let result: ClaimResult = try await client
+            .rpc("claim_milestone_reward", params: ClaimParams(
+                p_user_id: userId.uuidString,
+                p_milestone_points: milestonePoints,
+                p_coin_reward: coinReward,
+                p_tier: tier
+            ))
+            .single()
+            .execute()
+            .value
+
+        guard result.success else {
+            if result.error_message == "Already claimed" {
+                // Graceful race condition — just return current balance
+                return try await getUserPoints(userId: userId)
+            }
+            throw RewardsServiceError.invalidResponse
+        }
+
+        return result.new_balance
+    }
+
     // MARK: - Leaderboard
 
     /// Fetch leaderboard entries from profiles with show_on_leaderboard = true

@@ -30,6 +30,7 @@ class RewardsViewModel: ObservableObject {
         }
     }
     @Published var displayedBalance: Int = 0 // For animated counting
+    @Published var displayedLifetime: Int = 0 // For animated counting
 
     // Shop unlock logic - Always accessible
     var canAccessRewardShop: Bool {
@@ -62,6 +63,12 @@ class RewardsViewModel: ObservableObject {
         let progress = (current - currentMin) / (nextMin - currentMin)
         tierProgress = max(0.0, min(progress, 1.0))
     }
+
+    // MARK: - Milestone Claims
+
+    @Published var claimedMilestones: Set<Int> = []
+    @Published var isClaimingMilestone = false
+    @Published var lastCoinClaim: Int? = nil
 
     // MARK: - Daily Game
 
@@ -97,6 +104,7 @@ class RewardsViewModel: ObservableObject {
     // MARK: - Animation & Task Management
 
     private var animationTask: Task<Void, Never>?
+    private var lifetimeAnimationTask: Task<Void, Never>?
     private var loadTask: Task<Void, Never>?
     private var pointsTask: Task<Void, Never>?
 
@@ -136,6 +144,7 @@ class RewardsViewModel: ObservableObject {
     deinit {
         // Cancel all running tasks to prevent memory leaks
         animationTask?.cancel()
+        lifetimeAnimationTask?.cancel()
         loadTask?.cancel()
         pointsTask?.cancel()
         NotificationCenter.default.removeObserver(self)
@@ -153,15 +162,18 @@ class RewardsViewModel: ObservableObject {
                 return
             }
 
-            // Fetch user points from Supabase (simplified - just balance)
+            // Fetch user points and lifetime from Supabase
             let balance = try await rewardsService.getUserPoints(userId: userId)
+            let lifetime = try await rewardsService.getLifetimePoints(userId: userId)
 
-            // Simplified points model (no transaction history)
             points = RewardsPoints(
                 balance: balance,
-                lifetimeEarned: balance, // Use balance as lifetime since we no longer track separately
+                lifetimeEarned: max(balance, lifetime),
                 transactions: []
             )
+
+            // Fetch claimed milestones
+            claimedMilestones = try await rewardsService.getClaimedMilestones(userId: userId)
 
             // Filter rewards to only include Target, Kroger, and Walmart gift cards
             let allRewards = Reward.previewRewardsWithCategories
@@ -180,8 +192,9 @@ class RewardsViewModel: ObservableObject {
 
             dailyGame = GeoGameDataService.getTodaysGame()
 
-            // Animate balance on load
+            // Animate both counters on load
             animateBalanceChange(to: points.balance)
+            animateLifetimeChange(to: points.lifetimeEarned)
 
         } catch {
             print("❌ Failed to load rewards data: \(error)")
@@ -234,6 +247,42 @@ class RewardsViewModel: ObservableObject {
         }
     }
 
+    func animateLifetimeChange(to newLifetime: Int) {
+        lifetimeAnimationTask?.cancel()
+
+        let startLifetime = displayedLifetime
+        let difference = newLifetime - startLifetime
+
+        guard difference != 0 else {
+            displayedLifetime = newLifetime
+            return
+        }
+
+        let steps = 20
+        let stepDurationNs: UInt64 = 30_000_000 // 30ms
+
+        lifetimeAnimationTask = Task { [weak self] in
+            for i in 0...steps {
+                if Task.isCancelled { return }
+
+                let progress = Double(i) / Double(steps)
+                let easedProgress = 1 - pow(1 - progress, 3) // Ease out cubic
+
+                await MainActor.run { [weak self] in
+                    self?.displayedLifetime = startLifetime + Int(Double(difference) * easedProgress)
+                }
+
+                if i < steps {
+                    try? await Task.sleep(nanoseconds: stepDurationNs)
+                }
+            }
+
+            await MainActor.run { [weak self] in
+                self?.displayedLifetime = newLifetime
+            }
+        }
+    }
+
     func addPoints(_ amount: Int, description: String, type: PointTransactionType = .gameWin) {
         // Cancel any previous points operation
         pointsTask?.cancel()
@@ -271,6 +320,84 @@ class RewardsViewModel: ObservableObject {
                     print("❌ Failed to add points: \(error)")
                 }
             }
+        }
+    }
+
+    // MARK: - Milestone Enrichment & Claiming
+
+    func enrichedMilestones(for tier: RewardsTier) -> [GaugeMilestone] {
+        let base: [GaugeMilestone]
+        switch tier {
+        case .bronze: base = SpeedometerGauge.bronzeMilestones()
+        case .silver: base = SpeedometerGauge.silverMilestones()
+        case .gold: base = SpeedometerGauge.goldMilestones()
+        case .platinum: base = SpeedometerGauge.platinumMilestones()
+        }
+
+        return base.map { milestone in
+            var m = milestone
+            if milestone.coinReward > 0 {
+                if claimedMilestones.contains(milestone.points) {
+                    m.claimState = .claimed
+                } else if points.lifetimeEarned >= milestone.points {
+                    m.claimState = .claimable
+                } else {
+                    m.claimState = .notReached
+                }
+            }
+            return m
+        }
+    }
+
+    func claimMilestone(_ milestone: GaugeMilestone) {
+        print("🪙 claimMilestone called: \(milestone.points) pts, \(milestone.coinReward) coins")
+        guard !isClaimingMilestone, milestone.claimState == .claimable else { return }
+        isClaimingMilestone = true
+
+        Task { [weak self] in
+            guard let self = self else { return }
+            guard let userId = self.authService.currentUser?.id else {
+                self.isClaimingMilestone = false
+                return
+            }
+
+            do {
+                let tierName: String
+                switch self.currentTier {
+                case .bronze: tierName = "bronze"
+                case .silver: tierName = "silver"
+                case .gold: tierName = "gold"
+                case .platinum: tierName = "platinum"
+                }
+
+                let newBalance = try await self.rewardsService.claimMilestoneReward(
+                    userId: userId,
+                    milestonePoints: milestone.points,
+                    coinReward: milestone.coinReward,
+                    tier: tierName
+                )
+
+                // Update local state immediately
+                self.claimedMilestones.insert(milestone.points)
+                self.points.balance = newBalance
+
+                // Trigger floating coin animation
+                self.lastCoinClaim = milestone.coinReward
+
+                // Success haptic
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+
+                // Reload all data from server to refresh lifetime, gauge, etc.
+                await self.loadRewardsData()
+
+                // Auto-clear coin animation after 2.5s
+                try? await Task.sleep(nanoseconds: 2_500_000_000)
+                self.lastCoinClaim = nil
+            } catch {
+                print("❌ Failed to claim milestone: \(error)")
+            }
+
+            self.isClaimingMilestone = false
         }
     }
 

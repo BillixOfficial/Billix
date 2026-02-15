@@ -108,42 +108,37 @@ struct WalletHeaderView: View {
             .padding(.bottom, 12)
             .background(
                 ZStack {
-                    // Gradient background
+                    // Cream-to-white vertical gradient — separates status area from action area
                     LinearGradient(
                         colors: [
-                            Color.billixArcadeGold.opacity(0.15),
-                            Color.billixPrizeOrange.opacity(0.08),
-                            Color.billixLightGreen
+                            Color(hex: "#F5F0E8").opacity(0.7),   // warm cream top
+                            Color(hex: "#F8F5EF").opacity(0.5),   // mid
+                            Color.white.opacity(0.9)               // white bottom
                         ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
 
-                    // Decorative elements
+                    // Subtle green accent orb (top-right)
                     GeometryReader { geometry in
                         Circle()
-                            .fill(Color.billixArcadeGold.opacity(0.1))
+                            .fill(Color.billixMoneyGreen.opacity(0.06))
                             .frame(width: 100, height: 100)
                             .offset(x: geometry.size.width - 60, y: -30)
-
-                        Circle()
-                            .fill(Color.billixPrizeOrange.opacity(0.08))
-                            .frame(width: 60, height: 60)
-                            .offset(x: geometry.size.width - 40, y: 50)
                     }
 
-                    // Bottom border
+                    // Bottom divider
                     VStack {
                         Spacer()
                         Rectangle()
                             .fill(
                                 LinearGradient(
-                                    colors: [.billixArcadeGold.opacity(0.3), .billixPrizeOrange.opacity(0.2), .clear],
+                                    colors: [Color.billixMoneyGreen.opacity(0.2), Color.billixMoneyGreen.opacity(0.08), .clear],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
-                            .frame(height: 2)
+                            .frame(height: 1.5)
                     }
                 }
             )
@@ -485,15 +480,15 @@ struct WeeklyProgressSlide: View {
                                 .frame(width: 24)
 
                             ZStack {
-                                // Today glow ring
+                                // Today glow ring — brand green
                                 if isToday {
                                     Circle()
-                                        .stroke(Color.billixArcadeGold.opacity(0.4), lineWidth: 2)
+                                        .stroke(Color.billixMoneyGreen.opacity(0.5), lineWidth: 2)
                                         .frame(width: 26, height: 26)
                                 }
 
                                 Circle()
-                                    .fill(checkmarkStates[index] ? Color.billixArcadeGold : Color.gray.opacity(0.3))
+                                    .fill(checkmarkStates[index] ? Color.billixMoneyGreen : Color.gray.opacity(0.3))
                                     .frame(width: 20, height: 20)
                                     .scaleEffect(animatedChecks[index] ? 1.0 : 0.8)
                                     .animation(.spring(response: 0.4, dampingFraction: 0.6).delay(Double(index) * 0.08), value: animatedChecks[index])
@@ -508,19 +503,31 @@ struct WeeklyProgressSlide: View {
                                 }
                             }
 
-                            // Today dot indicator
+                            // Today dot indicator — brand green
                             Circle()
-                                .fill(isToday ? Color.billixArcadeGold : Color.clear)
+                                .fill(isToday ? Color.billixMoneyGreen : Color.clear)
                                 .frame(width: 4, height: 4)
                         }
                     }
                 }
             }
 
-            // Streak icon (dynamic based on streak) - static to avoid continuous animation
+            // Streak icon — tri-color gradient flame (yellow → orange → red-orange)
             Image(systemName: streakIcon)
                 .font(.system(size: 32, weight: .semibold))
-                .foregroundColor(streakColor)
+                .foregroundStyle(
+                    streakCount >= 2 ?
+                    AnyShapeStyle(LinearGradient(
+                        colors: [
+                            Color(hex: "#FFD600"),  // yellow tip
+                            Color(hex: "#FF9100"),  // orange middle
+                            Color(hex: "#E64A19")   // red-orange base
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )) :
+                    AnyShapeStyle(Color.gray)        // no streak — gray
+                )
         }
         .onAppear {
             // Trigger animation on appear for days that are part of the current streak
