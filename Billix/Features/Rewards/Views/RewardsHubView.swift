@@ -454,52 +454,134 @@ struct DailyGameHeroCard: View {
     let gamesPlayedToday: Int
     let onPlay: () -> Void
 
+    // Debug tuning state — long-press card to open
+    @State private var showDebug = false
+
+    // Title debug controls
+    @State private var titleSize: CGFloat = 24.4
+    @State private var titleOffsetX: CGFloat = -50.0
+    @State private var titleOffsetY: CGFloat = 0
+
+    // Play Now button debug controls
+    @State private var buttonFontSize: CGFloat = 13.0
+    @State private var buttonOffsetX: CGFloat = -39.0
+    @State private var buttonOffsetY: CGFloat = 0
+
+    // 3D Dollar sign debug controls
+    @State private var dollarSize: CGFloat = 165.0
+    @State private var dollarOffsetX: CGFloat = -45.0
+    @State private var dollarOffsetY: CGFloat = 0
+
+    // Card debug controls
+    @State private var cardHeight: CGFloat = 107.0
+
+    // Shimmer debug controls
+    @State private var shimmerStart: CGFloat = -40
+    @State private var shimmerEnd: CGFloat = 40
+    @State private var shimmerOpacity: CGFloat = 0.35
+    @State private var shimmerWidth: CGFloat = 40
+    @State private var shimmerOffset: CGFloat = -40
+
+    // Background image opacity debug
+    @State private var bgImageOpacity: CGFloat = 0.5
+
     var body: some View {
         ZStack {
-            // Hero card background image
+            // Hero card background image as base
             Image("HeroCard_MONEY")
                 .resizable()
                 .scaledToFill()
                 .scaleEffect(1.2)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
+                .opacity(bgImageOpacity)
+
+            // Soft mint gradient overlay for depth
+            LinearGradient(
+                colors: [
+                    Color(hex: "#F0F9F4").opacity(0.6),
+                    Color(hex: "#E8F5EC").opacity(0.4),
+                    Color(hex: "#F5FBF7").opacity(0.5)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
             HStack(spacing: 12) {
-                // 3D Dollar Sign
+                // 3D Dollar Sign — the hero focal point
                 Animated3DDollarSign(offsetX: -0.01, offsetY: 0.00, scale: 1.01)
-                    .frame(width: 56, height: 56)
+                    .frame(width: dollarSize, height: dollarSize)
+                    .offset(x: dollarOffsetX, y: dollarOffsetY)
+                    .shadow(color: Color.billixMoneyGreen.opacity(0.3), radius: 12, x: 0, y: 6)
 
                 // Title + Play button stacked
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Price Guessr")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.billixDarkGreen)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
+                    // Gamified typography — layered shadow + outline
+                    ZStack {
+                        // Offset shadow layer
+                        Text("Price Guessr")
+                            .font(.system(size: titleSize, weight: .heavy, design: .rounded))
+                            .foregroundColor(Color.billixDarkGreen.opacity(0.15))
+                            .offset(x: 1.5, y: 1.5)
 
+                        // Main title
+                        Text("Price Guessr")
+                            .font(.system(size: titleSize, weight: .heavy, design: .rounded))
+                            .foregroundColor(.billixDarkGreen)
+                    }
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                    .offset(x: titleOffsetX, y: titleOffsetY)
+
+                    // 3D button with bottom border + shimmer
                     Button(action: {
                         let generator = UIImpactFeedbackGenerator(style: .medium)
                         generator.impactOccurred()
                         onPlay()
                     }) {
                         Text("Play Now")
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: buttonFontSize, weight: .heavy))
                             .foregroundColor(.white)
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 8)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 9)
                             .background(
-                                Capsule()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color(hex: "#F0A830"), Color(hex: "#E89520")],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
+                                ZStack {
+                                    // Darker bottom border for 3D pressed look
+                                    Capsule()
+                                        .fill(Color(hex: "#C47A10"))
+                                        .offset(y: 3)
+
+                                    // Main gradient fill
+                                    Capsule()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [Color(hex: "#F5B638"), Color(hex: "#F0A830"), Color(hex: "#E89520")],
+                                                startPoint: .top,
+                                                endPoint: .bottom
+                                            )
                                         )
-                                    )
+
+                                    // Shimmer sweep
+                                    Capsule()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    .white.opacity(0),
+                                                    .white.opacity(shimmerOpacity),
+                                                    .white.opacity(0)
+                                                ],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .frame(width: shimmerWidth)
+                                        .offset(x: shimmerOffset)
+                                }
                             )
-                            .shadow(color: Color(hex: "#F0A830").opacity(0.4), radius: 6, x: 0, y: 3)
+                            .clipShape(Capsule())
+                            .shadow(color: Color(hex: "#F0A830").opacity(0.5), radius: 8, x: 0, y: 4)
                     }
                     .buttonStyle(FABButtonStyle())
+                    .offset(x: buttonOffsetX, y: buttonOffsetY)
                     .accessibilityLabel("Play today's Price Guessr challenge")
                 }
 
@@ -508,11 +590,178 @@ struct DailyGameHeroCard: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
         }
-        .frame(height: 80)
+        .frame(height: cardHeight)
         .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.billixMoneyGreen.opacity(0.15), lineWidth: 1)
+        )
+        .shadow(color: Color.billixMoneyGreen.opacity(0.12), radius: 12, x: 0, y: 6)
+        .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+        .onAppear { startShimmer() }
+        .onChange(of: shimmerStart) { _ in startShimmer() }
+        .onChange(of: shimmerEnd) { _ in startShimmer() }
+        .onLongPressGesture(minimumDuration: 0.5) { showDebug = true }
+        .sheet(isPresented: $showDebug) {
+            priceGuessrDebugSheet
+                .presentationDetents([.fraction(0.35), .fraction(0.55), .large])
+                .interactiveDismissDisabled(false)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Daily Price Guessr game")
+    }
+
+
+
+    // MARK: - Shimmer Animation
+
+    private func startShimmer() {
+        shimmerOffset = shimmerStart
+        withAnimation(.easeInOut(duration: 1.2).delay(1.8).repeatForever(autoreverses: false)) {
+            shimmerOffset = shimmerEnd
+        }
+    }
+
+    // MARK: - Debug Sheet
+
+    private var priceGuessrDebugSheet: some View {
+        NavigationView {
+            Form {
+                Section("Title — \"Price Guessr\"") {
+                    HStack {
+                        Text("Size")
+                        Slider(value: $titleSize, in: 10...40, step: 0.5)
+                        Text("\(titleSize, specifier: "%.1f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                    HStack {
+                        Text("X")
+                        Slider(value: $titleOffsetX, in: -50...50, step: 0.5)
+                        Text("\(titleOffsetX, specifier: "%.1f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                    HStack {
+                        Text("Y")
+                        Slider(value: $titleOffsetY, in: -50...50, step: 0.5)
+                        Text("\(titleOffsetY, specifier: "%.1f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                }
+
+                Section("Play Now Button") {
+                    HStack {
+                        Text("Font Size")
+                        Slider(value: $buttonFontSize, in: 8...24, step: 0.5)
+                        Text("\(buttonFontSize, specifier: "%.1f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                    HStack {
+                        Text("X")
+                        Slider(value: $buttonOffsetX, in: -50...50, step: 0.5)
+                        Text("\(buttonOffsetX, specifier: "%.1f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                    HStack {
+                        Text("Y")
+                        Slider(value: $buttonOffsetY, in: -50...50, step: 0.5)
+                        Text("\(buttonOffsetY, specifier: "%.1f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                }
+
+                Section("3D Dollar Sign") {
+                    HStack {
+                        Text("Size")
+                        Slider(value: $dollarSize, in: 20...300, step: 1)
+                        Text("\(dollarSize, specifier: "%.0f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                    HStack {
+                        Text("X")
+                        Slider(value: $dollarOffsetX, in: -60...60, step: 0.5)
+                        Text("\(dollarOffsetX, specifier: "%.1f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                    HStack {
+                        Text("Y")
+                        Slider(value: $dollarOffsetY, in: -60...60, step: 0.5)
+                        Text("\(dollarOffsetY, specifier: "%.1f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                }
+
+                Section("Shimmer") {
+                    HStack {
+                        Text("Start X")
+                        Slider(value: $shimmerStart, in: -150...0, step: 1)
+                        Text("\(shimmerStart, specifier: "%.0f")")
+                            .monospacedDigit().frame(width: 44)
+                    }
+                    HStack {
+                        Text("End X")
+                        Slider(value: $shimmerEnd, in: 0...150, step: 1)
+                        Text("\(shimmerEnd, specifier: "%.0f")")
+                            .monospacedDigit().frame(width: 44)
+                    }
+                    HStack {
+                        Text("Width")
+                        Slider(value: $shimmerWidth, in: 10...120, step: 1)
+                        Text("\(shimmerWidth, specifier: "%.0f")")
+                            .monospacedDigit().frame(width: 44)
+                    }
+                    HStack {
+                        Text("Opacity")
+                        Slider(value: $shimmerOpacity, in: 0...1, step: 0.05)
+                        Text("\(shimmerOpacity, specifier: "%.2f")")
+                            .monospacedDigit().frame(width: 44)
+                    }
+                }
+
+                Section("Card") {
+                    HStack {
+                        Text("Height")
+                        Slider(value: $cardHeight, in: 50...200, step: 1)
+                        Text("\(cardHeight, specifier: "%.0f")")
+                            .monospacedDigit().frame(width: 40)
+                    }
+                    HStack {
+                        Text("BG Image")
+                        Slider(value: $bgImageOpacity, in: 0...1, step: 0.05)
+                        Text("\(bgImageOpacity, specifier: "%.2f")")
+                            .monospacedDigit().frame(width: 44)
+                    }
+                }
+
+                Section {
+                    Button("Copy Values") {
+                        let values = """
+                        // Title: size=\(titleSize), x=\(titleOffsetX), y=\(titleOffsetY)
+                        // Button: fontSize=\(buttonFontSize), x=\(buttonOffsetX), y=\(buttonOffsetY)
+                        // Dollar: size=\(dollarSize), x=\(dollarOffsetX), y=\(dollarOffsetY)
+                        // Card: height=\(cardHeight), bgOpacity=\(bgImageOpacity)
+                        // Shimmer: start=\(shimmerStart), end=\(shimmerEnd), width=\(shimmerWidth), opacity=\(shimmerOpacity)
+                        """
+                        UIPasteboard.general.string = values
+                    }
+
+                    Button("Reset All") {
+                        titleSize = 24.4; titleOffsetX = -50.0; titleOffsetY = 0
+                        buttonFontSize = 13.0; buttonOffsetX = -39.0; buttonOffsetY = 0
+                        dollarSize = 165.0; dollarOffsetX = -45.0; dollarOffsetY = 0
+                        cardHeight = 107.0; bgImageOpacity = 0.5
+                        shimmerStart = -40; shimmerEnd = 40; shimmerWidth = 40; shimmerOpacity = 0.35
+                    }
+                    .foregroundColor(.red)
+                }
+            }
+            .navigationTitle("Price Guessr Debug")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { showDebug = false }
+                }
+            }
+        }
     }
 }
 
