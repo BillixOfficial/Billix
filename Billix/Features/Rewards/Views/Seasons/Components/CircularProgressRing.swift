@@ -65,6 +65,8 @@ struct SpeedometerGauge: View {
     let tierColor: Color
     let milestones: [GaugeMilestone]
     var onPigTapped: (() -> Void)? = nil
+    var labelFontSize: CGFloat = 9
+    var tickScale: CGFloat = 1.0
 
     // Baked per-badge position overrides
     private static let badgeDistOverrides: [Int: CGFloat] = [1: 41.9, 3: 39.7, 4: 41.7]
@@ -89,18 +91,33 @@ struct SpeedometerGauge: View {
                 )
                 .frame(width: gaugeRadius * 2, height: gaugeRadius * 2)
 
-            // 2. Tier-colored progress arc
+            // 2. Tier-colored progress arc with gradient + glow
             ArcShape(startAngle: startAngle, sweepAngle: totalSweep * animatedProgress)
                 .stroke(
                     LinearGradient(
-                        colors: [tierColor, tierColor.opacity(0.7)],
+                        colors: [tierColor, tierColor.opacity(0.85), tierColor.opacity(0.65)],
                         startPoint: .leading,
                         endPoint: .trailing
                     ),
                     style: StrokeStyle(lineWidth: arcLineWidth, lineCap: .round)
                 )
                 .frame(width: gaugeRadius * 2, height: gaugeRadius * 2)
+                .shadow(color: tierColor.opacity(0.3), radius: 6, x: 0, y: 0)
                 .animation(.spring(response: 1.2, dampingFraction: 0.7), value: animatedProgress)
+
+            // 3. Glowing leading edge dot
+            if animatedProgress > 0.01 {
+                let edgeAngle = startAngle + totalSweep * animatedProgress
+                let edgePos = pointOnCircle(angle: edgeAngle, radius: gaugeRadius)
+
+                Circle()
+                    .fill(tierColor)
+                    .frame(width: arcLineWidth + 2, height: arcLineWidth + 2)
+                    .shadow(color: tierColor.opacity(0.7), radius: 8, x: 0, y: 0)
+                    .shadow(color: tierColor.opacity(0.4), radius: 16, x: 0, y: 0)
+                    .offset(x: edgePos.x, y: edgePos.y)
+                    .animation(.spring(response: 1.2, dampingFraction: 0.7), value: animatedProgress)
+            }
 
             // 3. Dense inner tick-mark ring (evenly spaced small ticks)
             let innerTickRadius = gaugeRadius - 20
@@ -110,9 +127,9 @@ struct SpeedometerGauge: View {
                 totalSweep: totalSweep,
                 radius: innerTickRadius,
                 tickCount: 45,
-                tickLength: 5
+                tickLength: 5 * tickScale
             )
-            .stroke(Color.gray.opacity(0.25), lineWidth: 0.8)
+            .stroke(Color.gray.opacity(0.25), lineWidth: 0.8 * tickScale)
             .frame(width: gaugeRadius * 2, height: gaugeRadius * 2)
 
             // Bold milestone ticks at exact milestone positions
@@ -122,10 +139,10 @@ struct SpeedometerGauge: View {
                 startAngle: startAngle,
                 totalSweep: totalSweep,
                 radius: innerTickRadius,
-                tickLength: 10,
+                tickLength: 10 * tickScale,
                 fractions: milestoneFractions
             )
-            .stroke(Color.gray.opacity(0.5), lineWidth: 1.5)
+            .stroke(Color.gray.opacity(0.5), lineWidth: 1.5 * tickScale)
             .frame(width: gaugeRadius * 2, height: gaugeRadius * 2)
 
             // 4. Milestone number labels (just inside the bold ticks)
@@ -137,7 +154,7 @@ struct SpeedometerGauge: View {
                 let labelRadius = innerTickRadius - 16
                 let labelPos = pointOnCircle(angle: angle, radius: labelRadius)
                 Text(formatPoints(milestone.points))
-                    .font(.system(size: 9, weight: .semibold, design: .rounded))
+                    .font(.system(size: labelFontSize, weight: .semibold, design: .rounded))
                     .foregroundColor(.secondary)
                     .offset(x: labelPos.x, y: labelPos.y)
             }
