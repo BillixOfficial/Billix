@@ -120,7 +120,6 @@ class SeasonViewModel: ObservableObject {
             // Don't auto-select - let user choose
         } catch {
             errorMessage = "Failed to load seasons: \(error.localizedDescription)"
-            print("❌ Error loading seasons: \(error)")
         }
 
         isLoading = false
@@ -210,7 +209,6 @@ class SeasonViewModel: ObservableObject {
             allSessionProgress = allProgress.filter { $0.locationId == nil }
 
         } catch {
-            print("⚠️ Failed to load season progress: \(error)")
             // Non-blocking: show 0/0 if fails
             errorMessage = nil  // Don't show error for progress load failures
         }
@@ -249,16 +247,13 @@ class SeasonViewModel: ObservableObject {
                         partCompletionCounts[part.id] = count
                     }
                 } catch {
-                    // Log error but don't block the UI - user can still see parts without progress
-                    print("❌ Failed to load user progress: \(error.localizedDescription)")
-                    // Show progress as 0 for all parts
+                    // Non-blocking: show progress as 0 for all parts
                     partCompletionCounts = Dictionary(uniqueKeysWithValues: seasonParts.map { ($0.id, 0) })
                 }
             }
         } catch {
             // Only show error if critical data (parts) fails to load
             errorMessage = "Unable to load season content. Please try again."
-            print("❌ Error loading season parts: \(error)")
         }
 
         isLoading = false
@@ -280,7 +275,6 @@ class SeasonViewModel: ObservableObject {
             locations = try await service.fetchSeasonLocations(partId: part.id)
         } catch {
             errorMessage = "Failed to load locations: \(error.localizedDescription)"
-            print("❌ Error loading locations: \(error)")
         }
 
         isLoading = false
@@ -306,7 +300,6 @@ class SeasonViewModel: ObservableObject {
                 unlockRequirement: part.unlockRequirement
             )
         } catch {
-            print("❌ Error checking unlock status: \(error)")
             return false
         }
     }
@@ -417,7 +410,6 @@ class SeasonViewModel: ObservableObject {
                 selectedLocation = location
             }
         } catch {
-            print("❌ Error checking tutorial state: \(error)")
             selectedLocation = location
         }
     }
@@ -426,7 +418,6 @@ class SeasonViewModel: ObservableObject {
     func saveGameProgress(location: SeasonLocation, session: GameSession, seasonId: UUID? = nil, partId: UUID? = nil) async {
         guard let userId = currentUserId else {
             errorMessage = "Please log in to save progress"
-            print("❌ No user ID - cannot save progress")
             return
         }
 
@@ -434,7 +425,6 @@ class SeasonViewModel: ObservableObject {
         guard let finalSeasonId = seasonId ?? selectedSeason?.id,
               let finalPartId = partId ?? selectedPart?.id else {
             errorMessage = "Cannot save progress: missing season or part information"
-            print("❌ Missing seasonId or partId - seasonId: \(seasonId?.uuidString ?? "nil"), partId: \(partId?.uuidString ?? "nil"), selectedSeason: \(selectedSeason?.id.uuidString ?? "nil"), selectedPart: \(selectedPart?.id.uuidString ?? "nil")")
             return
         }
 
@@ -468,7 +458,6 @@ class SeasonViewModel: ObservableObject {
 
         } catch {
             errorMessage = "Failed to save progress: \(error.localizedDescription)"
-            print("❌ Error saving progress: \(error)")
         }
 
         isLoading = false
@@ -499,7 +488,6 @@ class SeasonViewModel: ObservableObject {
             }
         } catch {
             errorMessage = "Failed to start session: \(error.localizedDescription)"
-            print("❌ Error starting session: \(error)")
         }
     }
 
@@ -545,7 +533,6 @@ class SeasonViewModel: ObservableObject {
 
         } catch {
             errorMessage = "Failed to generate session: \(error.localizedDescription)"
-            print("❌ Error generating session: \(error)")
         }
 
         isLoading = false
@@ -568,14 +555,12 @@ class SeasonViewModel: ObservableObject {
     func saveSessionProgress(session: GameSession) async {
         guard let userId = currentUserId else {
             errorMessage = "Please log in to save progress"
-            print("❌ No user ID - cannot save session progress")
             return
         }
 
         guard let seasonId = selectedSeason?.id,
               let partId = activePartId else {
             errorMessage = "Cannot save progress: missing season or part information"
-            print("❌ Missing seasonId or partId for session - selectedSeason: \(selectedSeason?.id.uuidString ?? "nil"), activePartId: \(activePartId?.uuidString ?? "nil")")
             return
         }
 
@@ -630,7 +615,6 @@ class SeasonViewModel: ObservableObject {
             pendingSessionPart = nil
         } catch {
             errorMessage = "Failed to save session progress: \(error.localizedDescription)"
-            print("❌ Error saving session progress: \(error)")
         }
 
         isLoading = false

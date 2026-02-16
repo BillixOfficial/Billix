@@ -244,7 +244,6 @@ class TipViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false
-            print("❌ Error loading tip: \(error)")
         }
     }
 
@@ -311,7 +310,6 @@ class TipViewModel: ObservableObject {
 
         } catch {
             errorMessage = error.localizedDescription
-            print("❌ Error marking tip as read: \(error)")
         }
     }
 }

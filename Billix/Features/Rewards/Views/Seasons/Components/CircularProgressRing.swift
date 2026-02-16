@@ -796,7 +796,6 @@ private struct CoinCallout: View {
         Group {
             if claimState == .claimable {
                 Button {
-                    print("🪙 CoinCallout[\(reward)] TAPPED — calling onTap")
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     onTap?()
                 } label: {
@@ -818,7 +817,6 @@ private struct CoinCallout: View {
 
     private func startAnimationsIfNeeded() {
         guard claimState == .claimable else { return }
-        print("🪙 CoinCallout[\(reward)] → claimable, starting bounce+glow")
         withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
             isGlowing = true
         }

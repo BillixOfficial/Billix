@@ -468,7 +468,6 @@ class QuizViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false
-            print("❌ Error loading quiz: \(error)")
         }
     }
 
@@ -555,7 +554,6 @@ class QuizViewModel: ObservableObject {
 
         } catch {
             errorMessage = error.localizedDescription
-            print("❌ Error submitting quiz: \(error)")
         }
     }
 }

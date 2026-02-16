@@ -197,7 +197,7 @@ class RewardsViewModel: ObservableObject {
             animateLifetimeChange(to: points.lifetimeEarned)
 
         } catch {
-            print("❌ Failed to load rewards data: \(error)")
+            // Error loading rewards data
             // Initialize with empty data on error
             points = RewardsPoints(balance: 0, lifetimeEarned: 0, transactions: [])
         }
@@ -317,7 +317,7 @@ class RewardsViewModel: ObservableObject {
 
             } catch {
                 if !Task.isCancelled {
-                    print("❌ Failed to add points: \(error)")
+                    // Failed to add points
                 }
             }
         }
@@ -350,7 +350,6 @@ class RewardsViewModel: ObservableObject {
     }
 
     func claimMilestone(_ milestone: GaugeMilestone) {
-        print("🪙 claimMilestone called: \(milestone.points) pts, \(milestone.coinReward) coins")
         guard !isClaimingMilestone, milestone.claimState == .claimable else { return }
         isClaimingMilestone = true
 
@@ -394,7 +393,7 @@ class RewardsViewModel: ObservableObject {
                 try? await Task.sleep(nanoseconds: 2_500_000_000)
                 self.lastCoinClaim = nil
             } catch {
-                print("❌ Failed to claim milestone: \(error)")
+                // Failed to claim milestone
             }
 
             self.isClaimingMilestone = false
@@ -445,7 +444,7 @@ class RewardsViewModel: ObservableObject {
 
             } catch {
                 if !Task.isCancelled {
-                    print("❌ Failed to redeem reward: \(error)")
+                    // Failed to redeem reward
                 }
             }
         }
@@ -491,7 +490,7 @@ class RewardsViewModel: ObservableObject {
             animateBalanceChange(to: points.balance)
 
         } catch {
-            print("❌ Error redeeming gift card: \(error)")
+            // Error redeeming gift card
             errorMessage = "Failed to redeem gift card. Please try again."
         }
     }
@@ -587,7 +586,7 @@ class RewardsViewModel: ObservableObject {
 
             showDonationRequestSheet = false
         } catch {
-            print("❌ Error submitting donation: \(error)")
+            // Error submitting donation
             errorMessage = "Failed to submit donation request. Please try again."
         }
     }

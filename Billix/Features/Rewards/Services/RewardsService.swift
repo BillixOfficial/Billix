@@ -95,7 +95,6 @@ final class RewardsService: Sendable {
             return result.new_balance
         } catch {
             // Fallback to read-then-write (less safe but works without RPC)
-            print("⚠️ RPC not available, using fallback method")
             let currentPoints = try await getUserPoints(userId: userId)
             let currentLifetime = try await getLifetimePoints(userId: userId)
             let newPoints = currentPoints + amount
@@ -161,7 +160,6 @@ final class RewardsService: Sendable {
             return result.new_balance
         } catch {
             // Fallback to read-then-write (less safe but works without RPC)
-            print("⚠️ RPC not available, using fallback method")
             let currentPoints = try await getUserPoints(userId: userId)
 
             // Verify sufficient points

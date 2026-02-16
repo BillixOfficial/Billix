@@ -363,7 +363,6 @@ class PollViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false
-            print("❌ Error loading poll: \(error)")
         }
     }
 
@@ -443,7 +442,6 @@ class PollViewModel: ObservableObject {
 
         } catch {
             errorMessage = error.localizedDescription
-            print("❌ Error submitting vote: \(error)")
         }
     }
 }
