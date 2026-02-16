@@ -322,8 +322,8 @@ struct EarnPointsTabView: View {
                 WeeklyTasksSection(tasksViewModel: tasksViewModel)
                     .padding(.horizontal, 20)
 
-                // 5. Leaderboard Teaser (unchanged)
-                LeaderboardTeaser(
+                // 5. Leaderboard Teaser (card-based with notched container)
+                LeaderboardCardTeaser(
                     topSavers: viewModel.topSavers,
                     currentUser: viewModel.currentUserRank,
                     onSeeAll: { viewModel.showFullLeaderboard = true }
@@ -1593,104 +1593,6 @@ struct TaskCard: View {
     }
 }
 
-// MARK: - Leaderboard Teaser
-
-struct LeaderboardTeaser: View {
-    let topSavers: [LeaderboardEntry]
-    let currentUser: LeaderboardEntry?
-    var onSeeAll: (() -> Void)?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Leaderboard")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.billixDarkGreen)
-
-                Spacer()
-
-                if topSavers.count > 3 {
-                    Button {
-                        onSeeAll?()
-                    } label: {
-                        Text("See all")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.billixChartBlue)
-                    }
-                }
-            }
-
-            if topSavers.isEmpty {
-                // Empty state
-                VStack(spacing: 8) {
-                    Image(systemName: "trophy")
-                        .font(.system(size: 32))
-                        .foregroundColor(.billixMediumGreen.opacity(0.5))
-                    Text("No leaderboard data yet")
-                        .font(.system(size: 14))
-                        .foregroundColor(.billixMediumGreen)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-            } else {
-                VStack(spacing: 8) {
-                    ForEach(Array(topSavers.prefix(3))) { entry in
-                        LeaderboardMiniRow(entry: entry)
-                    }
-                }
-            }
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
-        )
-    }
-}
-
-struct LeaderboardMiniRow: View {
-    let entry: LeaderboardEntry
-
-    var body: some View {
-        HStack(spacing: 12) {
-            // Rank badge
-            Text("#\(entry.rank)")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(entry.rankBadgeColor)
-                .frame(width: 36)
-
-            // Avatar
-            Circle()
-                .fill(entry.rankBadgeColor.opacity(0.2))
-                .frame(width: 36, height: 36)
-                .overlay(
-                    Text(entry.avatarInitials)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(entry.rankBadgeColor)
-                )
-
-            // Name
-            Text(entry.displayName)
-                .font(.system(size: 14, weight: entry.isCurrentUser ? .bold : .medium))
-                .foregroundColor(entry.isCurrentUser ? .billixDarkGreen : .billixMediumGreen)
-
-            Spacer()
-
-            // Points
-            HStack(spacing: 4) {
-                Image(systemName: "star.fill")
-                    .font(.system(size: 11))
-                    .foregroundColor(.billixArcadeGold)
-
-                Text("\(entry.totalPoints)")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
-            }
-        }
-        .padding(.vertical, 8)
-    }
-}
 
 // MARK: - Full Leaderboard Sheet
 
@@ -1734,15 +1636,12 @@ struct FullLeaderboardSheet: View {
                     }
 
                     // Leaderboard list
-                    LazyVStack(spacing: 0) {
+                    LazyVStack(spacing: 10) {
                         ForEach(entries) { entry in
-                            FullLeaderboardRow(entry: entry)
-                            if entry.id != entries.last?.id {
-                                Divider()
-                                    .padding(.horizontal, 20)
-                            }
+                            LeaderboardUserCard(entry: entry)
                         }
                     }
+                    .padding(.horizontal, 20)
                     .padding(.top, 16)
                 }
                 .padding(.bottom, 40)
@@ -1762,70 +1661,6 @@ struct FullLeaderboardSheet: View {
     }
 }
 
-struct FullLeaderboardRow: View {
-    let entry: LeaderboardEntry
-
-    var body: some View {
-        HStack(spacing: 12) {
-            // Rank
-            ZStack {
-                if entry.rank <= 3 {
-                    Circle()
-                        .fill(entry.rankBadgeColor)
-                        .frame(width: 36, height: 36)
-
-                    Text("\(entry.rank)")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.white)
-                } else {
-                    Text("#\(entry.rank)")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.billixMediumGreen)
-                        .frame(width: 36)
-                }
-            }
-
-            // Avatar
-            Circle()
-                .fill(entry.rankBadgeColor.opacity(0.2))
-                .frame(width: 40, height: 40)
-                .overlay(
-                    Text(entry.avatarInitials)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(entry.rankBadgeColor)
-                )
-
-            // Handle
-            VStack(alignment: .leading, spacing: 2) {
-                Text(entry.displayName)
-                    .font(.system(size: 15, weight: entry.isCurrentUser ? .bold : .medium))
-                    .foregroundColor(entry.isCurrentUser ? .billixMoneyGreen : .billixDarkGreen)
-
-                if entry.isCurrentUser {
-                    Text("That's you!")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.billixMoneyGreen)
-                }
-            }
-
-            Spacer()
-
-            // Points
-            HStack(spacing: 4) {
-                Image(systemName: "star.fill")
-                    .font(.system(size: 12))
-                    .foregroundColor(.billixArcadeGold)
-
-                Text("\(entry.totalPoints)")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.billixDarkGreen)
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(entry.isCurrentUser ? Color.billixMoneyGreen.opacity(0.08) : Color.clear)
-    }
-}
 
 // MARK: - Featured Reward Card
 

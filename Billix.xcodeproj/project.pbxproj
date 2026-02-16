@@ -340,6 +340,7 @@
 		A6FF82422EDE3AD4008330C9 /* WalletHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82282EDE3AD4008330C9 /* WalletHeaderView.swift */; };
 		A6FF82432EDE3AD4008330C9 /* GeoGameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82102EDE3AD4008330C9 /* GeoGameModels.swift */; };
 		A6FF82442EDE3AD4008330C9 /* LeaderboardSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82212EDE3AD4008330C9 /* LeaderboardSection.swift */; };
+		6C8FE91EE54B47ECA3060ACD /* LeaderboardCardViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26418F841D04F67A32D89E8 /* LeaderboardCardViews.swift */; };
 		A6FF82452EDE3AD4008330C9 /* GeoGameMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82322EDE3AD4008330C9 /* GeoGameMapView.swift */; };
 		A6FF82462EDE3AD4008330C9 /* WeeklyGiveawayCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82292EDE3AD4008330C9 /* WeeklyGiveawayCard.swift */; };
 		A6FF82472EDE3AD4008330C9 /* RewardsHowItWorksSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FF82252EDE3AD4008330C9 /* RewardsHowItWorksSheet.swift */; };
@@ -850,6 +851,7 @@
 		A6FF821F2EDE3AD4008330C9 /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
 		A6FF82202EDE3AD4008330C9 /* HomeTierProgressBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeTierProgressBanner.swift; sourceTree = "<group>"; };
 		A6FF82212EDE3AD4008330C9 /* LeaderboardSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardSection.swift; sourceTree = "<group>"; };
+		F26418F841D04F67A32D89E8 /* LeaderboardCardViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardCardViews.swift; sourceTree = "<group>"; };
 		A6FF82222EDE3AD4008330C9 /* PriceGuessrIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceGuessrIcon.swift; sourceTree = "<group>"; };
 		A6FF82232EDE3AD4008330C9 /* RewardCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardCard.swift; sourceTree = "<group>"; };
 		A6FF82242EDE3AD4008330C9 /* RewardMarketplace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardMarketplace.swift; sourceTree = "<group>"; };
@@ -2074,6 +2076,7 @@
 				A6FF821F2EDE3AD4008330C9 /* GlassCard.swift */,
 				A6FF82202EDE3AD4008330C9 /* HomeTierProgressBanner.swift */,
 				A6FF82212EDE3AD4008330C9 /* LeaderboardSection.swift */,
+				F26418F841D04F67A32D89E8 /* LeaderboardCardViews.swift */,
 				A6FF82222EDE3AD4008330C9 /* PriceGuessrIcon.swift */,
 				A6FF82232EDE3AD4008330C9 /* RewardCard.swift */,
 				A6FF82242EDE3AD4008330C9 /* RewardMarketplace.swift */,
@@ -2838,6 +2841,7 @@
 				A6FF82432EDE3AD4008330C9 /* GeoGameModels.swift in Sources */,
 				A66170DF2F25E1F300B24FD5 /* EconomyNewsModels.swift in Sources */,
 				A6FF82442EDE3AD4008330C9 /* LeaderboardSection.swift in Sources */,
+				6C8FE91EE54B47ECA3060ACD /* LeaderboardCardViews.swift in Sources */,
 				A6E500062F185C98009F1277 /* BedroomListView.swift in Sources */,
 				A6E5FFE22F12AADE009F1277 /* ExploreLandingView.swift in Sources */,
 				A6FF82452EDE3AD4008330C9 /* GeoGameMapView.swift in Sources */,
